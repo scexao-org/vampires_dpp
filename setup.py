@@ -20,7 +20,7 @@ setup(
     name="vampires-dpp",
     version=version,
     description="Tools for processing VAMPIRES data",
-    python_requires=">=3.7,<3.10",
+    python_requires=">=3.9,<3.10",
     project_urls={
         "repository": "https://github.com/mileslucas/vampires-dpp",
     },
