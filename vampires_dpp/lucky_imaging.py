@@ -1,6 +1,5 @@
 # lucky imaging library functions
 
-from argparse import ArgumentError
 import numpy as np
 from skimage.registration import phase_cross_correlation
 from skimage.measure import centroid
@@ -28,7 +27,9 @@ def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
     """
 
     if q < 0 or q >= 1:
-        raise ArgumentError("The frame selection quantile must be less than or equal to 0 (no discard) and less than 1")
+        raise ValueError(
+            "The frame selection quantile must be less than or equal to 0 (no discard) and less than 1"
+        )
 
     tmp_cube = cube.copy()
     # do frame selection
@@ -36,7 +37,7 @@ def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
         values = measure_metric(cube, metric)
         cut = np.quantile(values, q)
         tmp_cube = cube[values >= cut]
-    
+
     if register == "dft":
         refidx = measure_metric(cube, metric).argmax()
         refframe = cube[refidx]
@@ -53,7 +54,9 @@ def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
             idx = centroid(frame)
             delta = center - idx
         elif register == "dft":
-            delta = phase_cross_correlation(refframe, frame, return_error=False, **kwargs)
+            delta = phase_cross_correlation(
+                refframe, frame, return_error=False, **kwargs
+            )
 
         tform = SimilarityTransform(translation=delta)
         shifted = warp(frame, tform)
@@ -61,15 +64,19 @@ def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
 
     return out
 
+
 def measure_metric(cube, metric):
     if metric == "max":
         values = np.max(cube, axis=(1, 2))
     elif metric == "min":
         values = np.min(cube, axis=(1, 2))
     else:
-        raise ArgumentError(f"Did not recognize frame selection metric {metric}. Please choose between 'max' and 'min'.")
+        raise ValueError(
+            f"Did not recognize frame selection metric {metric}. Please choose between 'max' and 'min'."
+        )
 
     return values
+
 
 def image_center(array):
     return np.asarray(array.shape) / 2

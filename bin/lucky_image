@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser
+from astropy.io import fits
+from pathlib import Path
+import numpy as np
+from vampires_dpp.lucky_imaging import lucky_image, measure_metric
+import logging
+
+parser = ArgumentParser()
+parser.add_argument(
+    "filename",
+    nargs="+",
+    help="FITS files to lucky image. If multiple files are provided, the frame selection metric will be calculated across all frames",
+)
+parser.add_argument("-q", "--quantile", type=float, default=0)
+parser.add_argument("-o", help="name of output file")
+parser.add_argument(
+    "-m",
+    "--metric",
+    default="max",
+    choices=["max", "min"],
+    help="Frame selection metric",
+)
+parser.add_argument(
+    "-r",
+    "--register",
+    default="max",
+    choices=["max", "com", "dft"],
+    help="Frame selection metric",
+)
+parser.add_argument(
+    "--upsample-factor",
+    default=10,
+    help="if using DFT registration, use this upsampling factor",
+)
+
+
+def lucky_image_across_cubes(filenames, metric, quantile):
+    pass
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    if len(args.filename) > 1:
+        sharp_frame = lucky_image_across_cubes(
+            args.filename, args.metric, args.quantile
+        )
+    else:
+        cube = fits.getdata(args.filename)
+        sharp_frame = lucky_image(
+            cube,
+            args.quantile,
+            metric=args.metric,
+            register=args.register,
+            upsample_factor=args.upsample_factor,
+        )
+
+    if args.o:
+        outname = args.o
+    else:
+        _path = Path(args.filename)
+        outname = _path.with_stem(f"{_path.stem}_lucky")
+    logging.info(f"saving output to f{outname}")
+    fits.writeto(outname, sharp_frame, overwrite=True)
