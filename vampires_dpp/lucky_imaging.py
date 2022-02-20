@@ -3,7 +3,7 @@
 import numpy as np
 from skimage.registration import phase_cross_correlation
 from skimage.measure import centroid
-from skimage.transform import SimilarityTransform, warp
+from skimage.transform import AffineTransform, warp
 
 
 def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
@@ -38,29 +38,31 @@ def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
         cut = np.quantile(values, q)
         tmp_cube = cube[values >= cut]
 
-    if register == "dft":
-        refidx = measure_metric(cube, metric).argmax()
-        refframe = cube[refidx]
-
-    out = np.zeros(cube.shape[1:], "f4")
     center = image_center(tmp_cube)[1:]
+    if register == "dft":
+        refidx = measure_metric(tmp_cube, metric).argmax()
+        refframe = tmp_cube[refidx]
+        refshift = np.unravel_index(refframe.argmax(), refframe.shape) - center
+
+    out = np.zeros(tmp_cube.shape[1:], "f4")
+    N = tmp_cube.shape[0]
     for i in range(tmp_cube.shape[0]):
         frame = tmp_cube[i]
         # measure offset
         if register == "max":
-            idx = np.argmax(frame)
-            delta = center - idx
+            idx = np.unravel_index(np.argmax(frame), frame.shape)
+            delta = idx - center
         elif register == "com":
             idx = centroid(frame)
-            delta = center - idx
+            delta = idx - center
         elif register == "dft":
-            delta = phase_cross_correlation(
+            delta = refshift - phase_cross_correlation(
                 refframe, frame, return_error=False, **kwargs
             )
 
-        tform = SimilarityTransform(translation=delta)
+        tform = AffineTransform(translation=delta[::-1])
         shifted = warp(frame, tform)
-        out += shifted
+        out += shifted / N
 
     return out
 
