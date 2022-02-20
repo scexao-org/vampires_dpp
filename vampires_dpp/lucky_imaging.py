@@ -30,8 +30,8 @@ def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
         raise ValueError(
             "The frame selection quantile must be less than or equal to 0 (no discard) and less than 1"
         )
-
-    tmp_cube = cube.copy()
+    # get endianness correct
+    tmp_cube = cube.byteswap().newbyteorder()
     # do frame selection
     if q > 0:
         values = measure_metric(cube, metric)

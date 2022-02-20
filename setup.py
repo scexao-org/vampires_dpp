@@ -31,7 +31,7 @@ setup(
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     package_data={},
     scripts=[
-        "bin/calibrate",
+        "bin/vpp",
         "bin/lucky_image"
     ],
     install_requires=[

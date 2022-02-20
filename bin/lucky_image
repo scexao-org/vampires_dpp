@@ -8,7 +8,6 @@ from vampires_dpp.lucky_imaging import lucky_image, measure_metric
 import logging
 import tqdm.auto as tqdm
 
-logging.basicConfig(level=logging.INFO)
 
 parser = ArgumentParser()
 parser.add_argument(
@@ -42,7 +41,7 @@ parser.add_argument(
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    for filename in tqdm.tqdm(args.filename, "processing cubes: "):
+    for filename in tqdm.tqdm(args.filename):
         _path = Path(filename)
         cube, hdr = fits.getdata(_path, header=True)
         logging.debug(f"file loaded from {cube}")
