@@ -48,7 +48,7 @@ def deinterleave(data):
 
     Returns
     -------
-    (state1, state2))
+    (state1, state2)
         two 3-D data cubes (t, y, x), one for every other frame from the original cube
     """
     set1 = data[::2]    
