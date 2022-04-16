@@ -11,21 +11,21 @@ def calibrate(data, discard=0, dark=None, flat=None, flip=False):
 
     Parameters
     ----------
-    data : _type_
-        _description_
+    data : ndarray
+        3-D cube (t, y, x) of data
     discard : int, optional
-        _description_, by default 0
-    dark : _type_, optional
-        _description_, by default None
-    flat : _type_, optional
-        _description_, by default None
+        The amount of leading frames to discard (for data which has destructive readout frames), by default 0
+    dark : ndarray, optional
+        If provided, will dark-subtract all frames by the provided 2-D master dark (y, x), by default None
+    flat : ndarray, optional
+        If provided, will flat-correct (after dark-subtraction) all frames by the provided 2-D master flat (y, x), by default None
     flip : bool, optional
-        _description_, by default False
+        If True, will flip the x-axis of the data, for de-mirroring cam2 data, by default False
 
     Returns
     -------
-    _type_
-        _description_
+    ndarray
+        3-D calibrated data cube (t, y, x)
     """
     # discard frames
     out = data.copy()[discard:]
