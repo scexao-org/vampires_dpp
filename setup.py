@@ -17,12 +17,12 @@ with open("README.md", "r") as fh:
 setup(
     long_description=readme,
     long_description_content_type="text/markdown",
-    name="vampires-dpp",
+    name="vampires_dpp",
     version=version,
     description="Tools for processing VAMPIRES data",
     python_requires=">=3.9,<3.10",
     project_urls={
-        "repository": "https://github.com/mileslucas/vampires-dpp",
+        "repository": "https://github.com/mileslucas/vampires_dpp",
     },
     author="Miles Lucas",
     author_email="mdlucas@hawaii.edu",
