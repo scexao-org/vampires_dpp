@@ -1,4 +1,3 @@
-
 def frame_center(image):
     """
     Find the center of the frame or cube in pixel coordinates
@@ -16,4 +15,3 @@ def frame_center(image):
     ny = image.shape[-2]
     nx = image.shape[-1]
     return (ny - 1) / 2, (nx - 1) / 2
-    

@@ -4,6 +4,7 @@ from astropy.io import fits
 import numpy as np
 from pathlib import Path
 
+
 def calibrate(data, discard=0, dark=None, flat=None, flip=False):
     """
     Basic frame calibration.
@@ -38,7 +39,8 @@ def calibrate(data, discard=0, dark=None, flat=None, flip=False):
         out = np.flip(out, axis=1)
     return out
 
-def calibrate_file(filename : str, suffix="_calib", hdu=0, **kwargs):
+
+def calibrate_file(filename: str, suffix="_calib", hdu=0, **kwargs):
     path = Path(filename)
     outname = path.with_stem(f"{path.stem}{suffix}")
     with fits.open(path) as hdus:
@@ -46,6 +48,7 @@ def calibrate_file(filename : str, suffix="_calib", hdu=0, **kwargs):
         hdr = hdus[hdu].header
         processed = calibrate(data, **kwargs)
         fits.writeto(outname, processed, hdr, overwrite=True)
+
 
 def deinterleave(data):
     """
@@ -61,11 +64,12 @@ def deinterleave(data):
     (state1, state2)
         two 3-D data cubes (t, y, x), one for every other frame from the original cube
     """
-    set1 = data[::2]    
+    set1 = data[::2]
     set2 = data[1::2]
     return set1, set2
 
-def deinterleave_file(filename : str, hdu=0, **kwargs):
+
+def deinterleave_file(filename: str, hdu=0, **kwargs):
     path = Path(filename)
     with fits.open(path) as hdus:
         data = hdus[hdu].data

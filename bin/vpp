@@ -69,7 +69,9 @@ subparsers = parser.add_subparsers()
 parser_calib = subparsers.add_parser("calib")
 parser_calib.add_argument("filename", nargs="+", help="FITS files to calibrate")
 parser_calib.add_argument("-d", "--dark", help="dark frame to subtract from raw frames")
-parser_calib.add_argument("-f", "--flat", help="normalized flat frame for correcting frames")
+parser_calib.add_argument(
+    "-f", "--flat", help="normalized flat frame for correcting frames"
+)
 parser_calib.add_argument("--discard", default=0, help="discard initial frames")
 parser_calib.add_argument(
     "-o", "--out", help="name of output file, by default will append name with `_calib`"

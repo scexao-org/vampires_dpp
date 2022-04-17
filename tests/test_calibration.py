@@ -3,8 +3,8 @@ from astropy.io import fits
 import numpy as np
 import pytest
 
-class TestDeinterleave:
 
+class TestDeinterleave:
     @pytest.fixture()
     def cube(self):
         pos = np.ones(10)
@@ -15,7 +15,6 @@ class TestDeinterleave:
         set1, set2 = deinterleave(cube)
         assert np.allclose(set1, 1)
         assert np.allclose(set2, -1)
-
 
     def test_deinterleave_files(self, tmp_path, cube):
         path = tmp_path / "cube.fits"

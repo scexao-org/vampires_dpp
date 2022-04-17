@@ -30,10 +30,7 @@ setup(
     license="MIT",
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     package_data={},
-    scripts=[
-        "bin/vpp",
-        "bin/lucky_image"
-    ],
+    scripts=["bin/vpp", "bin/lucky_image"],
     install_requires=[
         "astropy>=4,<6",
         "numpy>=1.16,<2",
