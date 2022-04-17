@@ -1,13 +1,15 @@
 import numpy as np
+from numpy.typing import ArrayLike
+from scipy.stats import circmean
 
 
-def frame_center(image):
+def frame_center(image: ArrayLike):
     """
     Find the center of the frame or cube in pixel coordinates
 
     Parameters
     ----------
-    image : ndarray
+    image : ArrayLike
         N-D array with the final two dimensions as the (y, x) axes.
 
     Returns
@@ -20,7 +22,7 @@ def frame_center(image):
     return (ny - 1) / 2, (nx - 1) / 2
 
 
-def flc_inds(flc_states, n=4):
+def flc_inds(flc_states: ArrayLike, n=4):
     """
     Find consistent runs of FLC states.
 
@@ -28,7 +30,7 @@ def flc_inds(flc_states, n=4):
 
     Parameters
     ----------
-    flc_states : list, ndarray
+    flc_states : ArrayLike
         The FLC states to sort through
     n : int, optional
         The number of files per HWP state, either 2 or 4. By default 4
@@ -51,3 +53,22 @@ def flc_inds(flc_states, n=4):
             idx += 1
 
     return inds
+
+
+def average_angle(angles: ArrayLike):
+    """
+    Return the circular mean of the given angles in degrees.
+
+    Parameters
+    ----------
+    angles : ArrayLike
+        Angles in degrees, between [180, -180]
+
+    Returns
+    -------
+    average_angle
+        The average angle in degrees via the circular mean
+    """
+    rads = np.deg2rad(angles)
+    radmean = circmean(rads, high=np.pi, low=-np.pi)
+    return np.rad2deg(radmean)
