@@ -1,7 +1,8 @@
 # library functions for common calibration tasks like
 # dark subtraction, collapsing cubes
-
+from astropy.io import fits
 import numpy as np
+from pathlib import Path
 
 def calibrate(data, discard=0, dark=None, flat=None, flip=False):
     """
@@ -37,6 +38,15 @@ def calibrate(data, discard=0, dark=None, flat=None, flip=False):
         out = np.flip(out, axis=1)
     return out
 
+def calibrate_file(filename : str, suffix="_calib", hdu=0, **kwargs):
+    path = Path(filename)
+    outname = path.with_stem(f"{path.stem}{suffix}")
+    with fits.open(path) as hdus:
+        data = hdus[hdu].data
+        hdr = hdus[hdu].header
+        processed = calibrate(data, **kwargs)
+        fits.writeto(outname, processed, hdr, overwrite=True)
+
 def deinterleave(data):
     """
     Deinterleave data into two seperate FLC states
@@ -54,3 +64,16 @@ def deinterleave(data):
     set1 = data[::2]    
     set2 = data[1::2]
     return set1, set2
+
+def deinterleave_file(filename : str, hdu=0, **kwargs):
+    path = Path(filename)
+    with fits.open(path) as hdus:
+        data = hdus[hdu].data
+        hdr = hdus[hdu].header
+        set1, set2 = deinterleave(data, **kwargs)
+        hdr1 = hdr.copy()
+        hdr1["U_FLCSTT"] = (1, "FLC state (1 or 2)")
+        hdr2 = hdr.copy()
+        hdr2["U_FLCSTT"] = (2, "FLC state (1 or 2)")
+        fits.writeto(path.with_stem(f"{path.stem}_FLC1"), set1, hdr1, overwrite=True)
+        fits.writeto(path.with_stem(f"{path.stem}_FLC2"), set2, hdr2, overwrite=True)

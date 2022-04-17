@@ -1,10 +1,31 @@
-from vampires_dpp.calibration import deinterleave
+from vampires_dpp.calibration import deinterleave, deinterleave_file
+from astropy.io import fits
 import numpy as np
+import pytest
 
-def test_deinterleave():
-    pos = np.ones(10)
-    neg = -pos
-    cube = np.vstack((pos, neg, pos, neg, pos, neg))
-    set1, set2 = deinterleave(cube)
-    assert np.allclose(set1, pos)
-    assert np.allclose(set2, neg)
+class TestDeinterleave:
+
+    @pytest.fixture()
+    def cube(self):
+        pos = np.ones(10)
+        neg = -pos
+        yield np.vstack((pos, neg, pos, neg, pos, neg))
+
+    def test_deinterleave(self, cube):
+        set1, set2 = deinterleave(cube)
+        assert np.allclose(set1, 1)
+        assert np.allclose(set2, -1)
+
+
+    def test_deinterleave_files(self, tmp_path, cube):
+        path = tmp_path / "cube.fits"
+        fits.writeto(path, cube)
+        deinterleave_file(path)
+        assert path.with_stem("cube_FLC1").exists()
+        assert path.with_stem("cube_FLC2").exists()
+        flc1, hdr1 = fits.getdata(path.with_stem("cube_FLC1"), header=True)
+        flc2, hdr2 = fits.getdata(path.with_stem("cube_FLC2"), header=True)
+        assert np.allclose(flc1, 1)
+        assert hdr1["U_FLCSTT"] == 1
+        assert np.allclose(flc2, -1)
+        assert hdr2["U_FLCSTT"] == 2
