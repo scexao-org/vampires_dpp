@@ -56,6 +56,6 @@ if __name__ == "__main__":
         if args.out:
             outname = args.out
         else:
-            outname = _path.with_stem(f"{_path.stem}_lucky")
+            outname = _path.with_name(f"{_path.stem}_lucky{_path.suffix}")
         logging.info(f"saving output to {outname}")
         fits.writeto(outname, sharp_frame, header=hdr, overwrite=True)

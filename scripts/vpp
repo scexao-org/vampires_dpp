@@ -24,7 +24,7 @@ def calib(args):
         if args.out:
             outname = args.out
         else:
-            outname = _path.with_stem(f"{_path.stem}_calib")
+            outname = _path.with_name(f"{_path.stem}_calib{_path.suffix}")
         fits.writeto(outname, out, header=header, overwrite=True)
 
 
@@ -36,7 +36,7 @@ def make_dark(args):
         if args.out:
             outname = args.out
         else:
-            outname = _path.with_stem(f"{_path.stem}_master_dark")
+            outname = _path.with_name(f"{_path.stem}_master_dark{_path.suffix}")
         fits.writeto(outname, master_dark, header=header, overwrite=True)
 
 
@@ -53,7 +53,7 @@ def make_flat(args):
         if args.out:
             outname = args.out
         else:
-            outname = _path.with_stem(f"{_path.stem}_master_flat")
+            outname = _path.with_name(f"{_path.stem}_master_flat{_path.suffix}")
         fits.writeto(outname, master_flat, header=header, overwrite=True)
 
 
