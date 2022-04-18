@@ -8,6 +8,8 @@
 !!! warning "Warning: Experimental"
     `vampires_dpp` is still under development, and the API can change without notice. Use with your own caution (and consider contributing).
 
+**Primary maintainer:** [Miles Lucas](https://github.com/mileslucas)
+
 VAMPIRES data processing tools. First time here? Take a look at the [examples](../examples/index.md)-
 
 1. TODO
