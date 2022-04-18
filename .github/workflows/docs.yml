@@ -17,9 +17,15 @@ jobs:
         with:
           python-version: "3.9"
           architecture: "x64"
-      - name: Deploy docs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CUSTOM_DOMAIN: mileslucas.com
-          EXTRA_PACKAGES: mkdocstrings mkdocstrings-python mkdocs-autorefs
+      - name: Install dependencies
+        run: |
+            pip install -U pip
+            pip install .[docs]
+      - name: Deploy with MkDocs
+        run: |
+            echo "mileslucas.com" > "${GITHUB_WORKSPACE}/docs/CNAME"
+            config_file="${GITHUB_WORKSPACE}/mkdocs.yml"
+            remote_repo="https://x-access-token:${GITHUB_TOKEN}@${GITHUB_DOMAIN:-"github.com"}/${GITHUB_REPOSITORY}.git"
+            git remote rm origin
+            git remote add origin "${remote_repo}"
+            mkdocs gh-deploy --config-file "$config_file" --force
