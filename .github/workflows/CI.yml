@@ -1,4 +1,4 @@
-name: CI
+name: CI tests
 on:
   push:
     branches: [main]
@@ -7,6 +7,7 @@ on:
     branches: [main]
   paths-ignore:
     - "docs/**"
+
 jobs:
   test:
     name: Python ${{ matrix.version }} - ${{ matrix.os }}
@@ -22,10 +23,11 @@ jobs:
         arch: ["x64"]
       steps:
       - uses: n1hility/cancel-previous-runs@v2
-        with: 
+        with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - name: Setup python ${{ matrix.version }}
+        uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.version }}
           architecture: ${{ matrix.arch }}
@@ -39,4 +41,3 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           fail_ci_if_error: true
-          
