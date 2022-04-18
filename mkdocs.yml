@@ -1,0 +1,35 @@
+site_name: VAMPIRES DPP
+site_url: https://mileslucas.com/vampires_dpp
+site_author: Miles Lucas
+repo_url: "https://github.com/mileslucas/vampires_dpp"
+copyright: "VAMPIRES DPP is licensed under the <a href='https://github.com/mileslucas/vampires_dpp/blob/main/LICENSE'>MIT license</a>"
+theme:
+  name: null
+  custom_dir: 'cinder'
+  colorscheme: github
+  highlightjs: true
+  hljs_languages:
+    - python
+nav:
+  - Home: "index.md"
+  - "API/Reference": "api.md"
+
+plugins:
+- search:
+- autorefs:
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        selection:
+          docstring_style: numpy
+        rendering:
+          docstring_section_style: table
+    watch:
+      - vampires_dpp
+
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: "#"
