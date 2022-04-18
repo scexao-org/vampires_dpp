@@ -23,7 +23,7 @@ def window_slice(frame, center, window):
     return range(lower[0], upper[0] + 1), range(lower[1], upper[1] + 1)
 
 
-def linear_coords(ys, xs):
+def cart_coords(ys, xs):
     Xg, Yg = np.meshgrid(ys, xs)
     return np.column_stack((Yg.ravel(), Xg.ravel()))
 
@@ -33,7 +33,7 @@ def window_indices(frame, window=30, center=None, **kwargs):
         center = frame_center(frame)
     centers = window_centers(center, **kwargs)
     slices = [window_slice(frame, center=cent, window=window) for cent in centers]
-    coords = [linear_coords(sl[0], sl[1]) for sl in slices]
+    coords = [cart_coords(sl[0], sl[1]) for sl in slices]
     inds = [
         np.ravel_multi_index((coord[:, 0], coord[:, 1]), frame.shape)
         for coord in coords
