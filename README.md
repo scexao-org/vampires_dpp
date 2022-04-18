@@ -1,6 +1,7 @@
 # VAMPIRES Data Processing Pipeline
 
-[![Build Status](https://github.com/mileslucas/vampires_dpp/workflows/CI/badge.svg?branch=main)](https://github.com/mileslucas/vampires_dpp/actions)
+[![CI tests](https://github.com/mileslucas/vampires_dpp/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/mileslucas/vampires_dpp/actions/workflows/CI.yml)
+[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://mileslucas.com/vampires_dpp)
 [![Coverage](https://codecov.io/gh/mileslucas/vampires_dpp/branch/main/graph/badge.svg)](https://codecov.io/gh/mileslucas/vampires_dpp)
 [![License](https://img.shields.io/github/license/mileslucas/vampires_dpp?color=yellow)](LICENSE)
 
