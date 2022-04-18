@@ -34,7 +34,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[test]
       - name: Run pytest
-        run: pytest --cov vampires_dpp --cov-report xml
+        run: pytest --cov vampires_dpp --cov-report xml --black --randomly-seed=4796
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v2
         with:
