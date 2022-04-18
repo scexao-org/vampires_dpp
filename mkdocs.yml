@@ -16,7 +16,6 @@ nav:
 
 plugins:
 - search:
-- autorefs:
 - mkdocstrings:
     default_handler: python
     handlers:

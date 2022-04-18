@@ -49,7 +49,6 @@ setup(
         "docs": {
             "mkdocs>=1.3,<2",
             "mkdocstrings[python]==0.18.*",
-            "mkdocs-autorefs==0.4.*",
         },
     },
 )
