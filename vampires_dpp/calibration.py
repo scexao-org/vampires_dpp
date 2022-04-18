@@ -42,7 +42,7 @@ def calibrate(data, discard=0, dark=None, flat=None, flip=False):
 
 def calibrate_file(filename: str, suffix="_calib", hdu=0, **kwargs):
     path = Path(filename)
-    outname = path.with_stem(f"{path.stem}{suffix}")
+    outname = path.with_name(f"{path.stem}{suffix}{path.suffix}")
     with fits.open(path) as hdus:
         data = hdus[hdu].data
         hdr = hdus[hdu].header
@@ -79,5 +79,9 @@ def deinterleave_file(filename: str, hdu=0, **kwargs):
         hdr1["U_FLCSTT"] = (1, "FLC state (1 or 2)")
         hdr2 = hdr.copy()
         hdr2["U_FLCSTT"] = (2, "FLC state (1 or 2)")
-        fits.writeto(path.with_stem(f"{path.stem}_FLC1"), set1, hdr1, overwrite=True)
-        fits.writeto(path.with_stem(f"{path.stem}_FLC2"), set2, hdr2, overwrite=True)
+        fits.writeto(
+            path.with_name(f"{path.stem}_FLC1{path.suffix}"), set1, hdr1, overwrite=True
+        )
+        fits.writeto(
+            path.with_name(f"{path.stem}_FLC2{path.suffix}"), set2, hdr2, overwrite=True
+        )

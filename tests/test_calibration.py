@@ -20,10 +20,14 @@ class TestDeinterleave:
         path = tmp_path / "cube.fits"
         fits.writeto(path, cube)
         deinterleave_file(path)
-        assert path.with_stem("cube_FLC1").exists()
-        assert path.with_stem("cube_FLC2").exists()
-        flc1, hdr1 = fits.getdata(path.with_stem("cube_FLC1"), header=True)
-        flc2, hdr2 = fits.getdata(path.with_stem("cube_FLC2"), header=True)
+        assert path.with_name(f"cube_FLC1{path.suffix}").exists()
+        assert path.with_name(f"cube_FLC2{path.suffix}").exists()
+        flc1, hdr1 = fits.getdata(
+            path.with_name(f"cube_FLC1{path.suffix}"), header=True
+        )
+        flc2, hdr2 = fits.getdata(
+            path.with_name(f"cube_FLC2{path.suffix}"), header=True
+        )
         assert np.allclose(flc1, 1)
         assert hdr1["U_FLCSTT"] == 1
         assert np.allclose(flc2, -1)
