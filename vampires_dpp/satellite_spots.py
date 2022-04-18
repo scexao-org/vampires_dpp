@@ -1,3 +1,4 @@
+from itertools import product
 import numpy as np
 from numpy.typing import ArrayLike
 
@@ -19,7 +20,12 @@ def window_slice(frame, center, window):
     upper = np.minimum(
         (Ny - 1, Nx - 1), np.round(center + half_width), dtype=int, casting="unsafe"
     )
-    return slice(lower[0], upper[0]), slice(lower[1], upper[1])
+    return range(lower[0], upper[0] + 1), range(lower[1], upper[1] + 1)
+
+
+def linear_coords(ys, xs):
+    Xg, Yg = np.meshgrid(ys, xs)
+    return np.column_stack((Yg.ravel(), Xg.ravel()))
 
 
 def window_indices(frame, window=30, center=None, **kwargs):
@@ -27,3 +33,17 @@ def window_indices(frame, window=30, center=None, **kwargs):
         center = frame_center(frame)
     centers = window_centers(center, **kwargs)
     slices = [window_slice(frame, center=cent, window=window) for cent in centers]
+    coords = [linear_coords(sl[0], sl[1]) for sl in slices]
+    inds = [
+        np.ravel_multi_index((coord[:, 0], coord[:, 1]), frame.shape)
+        for coord in coords
+    ]
+    return inds
+
+
+def window_masks(frame, **kwargs):
+    inds = window_indices(frame, **kwargs)
+    out = np.zeros(frame.size, dtype=bool)
+    for ind in inds:
+        out[ind] = True
+    return np.reshape(out, frame.shape)
