@@ -5,7 +5,7 @@ repo_url: "https://github.com/mileslucas/vampires_dpp"
 copyright: "VAMPIRES DPP is licensed under the <a href='https://github.com/mileslucas/vampires_dpp/blob/main/LICENSE'>MIT license</a>"
 theme:
   name: null
-  custom_dir: 'cinder'
+  custom_dir: 'docs/theme'
   colorscheme: github
   highlightjs: true
   hljs_languages:
@@ -16,6 +16,7 @@ nav:
 
 plugins:
 - search:
+- autorefs:
 - mkdocstrings:
     default_handler: python
     handlers:
