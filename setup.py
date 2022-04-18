@@ -35,6 +35,7 @@ setup(
         "astropy>=4,<6",
         "numpy>=1.16,<2",
         "scikit-image>=0.18,<0.20",
+        "scipy>=1.8,<2",
         "tqdm==4.*",
     ],
 )
