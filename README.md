@@ -13,10 +13,22 @@
 
 ## Installation
 
-    pip install -e . git+https://github.com/mileslucas/vampires_dpp#egg=vampires_dpp
+For now, install directly from GitHub
 
-## Usage
+    pip install git+https://github.com/mileslucas/vampires_dpp#egg=vampires_dpp
 
+otherwise clone this repository and install locally
+
+    git clone https://github.com/mileslucas/vampires_dpp
+    pip install vampires_dpp
+
+## Citing
+
+If you use `vampires_dpp` in your research, please consider citing it as software with the following DOI: [TODO](https://github.com/mileslucas/vampires_dpp/blob/main/CITAIONS.bib)
+
+## License
+
+`vampires_dpp` is licensed under the MIT open-source license. See [LICENSE](LICENSE) for more details.
 
 ## Contributing and Support
 
