@@ -1,5 +1,5 @@
 import numpy as np
-from skimage.transform import AffineTransform, warp
+from skimage.transform import rotate
 from scipy.ndimage import fourier_shift
 from numpy.typing import ArrayLike
 
@@ -11,9 +11,13 @@ def shift_frame(data: ArrayLike, shift):
     return shifted
 
 
-def derotate_frame(data: ArrayLike, angle):
-    tform = None
-    rotated = warp(data, tform)
+def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
+    # reverse user-given center because scikit-image
+    # uses swapped axes for this parameter only
+    if center is not None:
+        center = center[::-1]
+    rotate_kwargs = {"center": center, "mode": "reflect", "order": 3, **kwargs}
+    rotated = rotate(data, angle, **rotate_kwargs)
     return rotated
 
 

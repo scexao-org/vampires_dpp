@@ -21,13 +21,28 @@ def test_shift_frame():
 
 
 def test_derotate_frame():
-    array = np.asarray([[0, 0, 0], [1, 0, 0], [0, 0, 0]])
+    array = np.zeros((5, 5))
+    array[2, 1] = 1
 
     cw_90 = derotate_frame(array, 90)
-    assert np.allclose(cw_90, np.array([[0, 0, 0], [0, 0, 0], [0, 1, 0]]))
+    expected = np.zeros_like(array)
+    expected[3, 2] = 1
+    assert np.allclose(cw_90, expected)
 
     ccw_90 = derotate_frame(array, -90)
-    assert np.allclose(ccw_90, np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]))
+    expected = np.zeros_like(array)
+    expected[1, 2] = 1
+    assert np.allclose(ccw_90, expected)
+
+
+def test_derotate_frame_kwargs():
+    array = np.zeros((5, 5))
+    array[2, 1] = 1
+
+    cw_90 = derotate_frame(array, 90, order=2, mode="symmetric")
+    expected = np.zeros_like(array)
+    expected[3, 2] = 1
+    assert np.allclose(cw_90, expected)
 
 
 @pytest.mark.parametrize(
