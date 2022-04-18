@@ -24,7 +24,9 @@ plugins:
         selection:
           docstring_style: numpy
         rendering:
-          docstring_section_style: table
+          show_root_heading: true
+          heading_level: 4
+          show_root_full_path: false
     watch:
       - vampires_dpp
 
@@ -32,4 +34,4 @@ plugins:
 markdown_extensions:
   - admonition
   - toc:
-      permalink: "#"
+      permalink: true
