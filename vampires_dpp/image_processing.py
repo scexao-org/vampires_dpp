@@ -16,7 +16,13 @@ def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
     # uses swapped axes for this parameter only
     if center is not None:
         center = center[::-1]
-    rotate_kwargs = {"center": center, "mode": "reflect", "order": 3, **kwargs}
+    rotate_kwargs = {
+        "center": center,
+        "mode": "reflect",
+        "order": 3,
+        "preserve_range": True,
+        **kwargs,
+    }
     rotated = rotate(data, angle, **rotate_kwargs)
     return rotated
 

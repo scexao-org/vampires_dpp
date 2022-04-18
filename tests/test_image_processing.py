@@ -39,7 +39,7 @@ def test_derotate_frame_kwargs():
     array = np.zeros((5, 5))
     array[2, 1] = 1
 
-    cw_90 = derotate_frame(array, 90, order=2, mode="symmetric")
+    cw_90 = derotate_frame(array, 90, order=1, mode="symmetric")
     expected = np.zeros_like(array)
     expected[3, 2] = 1
     assert np.allclose(cw_90, expected)
