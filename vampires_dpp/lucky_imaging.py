@@ -4,6 +4,10 @@ import numpy as np
 from skimage.registration import phase_cross_correlation
 from skimage.measure import centroid
 from skimage.transform import AffineTransform, warp
+from scipy.ndimage import fourier_shift
+
+
+from .image_processing import frame_center
 
 
 def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
@@ -34,11 +38,11 @@ def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
     tmp_cube = cube.byteswap().newbyteorder()
     # do frame selection
     if q > 0:
-        values = measure_metric(cube, metric)
+        values = measure_metric(tmp_cube, metric)
         cut = np.quantile(values, q)
-        tmp_cube = cube[values >= cut]
+        tmp_cube = tmp_cube[values >= cut]
 
-    center = image_center(tmp_cube)[1:]
+    center = frame_center(tmp_cube)
     if register == "dft":
         refidx = measure_metric(tmp_cube, metric).argmax()
         refframe = tmp_cube[refidx]
@@ -67,18 +71,14 @@ def lucky_image(cube, q=0, metric="max", register="max", window=None, **kwargs):
     return out
 
 
-def measure_metric(cube, metric):
+def measure_metric(cube, metric="l2norm"):
     if metric == "max":
         values = np.max(cube, axis=(1, 2))
-    elif metric == "min":
-        values = np.min(cube, axis=(1, 2))
+    elif metric == "l2norm":
+        values = np.mean(cube**2, axis=(1, 2))
     else:
         raise ValueError(
-            f"Did not recognize frame selection metric {metric}. Please choose between 'max' and 'min'."
+            f"Did not recognize frame selection metric {metric}. Please choose between 'max' and 'l2norm'."
         )
 
     return values
-
-
-def image_center(array):
-    return np.asarray(array.shape) / 2
