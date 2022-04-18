@@ -10,19 +10,29 @@
 
 **Primary maintainer:** [Miles Lucas](https://github.com/mileslucas)
 
-VAMPIRES data processing tools. First time here? Take a look at the [examples](../examples/index.md)-
+VAMPIRES data processing tools. First time here? Take a look at the [tutorials](../tutorials/index.md)-
 
 1. TODO
+
+## Installation
+
+For now, install directly from GitHub
+
+    pip install git+https://github.com/mileslucas/vampires_dpp#egg=vampires_dpp
+
+otherwise clone this repository and install locally
+
+    git clone https://github.com/mileslucas/vampires_dpp
+    pip install vampires_dpp
+
 
 ## Citing
 
 If you use `vampires_dpp` in your research, please consider citing it as software with the following DOI: [TODO](https://github.com/mileslucas/vampires_dpp/blob/main/CITAIONS.bib)
 
-## Installation
-
-
-
 ## License
+
+`vampires_dpp` is licensed under the MIT open-source license. See [LICENSE](https://github.com/mileslucas/vampires_dpp/blob/main/LICENSE) for more details.
 
 ## Contributing and Support
 
