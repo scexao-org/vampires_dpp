@@ -23,7 +23,7 @@ jobs:
             pip install .[docs]
       - name: Deploy with MkDocs
         run: |
-            echo "mileslucas.com" > "${GITHUB_WORKSPACE}/docs/CNAME"
+            echo "mileslucas.com/vampires_dpp" > "${GITHUB_WORKSPACE}/docs/CNAME"
             config_file="${GITHUB_WORKSPACE}/mkdocs.yml"
             remote_repo="https://x-access-token:${GITHUB_TOKEN}@${GITHUB_DOMAIN:-"github.com"}/${GITHUB_REPOSITORY}.git"
             git remote rm origin
