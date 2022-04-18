@@ -38,4 +38,18 @@ setup(
         "scipy>=1.8,<2",
         "tqdm==4.*",
     ],
+    extras_require={
+        "test": [
+            "pytest==7.*",
+            "pytest-cov==3.*",
+            "pytest-randomly==3.*",
+            "black==22.*",
+            "pytest-black==0.3.*",
+        ],
+        "docs": {
+            "mkdocs>=1.3,<2",
+            "mkdocstrings[python]==0.18.*",
+            "mkdocs-autorefs==0.4.*",
+        },
+    },
 )
