@@ -35,6 +35,16 @@ def test_derotate_frame():
     assert np.allclose(ccw_90, expected)
 
 
+def test_derotate_frame_offset():
+    array = np.zeros((7, 5))
+    array[2, 1] = 1
+
+    cw_90 = derotate_frame(array, 90, center=(2, 2), mode="constant", cval=0)
+    expected = np.zeros_like(array)
+    expected[3, 2] = 1
+    assert np.allclose(cw_90, expected)
+
+
 def test_derotate_frame_kwargs():
     array = np.zeros((5, 5))
     array[2, 1] = 1
