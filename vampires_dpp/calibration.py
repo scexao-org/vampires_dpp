@@ -3,7 +3,7 @@
 from astropy.io import fits
 import numpy as np
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from numpy.typing import ArrayLike
 
 
@@ -54,6 +54,7 @@ def calibrate_file(
     hdu: int = 0,
     dark: Optional[str] = None,
     flat: Optional[str] = None,
+    flip: Union[str, bool] = "auto",
     **kwargs,
 ):
     path = Path(filename)
@@ -61,11 +62,16 @@ def calibrate_file(
     data, hdr = fits.getdata(path, hdu, header=True)
     if dark is not None:
         hdr["VPP_DARK"] = (dark.name, "file used for dark subtraction")
-        dark_arr = fits.getdata(dark)
+        dark = fits.getdata(dark)
     if flat is not None:
         hdr["VPP_FLAT"] = (flat.name, "file used for flat-fielding")
-        flat_arr = fits.getdata(flat)
-    processed = calibrate(data, dark=dark_arr, flat=flat_arr, **kwargs)
+        flat = fits.getdata(flat)
+    if flip == "auto":
+        if "U_CAMERA" in hdr:
+            flip = hdr["U_CAMERA"] == 2
+        else:
+            flip = "cam2" in path.stem
+    processed = calibrate(data, dark=dark, flat=flat, flip=flip, **kwargs)
     fits.writeto(outname, processed, hdr, overwrite=True)
 
 

@@ -101,21 +101,85 @@ class TestCalibrate:
 
     @pytest.fixture()
     def data_cube_cam1(self, dark_frame):
-        cube = 10 * np.random.randn(100, 512, 512) + dark_frame
-        cube += np.random.poisson(2e4, (100, 512, 512))
+        cube = 10 * np.random.randn(102, 512, 512) + dark_frame
+        cube += np.random.poisson(2e4, (102, 512, 512))
         return cube.astype("uint16")
 
     @pytest.fixture()
     def data_cube_cam2(self, dark_frame):
-        cube = 10 * np.random.randn(100, 512, 512) + dark_frame
-        cube += np.random.poisson(2.3e4, (100, 512, 512))
+        cube = 10 * np.random.randn(102, 512, 512) + dark_frame
+        cube += np.random.poisson(2.3e4, (102, 512, 512))
         cube = np.flip(cube, axis=1)
         return cube.astype("uint16")
 
     def test_calibrate(self, data_cube_cam1, data_cube_cam2, dark_frame, flat_frame):
         calib1 = calibrate(data_cube_cam1, dark=dark_frame, flat=flat_frame)
         calib2 = calibrate(data_cube_cam2, dark=dark_frame, flat=flat_frame, flip=True)
+        assert calib1.shape[0] == 102
+        assert calib2.shape[0] == 102
         assert np.allclose(np.median(calib1, axis=(1, 2)), 2e4, rtol=1e-3)
         assert np.allclose(np.median(calib2, axis=(1, 2)), 2.3e4, rtol=1e-3)
         # if flip didn't work, they won't add together
         assert np.allclose(np.median(calib1 + calib2, axis=(1, 2)), 4.3e4, rtol=1e-3)
+
+    def test_calibrate_files_dark(
+        self, tmp_path, data_cube_cam1, data_cube_cam2, dark_frame
+    ):
+        # save data to disk
+        dark_path = tmp_path / "master_dark_cam1.fits"
+        fits.writeto(dark_path, dark_frame)
+        path1 = tmp_path / "data_cube_cam1.fits"
+        fits.writeto(path1, data_cube_cam1)
+        path2 = tmp_path / "data_cube_cam2.fits"
+        fits.writeto(path2, data_cube_cam2)
+
+        calibrate_file(path1, dark=dark_path, discard=2)
+        calibrate_file(path2, dark=dark_path, suffix="_cal", discard=2)
+
+        calib1, hdr1 = fits.getdata(
+            path1.with_name(f"{path1.stem}_calib{path1.suffix}"), header=True
+        )
+        calib2, hdr2 = fits.getdata(
+            path2.with_name(f"{path2.stem}_cal{path2.suffix}"), header=True
+        )
+        assert calib1.shape[0] == 100
+        assert calib2.shape[0] == 100
+        assert np.allclose(np.median(calib1, axis=(1, 2)), 2e4, rtol=1e-3)
+        assert np.allclose(np.median(calib2, axis=(1, 2)), 2.3e4, rtol=1e-3)
+        # if flip didn't work, they won't add together
+        assert np.allclose(np.median(calib1 + calib2, axis=(1, 2)), 4.3e4, rtol=1e-3)
+        assert hdr1["VPP_DARK"] == dark_path.name
+        assert hdr2["VPP_DARK"] == dark_path.name
+
+    def test_calibrate_files_dark_and_flat(
+        self, tmp_path, data_cube_cam1, data_cube_cam2, dark_frame, flat_frame
+    ):
+        # save data to disk
+        dark_path = tmp_path / "master_dark_cam1.fits"
+        fits.writeto(dark_path, dark_frame)
+        flat_path = tmp_path / "master_flat_cam1.fits"
+        fits.writeto(flat_path, flat_frame)
+        path1 = tmp_path / "data_cube_cam1.fits"
+        fits.writeto(path1, data_cube_cam1)
+        path2 = tmp_path / "data_cube_cam2.fits"
+        fits.writeto(path2, data_cube_cam2)
+
+        calibrate_file(path1, dark=dark_path, flat=flat_path, discard=2)
+        calibrate_file(path2, dark=dark_path, flat=flat_path, suffix="_cal", discard=2)
+
+        calib1, hdr1 = fits.getdata(
+            path1.with_name(f"{path1.stem}_calib{path1.suffix}"), header=True
+        )
+        calib2, hdr2 = fits.getdata(
+            path2.with_name(f"{path2.stem}_cal{path2.suffix}"), header=True
+        )
+        assert calib1.shape[0] == 100
+        assert calib2.shape[0] == 100
+        assert np.allclose(np.median(calib1, axis=(1, 2)), 2e4, rtol=1e-3)
+        assert np.allclose(np.median(calib2, axis=(1, 2)), 2.3e4, rtol=1e-3)
+        # if flip didn't work, they won't add together
+        assert np.allclose(np.median(calib1 + calib2, axis=(1, 2)), 4.3e4, rtol=1e-3)
+        assert hdr1["VPP_DARK"] == dark_path.name
+        assert hdr2["VPP_DARK"] == dark_path.name
+        assert hdr1["VPP_FLAT"] == flat_path.name
+        assert hdr2["VPP_FLAT"] == flat_path.name
