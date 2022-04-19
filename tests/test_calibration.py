@@ -69,7 +69,7 @@ class TestCalibrationFrames:
         c, h = fits.getdata(tmp_path / "master_dark_cam1.fits", header=True)
         assert np.isclose(np.median(c), 200, rtol=1e-2)
 
-    def test_make_flat_file(self, tmp_path, flat_cube):
+    def test_make_flat_file(self, flat_cube):
         make_flat_file(flat_cube)
         c, h = fits.getdata(
             flat_cube.with_name(f"{flat_cube.stem}_master_flat{flat_cube.suffix}"),
