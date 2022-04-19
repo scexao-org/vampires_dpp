@@ -40,9 +40,9 @@ def calibrate(
     # discard frames
     out = data.copy()[discard:]
     if dark is not None:
-        out -= dark
+        out = out - dark
     if flat is not None:
-        out /= flat
+        out = out / flat
     if flip:
         out = np.flip(out, axis=1)
     return out
@@ -60,10 +60,10 @@ def calibrate_file(
     outname = path.with_name(f"{path.stem}{suffix}{path.suffix}")
     data, hdr = fits.getdata(path, hdu, header=True)
     if dark is not None:
-        hdr["VPP_DARK"] = (dark, "file used for dark subtraction")
+        hdr["VPP_DARK"] = (dark.name, "file used for dark subtraction")
         dark_arr = fits.getdata(dark)
     if flat is not None:
-        hdr["VPP_FLAT"] = (flat, "file used for flat-fielding")
+        hdr["VPP_FLAT"] = (flat.name, "file used for flat-fielding")
         flat_arr = fits.getdata(flat)
     processed = calibrate(data, dark=dark_arr, flat=flat_arr, **kwargs)
     fits.writeto(outname, processed, hdr, overwrite=True)
@@ -125,10 +125,11 @@ def make_flat_file(
     cube, header = fits.getdata(_path, header=True)
     cube = cube[discard:]
     if dark is not None:
-        header["VPP_DARK"] = (dark, "file used for dark subtraction")
+        header["VPP_DARK"] = (dark.name, "file used for dark subtraction")
         master_dark = fits.getdata(dark)
-        cube -= master_dark
+        cube = cube - master_dark
     master_flat = np.median(cube, axis=0)
+    master_flat /= np.median(master_flat)
     if output is not None:
         outname = output
     else:

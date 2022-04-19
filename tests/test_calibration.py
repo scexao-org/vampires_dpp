@@ -1,4 +1,9 @@
-from vampires_dpp.calibration import deinterleave, deinterleave_file
+from vampires_dpp.calibration import (
+    deinterleave,
+    deinterleave_file,
+    make_dark_file,
+    make_flat_file,
+)
 from astropy.io import fits
 import numpy as np
 import pytest
@@ -32,3 +37,49 @@ class TestDeinterleave:
         assert hdr1["U_FLCSTT"] == 1
         assert np.allclose(flc2, -1)
         assert hdr2["U_FLCSTT"] == 2
+
+
+class TestCalibrationFrames:
+    @pytest.fixture()
+    def dark_frame(self, tmp_path):
+        path = tmp_path / "master_dark_cam1.fits"
+        dark = np.random.randn(512, 512) + 200
+        fits.writeto(path, dark, overwrite=True)
+        return path
+
+    def test_make_dark_file(self, tmp_path):
+        cube = 10 * np.random.randn(100, 512, 512) + 200
+        path = tmp_path / "dark_file_cam1.fits"
+        fits.writeto(path, cube)
+        make_dark_file(path)
+        c, h = fits.getdata(
+            path.with_name(f"{path.stem}_master_dark{path.suffix}"), header=True
+        )
+        assert np.isclose(c.mean(), 200, rtol=1e-2)
+        make_dark_file(path, output=tmp_path / "master_dark_cam1.fits")
+        c, h = fits.getdata(tmp_path / "master_dark_cam1.fits", header=True)
+        assert np.isclose(c.mean(), 200, rtol=1e-2)
+
+    def test_make_flat_file(self, tmp_path):
+        data = 10 * np.random.randn(100, 512, 512) + 1.5e4
+        # add photon noise
+        data = np.random.poisson(data)
+        path = tmp_path / "flat_file_cam1.fits"
+        fits.writeto(path, data)
+        make_flat_file(path)
+        c, h = fits.getdata(
+            path.with_name(f"{path.stem}_master_flat{path.suffix}"), header=True
+        )
+        assert "VPP_DARK" not in h
+        assert np.isclose(c.mean(), 1.5e4, rtol=1e-2)
+
+    def test_make_flat_file_with_dark(self, tmp_path, dark_frame):
+        data = 10 * np.random.randn(100, 512, 512) + 1.5e4
+        # add photon noise
+        data = np.random.poisson(data)
+        path = tmp_path / "flat_file_cam1.fits"
+        fits.writeto(path, data)
+        make_flat_file(path, dark=dark_frame, output=tmp_path / "master_flat_cam1.fits")
+        c, h = fits.getdata(tmp_path / "master_flat_cam1.fits", header=True)
+        assert np.isclose(np.median(c), 1, rtol=1e-2)
+        assert h["VPP_DARK"] == dark_frame.name
