@@ -22,7 +22,7 @@ setup(
     description="Tools for processing VAMPIRES data",
     python_requires=">=3.7,<3.10",
     project_urls={
-        "repository": "https://github.com/mileslucas/vampires_dpp",
+        "repository": "https://github.com/scexao-org/vampires_dpp",
     },
     author="Miles Lucas",
     author_email="mdlucas@hawaii.edu",

@@ -1,8 +1,7 @@
 site_name: VAMPIRES DPP
-site_url: https://mileslucas.com/vampires_dpp
 site_author: Miles Lucas
-repo_url: "https://github.com/mileslucas/vampires_dpp"
-copyright: "VAMPIRES DPP is licensed under the <a href='https://github.com/mileslucas/vampires_dpp/blob/main/LICENSE'>MIT license</a>"
+repo_url: "https://github.com/scexao-org/vampires_dpp"
+copyright: "VAMPIRES DPP is licensed under the <a href='https://github.com/scexao-org/vampires_dpp/blob/main/LICENSE'>MIT license</a>"
 theme:
   name: null
   custom_dir: 'docs/theme'
