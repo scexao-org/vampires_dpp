@@ -60,12 +60,13 @@ def calibrate_file(
     path = Path(filename)
     outname = path.with_name(f"{path.stem}{suffix}{path.suffix}")
     data, hdr = fits.getdata(path, hdu, header=True)
+    data = data.astype("f4")
     if dark is not None:
         hdr["VPP_DARK"] = (dark.name, "file used for dark subtraction")
-        dark = fits.getdata(dark)
+        dark = fits.getdata(dark).astype("f4")
     if flat is not None:
         hdr["VPP_FLAT"] = (flat.name, "file used for flat-fielding")
-        flat = fits.getdata(flat)
+        flat = fits.getdata(flat).astype("f4")
     if flip == "auto":
         if "U_CAMERA" in hdr:
             flip = hdr["U_CAMERA"] == 2
@@ -113,7 +114,7 @@ def deinterleave_file(filename: str, hdu: int = 0, **kwargs):
 def make_dark_file(filename: str, output: Optional[str] = None, discard: int = 1):
     _path = Path(filename)
     cube, header = fits.getdata(_path, header=True)
-    master_dark = np.median(cube[discard:], axis=0)
+    master_dark = np.median(cube.astype("f4")[discard:], axis=0)
     if output is not None:
         outname = output
     else:
@@ -129,11 +130,11 @@ def make_flat_file(
 ):
     _path = Path(filename)
     cube, header = fits.getdata(_path, header=True)
-    cube = cube[discard:]
+    cube = cube.astype("f4")[discard:]
     if dark is not None:
         header["VPP_DARK"] = (dark.name, "file used for dark subtraction")
-        master_dark = fits.getdata(dark)
-        cube = cube - master_dark
+        master_dark = fits.getdata(dark).astype("f4")
+        cube -= master_dark
     master_flat = np.median(cube, axis=0)
     master_flat /= np.median(master_flat)
     if output is not None:

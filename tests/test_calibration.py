@@ -66,9 +66,11 @@ class TestCalibrationFrames:
         c, h = fits.getdata(
             path.with_name(f"{path.stem}_master_dark{path.suffix}"), header=True
         )
+        assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 200, rtol=1e-2)
         make_dark_file(path, output=tmp_path / "master_dark_cam1.fits")
         c, h = fits.getdata(tmp_path / "master_dark_cam1.fits", header=True)
+        assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 200, rtol=1e-2)
 
     def test_make_flat_file(self, flat_cube):
@@ -77,6 +79,7 @@ class TestCalibrationFrames:
             flat_cube.with_name(f"{flat_cube.stem}_master_flat{flat_cube.suffix}"),
             header=True,
         )
+        assert c.dtype == np.dtype(">f4")
         assert "VPP_DARK" not in h
         assert np.isclose(np.median(c), 1)
 
@@ -85,6 +88,7 @@ class TestCalibrationFrames:
             flat_cube, dark=dark_frame, output=tmp_path / "master_flat_cam1.fits"
         )
         c, h = fits.getdata(tmp_path / "master_flat_cam1.fits", header=True)
+        assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 1)
         assert h["VPP_DARK"] == dark_frame.name
 
@@ -115,6 +119,8 @@ class TestCalibrate:
     def test_calibrate(self, data_cube_cam1, data_cube_cam2, dark_frame, flat_frame):
         calib1 = calibrate(data_cube_cam1, dark=dark_frame, flat=flat_frame)
         calib2 = calibrate(data_cube_cam2, dark=dark_frame, flat=flat_frame, flip=True)
+        assert calib1.dtype == np.dtype("f4")
+        assert calib2.dtype == np.dtype("f4")
         assert calib1.shape[0] == 102
         assert calib2.shape[0] == 102
         assert np.allclose(np.median(calib1, axis=(1, 2)), 2e4, rtol=1e-3)
@@ -142,6 +148,8 @@ class TestCalibrate:
         calib2, hdr2 = fits.getdata(
             path2.with_name(f"{path2.stem}_cal{path2.suffix}"), header=True
         )
+        assert calib1.dtype == np.dtype(">f4")
+        assert calib2.dtype == np.dtype(">f4")
         assert calib1.shape[0] == 100
         assert calib2.shape[0] == 100
         assert np.allclose(np.median(calib1, axis=(1, 2)), 2e4, rtol=1e-3)
@@ -173,6 +181,8 @@ class TestCalibrate:
         calib2, hdr2 = fits.getdata(
             path2.with_name(f"{path2.stem}_cal{path2.suffix}"), header=True
         )
+        assert calib1.dtype == np.dtype(">f4")
+        assert calib2.dtype == np.dtype(">f4")
         assert calib1.shape[0] == 100
         assert calib2.shape[0] == 100
         assert np.allclose(np.median(calib1, axis=(1, 2)), 2e4, rtol=1e-3)
