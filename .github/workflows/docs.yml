@@ -23,9 +23,7 @@ jobs:
             pip install .[docs]
       - name: Deploy with MkDocs
         run: |
-            echo "scexao-org.com/vampires_dpp" > "${GITHUB_WORKSPACE}/docs/CNAME"
-            config_file="${GITHUB_WORKSPACE}/mkdocs.yml"
             remote_repo="https://x-access-token:${GITHUB_TOKEN}@${GITHUB_DOMAIN:-"github.com"}/${GITHUB_REPOSITORY}.git"
             git remote rm origin
             git remote add origin "${remote_repo}"
-            mkdocs gh-deploy --config-file "$config_file" --force
+            mkdocs gh-deploy --force
