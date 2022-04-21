@@ -1,7 +1,7 @@
 # VAMPIRES Data Processing Pipeline
 
 [![CI tests](https://github.com/scexao-org/vampires_dpp/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/scexao-org/vampires_dpp/actions/workflows/CI.yml)
-[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://scexao-org.github.io/vampires_dpp)
+[![Docs](https://github.com/scexao-org/vampires_dpp/actions/workflows/docs.yml/badge.svg?branch=main)](https://scexao-org.github.io/vampires_dpp)
 [![Coverage](https://codecov.io/gh/scexao-org/vampires_dpp/branch/main/graph/badge.svg)](https://codecov.io/gh/scexao-org/vampires_dpp)
 [![License](https://img.shields.io/github/license/scexao-org/vampires_dpp?color=yellow)](LICENSE)
 
