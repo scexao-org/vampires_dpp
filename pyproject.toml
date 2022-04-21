@@ -1,3 +1,6 @@
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "--cov vampires_dpp --randomly-seed=4796"
+
+[tool.black]
+include = "scripts/*"
