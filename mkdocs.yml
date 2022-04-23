@@ -12,6 +12,7 @@ theme:
 nav:
   - Home: "index.md"
   - "Getting Started": gettingstarted.md
+  - Tutorials: "tutorials/index.md"
   - "API/Reference": "api.md"
 
 plugins:
