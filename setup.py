@@ -34,6 +34,7 @@ setup(
     install_requires=[
         "astropy>=4,<6",
         "numpy>=1.16,<2",
+        "pandas>=1.2,<2",
         "scikit-image>=0.18,<0.20",
         "scipy>=1.7,<2",
         "tqdm==4.*",
