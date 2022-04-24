@@ -62,10 +62,9 @@ class TestCalibrationFrames:
         cube = 10 * np.random.randn(100, 512, 512) + 200
         path = tmp_path / "dark_file_cam1.fits"
         fits.writeto(path, cube.astype("uint16"))
-        make_dark_file(path)
-        c, h = fits.getdata(
-            path.with_name(f"{path.stem}_master_dark{path.suffix}"), header=True
-        )
+        outpath = make_dark_file(path)
+        assert outpath == path.with_name(f"{path.stem}_master_dark{path.suffix}")
+        c, h = fits.getdata(outpath, header=True)
         assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 200, rtol=1e-2)
         make_dark_file(path, output=tmp_path / "master_dark_cam1.fits")
@@ -74,9 +73,12 @@ class TestCalibrationFrames:
         assert np.isclose(np.median(c), 200, rtol=1e-2)
 
     def test_make_flat_file(self, flat_cube):
-        make_flat_file(flat_cube)
+        outpath = make_flat_file(flat_cube)
+        assert outpath == flat_cube.with_name(
+            f"{flat_cube.stem}_master_flat{flat_cube.suffix}"
+        )
         c, h = fits.getdata(
-            flat_cube.with_name(f"{flat_cube.stem}_master_flat{flat_cube.suffix}"),
+            outpath,
             header=True,
         )
         assert c.dtype == np.dtype(">f4")
@@ -84,10 +86,11 @@ class TestCalibrationFrames:
         assert np.isclose(np.median(c), 1)
 
     def test_make_flat_file_with_dark(self, tmp_path, dark_frame, flat_cube):
-        make_flat_file(
+        outpath = make_flat_file(
             flat_cube, dark=dark_frame, output=tmp_path / "master_flat_cam1.fits"
         )
-        c, h = fits.getdata(tmp_path / "master_flat_cam1.fits", header=True)
+        assert outpath == tmp_path / "master_flat_cam1.fits"
+        c, h = fits.getdata(outpath, header=True)
         assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 1)
         assert h["VPP_DARK"] == dark_frame.name
@@ -139,15 +142,14 @@ class TestCalibrate:
         path2 = tmp_path / "data_cube_cam2.fits"
         fits.writeto(path2, data_cube_cam2)
 
-        calibrate_file(path1, dark=dark_path, discard=2)
-        calibrate_file(path2, dark=dark_path, suffix="_cal", discard=2)
+        outpath1 = calibrate_file(path1, dark=dark_path, discard=2)
+        outpath2 = calibrate_file(path2, dark=dark_path, suffix="_cal", discard=2)
 
-        calib1, hdr1 = fits.getdata(
-            path1.with_name(f"{path1.stem}_calib{path1.suffix}"), header=True
-        )
-        calib2, hdr2 = fits.getdata(
-            path2.with_name(f"{path2.stem}_cal{path2.suffix}"), header=True
-        )
+        assert outpath1 == path1.with_name(f"{path1.stem}_calib{path1.suffix}")
+        assert outpath2 == path2.with_name(f"{path2.stem}_cal{path2.suffix}")
+
+        calib1, hdr1 = fits.getdata(outpath1, header=True)
+        calib2, hdr2 = fits.getdata(outpath2, header=True)
         assert calib1.dtype == np.dtype(">f4")
         assert calib2.dtype == np.dtype(">f4")
         assert calib1.shape[0] == 100
@@ -172,15 +174,16 @@ class TestCalibrate:
         path2 = tmp_path / "data_cube_cam2.fits"
         fits.writeto(path2, data_cube_cam2)
 
-        calibrate_file(path1, dark=dark_path, flat=flat_path, discard=2)
-        calibrate_file(path2, dark=dark_path, flat=flat_path, suffix="_cal", discard=2)
+        outpath1 = calibrate_file(path1, dark=dark_path, flat=flat_path, discard=2)
+        outpath2 = calibrate_file(
+            path2, dark=dark_path, flat=flat_path, suffix="_cal", discard=2
+        )
 
-        calib1, hdr1 = fits.getdata(
-            path1.with_name(f"{path1.stem}_calib{path1.suffix}"), header=True
-        )
-        calib2, hdr2 = fits.getdata(
-            path2.with_name(f"{path2.stem}_cal{path2.suffix}"), header=True
-        )
+        assert outpath1 == path1.with_name(f"{path1.stem}_calib{path1.suffix}")
+        assert outpath2 == path2.with_name(f"{path2.stem}_cal{path2.suffix}")
+
+        calib1, hdr1 = fits.getdata(outpath1, header=True)
+        calib2, hdr2 = fits.getdata(outpath2, header=True)
         assert calib1.dtype == np.dtype(">f4")
         assert calib2.dtype == np.dtype(">f4")
         assert calib1.shape[0] == 100

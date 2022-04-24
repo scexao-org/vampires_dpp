@@ -44,7 +44,7 @@ def calibrate(
     if flat is not None:
         out = out / flat
     if flip:
-        out = np.flip(out, axis=1)
+        out = np.flip(out, axis=-2)
     return out
 
 
@@ -74,6 +74,7 @@ def calibrate_file(
             flip = "cam1" in path.stem
     processed = calibrate(data, dark=dark, flat=flat, flip=flip, **kwargs)
     fits.writeto(outname, processed, hdr, overwrite=True)
+    return outname
 
 
 def deinterleave(data: ArrayLike):
@@ -103,12 +104,11 @@ def deinterleave_file(filename: str, hdu: int = 0, **kwargs):
     hdr1["U_FLCSTT"] = (1, "FLC state (1 or 2)")
     hdr2 = hdr.copy()
     hdr2["U_FLCSTT"] = (2, "FLC state (1 or 2)")
-    fits.writeto(
-        path.with_name(f"{path.stem}_FLC1{path.suffix}"), set1, hdr1, overwrite=True
-    )
-    fits.writeto(
-        path.with_name(f"{path.stem}_FLC2{path.suffix}"), set2, hdr2, overwrite=True
-    )
+    outname1 = path.with_name(f"{path.stem}_FLC1{path.suffix}")
+    outname2 = path.with_name(f"{path.stem}_FLC2{path.suffix}")
+    fits.writeto(outname1, set1, hdr1, overwrite=True)
+    fits.writeto(outname2, set2, hdr2, overwrite=True)
+    return outname1, outname2
 
 
 def make_dark_file(filename: str, output: Optional[str] = None, discard: int = 1):
@@ -120,6 +120,7 @@ def make_dark_file(filename: str, output: Optional[str] = None, discard: int = 1
     else:
         outname = _path.with_name(f"{_path.stem}_master_dark{_path.suffix}")
     fits.writeto(outname, master_dark, header=header, overwrite=True)
+    return outname
 
 
 def make_flat_file(
@@ -142,3 +143,4 @@ def make_flat_file(
     else:
         outname = _path.with_name(f"{_path.stem}_master_flat{_path.suffix}")
     fits.writeto(outname, master_flat, header=header, overwrite=True)
+    return outname
