@@ -26,12 +26,12 @@ def test_derotate_frame():
 
     cw_90 = derotate_frame(array, 90)
     expected = np.zeros_like(array)
-    expected[3, 2] = 1
+    expected[1, 2] = 1
     assert np.allclose(cw_90, expected)
 
     ccw_90 = derotate_frame(array, -90)
     expected = np.zeros_like(array)
-    expected[1, 2] = 1
+    expected[3, 2] = 1
     assert np.allclose(ccw_90, expected)
 
 
@@ -41,7 +41,7 @@ def test_derotate_frame_offset():
 
     cw_90 = derotate_frame(array, 90, center=(2, 2), mode="constant", cval=0)
     expected = np.zeros_like(array)
-    expected[3, 2] = 1
+    expected[1, 2] = 1
     assert np.allclose(cw_90, expected)
 
 
@@ -51,7 +51,7 @@ def test_derotate_frame_kwargs():
 
     cw_90 = derotate_frame(array, 90, order=1, mode="symmetric")
     expected = np.zeros_like(array)
-    expected[3, 2] = 1
+    expected[1, 2] = 1
     assert np.allclose(cw_90, expected)
 
 
