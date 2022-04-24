@@ -67,11 +67,11 @@ def calibrate_file(
     if flat is not None:
         hdr["VPP_FLAT"] = (flat.name, "file used for flat-fielding")
         flat = fits.getdata(flat).astype("f4")
-    if flip == "auto":
+    if flip == "auto":  # flip camera 1 (vcamim1)
         if "U_CAMERA" in hdr:
-            flip = hdr["U_CAMERA"] == 2
+            flip = hdr["U_CAMERA"] == 1
         else:
-            flip = "cam2" in path.stem
+            flip = "cam1" in path.stem
     processed = calibrate(data, dark=dark, flat=flat, flip=flip, **kwargs)
     fits.writeto(outname, processed, hdr, overwrite=True)
 
