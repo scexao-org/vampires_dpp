@@ -1,9 +1,10 @@
 from astropy.io import fits
 from astropy.time import Time
+from pathlib import Path
 from typing import Optional
 
 
-def fix_header(filename, output: Optional[str] = None):
+def fix_header(filename, output: Optional[str] = None, skip=False):
     """
     Apply fixes to headers based on known bugs
 
@@ -20,16 +21,22 @@ def fix_header(filename, output: Optional[str] = None):
     filename : pathlike
         Input FITS file
     output : Optional[str], optional
-        Output file name, if None will append `_fix` to the input filename, by default None
+        Output file name, if None will append "_fix" to the input filename, by default None
 
     Returns
     -------
     Path
         path of the updated FITS file
     """
-    path = filename
+    path = Path(filename)
     if output is None:
         output = path.with_name(f"{path.stem}_fix{path.suffix}")
+    else:
+        output = Path(output)
+
+    # skip file if output exists!
+    if skip and output.exists():
+        return output
 
     data, hdr = fits.getdata(path, header=True)
     # check if the millisecond delimiter is a color

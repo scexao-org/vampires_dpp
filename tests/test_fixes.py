@@ -22,6 +22,19 @@ def test_fix_header(tmp_path):
     assert _test_timestamp_mjd(hdr)
 
 
+def test_fix_header_skip(tmp_path):
+    output = tmp_path / f"{TEST_FILE.stem}_fix.fits"
+    path = fix_header(TEST_FILE, output=output)
+    # manually change header without changing filename
+    data, hdr = fits.getdata(path, header=True)
+    orig_mjd = hdr["MJD"]
+    hdr["MJD"] = orig_mjd + 0.1
+    fits.writeto(path, data, header=hdr, overwrite=True)
+    path = fix_header(TEST_FILE, output=output, skip=True)
+    hdr = fits.getheader(path)
+    assert hdr["MJD"] == orig_mjd + 0.1
+
+
 def _test_timestamp_iso(hdr, key):
     date = hdr["DATE-OBS"]
     key_str = f"{key}-STR"
