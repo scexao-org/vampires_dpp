@@ -13,6 +13,19 @@ VAMPIRES is an incredibly diverse instrument in its usage with SCExAO. It can be
 
 Depending on who you are, you may have to deal with a variety of VAMPIRES data formats. For open-use observers, this is the STARS gen-2 archive format, which is different from the format saved by VAMPIRES during acquisition, and is different from internal telemetry stream data. The `vampires_dpp` prioritizes the gen-2 format highest, but the API should be flexible enough to accommadate any user of VAMPIRES- observer or engineer.
 
+### Conventions
+
+The data follow these general specifications
+
+- Parallactic angles are specified as degrees CCW from the North-celestial pole
+- Image coordinates follow *python* conventions
+    - The bottom-left pixel center has coordinates `(0, 0)` (DS9 minus one)
+    - The natural axes for images in numpy arrays are `(y, x)` (transpose/reverse of DS9)
+    - The image center is therefore `(ny - 1) / 2, (nx - 1) / 2`
+- Camera 1 is flipped on its y-axis compared to sky
+    - The beam-splitter will naturally mirror the beam along this axis so camera 2 doesn't need flipped
+    
+
 ### Formats for imaging and PDI modes
 
 - Gen-2 archive format (**default for open-use observers**)
@@ -33,15 +46,6 @@ Depending on who you are, you may have to deal with a variety of VAMPIRES data f
 !!! danger "Note: Multiple HDU FITS files"
     Some old VAMPIRES data (circa 2019 and earlier) had multiple FITS header data units (HDUs) to store header information. `vampires_dpp` is not built to support these data, but a conversion script could be written if requested.
 
-### General information
-
-The data follow these general specifications
-
-- Parallactic angles are specified as degrees CCW from the North-celestial pole
-- Image coordinates follow *python* conventions
-    - The bottom-left pixel center has coordinates `(0, 0)` (DS9 minus one)
-    - The natural axes for images in numpy arrays are `(y, x)` (transpose/reverse of DS9)
-    - The image center is therefore `(ny - 1) / 2, (nx - 1) / 2`
 
 
 ## Processing Workflows
