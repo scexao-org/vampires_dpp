@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="author" content="Miles Lucas">
+    
+    <link rel="shortcut icon" href="../img/favicon.ico">
+
+    
+    <title>API/Reference - VAMPIRES DPP</title>
+    
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Noto+Sans+JP:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../css/base.min.css" rel="stylesheet">
+    <link href="../css/cinder.min.css" rel="stylesheet">
+
+    
+        
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+        
+    
+    <link href="../assets/_mkdocstrings.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+    
+
+     
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+
+            
+              <a class="navbar-brand" href="..">VAMPIRES DPP</a>
+            
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li >
+                        <a href="..">Home</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../gettingstarted/">Getting Started</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../tutorials/">Tutorials</a>
+                    </li>
+                
+                
+                
+                    <li class="active">
+                        <a href="./">API/Reference</a>
+                    </li>
+                
+                
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../tutorials/">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li class="disabled">
+                        <a rel="next" >
+                            Next <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/scexao-org/vampires_dpp/edit/master/docs/api.md"><i class="fab fa-github"></i> Edit on GitHub</a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        
+        
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#apireference">API/Reference</a></li>
+            <li class="second-level"><a href="#data-organization">Data Organization</a></li>
+                
+            <li class="second-level"><a href="#calibration">Calibration</a></li>
+                
+                <li class="third-level"><a href="#vampires_dpp.calibration.calibrate">calibrate()</a></li>
+                <li class="third-level"><a href="#vampires_dpp.calibration.deinterleave">deinterleave()</a></li>
+            <li class="second-level"><a href="#image-processing">Image Processing</a></li>
+                
+                <li class="third-level"><a href="#vampires_dpp.image_processing.frame_center">frame_center()</a></li>
+            <li class="second-level"><a href="#satellite-spots">Satellite Spots</a></li>
+                
+                <li class="third-level"><a href="#vampires_dpp.satellite_spots.window_masks">window_masks()</a></li>
+                <li class="third-level"><a href="#vampires_dpp.satellite_spots.window_indices">window_indices()</a></li>
+                <li class="third-level"><a href="#vampires_dpp.satellite_spots.window_centers">window_centers()</a></li>
+            <li class="second-level"><a href="#lucky-imaging">Lucky Imaging</a></li>
+                
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="apireference">API/Reference<a class="headerlink" href="#apireference" title="Permanent link">&para;</a></h1>
+<h2 id="data-organization">Data Organization<a class="headerlink" href="#data-organization" title="Permanent link">&para;</a></h2>
+<h2 id="calibration">Calibration<a class="headerlink" href="#calibration" title="Permanent link">&para;</a></h2>
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h4 id="vampires_dpp.calibration.calibrate" class="doc doc-heading">
+<code class="highlight language-python">calibrate(data, discard=0, dark=None, flat=None, flip=False)</code>
+
+
+<a href="#vampires_dpp.calibration.calibrate" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents first">
+
+      <p>Basic frame calibration.</p>
+<p>Will optionally do dark subtraction, flat correction, discard leading frames, and flip the axes for mirrored data.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>data</code></td>
+          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span></code>
+          </td>
+          <td><p>3-D cube (t, y, x) of data</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>discard</code></td>
+          <td>
+                <code>int, optional</code>
+          </td>
+          <td><p>The amount of leading frames to discard (for data which has destructive readout frames), by default 0</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dark</code></td>
+          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span>, optional</code>
+          </td>
+          <td><p>If provided, will dark-subtract all frames by the provided 2-D master dark (y, x), by default None</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>flat</code></td>
+          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span>, optional</code>
+          </td>
+          <td><p>If provided, will flat-correct (after dark-subtraction) all frames by the provided 2-D master flat (y, x), by default None</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>flip</code></td>
+          <td>
+                <code>bool, optional</code>
+          </td>
+          <td><p>If True, will flip the x-axis of the data, for de-mirroring cam2 data, by default False</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span></code>
+          </td>
+          <td><p>3-D calibrated data cube (t, y, x)</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+        <details class="quote">
+          <summary>Source code in <code>vampires_dpp/calibration.py</code></summary>
+          <pre class="highlight"><code class="language-python">def calibrate(
+    data: ArrayLike,
+    discard: int = 0,
+    dark: Optional[ArrayLike] = None,
+    flat: Optional[ArrayLike] = None,
+    flip: bool = False,
+):
+    """
+    Basic frame calibration.
+
+    Will optionally do dark subtraction, flat correction, discard leading frames, and flip the axes for mirrored data.
+
+    Parameters
+    ----------
+    data : ArrayLike
+        3-D cube (t, y, x) of data
+    discard : int, optional
+        The amount of leading frames to discard (for data which has destructive readout frames), by default 0
+    dark : ArrayLike, optional
+        If provided, will dark-subtract all frames by the provided 2-D master dark (y, x), by default None
+    flat : ArrayLike, optional
+        If provided, will flat-correct (after dark-subtraction) all frames by the provided 2-D master flat (y, x), by default None
+    flip : bool, optional
+        If True, will flip the x-axis of the data, for de-mirroring cam2 data, by default False
+
+    Returns
+    -------
+    ArrayLike
+        3-D calibrated data cube (t, y, x)
+    """
+    # discard frames
+    out = data.copy()[discard:]
+    if dark is not None:
+        out = out - dark
+    if flat is not None:
+        out = out / flat
+    if flip:
+        out = np.flip(out, axis=-2)
+    return out</code></pre>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h4 id="vampires_dpp.calibration.deinterleave" class="doc doc-heading">
+<code class="highlight language-python">deinterleave(data)</code>
+
+
+<a href="#vampires_dpp.calibration.deinterleave" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents first">
+
+      <p>Deinterleave data into two seperate FLC states</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>data</code></td>
+          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span></code>
+          </td>
+          <td><p>3-D data cube (t, y, x) from a single camera</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>state1, state2</code>
+          </td>
+          <td><p>two 3-D data cubes (t, y, x), one for every other frame from the original cube</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+        <details class="quote">
+          <summary>Source code in <code>vampires_dpp/calibration.py</code></summary>
+          <pre class="highlight"><code class="language-python">def deinterleave(data: ArrayLike):
+    """
+    Deinterleave data into two seperate FLC states
+
+    Parameters
+    ----------
+    data : ArrayLike
+        3-D data cube (t, y, x) from a single camera
+
+    Returns
+    -------
+    (state1, state2) : Tuple[ArrayLike, ArrayLike]
+        two 3-D data cubes (t, y, x), one for every other frame from the original cube
+    """
+    set1 = data[::2]
+    set2 = data[1::2]
+    return set1, set2</code></pre>
+        </details>
+    </div>
+
+  </div>
+
+
+<h2 id="image-processing">Image Processing<a class="headerlink" href="#image-processing" title="Permanent link">&para;</a></h2>
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h4 id="vampires_dpp.image_processing.frame_center" class="doc doc-heading">
+<code class="highlight language-python">frame_center(image)</code>
+
+
+<a href="#vampires_dpp.image_processing.frame_center" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents first">
+
+      <p>Find the center of the frame or cube in pixel coordinates</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>image</code></td>
+          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span></code>
+          </td>
+          <td><p>N-D array with the final two dimensions as the (y, x) axes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>cy, cx</code>
+          </td>
+          <td><p>A tuple of the image center in pixel coordinates</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+        <details class="quote">
+          <summary>Source code in <code>vampires_dpp/image_processing.py</code></summary>
+          <pre class="highlight"><code class="language-python">def frame_center(image: ArrayLike):
+    """
+    Find the center of the frame or cube in pixel coordinates
+
+    Parameters
+    ----------
+    image : ArrayLike
+        N-D array with the final two dimensions as the (y, x) axes.
+
+    Returns
+    -------
+    (cy, cx)
+        A tuple of the image center in pixel coordinates
+    """
+    ny = image.shape[-2]
+    nx = image.shape[-1]
+    return (ny - 1) / 2, (nx - 1) / 2</code></pre>
+        </details>
+    </div>
+
+  </div>
+
+
+
+<h2 id="satellite-spots">Satellite Spots<a class="headerlink" href="#satellite-spots" title="Permanent link">&para;</a></h2>
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h4 id="vampires_dpp.satellite_spots.window_masks" class="doc doc-heading">
+<code class="highlight language-python">window_masks(frame, **kwargs)</code>
+
+
+<a href="#vampires_dpp.satellite_spots.window_masks" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents first">
+
+      <p>Get a boolean mask for the satellite spots</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>frame</code></td>
+          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span></code>
+          </td>
+          <td><p>image frame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>**kwargs</code></td>
+          <td>
+          </td>
+          <td><p>Extra keyword arguments are passed to <code>window_indices</code></p></td>
+          <td>
+                <code>{}</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>mask</code></td>          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span></code>
+          </td>
+          <td><p>boolean mask where True indicates inclusion in satellite spot window</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+        <details class="quote">
+          <summary>Source code in <code>vampires_dpp/satellite_spots.py</code></summary>
+          <pre class="highlight"><code class="language-python">def window_masks(frame, **kwargs):
+    """
+    Get a boolean mask for the satellite spots
+
+    Parameters
+    ----------
+    frame : ArrayLike
+        image frame
+    **kwargs
+        Extra keyword arguments are passed to `window_indices`
+
+    Returns
+    -------
+    mask : ArrayLike
+        boolean mask where True indicates inclusion in satellite spot window
+    """
+    inds = window_indices(frame, **kwargs)
+    out = np.zeros(frame.size, dtype=bool)
+    for ind in inds:
+        out[ind] = True
+    return np.reshape(out, frame.shape)</code></pre>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h4 id="vampires_dpp.satellite_spots.window_indices" class="doc doc-heading">
+<code class="highlight language-python">window_indices(frame, window=30, center=None, **kwargs)</code>
+
+
+<a href="#vampires_dpp.satellite_spots.window_indices" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents first">
+
+      <p>Get the linear indices for each satellite spot</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>frame</code></td>
+          <td>
+                <code><span title="numpy.typing.ArrayLike">ArrayLike</span></code>
+          </td>
+          <td><p>image frame</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>window</code></td>
+          <td>
+                <code>float, Tuple, optional</code>
+          </td>
+          <td><p>window size, or tuple for each axis, by default 30</p></td>
+          <td>
+                <code>30</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>center</code></td>
+          <td>
+                <code>Tuple, optional</code>
+          </td>
+          <td><p>(y, x) coordinate of cross center, by default None, which defaults to the frame center.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>**kwargs</code></td>
+          <td>
+          </td>
+          <td><p>Extra keyword arguments are passed to <code>window_centers</code></p></td>
+          <td>
+                <code>{}</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>list</code>
+          </td>
+          <td><p>List of linear indices for each spot</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+        <details class="quote">
+          <summary>Source code in <code>vampires_dpp/satellite_spots.py</code></summary>
+          <pre class="highlight"><code class="language-python">def window_indices(frame, window=30, center=None, **kwargs):
+    """
+    Get the linear indices for each satellite spot
+
+    Parameters
+    ----------
+    frame : ArrayLike
+        image frame
+    window : float, Tuple, optional
+        window size, or tuple for each axis, by default 30
+    center : Tuple, optional
+        (y, x) coordinate of cross center, by default None, which defaults to the frame center.
+    **kwargs
+        Extra keyword arguments are passed to `window_centers`
+
+    Returns
+    -------
+    list
+        List of linear indices for each spot
+    """
+    if center is None:
+        center = frame_center(frame)
+    centers = window_centers(center, **kwargs)
+    slices = [window_slice(frame, center=cent, window=window) for cent in centers]
+    coords = [cart_coords(sl[0], sl[1]) for sl in slices]
+    inds = [
+        np.ravel_multi_index((coord[:, 0], coord[:, 1]), frame.shape)
+        for coord in coords
+    ]
+    return inds</code></pre>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h4 id="vampires_dpp.satellite_spots.window_centers" class="doc doc-heading">
+<code class="highlight language-python">window_centers(center, radius, theta=0, n=4)</code>
+
+
+<a href="#vampires_dpp.satellite_spots.window_centers" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents first">
+
+      <p>Get the centers (y, x) for each point <code>radius</code> away from <code>center</code> along <code>n</code> branches starting <code>theta</code> degrees CCW from the x-axis</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>center</code></td>
+          <td>
+                <code>Tuple</code>
+          </td>
+          <td><p>cross center (y, x)</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>radius</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>radius of the spot separation, in pixels</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>theta</code></td>
+          <td>
+                <code>float, optional</code>
+          </td>
+          <td><p>Offset the branches by the given number of degrees CCW from the x-axis, by default 0</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n</code></td>
+          <td>
+                <code>int, optional</code>
+          </td>
+          <td><p>the number of branches, by default 4</p></td>
+          <td>
+                <code>4</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>centers</code>
+          </td>
+          <td><p>list of centers (y, x) for each spot</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+        <details class="quote">
+          <summary>Source code in <code>vampires_dpp/satellite_spots.py</code></summary>
+          <pre class="highlight"><code class="language-python">def window_centers(center, radius, theta=0, n=4):
+    """
+    Get the centers (y, x) for each point `radius` away from `center` along `n` branches starting `theta` degrees CCW from the x-axis
+
+    Parameters
+    ----------
+    center : Tuple
+        cross center (y, x)
+    radius : float
+        radius of the spot separation, in pixels
+    theta : float, optional
+        Offset the branches by the given number of degrees CCW from the x-axis, by default 0
+    n : int, optional
+        the number of branches, by default 4
+
+    Returns
+    -------
+    centers
+        list of centers (y, x) for each spot
+    """
+    # get the angles for each branch
+    theta = np.linspace(0, 2 * np.pi, n, endpoint=False) + np.deg2rad(theta)
+    xs = radius * np.cos(theta) + center[1]
+    ys = radius * np.sin(theta) + center[0]
+    return list(zip(ys, xs))</code></pre>
+        </details>
+    </div>
+
+  </div>
+
+<h2 id="lucky-imaging">Lucky Imaging<a class="headerlink" href="#lucky-imaging" title="Permanent link">&para;</a></h2></div>
+        
+        
+    </div>
+
+    
+      <footer class="col-md-12 text-center">
+          
+          
+            <hr>
+            <p>
+            <small>VAMPIRES DPP is licensed under the <a href='https://github.com/scexao-org/vampires_dpp/blob/main/LICENSE'>MIT license</a></small><br>
+            
+            <small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+            </p>
+          
+
+          
+          
+      </footer>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../js/bootstrap-3.0.3.min.js"></script>
+
+    
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+        
+                <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/languages/python.min.js"></script>
+        
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    <script>var base_url = ".."</script>
+    
+    <script src="../js/base.js"></script>
+    <script src="../search/main.js"></script>
+
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>

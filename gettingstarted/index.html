@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="author" content="Miles Lucas">
+    
+    <link rel="shortcut icon" href="../img/favicon.ico">
+
+    
+    <title>Getting Started - VAMPIRES DPP</title>
+    
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Noto+Sans+JP:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../css/base.min.css" rel="stylesheet">
+    <link href="../css/cinder.min.css" rel="stylesheet">
+
+    
+        
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+        
+    
+    <link href="../assets/_mkdocstrings.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+    
+
+     
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+
+            
+              <a class="navbar-brand" href="..">VAMPIRES DPP</a>
+            
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li >
+                        <a href="..">Home</a>
+                    </li>
+                
+                
+                
+                    <li class="active">
+                        <a href="./">Getting Started</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../tutorials/">Tutorials</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../api/">API/Reference</a>
+                    </li>
+                
+                
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="..">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="next" href="../tutorials/">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/scexao-org/vampires_dpp/edit/master/docs/gettingstarted.md"><i class="fab fa-github"></i> Edit on GitHub</a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        
+        
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#getting-started">Getting started</a></li>
+            <li class="second-level"><a href="#vampires-observation-modes">VAMPIRES Observation Modes</a></li>
+                
+            <li class="second-level"><a href="#vampires-data-formats">VAMPIRES Data Formats</a></li>
+                
+                <li class="third-level"><a href="#conventions">Conventions</a></li>
+                <li class="third-level"><a href="#formats-for-imaging-and-pdi-modes">Formats for imaging and PDI modes</a></li>
+            <li class="second-level"><a href="#processing-workflows">Processing Workflows</a></li>
+                
+            <li class="second-level"><a href="#getting-help">Getting Help</a></li>
+                
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
+<h2 id="vampires-observation-modes">VAMPIRES Observation Modes<a class="headerlink" href="#vampires-observation-modes" title="Permanent link">&para;</a></h2>
+<p>VAMPIRES is an incredibly diverse instrument in its usage with SCExAO. It can be used for studying evolved stellar physics, protoplanetary disks, polarimetry, H-ɑ emission, in addition to an interferometric mode via sparse aperture masking (SAM). VAMPIRES is also used for focal-plane wavefront sensing, for example using differential focus for <a href="">phase diversity</a>, as well as complementary data for infrared observations (i.e., telemetry). <code>vampires_dpp</code> provides tooling primarily for imaging modes, although the image-processing tools provide building blocks for a variety of applications of VAMPIRES data (and PRs are welcome for interferometric modes!). The following observation modes have well-defined tutorials and workflows, and represent the majority of open-use observations</p>
+<ol>
+<li>Speckle imaging / telemetry (TODO)</li>
+<li>Polarimetric differential imaging (TODO)</li>
+<li>Coronagraphic polarimetric differential imaging (TODO)</li>
+<li>H-ɑ differential imaging (TODO)</li>
+</ol>
+<h2 id="vampires-data-formats">VAMPIRES Data Formats<a class="headerlink" href="#vampires-data-formats" title="Permanent link">&para;</a></h2>
+<p>Depending on who you are, you may have to deal with a variety of VAMPIRES data formats. For open-use observers, this is the STARS gen-2 archive format, which is different from the format saved by VAMPIRES during acquisition, and is different from internal telemetry stream data. The <code>vampires_dpp</code> prioritizes the gen-2 format highest, but the API should be flexible enough to accommadate any user of VAMPIRES- observer or engineer.</p>
+<h3 id="conventions">Conventions<a class="headerlink" href="#conventions" title="Permanent link">&para;</a></h3>
+<p>The data follow these general specifications</p>
+<ul>
+<li>Parallactic angles are specified as degrees CCW from the North-celestial pole</li>
+<li>Image coordinates follow <em>python</em> conventions<ul>
+<li>The bottom-left pixel center has coordinates <code>(0, 0)</code> (DS9 minus one)</li>
+<li>The natural axes for images in numpy arrays are <code>(y, x)</code> (transpose/reverse of DS9)</li>
+<li>The image center is therefore <code>(ny - 1) / 2, (nx - 1) / 2</code></li>
+</ul>
+</li>
+<li>Camera 1 is flipped on its y-axis compared to sky<ul>
+<li>The beam-splitter will naturally mirror the beam along this axis so camera 2 doesn't need flipped</li>
+</ul>
+</li>
+</ul>
+<h3 id="formats-for-imaging-and-pdi-modes">Formats for imaging and PDI modes<a class="headerlink" href="#formats-for-imaging-and-pdi-modes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Gen-2 archive format (<strong>default for open-use observers</strong>)<ul>
+<li>Files are given frame id names, e.g. "VMPA0023445.fits"</li>
+<li>Each file corresponds to a single camera, FLC state, and HWP angle</li>
+<li>Rich FITS headers</li>
+</ul>
+</li>
+<li>VAMPIRES format<ul>
+<li>Files have names as set by controller, e.g. "HD141569A_00_750-50_LyotStop_00_cam1.fits"</li>
+<li>Each file is a raw cube from the camera, which includes bad readout frame in the first frame</li>
+<li>FLC states interleaved in every other frame for PDI mode</li>
+<li>Rich FITS headers</li>
+</ul>
+</li>
+<li>Stream format<ul>
+<li>Files are given stream names, e.g. "vcamim1_12:04:34.234412598.fits"</li>
+<li>Camera 1 and 2 may or may not be synced, depending on observer usage</li>
+<li>No meaningful metadata present in the FITS headers (e.g., gain, HWP, camera, etc.)</li>
+<li>Extremely precise frame-grabber timing</li>
+</ul>
+</li>
+</ul>
+<div class="admonition danger">
+<p class="admonition-title">Note: Multiple HDU FITS files</p>
+<p>Some old VAMPIRES data (circa 2019 and earlier) had multiple FITS header data units (HDUs) to store header information. <code>vampires_dpp</code> is not built to support these data, but a conversion script could be written if requested.</p>
+</div>
+<h2 id="processing-workflows">Processing Workflows<a class="headerlink" href="#processing-workflows" title="Permanent link">&para;</a></h2>
+<p><code>vampires_dpp</code> is built with multiple processing workflows in mind to support the large diversity of observing modes and usages of VAMPIRES. Typical VAMPIRES observations produce many gigabytes of data across hundreds of files, which means processing data must occur on a file-by-file basis, with the potential for multi-processing. A large portion of the <code>vampires_dpp</code> API is available in a command line interface (CLI) for quick processing of files and various other helpers. Despite the attractive ease of using the scripting interface, if you plan to publish or share the data you have reduced, please consider saving your commands in bash scripts or using the python interface and a python script so that your reductions can be shared with and reproduced by future investigators.</p>
+<p>As alluded to above, the most direct interface with the API is, well, the Python API itself! Any script you find will be composed of functions in the <code>vampires_dpp</code> python module, which gets installed when you <code>pip install</code> this code. If you are someone who likes working in Jupyter notebooks, or in interactive scripting environments like iPython, this will give you not only the most direct access to the API, but will allow you to customize your process however you please. The python methods even include the same progress bars and file-by-file processing of the command line tools!</p>
+<h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
+<p>Hopefully the tutorials we provide give enough explanation for the common use-cases of VAMPIRES, but if you ran into issues or have suggestions please let us know in the <a href="https://github.com/scexao-org/vampires_dpp/issue/new">issues</a>. If you have more complicated questions or data issues contact the SCExAO team directly (c.c. <a href="mailto:barnaby.norris@sydney.edu.au">Barnaby Norris</a> and <a href="mailto:mdlucas@hawaii.edu">Miles Lucas</a>).</p></div>
+        
+        
+    </div>
+
+    
+      <footer class="col-md-12 text-center">
+          
+          
+            <hr>
+            <p>
+            <small>VAMPIRES DPP is licensed under the <a href='https://github.com/scexao-org/vampires_dpp/blob/main/LICENSE'>MIT license</a></small><br>
+            
+            <small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+            </p>
+          
+
+          
+          
+      </footer>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../js/bootstrap-3.0.3.min.js"></script>
+
+    
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+        
+                <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/languages/python.min.js"></script>
+        
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    <script>var base_url = ".."</script>
+    
+    <script src="../js/base.js"></script>
+    <script src="../search/main.js"></script>
+
+    <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>
