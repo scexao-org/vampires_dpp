@@ -47,6 +47,6 @@ setup(
             "black==22.*",
             "pytest-black==0.3.*",
         ],
-        "docs": {"sphinx>=4.5,<5"},
+        "docs": {"sphinx>=4.5,<5", "myst_parser==0.17.*"},
     },
 )
