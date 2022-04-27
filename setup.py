@@ -47,10 +47,6 @@ setup(
             "black==22.*",
             "pytest-black==0.3.*",
         ],
-        "docs": {
-            "mkdocs>=1.3,<2",
-            "mkdocstrings[python]==0.18.*",
-            "mkdocs-autorefs==0.4.*",
-        },
+        "docs": {"sphinx>=4.5,<5"},
     },
 )
