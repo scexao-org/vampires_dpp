@@ -25,13 +25,13 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.mathjax",
-    "myst_parser",
+    "myst_nb",
 ]
 myst_enable_extensions = [
     "dollarmath",
 ]
 myst_heading_anchors = 2
-source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
+source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
@@ -41,3 +41,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "alabaster"
 html_static_path = ["_static"]
 html_title = "VAMPIRES DPP"
+html_theme = "sphinx_book_theme"
+html_theme_options = {
+    "github_url": "https://github.com/scexao-org/vampires_dpp",
+    "repository_url": "https://github.com/scexao-org/vampires_dpp",
+    "use_repository_button": True,
+    "repository_branch": "main",
+    "path_to_docs": "docs",
+    "use_fullscreen_button": False,
+}

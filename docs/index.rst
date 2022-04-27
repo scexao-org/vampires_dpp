@@ -11,7 +11,7 @@ VAMPIRES Data Processing Pipeline
    :target: https://github.com/scexao-org/vampires_dpp/blob/main/LICENSE
 
 
-.. WARNING:: Warning: Experimental
+.. WARNING::
     ``vampires_dpp`` is still under development, and the API can change without notice. Use with your own caution (and consider contributing).
 
 
