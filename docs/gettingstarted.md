@@ -1,17 +1,5 @@
 # Getting started
 
-## Installation
-
-For now, install directly from GitHub::
-
-    pip install git+https://github.com/scexao-org/vampires_dpp#egg=vampires_dpp
-
-otherwise clone this repository and install locally::
-
-    git clone https://github.com/scexao-org/vampires_dpp
-    pip install vampires_dpp
-
-
 ## VAMPIRES Observation Modes
 
 VAMPIRES is an incredibly diverse instrument in its usage with SCExAO. It can be used for studying evolved stellar physics, protoplanetary disks, polarimetry, H-ɑ emission, in addition to an interferometric mode via sparse aperture masking (SAM). VAMPIRES is also used for focal-plane wavefront sensing, for example using differential focus for [phase diversity](), as well as complementary data for infrared observations (i.e., telemetry). `vampires_dpp` provides tooling primarily for imaging modes, although the image-processing tools provide building blocks for a variety of applications of VAMPIRES data (and PRs are welcome for interferometric modes!). The following observation modes have well-defined tutorials and workflows, and represent the majority of open-use observations
@@ -40,7 +28,7 @@ The data follow these general specifications
 
 ### Formats for imaging and PDI modes
 
-- Gen-2 archive format (**default for open-use observers**)
+- STARS archive format (**default for open-use observers**)
     - Files are given frame id names, e.g. "VMPA0023445.fits"
     - Each file corresponds to a single camera, FLC state, and HWP angle
     - Rich FITS headers
@@ -55,8 +43,10 @@ The data follow these general specifications
     - No meaningful metadata present in the FITS headers (e.g., gain, HWP, camera, etc.)
     - Extremely precise frame-grabber timing
 
-!!! danger "Note: Multiple HDU FITS files"
-    Some old VAMPIRES data (circa 2019 and earlier) had multiple FITS header data units (HDUs) to store header information. `vampires_dpp` is not built to support these data, but a conversion script could be written if requested.
+```{admonition} Note: Multiple HDU FITS files
+:class: danger 
+Some old VAMPIRES data (circa 2019 and earlier) had multiple FITS header data units (HDUs) to store header information. `vampires_dpp` is not built to support these data, but a conversion script could be written if requested.
+```
 
 
 

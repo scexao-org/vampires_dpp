@@ -16,7 +16,13 @@ VAMPIRES Data Processing Pipeline
 
 **Primary maintainer:** `Miles Lucas <https://github.com/mileslucas>`_
 
-VAMPIRES data processing tools. First time here? Take a look at the tutorials
+VAMPIRES data processing tools. Get started by installing the package
+
+.. code-block:: bash
+
+   pip install git+https://github.com/scexao-org/vampires_dpp.git#egg=vampires_dpp
+
+and heading over to the `tutorials <./tutorials>`_.
 
 Contents
 --------
@@ -24,7 +30,9 @@ Contents
 .. toctree::
    :maxdepth: 1
 
+   installation
    gettingstarted
+   tutorials/index
    api/index
 
 
