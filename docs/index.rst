@@ -1,8 +1,6 @@
 VAMPIRES Data Processing Pipeline
 ========================================
 
-.. image:: https://img.shields.io/badge/Code-GitHub-black.svg
-   :target: https://github.com/scexao-org/vampires_dpp
 .. image:: https://github.com/scexao-org/vampires_dpp/actions/workflows/CI.yml/badge.svg?branch=main
    :target: https://github.com/scexao-org/vampires_dpp/actions/workflows/CI.yml
 .. image:: https://codecov.io/gh/scexao-org/vampires_dpp/branch/main/graph/badge.svg
@@ -11,42 +9,23 @@ VAMPIRES Data Processing Pipeline
    :target: https://github.com/scexao-org/vampires_dpp/blob/main/LICENSE
 
 
-.. WARNING::
-    ``vampires_dpp`` is still under development, and the API can change without notice. Use with your own caution (and consider contributing).
+.. admonition:: Warning: Experimental
+   :class: warning
 
+   ``vampires_dpp`` is still under development, and the API can change without notice. Use with your own caution (and consider contributing).
 
 **Primary maintainer:** `Miles Lucas <https://github.com/mileslucas>`_
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-      gettingstarted.md
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-
-
 VAMPIRES data processing tools. First time here? Take a look at the tutorials
 
+Contents
+--------
 
-Installation
----------------
+.. toctree::
+   :maxdepth: 1
 
-For now, install directly from GitHub::
-
-    pip install git+https://github.com/scexao-org/vampires_dpp#egg=vampires_dpp
-
-otherwise clone this repository and install locally::
-
-    git clone https://github.com/scexao-org/vampires_dpp
-    pip install vampires_dpp
+   gettingstarted
+   api/index
 
 
 Citing
@@ -65,3 +44,11 @@ Contributing and Support
 ------------------------
 
 If you would like to contribute, feel free to open a `pull request <https://github.com/scexao-org/vampires_dpp/pulls>`_. If you want to discuss something before contributing, head over to `discussions <https://github.com/scexao-org/vampires_dpp/discussions>`_ and join or open a new topic. If you're having problems with something, please open an `issue <https://github.com/scexao-org/vampires_dpp/issues>`_.
+
+
+Indices and Tables
+------------------
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

@@ -36,6 +36,9 @@ source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-n
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+autodoc_typehints = "description"
+autodoc_typehints_format = "short"
+
 # -- Options for HTML output -------------------------------------------------
 
 html_theme = "alabaster"
