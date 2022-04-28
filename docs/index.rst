@@ -39,7 +39,7 @@ Contents
 Citing
 ------
 
-If you use ``vampires_dpp`` in your research, please consider citing it as software with the following DOI: (`TODO <https://github.com/scexao-org/vampires_dpp/blob/main/CITAIONS.bib>`_)
+If you use ``vampires_dpp`` in your research, please consider citing it as software with the following DOI: (`TODO <https://github.com/scexao-org/vampires_dpp/blob/main/CITATIONS.bib>`_)
 
 
 License
