@@ -24,7 +24,7 @@ jobs:
             pip install .[docs]
       - uses: ammaraskar/sphinx-action@master
         with:
-        docs-folder: "docs/"
+          docs-folder: "docs/"
       - name: Commit documentation changes
         run: |
           git clone https://github.com/scexao-org/vampires_dpp.git --branch gh-pages --single-branch gh-pages
