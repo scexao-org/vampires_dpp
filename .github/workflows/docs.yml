@@ -31,10 +31,8 @@ jobs:
           git clone https://github.com/scexao-org/vampires_dpp.git --branch gh-pages --single-branch gh-pages
           cp -r _build/html/* gh-pages/
           cd gh-pages
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
           git add .
-          git commit -m "Update documentation" -a || true
+          git commit --author "GitHub Action <action@github.com>" -m "Update documentation" -a || true
           # The above command will fail if no changes were present, so we ignore
           # the return code.
       - name: Push changes
