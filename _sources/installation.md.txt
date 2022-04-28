@@ -16,10 +16,10 @@ This will install the required dependencies:
 
 - [numpy](https://numpy.org)
 - [astropy](https://www.astropy.org)
-- [pandas]()
-- [scikit-image]()
-- [scipy]()
-- [tqdm]()
+- [pandas](https://pandas.pydata.org/)
+- [scikit-image](https://scikit-image.org/)
+- [scipy](https://scipy.org/)
+- [tqdm](https://tqdm.github.io/)
 
 
 ## From Source
@@ -37,7 +37,7 @@ pip install -e .
 To run the unit tests, install the development dependencies using pip:
 
 ```bash
-pip install -e ".[test]"
+pip install -e .[test]
 ```
 
 and then execute:
@@ -47,19 +47,18 @@ pytest -v tests
 ```
 
 This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don't pass and if
-you can't sort out why, [open an issue on GitHub
-](https://github.com/scexao-org/vampires_dpp/issues).
+you can't sort out why, [open an issue on GitHub](https://github.com/scexao-org/vampires_dpp/issues).
 
 
 ```{eval-rst}
-.. admonition:: debugging tests in VS code
+.. admonition:: Debugging tests in VS code
     :class: tip
     
-    The default pytest configuration runs with coverage, which disables certain python debuggin environments, like in VS code. To fix this, add::
+    The default pytest configuration runs with coverage, which disables certain python debugging environments, like in VS code. To fix this, add::
     
         "python.testing.pytestArgs": ["tests", "--no-cov"]
     
-    to `settings.json` either globally or locally.
+    to ``settings.json`` either globally or locally.
 ```
 
 
