@@ -20,11 +20,12 @@ jobs:
           architecture: "x64"
       - name: Install dependencies
         run: |
-            pip install -U pip
-            pip install .[docs]
-      - uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
+          pip install -U pip
+          pip install .[docs]
+      - name: Build docs with sphinx
+        run: |
+          mkdir -p _build
+          sphinx-build -b html docs _build
       - name: Commit documentation changes
         run: |
           git clone https://github.com/scexao-org/vampires_dpp.git --branch gh-pages --single-branch gh-pages
