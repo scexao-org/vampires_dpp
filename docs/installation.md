@@ -1,5 +1,9 @@
 # Installation
 
+```{margin}
+`vampires_dpp` requires at least python 3.7
+```
+
 ## Using `pip`
 
 For now, install directly from GitHub

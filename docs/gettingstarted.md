@@ -18,10 +18,13 @@ Depending on who you are, you may have to deal with a variety of VAMPIRES data f
 The data follow these general specifications
 
 - Parallactic angles are specified as degrees CCW from the North-celestial pole
+```{margin} SAOImage DS9
+These coordinates are the transpose/reverse of DS9 and minus one.
+```
 - Image coordinates follow *python* conventions
-    - The bottom-left pixel center has coordinates `(0, 0)` (DS9 minus one)
-    - The natural axes for images in numpy arrays are `(y, x)` (transpose/reverse of DS9)
-    - The image center is therefore `(ny - 1) / 2, (nx - 1) / 2`
+    - The bottom-left pixel center has coordinates $(0, 0)$
+    - The natural axes for images in numpy arrays are $(y, x)$
+    - The image center is therefore $(N_y - 1)/2, (N_x - 1)/2$
 - Camera 1 is flipped on its y-axis compared to sky
     - The beam-splitter will naturally mirror the beam along this axis so camera 2 doesn't need flipped
     
@@ -43,7 +46,7 @@ The data follow these general specifications
     - No meaningful metadata present in the FITS headers (e.g., gain, HWP, camera, etc.)
     - Extremely precise frame-grabber timing
 
-```{admonition} Note: Multiple HDU FITS files
+```{admonition} Multiple HDU FITS files
 :class: danger 
 Some old VAMPIRES data (circa 2019 and earlier) had multiple FITS header data units (HDUs) to store header information. `vampires_dpp` is not built to support these data, but a conversion script could be written if requested.
 ```
