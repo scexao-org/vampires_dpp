@@ -371,9 +371,9 @@ title="Print to PDF"
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_altaz">
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_altaz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">az</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.823806</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_altaz" title="Permalink to this definition">#</a></dt>
-<dd><p>Calculate parallactic angle using the altitude/elevation and aziumth directly</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>math</p>
-<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<dd><p>Calculate parallactic angle using the altitude/elevation and azimuth directly</p>
+<div class="math notranslate nohighlight">
+\[\theta_\mathrm{PA} = \atan2{\frac{\sin\theta_\mathrm{HA}}{\tan\theta_\mathrm{lat}\cos\delta - \sin\delta \cos\theta_\mathrm{HA}}}\]</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
