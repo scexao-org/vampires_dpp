@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,7 +13,7 @@ jobs:
       - uses: n1hility/cancel-previous-runs@v2
         with: 
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v1
         with:
           python-version: "3.9"
@@ -21,9 +22,23 @@ jobs:
         run: |
             pip install -U pip
             pip install .[docs]
-      - name: Deploy with MkDocs
+      - uses: ammaraskar/sphinx-action@master
+        with:
+        docs-folder: "docs/"
+      - name: Commit documentation changes
         run: |
-            remote_repo="https://x-access-token:${GITHUB_TOKEN}@${GITHUB_DOMAIN:-"github.com"}/${GITHUB_REPOSITORY}.git"
-            git remote rm origin
-            git remote add origin "${remote_repo}"
-            mkdocs gh-deploy --force
+          git clone https://github.com/scexao-org/vampires_dpp.git --branch gh-pages --single-branch gh-pages
+          cp -r docs/_build/html/* gh-pages/
+          cd gh-pages
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Update documentation" -a || true
+          # The above command will fail if no changes were present, so we ignore
+          # the return code.
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: gh-pages
+          directory: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
