@@ -72,11 +72,10 @@ def parallactic_angle_hadec(ha, dec, lat=19.823806):
 
 def parallactic_angle_altaz(alt, az, lat=19.823806):
     """
-    Calculate parallactic angle using the altitude/elevation and aziumth directly
+    Calculate parallactic angle using the altitude/elevation and azimuth directly
 
-    ```math
-
-    ```
+    .. math::
+        \\theta_\\mathrm{PA} = \\atan2{\\frac{\\sin\\theta_\\mathrm{HA}}{\\tan\\theta_\mathrm{lat}\\cos\\delta - \\sin\\delta \\cos\\theta_\\mathrm{HA}}}
 
     Parameters
     ----------
