@@ -1,25 +1,35 @@
 import pandas as pd
 from astropy.io import fits
-from yaml import parse
 import numpy as np
+import tqdm.auto as tqdm
+from collections import OrderedDict
+from pathlib import Path
 
 
-def parse_header(filename, exclude=None, hdu="all"):
-    pass
+def dict_from_header(filename):
+    summary = OrderedDict()
+    summary["file"] = filename
+    summary["path"] = Path(filename).resolve()
 
+    header = fits.getheader(filename)
+    multi_entry_keys = {"COMMENT": [], "HISTORY": []}
+    for k, v in header.items():
+        if k == "":
+            continue
+        if k in multi_entry_keys:
+            multi_entry_keys[k].append(v)
+        summary[k] = v
 
-#     with fits.open(filename) as hdus:
-#         headers = [hdu.header for hdu in hdus]
+    for k, l in multi_entry_keys.items():
+        if len(l) > 0:
+            summary[k] = ", ".join(l)
 
-
-#     return reduce(lambda a,b: pd.merge())
+    return summary
 
 
 def observation_table(filenames, **kwargs):
-    rows = []
-    for filename in filenames:
-        rows.append(parse_header(filename, **kwargs))
-    return pd.concat(rows, axis=0)
+    rows = [dict_from_header(filename) for filename in filenames]
+    return pd.DataFrame(rows)
 
 
 def parallactic_angle(header):
