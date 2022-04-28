@@ -17,7 +17,7 @@ def dict_from_header(filename):
         if k == "":
             continue
         if k in multi_entry_keys:
-            multi_entry_keys[k].append(v)
+            multi_entry_keys[k].append(v.lstrip())
         summary[k] = v
 
     for k, l in multi_entry_keys.items():
