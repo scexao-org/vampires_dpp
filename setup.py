@@ -1,6 +1,6 @@
-from setuptools import setup, find_packages
 import os
 import re
+from setuptools import setup, find_packages
 
 version = ""
 
@@ -26,7 +26,7 @@ setup(
     },
     author="Miles Lucas",
     author_email="mdlucas@hawaii.edu",
-    maintainer="Miles Lucas <mdlucas@hawaii.edu",
+    maintainer="Miles Lucas <mdlucas@hawaii.edu>",
     license="MIT",
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     package_data={},
