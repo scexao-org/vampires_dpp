@@ -29,7 +29,7 @@ jobs:
       - name: Commit documentation changes
         run: |
           git clone https://github.com/scexao-org/vampires_dpp.git --branch gh-pages --single-branch gh-pages
-          cp -r _build/html/* gh-pages/
+          cp -r _build/* gh-pages/
           cd gh-pages
           git add .
           git commit --author "GitHub Action <action@github.com>" -m "Update documentation" -a || true
