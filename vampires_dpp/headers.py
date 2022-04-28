@@ -7,8 +7,19 @@ from pathlib import Path
 
 
 def dict_from_header(filename):
+    """
+    Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
+
+    Parameters
+    ----------
+    filename : str
+        FITS file to parse
+
+    Returns
+    -------
+    OrderedDict
+    """
     summary = OrderedDict()
-    summary["file"] = filename
     summary["path"] = Path(filename).resolve()
 
     header = fits.getheader(filename)

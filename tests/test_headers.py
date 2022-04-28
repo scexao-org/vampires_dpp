@@ -9,7 +9,6 @@ TEST_FILE = Path(TEST_DIR, "data", "VMPA00021059.fits")
 
 def test_dict_from_header():
     summary = dict_from_header(TEST_FILE)
-    assert summary["file"] == TEST_FILE
     assert summary["path"] == Path(TEST_FILE).resolve()
     assert summary["SIMPLE"]
     assert summary["BITPIX"] == 16
@@ -137,7 +136,6 @@ def test_observation_table():
     table = observation_table([TEST_FILE, TEST_FILE])
     assert len(table) == 2
     summary = table.iloc[0]
-    assert summary["file"] == TEST_FILE
     assert summary["path"] == Path(TEST_FILE).resolve()
     assert summary["SIMPLE"]
     assert summary["BITPIX"] == 16
