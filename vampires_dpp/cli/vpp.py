@@ -109,6 +109,11 @@ parser_comb.add_argument("filename", nargs="+", help="FITS files to median combi
 parser_comb.add_argument("-o", "--out", required=True)
 parser_comb.set_defaults(func=combine)
 
-if __name__ == "__main__":
+
+def main():
     args = parser.parse_args()
     args.func(args)
+
+
+if __name__ == "__main__":
+    main()

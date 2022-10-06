@@ -10,10 +10,13 @@ def fix_header(filename, output: Optional[str] = None, skip=False):
 
     Fixes
     -----
-    1. Too many commas in timestamps
+    1. "backpack" header
+        - Old data have second headers with instrument info
+        - Will merge the second header into the first
+    2. Too many commas in timestamps
         - Some STARS data have `UT` and `HST` timestamps like "10:03:34:342"
         - In this case, the last colon is replaced with a comma, e.g. "10:03:34.342"
-    2. "typical" exposure values are file creation time instead of midpoint
+    3. "typical" exposure values are file creation time instead of midpoint
         - For `UT`, `HST`, and `MJD` keys will recalculate the midpoint based on the `*-STR` and `*-END` values
 
     Parameters
@@ -38,7 +41,8 @@ def fix_header(filename, output: Optional[str] = None, skip=False):
     if skip and output.exists():
         return output
 
-    data, hdr = fits.getdata(path, header=True)
+    data, hdr = fits.getdata(filename, header=True)
+
     # check if the millisecond delimiter is a color
     for key in ("UT-STR", "UT-END", "HST-STR", "HST-END"):
         if hdr[key].count(":") == 3:
@@ -51,7 +55,28 @@ def fix_header(filename, output: Optional[str] = None, skip=False):
 
     # save file
     fits.writeto(output, data, header=hdr, overwrite=True)
+    return output
 
+
+def merge_headers(filename, output=None, skip=False):
+    path = Path(filename)
+    if output is None:
+        output = path.with_name(f"{path.stem}_hdr{path.suffix}")
+
+    if skip and output.is_file():
+        return output
+
+    # merge secondary headers
+    with fits.open(path) as hdus:
+        data = hdus[0].data
+        hdr = hdus[0].header
+        for i in range(1, len(hdus)):
+            sec_hdr = hdus[i].header
+            for k, v in sec_hdr.items():
+                if k not in hdr:
+                    hdr[k] = v
+
+    fits.writeto(output, data, header=hdr, overwrite=True)
     return output
 
 

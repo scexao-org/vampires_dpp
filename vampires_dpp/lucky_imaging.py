@@ -8,11 +8,10 @@ from scipy.ndimage import fourier_shift
 
 
 from .image_processing import frame_center, shift_frame
+from .satellite_spots import window_slice
 
 
-def lucky_image(
-    cube, q=0, metric="max", register="max", window=None, refidx=None, **kwargs
-):
+def lucky_image(cube, q=0, metric="l2norm", register="max", refidx=None, **kwargs):
     """
     Traditional lucky imaging
 
@@ -46,7 +45,7 @@ def lucky_image(
         cut = np.quantile(values, q)
         tmp_cube = tmp_cube[values >= cut]
 
-    center = frame_center(tmp_cube)
+    center = np.asarray(frame_center(tmp_cube))
     # if using DFT upsampling, choose a reference index, or "best frame"
     if register == "dft" and refidx is None:
         if q > 0:
@@ -54,7 +53,8 @@ def lucky_image(
         else:
             refidx = measure_metric(tmp_cube, metric).argmax()
         refframe = tmp_cube[refidx]
-        refshift = np.unravel_index(refframe.argmax(), refframe.shape) - center
+        peakidx = np.unravel_index(refframe.argmax(), refframe.shape)
+        refshift = center - peakidx
 
     out = np.zeros(tmp_cube.shape[1:], "f4")
     # for each frame in time
@@ -64,14 +64,17 @@ def lucky_image(
         # measure offset
         if register == "max":
             idx = np.unravel_index(np.argmax(frame), frame.shape)
-            delta = idx - center
+            delta = center - idx
         elif register == "com":
             idx = centroid(frame)
-            delta = idx - center
+            delta = center - idx
         elif register == "dft":
-            delta = refshift - phase_cross_correlation(
+            offset = phase_cross_correlation(
                 refframe, frame, return_error=False, **kwargs
             )
+            delta = refshift + offset
+            # print(f"offset: {offset}")
+            # print(f"delta: {delta}")
         # shift frame using Fourier phase offset
         shifted = shift_frame(frame, delta)
         # update mean online
@@ -80,11 +83,19 @@ def lucky_image(
     return out
 
 
-def measure_metric(cube, metric="l2norm"):
+def measure_metric(cube, metric="l2norm", window=None, **kwargs):
+    # get window view
+    if window is not None:
+        yinds, xinds = window_slice(cube, window=window, **kwargs)
+        view = np.zeros_like(cube)
+        view[..., yinds, xinds] = cube[..., yinds, xinds]
+    else:
+        view = cube
+
     if metric == "max":
-        values = np.max(cube, axis=(1, 2))
+        values = np.max(view, axis=(-2, -1))
     elif metric == "l2norm":
-        values = np.mean(cube**2, axis=(1, 2))
+        values = np.mean(view**2, axis=(-2, -1))
     else:
         raise ValueError(
             f"Did not recognize frame selection metric {metric}. Please choose between 'max' and 'l2norm'."

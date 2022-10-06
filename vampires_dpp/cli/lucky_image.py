@@ -39,7 +39,8 @@ parser.add_argument(
     help="if using DFT registration, use this upsampling factor",
 )
 
-if __name__ == "__main__":
+
+def main():
     args = parser.parse_args()
     for filename in tqdm.tqdm(args.filename):
         _path = Path(filename)
@@ -59,3 +60,7 @@ if __name__ == "__main__":
             outname = _path.with_name(f"{_path.stem}_lucky{_path.suffix}")
         logging.info(f"saving output to {outname}")
         fits.writeto(outname, sharp_frame, header=hdr, overwrite=True)
+
+
+if __name__ == "__main__":
+    main()

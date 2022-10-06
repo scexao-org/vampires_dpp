@@ -1,6 +1,50 @@
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "--cov vampires_dpp --randomly-seed=4796"
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.black]
-include = "scripts/*"
+[project]
+name = "vampires_dpp"
+description = "VAMPIRES Data Processing Pipeline"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
+requires-python = ">=3.7,<3.10"
+dependencies = [
+    "astropy>=4,<6",
+    "numpy>=1.16,<2",
+    "pandas>=1.2,<2",
+    "scikit-image>=0.18,<0.20",
+    "scipy>=1.7,<2",
+    "tqdm==4.*",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+    "pytest==7.*",
+    "pytest-cov==3.*",
+    "pytest-randomly==3.*",
+    "black==22.*",
+    "pytest-black==0.3.*",
+]
+docs = [
+    "sphinx>=4.5,<5",
+    "myst_nb==0.13",
+    "sphinx_book_theme==0.3"
+]
+
+[project.scripts]
+vpp = "vampires_dpp.cli.vpp:main"
+lucky_image = "vampires_dpp.cli.lucky_image:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "vampires_dpp.__version__"}
+
+[tool.pytest.ini_options]
+log_cli = false
+log_cli_level = "DEBUG"
+log_cli_format = "[%(levelname)s] (%(name)-15s) %(message)s"
+addopts = "--randomly-seed=4796"
+
+[tool.coverage.run]
+source = ["vampires_dpp"]

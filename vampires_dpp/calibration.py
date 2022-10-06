@@ -55,17 +55,21 @@ def calibrate_file(
     dark: Optional[str] = None,
     flat: Optional[str] = None,
     flip: Union[str, bool] = "auto",
+    skip=False,
     **kwargs,
 ):
     path = Path(filename)
     outname = path.with_name(f"{path.stem}{suffix}{path.suffix}")
+    if skip and outname.is_file():
+        return outname
+
     data, hdr = fits.getdata(path, hdu, header=True)
     data = data.astype("f4")
     if dark is not None:
-        hdr["VPP_DARK"] = (dark.name, "file used for dark subtraction")
+        hdr["VPP_DARK"] = (Path(dark).name, "file used for dark subtraction")
         dark = fits.getdata(dark).astype("f4")
     if flat is not None:
-        hdr["VPP_FLAT"] = (flat.name, "file used for flat-fielding")
+        hdr["VPP_FLAT"] = (Path(flat).name, "file used for flat-fielding")
         flat = fits.getdata(flat).astype("f4")
     if flip == "auto":  # flip camera 1 (vcamim1)
         if "U_CAMERA" in hdr:
@@ -96,16 +100,21 @@ def deinterleave(data: ArrayLike):
     return set1, set2
 
 
-def deinterleave_file(filename: str, hdu: int = 0, **kwargs):
+def deinterleave_file(filename: str, hdu: int = 0, skip=False, **kwargs):
     path = Path(filename)
+
+    outname1 = path.with_name(f"{path.stem}_FLC1{path.suffix}")
+    outname2 = path.with_name(f"{path.stem}_FLC2{path.suffix}")
+    if skip and outname1.is_file() and outname2.is_file():
+        return outname1, outname2
+
     data, hdr = fits.getdata(path, hdu, header=True)
     set1, set2 = deinterleave(data, **kwargs)
     hdr1 = hdr.copy()
     hdr1["U_FLCSTT"] = (1, "FLC state (1 or 2)")
     hdr2 = hdr.copy()
     hdr2["U_FLCSTT"] = (2, "FLC state (1 or 2)")
-    outname1 = path.with_name(f"{path.stem}_FLC1{path.suffix}")
-    outname2 = path.with_name(f"{path.stem}_FLC2{path.suffix}")
+
     fits.writeto(outname1, set1, hdr1, overwrite=True)
     fits.writeto(outname2, set2, hdr2, overwrite=True)
     return outname1, outname2

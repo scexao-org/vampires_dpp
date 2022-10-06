@@ -31,7 +31,7 @@ def window_centers(center, radius, theta=0, n=4):
     return list(zip(ys, xs))
 
 
-def window_slice(frame, center, window):
+def window_slice(frame, window, center=None):
     """
     Get the index ranges for a window with size `window` at `center`, clipped to the boundaries of `frame`
 
@@ -49,6 +49,8 @@ def window_slice(frame, center, window):
     (ys, xs)
         tuple of ranges for the indices for the window
     """
+    if center is None:
+        center = frame_center(frame)
     half_width = np.asarray(window) / 2
     Ny, Nx = frame.shape[-2:]
     lower = np.maximum(0, np.round(center - half_width), dtype=int, casting="unsafe")
