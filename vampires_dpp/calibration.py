@@ -30,7 +30,9 @@ def calibrate(
     flat : ArrayLike, optional
         If provided, will flat-correct (after dark-subtraction) all frames by the provided 2-D master flat (y, x), by default None
     flip : bool, optional
-        If True, will flip the x-axis of the data, for de-mirroring cam2 data, by default False
+        If True, will flip the y-axis of the data, for de-mirroring cam1 data, by default False.
+
+    .. note:: Image flips are always done last, so that means the dark frames and flat frames should not be flipped ahead of time!
 
     Returns
     -------
