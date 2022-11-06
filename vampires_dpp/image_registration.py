@@ -3,28 +3,26 @@ import numpy as np
 from numpy.typing import ArrayLike
 from skimage.registration import phase_cross_correlation
 from skimage.measure import centroid
-import tqdm.auto as tqdm
 
-from vampires_dpp.image_processing import shift_frame, frame_center
+from vampires_dpp.image_processing import frame_center
 from vampires_dpp.satellite_spots import (
     cutout_slice,
-    window_mask_combined,
-    window_indices,
     window_slices,
 )
 
 
 def satellite_spot_offsets(
     cube: ArrayLike,
-    method="peak",
+    method="com",
     refmethod="peak",
     refidx=0,
     upsample_factor=1,
+    center=None,
     **kwargs
 ):
+    slices = window_slices(cube[0], center=center, **kwargs)
     center = frame_center(cube)
     offsets = np.zeros((cube.shape[0], 2))
-    slices = window_slices(cube[0], **kwargs)
 
     if method == "com":
         for i, frame in enumerate(cube):
@@ -68,10 +66,6 @@ def satellite_spot_offsets(
             offsets[i] = offsets[i] / len(slices) - center
 
     return offsets
-
-
-def speckle_halo_offsets(cube: ArrayLike):
-    pass
 
 
 def psf_offsets(
@@ -135,7 +129,7 @@ def offset_centroid(frame, inds):
 
 def offset_peak(frame, inds):
     view = frame[inds]
-    ctr = np.asarray(np.unravel_index(view.argmax(), view.shape), dtype="f8")
+    ctr = np.asarray(np.unravel_index(view.argmax(), view.shape))
     # offset based on indices
     ctr[0] += inds[0].start
     ctr[1] += inds[1].start
