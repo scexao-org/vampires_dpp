@@ -336,3 +336,42 @@ def wollaston(ordinary: bool = True, throughput=1) -> NDArray:
         M = linear_polarizer(np.pi / 2)
 
     return throughput * M
+
+
+def mueller_matrix(ops, kwargs):
+    """
+    Generate a Mueller matrix from a list of operators and keyword arguments. This has no memory or speed benefits, it is merely a convenience function.
+
+    Parameters
+    ----------
+    ops : List
+        List of functions which generate Mueller matrices. This should be in the order of incidence (i.e., opposite the order of the matrix multiplication)
+    kwargs : List
+        List of keyword arguments (as dictionaries) for the given ``ops``, must be in the same order as ``ops``.
+
+    Returns
+    -------
+    NDArray
+        (4, 4) Combined Mueller matrix from right-associative matrix multiplication
+
+    Examples
+    --------
+    This example shows how circularly polarized light can be generated
+
+    >>> ops = (linear_polarizer, qwp) # in order of incidence
+    >>> args = (dict(theta=np.pi/4), dict())
+    >>> M = mueller_matrix(ops, args)
+    >>> M
+    array([[ 0.5,  0. ,  0.5,  0. ],
+       [ 0. ,  0. ,  0. ,  0. ],
+       [ 0. ,  0. ,  0. ,  0. ],
+       [-0.5, -0. , -0.5,  0. ]])
+    >>> M @ np.array([1, 0, 0, 0]) # unpolarized light
+    array([ 0.5,  0. ,  0. , -0.5])
+
+    The unpolarized light has become fully circularly polarized, with a 50% transmission hit from the linear polarizer.
+    """
+    M = np.eye(4)
+    for op, args in zip(ops, kwargs):
+        M = op(**args) @ M
+    return M
