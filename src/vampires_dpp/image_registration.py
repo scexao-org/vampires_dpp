@@ -20,10 +20,17 @@ def satellite_spot_offsets(
     refidx=0,
     upsample_factor=1,
     center=None,
+    background_subtract=True,
     **kwargs,
 ):
+
     slices = window_slices(cube[0], center=center, **kwargs)
     center = frame_center(cube)
+
+    if background_subtract:
+        background = model_background(cube, slices, center=center)
+        cube = cube - background
+
     offsets = np.zeros((cube.shape[0], 2))
 
     if method == "com":
@@ -68,6 +75,27 @@ def satellite_spot_offsets(
             offsets[i] = offsets[i] / len(slices) - center
 
     return offsets
+
+
+def model_background(cube, slices, center):
+    # get long-exposure frame
+    long_expo = np.median(cube, axis=0)
+    # mask out satellite spots
+    for sl in slices:
+        long_expo[sl[0], sl[1]] = np.nan
+    # fit model
+    fitter = fitting.LevMarLSQFitter()
+    model = models.Gaussian2D(
+        x_mean=center[1],
+        y_mean=center[0],
+        x_stddev=10,
+        y_stddev=10,
+        amplitude=long_expo.max(),
+    )
+    Y, X = np.mgrid[0 : long_expo.shape[0], 0 : long_expo.shape[1]]
+    bestfit_model = fitter(model, X, Y, long_expo)
+    # return model evaluated over image grid
+    return bestfit_model(X, Y)
 
 
 def psf_offsets(
@@ -176,7 +204,7 @@ def offset_modelfit(frame, inds, method, fitter=fitting.LevMarLSQFitter()):
 
 
 def measure_offsets(
-    filename, method="peak", q=0, coronagraphic=False, skip=False, output=None, **kwargs
+    filename, method="peak", coronagraphic=False, skip=False, output=None, **kwargs
 ):
     if output is None:
         path = Path(filename)
