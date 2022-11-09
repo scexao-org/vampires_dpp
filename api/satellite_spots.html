@@ -97,7 +97,7 @@
  </li>
  <li class="toctree-l1">
   <a class="reference internal" href="../tutorials/index.html">
-   Tutorials
+   Workflows
   </a>
  </li>
  <li class="toctree-l1 current active has-children">
@@ -272,70 +272,6 @@ title="Print to PDF"
                 
   <section class="tex2jax_ignore mathjax_ignore" id="satellite-spots">
 <h1>Satellite Spots<a class="headerlink" href="#satellite-spots" title="Permalink to this headline">#</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.satellite_spots.window_masks">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.satellite_spots.</span></span><span class="sig-name descname"><span class="pre">window_masks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.satellite_spots.window_masks" title="Permalink to this definition">#</a></dt>
-<dd><p>Get a boolean mask for the satellite spots</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>frame</strong> (<em>ArrayLike</em>) – image frame</p></li>
-<li><p><strong>**kwargs</strong> – Extra keyword arguments are passed to <cite>window_indices</cite></p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>mask</strong> – boolean mask where True indicates inclusion in satellite spot window</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>ArrayLike</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.satellite_spots.window_indices">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.satellite_spots.</span></span><span class="sig-name descname"><span class="pre">window_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.satellite_spots.window_indices" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the linear indices for each satellite spot</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>frame</strong> (<em>ArrayLike</em>) – image frame</p></li>
-<li><p><strong>window</strong> (<em>float</em><em>, </em><em>Tuple</em><em>, </em><em>optional</em>) – window size, or tuple for each axis, by default 30</p></li>
-<li><p><strong>center</strong> (<em>Tuple</em><em>, </em><em>optional</em>) – (y, x) coordinate of cross center, by default None, which defaults to the frame center.</p></li>
-<li><p><strong>**kwargs</strong> – Extra keyword arguments are passed to <cite>window_centers</cite></p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List of linear indices for each spot</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.satellite_spots.window_centers">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.satellite_spots.</span></span><span class="sig-name descname"><span class="pre">window_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.satellite_spots.window_centers" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the centers (y, x) for each point <cite>radius</cite> away from <cite>center</cite> along <cite>n</cite> branches starting <cite>theta</cite> degrees CCW from the x-axis</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>center</strong> (<em>Tuple</em>) – cross center (y, x)</p></li>
-<li><p><strong>radius</strong> (<em>float</em>) – radius of the spot separation, in pixels</p></li>
-<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset the branches by the given number of degrees CCW from the x-axis, by default 0</p></li>
-<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – the number of branches, by default 4</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>list of centers (y, x) for each spot</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>centers</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 
 
