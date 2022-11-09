@@ -5,7 +5,7 @@
 [![Coverage](https://codecov.io/gh/scexao-org/vampires_dpp/branch/main/graph/badge.svg)](https://codecov.io/gh/scexao-org/vampires_dpp)
 [![License](https://img.shields.io/github/license/scexao-org/vampires_dpp?color=yellow)](LICENSE)
 
- `vampires_dpp` is still under development, and the API can change without notice. Use with your own caution (and consider contributing).
+ `vampires_dpp` is still under development, and the API can change without notice. Use with your own caution (and please report any bugs you find).
 
 **Primary maintainer:** [Miles Lucas](https://github.com/scexao-org)
 

@@ -1,6 +1,6 @@
-# Tutorials
+# Workflows
 
-VAMPIRES is a very dynamic instrument used in a variety of observing scenarios. The tutorials below represent some of the most common use-cases of VAMPIRES, and while open-use observer modes are prioritized there are also tutorials for engineering related tasks. 
+VAMPIRES is a very dynamic instrument used in a variety of observing scenarios. The workflows below represent some of the most common use-cases of VAMPIRES, and while open-use observer modes are prioritized there are also tutorials for engineering related tasks.
 
 ## Open-use observing
 

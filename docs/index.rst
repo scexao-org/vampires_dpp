@@ -12,7 +12,7 @@ VAMPIRES Data Processing Pipeline
 .. admonition:: Warning: Experimental
    :class: warning
 
-   ``vampires_dpp`` is still under development, and the API can change without notice. Use with your own caution (and consider contributing).
+   ``vampires_dpp`` is still under development, and the API can change without notice. Use with your own caution (and please report any bugs you find).
 
 **Primary maintainer:** `Miles Lucas <https://github.com/mileslucas>`_
 
