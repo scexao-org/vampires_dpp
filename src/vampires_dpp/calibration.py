@@ -9,7 +9,7 @@ from numpy.typing import ArrayLike
 
 def calibrate(
     data: ArrayLike,
-    discard: int = 0,
+    discard: int = 2,
     dark: Optional[ArrayLike] = None,
     flat: Optional[ArrayLike] = None,
     flip: bool = False,
@@ -24,7 +24,7 @@ def calibrate(
     data : ArrayLike
         3-D cube (t, y, x) of data
     discard : int, optional
-        The amount of leading frames to discard (for data which has destructive readout frames), by default 0
+        The amount of leading frames to discard (for data which has destructive readout frames), by default 2
     dark : ArrayLike, optional
         If provided, will dark-subtract all frames by the provided 2-D master dark (y, x), by default None
     flat : ArrayLike, optional
@@ -40,7 +40,7 @@ def calibrate(
         3-D calibrated data cube (t, y, x)
     """
     # discard frames
-    out = data.copy()[discard:]
+    out = data[discard:]
     if dark is not None:
         out = out - dark
     if flat is not None:
@@ -147,7 +147,7 @@ def make_flat_file(
         header["VPP_DARK"] = (dark.name, "file used for dark subtraction")
         master_dark = fits.getdata(dark).astype("f4")
         cube -= master_dark
-    master_flat = np.median(cube, axis=0)
+    master_flat = np.median(cube, axis=0, overwrite_input=True)
     master_flat /= np.median(master_flat)
     if output is not None:
         outname = output

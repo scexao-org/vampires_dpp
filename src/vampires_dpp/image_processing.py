@@ -1,7 +1,8 @@
+from astropy.io import fits
 import numpy as np
-from skimage.transform import rotate
+from pathlib import Path
 from scipy.ndimage import fourier_shift
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 from typing import Union
 import cv2
 
@@ -80,6 +81,23 @@ def derotate_cube(data: ArrayLike, angles: Union[ArrayLike, float], **kwargs):
     return rotated
 
 
+def collapse_file(filename, output=None, skip=False, **kwargs):
+    if output is None:
+        path = Path(filename)
+        output = path.with_stem(f"{path.stem}_collapsed{path.suffix}")
+    else:
+        output = Path(output)
+
+    if skip and output.is_file():
+        return output
+
+    cube, header = fits.getdata(filename, header=True)
+    frame = np.median(cube, 0, overwrite_input=True)
+
+    fits.writeto(output, frame, header=header, overwrite=True)
+    return output
+
+
 def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs):
     out = np.empty_like(cube)
     for i in range(cube.shape[0]):
@@ -125,3 +143,49 @@ def frame_center(image: ArrayLike):
     ny = image.shape[-2]
     nx = image.shape[-1]
     return (ny - 1) / 2, (nx - 1) / 2
+
+
+def frame_radii(frame: ArrayLike, center=None) -> NDArray:
+    """
+    Return the radii of pixels around ``center`` in the image
+
+    Parameters
+    ----------
+    frame : ArrayLike
+        Input frame
+    center : Tuple, optional
+        The center to calculate radii from. If None, will default to the frame center. By default None
+
+    Returns
+    -------
+    NDArray
+        Matrix with frame radii
+    """
+    if center is None:
+        center = frame_center(frame)
+    Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
+    radii = np.hypot(Ys - center[0], Xs - center[1])
+    return radii
+
+
+def frame_angles(frame: ArrayLike, center=None):
+    """
+    Return the angles of pixels around ``center`` in the image
+
+    Parameters
+    ----------
+    frame : ArrayLike
+        Input frame
+    center : Tuple, optional
+        The center to calculate radii from. If None, will default to the frame center. By default None
+
+    Returns
+    -------
+    NDArray
+        Matrix with frame angles
+    """
+    if center is None:
+        center = frame_center(frame)
+    Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
+    thetas = np.arctan2(Ys - center[0], center[1] - Xs)
+    return thetas

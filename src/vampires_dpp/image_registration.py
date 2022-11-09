@@ -1,10 +1,12 @@
+from astropy.io import fits
 from astropy.modeling import models, fitting
 import numpy as np
 from numpy.typing import ArrayLike
+from pathlib import Path
 from skimage.registration import phase_cross_correlation
 from skimage.measure import centroid
 
-from vampires_dpp.image_processing import frame_center
+from vampires_dpp.image_processing import frame_center, shift_cube
 from vampires_dpp.satellite_spots import (
     cutout_slice,
     window_slices,
@@ -18,7 +20,7 @@ def satellite_spot_offsets(
     refidx=0,
     upsample_factor=1,
     center=None,
-    **kwargs
+    **kwargs,
 ):
     slices = window_slices(cube[0], center=center, **kwargs)
     center = frame_center(cube)
@@ -75,7 +77,7 @@ def psf_offsets(
     refidx=0,
     center=None,
     window=None,
-    **kwargs
+    **kwargs,
 ):
     if window is not None:
         inds = cutout_slice(cube[0], center=center, window=window)
@@ -171,3 +173,47 @@ def offset_modelfit(frame, inds, method, fitter=fitting.LevMarLSQFitter()):
     offset[1] += inds[1].start
 
     return offset
+
+
+def measure_offsets(
+    filename, method="peak", q=0, coronagraphic=False, skip=False, output=None, **kwargs
+):
+    if output is None:
+        path = Path(filename)
+        output = path.with_stem(f"{path.stem}_offsets.csv")
+    else:
+        output = Path(output)
+
+    if skip and output.is_file():
+        return output
+
+    cube, header = fits.getdata(filename, header=True)
+    if "VPP_REF" in header:
+        refidx = header["VPP_REF"]
+    else:
+        refidx = cube.max((-2, -1)).argmax()
+    if coronagraphic:
+        offsets = satellite_spot_offsets(cube, method=method, refidx=refidx, **kwargs)
+    else:
+        offsets = psf_offsets(cube, method=method, refidx=refidx, **kwargs)
+
+    np.savetxt(output, offsets, delimiter=",")
+    return output
+
+
+def register_file(filename, offset_file, output=None, skip=False, **kwargs):
+    if output is None:
+        path = Path(filename)
+        output = path.with_stem(f"{path.stem}_registered{path.suffix}")
+    else:
+        output = Path(output)
+
+    if skip and output.is_file():
+        return output
+
+    cube, header = fits.getdata(filename, header=True)
+    offsets = np.loadtxt(offset_file, delimeter=",")
+    shifted = shift_cube(cube, -offsets)
+
+    fits.writeto(output, shifted, header=header, overwrite=True)
+    return output

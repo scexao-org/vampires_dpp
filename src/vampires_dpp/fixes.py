@@ -58,7 +58,7 @@ def fix_header(filename, output: Optional[str] = None, skip=False):
     return output
 
 
-def merge_headers(filename, output=None, skip=False):
+def fix_old_headers(filename, output=None, skip=False):
     path = Path(filename)
     if output is None:
         output = path.with_name(f"{path.stem}_hdr{path.suffix}")
@@ -76,6 +76,11 @@ def merge_headers(filename, output=None, skip=False):
                 if k not in hdr:
                     hdr[k] = v
 
+    ra_tokens = hdr["RA"].split(".")
+    hdr["RA"] = ":".join(ra_tokens[:-1]) + f".{ra_tokens[-1]}"
+    dec_tokens = hdr["DEC"].split(".")
+    hdr["DEC"] = ":".join(dec_tokens[:-1]) + f".{dec_tokens[-1]}"
+    hdr["U_CAMERA"] = 1 if "cam1" in filename else 2
     fits.writeto(output, data, header=hdr, overwrite=True)
     return output
 

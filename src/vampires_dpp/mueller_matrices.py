@@ -1,5 +1,6 @@
+from astropy.io import fits
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 
 __all__ = (
@@ -279,9 +280,14 @@ def linear_polarizer(theta=0) -> NDArray:
     return 0.5 * M
 
 
-def mirror() -> NDArray:
+def mirror(theta=0) -> NDArray:
     """
     Return the Mueller matrix for an ideal mirror.
+
+    Parameters
+    ----------
+    theta : float, optional
+        Angle of rotation, in radians. By default 0
 
     Returns
     -------
@@ -296,7 +302,7 @@ def mirror() -> NDArray:
            [ 0,  0, -1,  0],
            [ 0,  0,  0, -1]])
     """
-    M = np.array(((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, -1, 0), (0, 0, 0, -1)))
+    M = hwp(theta=theta)
     return M
 
 
@@ -338,40 +344,85 @@ def wollaston(ordinary: bool = True, throughput=1) -> NDArray:
     return throughput * M
 
 
-def mueller_matrix(ops, kwargs):
-    """
-    Generate a Mueller matrix from a list of operators and keyword arguments. This has no memory or speed benefits, it is merely a convenience function.
-
-    Parameters
-    ----------
-    ops : List
-        List of functions which generate Mueller matrices. This should be in the order of incidence (i.e., opposite the order of the matrix multiplication)
-    kwargs : List
-        List of keyword arguments (as dictionaries) for the given ``ops``, must be in the same order as ``ops``.
-
-    Returns
-    -------
-    NDArray
-        (4, 4) Combined Mueller matrix from right-associative matrix multiplication
-
-    Examples
-    --------
-    This example shows how circularly polarized light can be generated
-
-    >>> ops = (linear_polarizer, qwp) # in order of incidence
-    >>> args = (dict(theta=np.pi/4), dict())
-    >>> M = mueller_matrix(ops, args)
-    >>> M
-    array([[ 0.5,  0. ,  0.5,  0. ],
-       [ 0. ,  0. ,  0. ,  0. ],
-       [ 0. ,  0. ,  0. ,  0. ],
-       [-0.5, -0. , -0.5,  0. ]])
-    >>> M @ np.array([1, 0, 0, 0]) # unpolarized light
-    array([ 0.5,  0. ,  0. , -0.5])
-
-    The unpolarized light has become fully circularly polarized, with a 50% transmission hit from the linear polarizer.
-    """
-    M = np.eye(4)
-    for op, args in zip(ops, kwargs):
-        M = op(**args) @ M
+def mueller_matrix_triplediff(camera, flc_theta, rotangle, hwp_theta):
+    M = np.linalg.multi_dot(
+        (
+            wollaston(camera == 1),  # Polarizing beamsplitter
+            hwp(theta=flc_theta),  # FLC
+            rotator(theta=rotangle),  # Pupil rotation
+            hwp(theta=hwp_theta),  # HWP angle
+        )
+    )
     return M
+
+
+# filter: hwp_phi, imr_phi, flc1_phi, flc2_phi, flc1_theta, flc2_theta, dp
+CAL_DICT = {
+    "775-50": {
+        "hwp_delta": 2.90571,
+        "imr_delta": 3.15131,
+        "flc_delta": (1.63261, 2.43131),
+        "flc_theta": (-0.33141, 0.84601),
+        "throughput": (1, 0.90641),
+    },
+    "750-50": {
+        "hwp_delta": 3.02061,
+        "imr_delta": 3.01341,
+        "flc_delta": (5.22121, 2.44421),
+        "flc_theta": (-0.39021, 0.91411),
+        "pbs_throughput": (1, 1.01511),
+    },
+    "725-50": {
+        "hwp_delta": 3.32281,
+        "imr_delta": 3.46251,
+        "flc_delta": (0.74391, 3.85451),
+        "flc_theta": (-0.80311, 0.89701),
+        "pbs_throughput": (1, 1.07621),
+    },
+    "675-50": {
+        "hwp_delta": 3.42041,
+        "imr_delta": 4.27231,
+        "flc_delta": (1.05581, 3.60451),
+        "flc_theta": (-0.12211, 1.00821),
+        "pbs_throughput": (1, 1.12611),
+    },
+    "625-50": {
+        "hwp_delta": 2.69971,
+        "imr_delta": 1.38721,
+        "flc_delta": (-57.52101, 2.57911),
+        "flc_theta": (-0.32851, 0.84681),
+        "pbs_throughput": (1, 1.16191),
+    },
+}
+
+
+def mueller_matrix_model(
+    camera, filter, flc_state, qwp1, qwp2, imr_theta, hwp_theta, pa, altitude
+):
+    cam_idx = 0 if camera == 1 else 1
+    flc_ang = 0 if flc_state == 1 else np.pi / 4
+    cals = CAL_DICT[filter]
+    M = np.linalg.multi_dot(
+        (
+            wollaston(
+                camera == 1, throughput=cals["pbs_throughput"][cam_idx]
+            ),  # Polarizing beamsplitter
+            hwp(theta=flc_ang),  # FLC
+            qwp(theta=qwp2),  # QWP 2
+            qwp(theta=qwp1),  # QWP 1
+            waveplate(theta=imr_theta, delta=cals["imr_delta"]),  # AO 188 K-mirror
+            waveplate(theta=hwp_theta, delta=cals["hwp_delta"]),  # AO 188 HWP,
+            rotator(theta=pa - altitude),
+        )
+    )
+    return M
+
+
+def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:
+    stokes_cube = np.empty((mueller_matrices.shape[-1], cube.shape[-2], cube.shape[-1]))
+    # go pixel-by-pixel
+    for i in range(cube.shape[-2]):
+        for j in range(cube.shape[-1]):
+            stokes_cube[:, i, j] = np.linalg.lstsq(
+                mueller_matrices, cube[:, i, j], rcond=None
+            )[0]
