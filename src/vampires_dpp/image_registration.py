@@ -20,7 +20,7 @@ def satellite_spot_offsets(
     refidx=0,
     upsample_factor=1,
     center=None,
-    background_subtract=True,
+    background_subtract=False,
     **kwargs,
 ):
 
