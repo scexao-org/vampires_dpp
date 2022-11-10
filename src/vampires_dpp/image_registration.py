@@ -208,7 +208,7 @@ def measure_offsets(
 ):
     if output is None:
         path = Path(filename)
-        output = path.with_stem(f"{path.stem}_offsets.csv")
+        output = path.with_name(f"{path.stem}_offsets.csv")
     else:
         output = Path(output)
 
@@ -232,7 +232,7 @@ def measure_offsets(
 def register_file(filename, offset_file, output=None, skip=False, **kwargs):
     if output is None:
         path = Path(filename)
-        output = path.with_stem(f"{path.stem}_registered{path.suffix}")
+        output = path.with_stem(f"{path.stem}_registered")
     else:
         output = Path(output)
 
@@ -240,7 +240,7 @@ def register_file(filename, offset_file, output=None, skip=False, **kwargs):
         return output
 
     cube, header = fits.getdata(filename, header=True)
-    offsets = np.loadtxt(offset_file, delimeter=",")
+    offsets = np.loadtxt(offset_file, delimiter=",")
     shifted = shift_cube(cube, -offsets)
 
     fits.writeto(output, shifted, header=header, overwrite=True)

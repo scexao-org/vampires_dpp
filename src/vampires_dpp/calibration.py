@@ -125,7 +125,7 @@ def deinterleave_file(filename: str, hdu: int = 0, skip=False, **kwargs):
 def make_dark_file(filename: str, output: Optional[str] = None, discard: int = 1):
     _path = Path(filename)
     cube, header = fits.getdata(_path, header=True)
-    master_dark = np.median(cube.astype("f4")[discard:], axis=0)
+    master_dark = np.median(cube.astype("f4")[discard:], axis=0, overwrite_input=True)
     if output is not None:
         outname = output
     else:

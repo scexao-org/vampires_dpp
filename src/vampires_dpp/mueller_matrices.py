@@ -344,12 +344,13 @@ def wollaston(ordinary: bool = True, throughput=1) -> NDArray:
     return throughput * M
 
 
-def mueller_matrix_triplediff(camera, flc_theta, rotangle, hwp_theta):
+def mueller_matrix_triplediff(camera, flc_state, theta, hwp_theta):
+    flc_theta = 0 if flc_state == 1 else np.pi / 4
     M = np.linalg.multi_dot(
         (
             wollaston(camera == 1),  # Polarizing beamsplitter
             hwp(theta=flc_theta),  # FLC
-            rotator(theta=rotangle),  # Pupil rotation
+            rotator(theta=theta),  # Pupil rotation
             hwp(theta=hwp_theta),  # HWP angle
         )
     )
@@ -419,10 +420,12 @@ def mueller_matrix_model(
 
 
 def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:
-    stokes_cube = np.empty((mueller_matrices.shape[-1], cube.shape[-2], cube.shape[-1]))
+    stokes_cube = np.empty((4, cube.shape[-2], cube.shape[-1]))
     # go pixel-by-pixel
     for i in range(cube.shape[-2]):
         for j in range(cube.shape[-1]):
             stokes_cube[:, i, j] = np.linalg.lstsq(
                 mueller_matrices, cube[:, i, j], rcond=None
             )[0]
+
+    return stokes_cube

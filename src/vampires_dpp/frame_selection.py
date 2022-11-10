@@ -50,7 +50,7 @@ def frame_select_file(
 ):
     if output is None:
         path = Path(filename)
-        output = path.with_stem(f"{path.stem}_selected{path.suffix}")
+        output = path.with_stem(f"{path.stem}_selected")
     else:
         output = Path(output)
 
@@ -63,7 +63,7 @@ def frame_select_file(
     else:
         metrics = measure_metric(cube, metric=metric, **kwargs)
 
-    mask = np.quantile(metrics, q)
+    mask = metrics >= np.quantile(metrics, q)
     selected = cube[mask]
 
     header["VPP_FSM"] = metric, "Frame selection metric"

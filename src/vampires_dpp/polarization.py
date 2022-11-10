@@ -6,7 +6,7 @@ from typing import Optional
 from pathlib import Path
 from photutils import CircularAperture, aperture_photometry
 
-from .image_processing import frame_angles, frame_center
+from .image_processing import frame_angles, frame_center, derotate_frame
 from .satellite_spots import window_centers
 from .mueller_matrices import (
     mueller_matrix_triplediff,
@@ -180,11 +180,11 @@ def polarization_calibration_model(filenames):
         )
         # only keep the X -> I terms
         mueller_mats.append(M[0])
-        cube.append(frame)
+        # derotate frame to N up
+        cube.append(derotate_frame(frame, header["D_IMRPAD"] + 140.4))
 
     mueller_mats = np.array(mueller_mats)
     cube = np.array(cube)
-
     return mueller_matrix_calibration(mueller_mats, cube)
 
 
