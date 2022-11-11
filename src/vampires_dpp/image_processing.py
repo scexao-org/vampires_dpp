@@ -187,5 +187,5 @@ def frame_angles(frame: ArrayLike, center=None):
     if center is None:
         center = frame_center(frame)
     Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
-    thetas = np.arctan2(Ys - center[0], center[1] - Xs)
+    thetas = np.arctan2(center[1] - Xs, Ys - center[0])
     return thetas

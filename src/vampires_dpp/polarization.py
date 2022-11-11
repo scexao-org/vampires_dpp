@@ -4,15 +4,16 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from typing import Optional
 from pathlib import Path
-from photutils import CircularAperture, aperture_photometry
+from photutils import CircularAperture, CircularAnnulus, aperture_photometry
 
 from .image_processing import frame_angles, frame_center, derotate_frame
-from .satellite_spots import window_centers
+from .satellite_spots import window_slices
 from .mueller_matrices import (
     mueller_matrix_triplediff,
     mueller_matrix_model,
     mueller_matrix_calibration,
 )
+from .image_registration import offset_centroid
 
 
 def instpol_correct(stokes_cube: ArrayLike, r=5, center=None) -> NDArray:
@@ -48,9 +49,7 @@ def instpol_correct(stokes_cube: ArrayLike, r=5, center=None) -> NDArray:
     return S
 
 
-def instpol_correct_satellite_spots(
-    stokes_cube: ArrayLike, r=5, center=None, **kwargs
-) -> NDArray:
+def instpol_correct_satellite_spots(stokes_cube: ArrayLike, r=5, **kwargs) -> NDArray:
     """
     Use aperture photometry on satellite spots to estimate the instrument polarization and correct the Stokes parameters.
 
@@ -70,21 +69,26 @@ def instpol_correct_satellite_spots(
     NDArray
         (4, y, x) Stokes cube with instrument polarization corrected
     """
-    if center is None:
-        center = frame_center(stokes_cube)
-
     I, Q, U, V = stokes_cube
     q = Q / I
     u = U / I
 
-    centers = window_centers(center, **kwargs)
-    aps_centers = [(ctr[1], ctr[0]) for ctr in centers]
-    aps = CircularAperture(aps_centers, r)
-    cQ = np.median(aperture_photometry(q, aps)["aperture_sum"]) / aps.area
-    cU = np.median(aperture_photometry(u, aps)["aperture_sum"]) / aps.area
+    slices = window_slices(I, **kwargs)
+    aps_centers = [offset_centroid(I, sl) for sl in slices]
 
-    S = np.array((I, Q - cQ * I, U - cU * I, V))
-    return S
+    aps = CircularAperture(aps_centers, r)
+    anns = CircularAnnulus(aps_centers, 2 * r, 3 * r)
+
+    cQ = np.mean(background_subtracted_photometry(q, aps, anns)) / aps.area
+    cU = np.mean(background_subtracted_photometry(u, aps, anns)) / aps.area
+
+    return cQ, cU
+
+
+def background_subtracted_photometry(frame, aps, anns):
+    ap_sums = aperture_photometry(frame, aps)["aperture_sum"]
+    ann_sums = aperture_photometry(frame, anns)["aperture_sum"]
+    return ap_sums - aps.area / anns.area * ann_sums
 
 
 def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None) -> NDArray:

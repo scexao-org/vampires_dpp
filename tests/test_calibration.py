@@ -110,13 +110,12 @@ class TestCalibrate:
     def data_cube_cam1(self, dark_frame):
         cube = 10 * np.random.randn(102, 512, 512) + dark_frame
         cube += np.random.poisson(2e4, (102, 512, 512))
-        return cube.astype("uint16")
+        return np.flipud(cube).astype("uint16")
 
     @pytest.fixture()
     def data_cube_cam2(self, dark_frame):
         cube = 10 * np.random.randn(102, 512, 512) + dark_frame
         cube += np.random.poisson(2.3e4, (102, 512, 512))
-        cube = np.flip(cube, axis=1)
         return cube.astype("uint16")
 
     def test_calibrate(self, data_cube_cam1, data_cube_cam2, dark_frame, flat_frame):
@@ -124,8 +123,8 @@ class TestCalibrate:
         calib2 = calibrate(data_cube_cam2, dark=dark_frame, flat=flat_frame, flip=True)
         assert calib1.dtype == np.dtype("f4")
         assert calib2.dtype == np.dtype("f4")
-        assert calib1.shape[0] == 102
-        assert calib2.shape[0] == 102
+        assert calib1.shape[0] == 100
+        assert calib2.shape[0] == 100
         assert np.allclose(np.median(calib1, axis=(1, 2)), 2e4, rtol=1e-3)
         assert np.allclose(np.median(calib2, axis=(1, 2)), 2.3e4, rtol=1e-3)
         # if flip didn't work, they won't add together

@@ -2,14 +2,14 @@ import numpy as np
 
 from vampires_dpp.satellite_spots import (
     window_centers,
-    window_slice,
+    window_slices,
+    cutout_slice,
     window_indices,
-    window_masks,
 )
 
 
 def test_window_centers():
-    centers = window_centers((4, 4), radius=2)
+    centers = window_centers((4, 4), radius=2, theta=0)
     assert np.allclose(centers[0], [4, 6])
     assert np.allclose(centers[1], [6, 4])
     assert np.allclose(centers[2], [4, 2])
@@ -30,61 +30,46 @@ def test_window_centers_two():
     assert np.allclose(centers[1], [40, 50])
 
 
-def test_window_slice():
+def test_cutout_slice():
     frame = np.empty((101, 101))
-    sy, sx = window_slice(frame, center=(80, 50), window=30)
+    sy, sx = cutout_slice(frame, center=(80, 50), window=30)
     assert sy.start == 65
     assert sy.stop == 96
     assert sx.start == 35
     assert sx.stop == 66
 
 
-def test_window_slice_window_shape():
+def test_cutout_slice_window_shape():
     frame = np.empty((101, 101))
-    sy, sx = window_slice(frame, center=(80, 50), window=(30, 40))
+    sy, sx = cutout_slice(frame, center=(80, 50), window=(30, 40))
     assert sy.start == 65
     assert sy.stop == 96
     assert sx.start == 30
     assert sx.stop == 71
 
 
-def test_window_slice_out_of_bounds():
+def test_cutout_slice_out_of_bounds():
     frame = np.empty((101, 101))
-    sy, sx = window_slice(frame, center=(90, 90), window=30)
+    sy, sx = cutout_slice(frame, center=(90, 90), window=30)
     assert sy.start == 75
     assert sy.stop == 101
     assert sx.start == 75
     assert sx.stop == 101
 
-    sy, sx = window_slice(frame, center=(10, 90), window=30)
+    sy, sx = cutout_slice(frame, center=(10, 90), window=30)
     assert sy.start == 0
     assert sy.stop == 26
     assert sx.start == 75
     assert sx.stop == 101
 
-    sy, sx = window_slice(frame, center=(10, 10), window=30)
+    sy, sx = cutout_slice(frame, center=(10, 10), window=30)
     assert sy.start == 0
     assert sy.stop == 26
     assert sx.start == 0
     assert sx.stop == 26
 
-    sy, sx = window_slice(frame, center=(90, 10), window=30)
+    sy, sx = cutout_slice(frame, center=(90, 10), window=30)
     assert sy.start == 75
     assert sy.stop == 101
     assert sx.start == 0
     assert sx.stop == 26
-
-
-def test_window_indices():
-    frame = np.empty((101, 101))
-    inds = window_indices(frame, radius=10, window=30)
-
-
-def test_window_masks():
-    frame = np.zeros((101, 101))
-    frame[60, 50] = 1
-    frame[50, 60] = 1
-    frame[40, 50] = 1
-    frame[50, 40] = 1
-    m = window_masks(frame, radius=10)
-    assert frame[m].sum() == 4

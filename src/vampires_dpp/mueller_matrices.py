@@ -337,11 +337,25 @@ def wollaston(ordinary: bool = True, throughput=1) -> NDArray:
            [ 0. ,  0. ,  0. ,  0. ]])
     """
     if ordinary:
-        M = linear_polarizer(0)
+        eta = throughput
     else:
-        M = linear_polarizer(np.pi / 2)
+        eta = -throughput
 
-    return throughput * M
+    M = np.array(
+        (
+            (1, eta, 0, 0),
+            (eta, 1, 0, 0),
+            (0, 0, np.sqrt(1 - eta**2), 0),
+            (0, 0, 0, np.sqrt(1 - eta**2)),
+        )
+    )
+    return 0.5 * M
+
+
+def instrumental(cQ=0, cU=0, cV=0):
+    M = np.eye(4)
+    M[1:, 0] = (cQ, cU, cV)
+    return M
 
 
 def mueller_matrix_triplediff(camera, flc_state, theta, hwp_theta):
@@ -420,12 +434,11 @@ def mueller_matrix_model(
 
 
 def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:
-    stokes_cube = np.empty((4, cube.shape[-2], cube.shape[-1]))
-    # go pixel-by-pixel
-    for i in range(cube.shape[-2]):
-        for j in range(cube.shape[-1]):
-            stokes_cube[:, i, j] = np.linalg.lstsq(
-                mueller_matrices, cube[:, i, j], rcond=None
-            )[0]
+    stokes_cube = np.empty((4, cube.shape[0], cube.shape[1], cube.shape[2]))
+    for i in range(cube.shape[0]):
+        M = mueller_matrices[i]
+        frame = cube[i].ravel()
+        S = np.linalg.lstsq(np.atleast_2d(M), np.atleast_2d(frame), rcond=None)[0]
+        stokes_cube[:, i] = S.reshape((4, cube.shape[1], cube.shape[2]))
 
     return stokes_cube
