@@ -19,7 +19,8 @@ def shift_frame(data: ArrayLike, shift, **kwargs):
     shape = (data.shape[1], data.shape[0])
     default_kwargs = {
         "flags": cv2.INTER_CUBIC,
-        "borderMode": cv2.BORDER_REFLECT,
+        "borderMode": cv2.BORDER_CONSTANT,
+        "borderValue": np.nan,
     }
     default_kwargs.update(**kwargs)
     return cv2.warpAffine(data.astype("f4"), M, shape, **default_kwargs)
@@ -48,7 +49,8 @@ def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
     shape = (data.shape[1], data.shape[0])
     default_kwargs = {
         "flags": cv2.INTER_CUBIC,
-        "borderMode": cv2.BORDER_REFLECT,
+        "borderMode": cv2.BORDER_CONSTANT,
+        "borderValue": np.nan,
     }
     default_kwargs.update(**kwargs)
     return cv2.warpAffine(data.astype("f4"), M, shape, **default_kwargs)
@@ -62,7 +64,8 @@ def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
     shape = (data.shape[1], data.shape[0])
     default_kwargs = {
         "flags": cv2.INTER_CUBIC,
-        "borderMode": cv2.BORDER_REFLECT,
+        "borderMode": cv2.BORDER_CONSTANT,
+        "borderValue": np.nan,
     }
     default_kwargs.update(**kwargs)
     return cv2.warpAffine(data.astype("f4"), M, shape, **default_kwargs)
@@ -105,9 +108,7 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs):
     return out
 
 
-def weighted_collapse(
-    data: ArrayLike, angles: ArrayLike, fill_value: float = 0, **kwargs
-):
+def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs):
     variance_frame = np.var(data, axis=0, keepdims=True)
     # if the variance is zero, return the mean
     if np.allclose(variance_frame, 0):

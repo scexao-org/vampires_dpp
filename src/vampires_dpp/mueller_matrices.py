@@ -306,7 +306,7 @@ def mirror(theta=0) -> NDArray:
     return M
 
 
-def wollaston(ordinary: bool = True, throughput=1) -> NDArray:
+def wollaston(ordinary: bool = True, eta=1) -> NDArray:
     """
     Return the Mueller matrix for a Wollaston prism or polarizing beamsplitter.
 
@@ -314,8 +314,8 @@ def wollaston(ordinary: bool = True, throughput=1) -> NDArray:
     ----------
     ordinary : bool, optional
         Return the ordinary beam's Mueller matrix, by default True
-    throughput : float, optional
-        For imperfect beamsplitters, the throughput of the matrix, by default 1
+    eta : float, optional
+        For imperfect beamsplitters, the diattenuation of the optic, by default 1
 
     Returns
     -------
@@ -330,16 +330,16 @@ def wollaston(ordinary: bool = True, throughput=1) -> NDArray:
            [0. , 0. , 0. , 0. ],
            [0. , 0. , 0. , 0. ]])
 
-    >>> wollaston(False, throughput=1.2)
-    array([[ 0.6, -0.6,  0. ,  0. ],
-           [-0.6,  0.6, -0. ,  0. ],
-           [ 0. , -0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  0. ]])
+    >>> wollaston(False, eta=0.8)
+    array([[ 0.5, -0.4,  0. ,  0. ],
+           [-0.4,  0.5,  0. ,  0. ],
+           [ 0. ,  0. ,  0.3,  0. ],
+           [ 0. ,  0. ,  0. ,  0.3]])
     """
     if ordinary:
-        eta = throughput
+        eta = eta
     else:
-        eta = -throughput
+        eta = -eta
 
     M = np.array(
         (
@@ -412,33 +412,31 @@ CAL_DICT = {
 
 
 def mueller_matrix_model(
-    camera, filter, flc_state, qwp1, qwp2, imr_theta, hwp_theta, pa, altitude
+    camera,
+    filter,
+    flc_state,
+    qwp1,
+    qwp2,
+    imr_theta,
+    hwp_theta,
+    pa,
+    altitude,
+    pupil_offset,
 ):
     cam_idx = 0 if camera == 1 else 1
     flc_ang = 0 if flc_state == 1 else np.pi / 4
     cals = CAL_DICT[filter]
     M = np.linalg.multi_dot(
         (
-            wollaston(
-                camera == 1, throughput=cals["pbs_throughput"][cam_idx]
-            ),  # Polarizing beamsplitter
+            wollaston(camera == 2),  # Polarizing beamsplitter
             hwp(theta=flc_ang),  # FLC
+            rotator(pupil_offset),
             qwp(theta=qwp2),  # QWP 2
             qwp(theta=qwp1),  # QWP 1
-            waveplate(theta=imr_theta, delta=cals["imr_delta"]),  # AO 188 K-mirror
-            waveplate(theta=hwp_theta, delta=cals["hwp_delta"]),  # AO 188 HWP,
-            rotator(theta=pa - altitude),
+            hwp(theta=imr_theta),  # delta=cals["imr_delta"]),  # AO 188 K-mirror
+            hwp(theta=hwp_theta),  # delta=cals["hwp_delta"]),  # AO 188 HWP,
+            rotator(theta=-altitude),
+            rotator(theta=pa),
         )
     )
-    return M
-
-
-def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:
-    stokes_cube = np.empty((4, cube.shape[0], cube.shape[1], cube.shape[2]))
-    for i in range(cube.shape[0]):
-        M = mueller_matrices[i]
-        frame = cube[i].ravel()
-        S = np.linalg.lstsq(np.atleast_2d(M), np.atleast_2d(frame), rcond=None)[0]
-        stokes_cube[:, i] = S.reshape((4, cube.shape[1], cube.shape[2]))
-
-    return stokes_cube
+    return cals["pbs_throughput"][cam_idx] * M
