@@ -1,45 +1,46 @@
 version = "0.1.0" # vampires_dpp version
 
 name = "example" # simple name for analysis, used for automatic naming of some files
-directory = "" # root directory, will use CWD by default
-output_directory = "" # path to top-level output directory, if empty will use the current working directory
+directory = "" # absolute path of root data directory
+output_directory = "" # absolute path to top-level output directory, if empty will use the root directory
+frame_centers = [[128, 128], [128, 129]] # optional cam 1, cam 2 centers (x, y) from visual inspection
 
-[coronagraph] # these options only matter if `coronagraphic = true`
+[coronagraph] # optional, signifies coronagraph was used
 mask_size = 90 # IWA of mask, mas
 
-[coronagraph.satellite_spots]
+[coronagraph.satellite_spots] # optional
 radius = 15.9 # radius of satellite spots in lam/D
 angle = -4 # angle offset of satellite spots in degrees, -4 is default
 
 [calibration]
 filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
-output_directory = "" # output directory, if empty will use same directory as files
+output_directory = "" # output directory, relative to root output directory, if empty will use same directory as files
 force = false # if calibrated file already exists, should we force the calibration and overwrite?
 
 [calibration.darks]
 filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
-output_name = "master_dark" # master dark name
 force = false # if file already exists, should we force the calibration and overwrite?
 
 [calibration.flats]
 filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
-output_name = "master_flat"
 force = false # if file already exists, should we force the calibration and overwrite?
 
 [frame_selection]
-metric = "l2norm" # frame selection metric, one of 'max', 'l2norm', 'normvar'
+metric = "l2norm" # frame selection metric, one of 'max', 'l2norm', 'normvar', by default "l2norm"
 q = 0.0 # frame selection quantile [0, 1). 0 is no frame seleciton, 1 removes all frames
+window_size = 30 # window size to measure offsets from, by default 30
 output_directory = "" # output directory for measured metrics and intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
-window_size = 30 # window size to measure offsets from
 
 [registration]
-method = "com" # offset measurement method, one of 'com', 'max', 'dft', 'moffat', 'airydisk', 'gaussian'
-window_size = 30 # window size to measure offsets from
-upsampling_factor = 10 # the sub-pixel precision of the upsampled DFT
-reference_method = "com" # how to measure the offset of the reference frame
+method = "com" # offset measurement method, one of 'com', 'max', 'dft', 'moffat', 'airydisk', 'gaussian', by default 'com' for coronagraphic data and 'peak' for non-coronagraphic data
+window_size = 30 # window size to measure offsets from, by default 30
 output_directory = "" # output directory for measured offsets and intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
+
+[registration.dft] # these options only matter if using 'dft' for registration
+upsampling_factor = 1 # the sub-pixel precision of the upsampled DFT, by default 1
+reference_method = "com" # how to measure the offset of the reference frame, by default 'com'
 
 [coadd]
 output_directory = "" # output directory for intermediate frames

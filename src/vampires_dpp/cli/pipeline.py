@@ -215,44 +215,47 @@ def main():
         outdir = output / config["registration"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
-        skip_reg = not config["registration"].get("force", False)
         offset_files = []
+        skip_reg = not config["registration"].get("force", False)
+        kwargs = {
+            "window": config["registration"].get("window_size", 30),
+            "theta": config["coronagraph"]["satellite_spots"].get("angle", -4),
+            "skip": skip_reg,
+        }
+        if "registration.dft" in config:
+            kwargs["upsample_factor"] = config["registration.dft"].get(
+                "upsample_factor", 1
+            )
+            kwargs["refmethod"] = config["registration.dft"].get(
+                "reference_method", "com"
+            )
         ## 3a: measure offsets
         for i in tqdm.trange(N_files, desc="Measuring frame offsets"):
             filename = working_files[i]
             header = fits.getheader(filename)
             cam_idx = int(header["U_CAMERA"] - 1)
             outname = outdir / f"{filename.stem}_offsets.csv"
-            window = config["registration"].get("window_size", 30)
             if "coronagraph" in config:
                 r = lamd_to_pixel(
                     config["coronagraph"]["satellite_spots"]["radius"],
                     header["U_FILTER"],
                 )
-                ang = config["coronagraph"]["satellite_spots"].get("angle", -4)
                 offset_file = measure_offsets(
                     filename,
                     method=config["registration"].get("method", "com"),
-                    upsample_factor=config["registration"].get("upsample_factor", 1),
-                    refmethod=config["registration"].get("reference_method", "com"),
                     center=frame_centers[cam_idx],
                     coronagraphic=True,
                     radius=r,
-                    theta=ang,
-                    window=window,
                     output=outname,
-                    skip=skip_reg,
+                    **kwargs,
                 )
             else:
                 offset_file = measure_offsets(
                     filename,
                     method=config["registration"].get("method", "peak"),
-                    upsample_factor=config["registration"].get("upsample_factor", 1),
-                    refmethod=config["registration"].get("reference_method", "com"),
                     center=frame_centers[cam_idx],
-                    window=window,
                     output=outname,
-                    skip=skip_reg,
+                    **kwargs,
                 )
             offset_files.append(offset_file)
         ## 3b: registration
