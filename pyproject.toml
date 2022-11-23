@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools >= 64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -17,6 +17,7 @@ dependencies = [
     "photutils>=1,<2",
     "scikit-image>=0.18,<0.20",
     "scipy>=1.7,<2",
+    "toml>=0.10,<0.11",
     "tqdm==4.*",
 ]
 dynamic = ["version"]
@@ -36,8 +37,7 @@ docs = [
 ]
 
 [project.scripts]
-vpp = "vampires_dpp.cli.vpp:main"
-lucky_image = "vampires_dpp.cli.lucky_image:main"
+vpp = "vampires_dpp.cli.pipeline:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_dpp.__version__"}

@@ -122,14 +122,18 @@ def deinterleave_file(filename: str, hdu: int = 0, skip=False, **kwargs):
     return outname1, outname2
 
 
-def make_dark_file(filename: str, output: Optional[str] = None, discard: int = 1):
+def make_dark_file(
+    filename: str, output: Optional[str] = None, discard: int = 1, skip=False
+):
     _path = Path(filename)
-    cube, header = fits.getdata(_path, header=True)
-    master_dark = np.median(cube.astype("f4")[discard:], axis=0, overwrite_input=True)
     if output is not None:
         outname = output
     else:
         outname = _path.with_name(f"{_path.stem}_master_dark{_path.suffix}")
+    if skip and outname.is_file():
+        return outname
+    cube, header = fits.getdata(_path, header=True)
+    master_dark = np.median(cube.astype("f4")[discard:], axis=0, overwrite_input=True)
     fits.writeto(outname, master_dark, header=header, overwrite=True)
     return outname
 
@@ -139,8 +143,15 @@ def make_flat_file(
     dark: Optional[str] = None,
     output: Optional[str] = None,
     discard: int = 1,
+    skip=False,
 ):
     _path = Path(filename)
+    if output is not None:
+        outname = output
+    else:
+        outname = _path.with_name(f"{_path.stem}_master_flat{_path.suffix}")
+    if skip and outname.is_file():
+        return outname
     cube, header = fits.getdata(_path, header=True)
     cube = cube.astype("f4")[discard:]
     if dark is not None:
@@ -149,9 +160,6 @@ def make_flat_file(
         cube -= master_dark
     master_flat = np.median(cube, axis=0, overwrite_input=True)
     master_flat /= np.median(master_flat)
-    if output is not None:
-        outname = output
-    else:
-        outname = _path.with_name(f"{_path.stem}_master_flat{_path.suffix}")
+
     fits.writeto(outname, master_flat, header=header, overwrite=True)
     return outname
