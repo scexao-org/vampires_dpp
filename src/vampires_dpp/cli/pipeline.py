@@ -149,7 +149,6 @@ def main():
 
     ## Step 1c: calibrate files and fix headers
     filenames = parse_filenames(root, config["calibration"]["filenames"])
-    N_files = len(filenames)
     skip_calib = not tripwire and not config["calibration"].get("force", False)
     if skip_calib:
         logger.debug("skipping calibration if files exist")
@@ -158,9 +157,16 @@ def main():
     for filename in tqdm.tqdm(filenames, desc="Calibrating files"):
         logger.debug(f"calibrating {filename.absolute()}")
         outname = outdir / f"{filename.stem}_calib{filename.suffix}"
-        if skip_calib and outname.is_file():
-            working_files.append(outname)
-            continue
+        if config["calibration"].get("deinterleave", False):
+            outname_flc1 = outname.with_stem(f"{outname.stem}_FLC1")
+            outname_flc2 = outname.with_stem(f"{outname.stem}_FLC2")
+            if skip_calib and outname_flc1.is_file() and outname_flc2.is_file():
+                working_files.extend((outname_flc1, outname_flc2))
+                continue
+        else:
+            if skip_calib and outname.is_file():
+                working_files.append(outname)
+                continue
         cube, header = fits.getdata(filename, header=True)
         header = fix_header(header)
         if header["U_CAMERA"] == 1:
@@ -171,9 +177,22 @@ def main():
             calib_cube = calibrate(
                 cube, discard=2, dark=master_darks[1], flat=master_flats[1], flip=False
             )
-        fits.writeto(outname, calib_cube, header, overwrite=True)
-        logger.debug(f"saved calibrated file at {outname.absolute()}")
-        working_files.append(outname)
+        if config["calibration"].get("deinterleave", False):
+            sub_cube_flc1 = calib_cube[::2]
+            header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
+            fits.writeto(outname_flc1, sub_cube_flc1, header, overwrite=True)
+            logger.debug(f"saved FLC 1 calibrated data to {outname_flc1.absolute()}")
+            working_files.append(outname_flc1)
+
+            sub_cube_flc2 = calib_cube[1::2]
+            header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
+            fits.writeto(outname_flc2, sub_cube_flc2, header, overwrite=True)
+            logger.debug(f"saved FLC 2 calibrated data to {outname_flc2.absolute()}")
+            working_files.append(outname_flc2)
+        else:
+            fits.writeto(outname, calib_cube, header, overwrite=True)
+            logger.debug(f"saved calibrated file at {outname.absolute()}")
+            working_files.append(outname)
 
     logger.info("Data calibration completed")
 
@@ -190,7 +209,9 @@ def main():
         tripwire = tripwire or not skip_select
         metric_files = []
         ## 2a: measure metrics
-        for i in tqdm.trange(N_files, desc="Measuring frame selection metric"):
+        for i in tqdm.trange(
+            len(working_files), desc="Measuring frame selection metric"
+        ):
             filename = working_files[i]
             logger.debug(f"Measuring metric for {filename.absolute()}")
             header = fits.getheader(filename)
@@ -229,7 +250,7 @@ def main():
         ## 2b: perform frame selection
         quantile = config["frame_selection"].get("q", 0)
         if quantile > 0:
-            for i in tqdm.trange(N_files, desc="Discarding frames"):
+            for i in tqdm.trange(len(working_files), desc="Discarding frames"):
                 filename = working_files[i]
                 logger.debug(f"discarding frames from {filename.absolute()}")
                 metric_file = metric_files[i]
@@ -270,7 +291,7 @@ def main():
                 "reference_method", "com"
             )
         ## 3a: measure offsets
-        for i in tqdm.trange(N_files, desc="Measuring frame offsets"):
+        for i in tqdm.trange(len(working_files), desc="Measuring frame offsets"):
             filename = working_files[i]
             logger.debug(f"measuring offsets for {filename.absolute()}")
             header = fits.getheader(filename)
@@ -301,7 +322,7 @@ def main():
             logger.debug(f"saving offsets to {offset_file.absolute()}")
             offset_files.append(offset_file)
         ## 3b: registration
-        for i in tqdm.trange(N_files, desc="Aligning frames"):
+        for i in tqdm.trange(len(working_files), desc="Aligning frames"):
             filename = working_files[i]
             offset_file = offset_files[i]
             logger.debug(f"aligning {filename.absolute()}")
@@ -327,7 +348,7 @@ def main():
         if skip_coadd:
             logger.debug("skipping collapsing cubes if files exist")
         tripwire = tripwire or not skip_coadd
-        for i in tqdm.trange(N_files, desc="Collapsing frames"):
+        for i in tqdm.trange(len(working_files), desc="Collapsing frames"):
             filename = working_files[i]
             logger.debug(f"collapsing cube from {filename.absolute()}")
             outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"

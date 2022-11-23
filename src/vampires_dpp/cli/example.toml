@@ -16,6 +16,7 @@ angle = -4 # angle offset of satellite spots in degrees, -4 is default
 filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
 output_directory = "" # output directory, relative to root output directory, if empty will use same directory as files
 force = false # if calibrated file already exists, should we force the calibration and overwrite?
+deinterleave = false # deinterleave FLC states for polarimetric data downloaded directly from VAMPIRES computer
 
 [calibration.darks]
 filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
