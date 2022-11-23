@@ -12,6 +12,7 @@ import vampires_dpp as vpp
 from vampires_dpp.calibration import make_dark_file, make_flat_file, calibrate
 from vampires_dpp.fixes import fix_header
 from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
+from vampires_dpp.image_processing import derotate_frame
 from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.satellite_spots import lamd_to_pixel
 
@@ -352,15 +353,38 @@ def main():
             filename = working_files[i]
             logger.debug(f"collapsing cube from {filename.absolute()}")
             outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
+            working_files[i] = outname
             if skip_coadd and outname.is_file():
-                working_files[i] = outname
                 continue
             cube, header = fits.getdata(filename, header=True)
             frame = np.median(cube, axis=0)
-            fits.writeto(outname, frame, overwrite=True)
+            fits.writeto(outname, frame, header=header, overwrite=True)
             logger.debug(f"saved collapsed data to {outname.absolute()}")
 
         logger.info("Finished coadding frames")
+
+    if "derotate" in config:
+        logger.info("Derotating collapsed frames")
+        outdir = output / config["derotate"].get("output_directory", "")
+        if not outdir.is_dir():
+            outdir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"saving derotated data to {outdir.absolute()}")
+        pa_offset = config["derotate"].get("pupil_offset", 140.4)
+        skip_derot = not tripwire and not config["derotate"].get("force", False)
+        if skip_derot:
+            logger.debug("skipping derotating frames if files exist")
+        tripwire = tripwire or not skip_derot
+        for i in tqdm.trange(len(working_files), desc="Derotating frames"):
+            filename = working_files[i]
+            logger.debug(f"derotating frame from {filename.absolute()}")
+            outname = outdir / f"{filename.stem}_derot{filename.suffix}"
+            working_files[i] = outname
+            if skip_derot and outname.is_file():
+                continue
+            frame, header = fits.getdata(filename, header=True)
+            derot_frame = derotate_frame(frame, header["D_IMRPAD"] + pa_offset)
+            fits.writeto(outname, derot_frame, header=header, overwrite=True)
+            logger.debug(f"saved derotated data to {outname.absolute()}")
 
     logger.info("Finished running pipeline")
 

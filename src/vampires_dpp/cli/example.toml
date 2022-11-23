@@ -46,3 +46,8 @@ reference_method = "com" # how to measure the offset of the reference frame, by 
 [coadd]
 output_directory = "" # output directory for intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
+
+[derotate]
+output_directory = "" # output directory for intermediate frames
+pupil_offset = 140.4 # pupil rotation (deg) between IR and VIS benches
+force = false # if files already exist, should we force the calculation and overwrite?
