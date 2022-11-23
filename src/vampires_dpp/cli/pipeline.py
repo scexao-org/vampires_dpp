@@ -6,6 +6,7 @@ from packaging import version
 import tqdm.auto as tqdm
 from astropy.io import fits
 import numpy as np
+import sys
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import make_dark_file, make_flat_file, calibrate
@@ -15,7 +16,7 @@ from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.satellite_spots import lamd_to_pixel
 
 # set up logging
-formatter = "%(asctime)s|%(name)s - %(message)s"
+formatter = "%(asctime)s|%(name)s|%(levelname)s - %(message)s"
 datefmt = "%Y-%m-%d %H:%M:%S"
 logging.basicConfig(
     level=logging.INFO,
@@ -51,10 +52,12 @@ def parse_filenames(root, filenames):
 
     # cause ruckus if no files are found
     if len(paths) == 0:
-        logger.warn(
+        logger.critical(
             "No files found; double check your configuration file. See debug information for more details"
         )
-        logger.debug(f"No files found from input\n{filenames}")
+        logger.debug(f"Root directory: {root.absolute()}")
+        logger.debug(f"'filenames': {filenames}")
+        sys.exit(1)
 
     return paths
 
