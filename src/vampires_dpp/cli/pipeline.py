@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 import logging
 import toml
-import pprint
+from packaging import version
 import tqdm.auto as tqdm
 from astropy.io import fits
 import numpy as np
@@ -49,21 +49,27 @@ def parse_filenames(root, filenames):
     return paths
 
 
+def check_version(config, vpp):
+    config_maj, config_min, config_pat = version.parse(config).release
+    vpp_maj, vpp_min, vpp_pat = version.parse(vpp).release
+    return config_maj == vpp_maj and config_min == vpp_min and vpp_pat >= config_pat
+
+
 def main():
     args = parser.parse_args()
 
     logger.debug(f"loading config from {args.config}")
     config = toml.load(args.config)
 
-    # make sure versions match
-    if config["version"] != vpp.__version__:
+    # make sure versions match within SemVar
+    if not check_version(config["version"], vpp.__version__):
         raise ValueError(
             f"Input pipeline version ({config['version']}) does not match installed version of `vampires_dpp` ({vpp.__version__}), and is therefore incompatible."
         )
 
     # set up paths
     root = Path(config["directory"])
-    output = Path(config["output_directory"])
+    output = Path(config.get("output_directory", root))
     if not output.is_dir():
         output.mkdir(parents=True, exist_ok=True)
 
@@ -74,7 +80,7 @@ def main():
 
     ## Step 1: Fix headers and calibrate
     logger.info("Starting data calibration")
-    outdir = output / config["calibration"]["output_directory"]
+    outdir = output / config["calibration"].get("output_directory", "")
     if not outdir.is_dir():
         outdir.mkdir(parents=True, exist_ok=True)
 
@@ -83,7 +89,7 @@ def main():
         dark_filenames = parse_filenames(
             root, config["calibration"]["darks"]["filenames"]
         )
-        skip_darks = not config["calibration"]["darks"]["force"]
+        skip_darks = not config["calibration"]["darks"].get("force", False)
         master_darks = []
         for dark in tqdm.tqdm(dark_filenames, desc="Making master darks"):
             outname = outdir / f"{dark.stem}_collapsed{dark.suffix}"
@@ -97,7 +103,7 @@ def main():
         dark_filenames = parse_filenames(
             root, config["calibration"]["flats"]["filenames"]
         )
-        skip_flats = not config["calibration"]["flats"]["force"]
+        skip_flats = not config["calibration"]["flats"].get("force", False)
         master_flats = []
         for dark, flat in zip(
             master_darks, tqdm.tqdm(dark_filenames, desc="Making master flats")
@@ -113,7 +119,7 @@ def main():
     ## Step 1c: calibrate files and fix headers
     filenames = parse_filenames(root, config["calibration"]["filenames"])
     N_files = len(filenames)
-    skip_calib = not config["calibration"]["force"]
+    skip_calib = not config["calibration"].get("force", False)
     working_files = []
     test_frames = [None, None]
     test_filter = None
@@ -146,10 +152,10 @@ def main():
     ## Step 2: Frame selection
     if "frame_selection" in config:
         logger.info("Performing frame selection")
-        outdir = output / config["frame_selection"]["output_directory"]
+        outdir = output / config["frame_selection"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
-        skip_select = not config["frame_selection"]["force"]
+        skip_select = not config["frame_selection"].get("force", False)
         metric_files = []
         ## 2a: measure metrics
         for i in tqdm.trange(N_files, desc="Measuring frame selection metric"):
@@ -171,7 +177,7 @@ def main():
                     radius=r,
                     theta=ang,
                     window=window,
-                    metric=config["frame_selection"]["metric"],
+                    metric=config["frame_selection"].get("metric", "l2norm"),
                     output=outname,
                     skip=skip_select,
                 )
@@ -180,14 +186,15 @@ def main():
                     filename,
                     center=frame_centers[cam_idx],
                     window=window,
-                    metric=config["frame_selection"]["metric"],
+                    metric=config["frame_selection"].get("metric", "l2norm"),
                     output=outname,
                     skip=skip_select,
                 )
             metric_files.append(metric_file)
 
         ## 2b: perform frame selection
-        if config["frame_selection"].get("q", 0) > 0:
+        quantile = config["frame_selection"].get("q", 0)
+        if quantile > 0:
             for i in tqdm.trange(N_files, desc="Discarding frames"):
                 filename = working_files[i]
                 metric_file = metric_files[i]
@@ -195,7 +202,7 @@ def main():
                 working_files[i] = frame_select_file(
                     filename,
                     metric_file,
-                    q=config["frame_selection"]["q"],
+                    q=quantile,
                     output=outname,
                     skip=skip_select,
                 )
@@ -205,10 +212,10 @@ def main():
     ## 3: Image registration
     if "registration" in config:
         logger.info("Performing image registration")
-        outdir = output / config["registration"]["output_directory"]
+        outdir = output / config["registration"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
-        skip_reg = not config["registration"]["force"]
+        skip_reg = not config["registration"].get("force", False)
         offset_files = []
         ## 3a: measure offsets
         for i in tqdm.trange(N_files, desc="Measuring frame offsets"):
@@ -225,7 +232,7 @@ def main():
                 ang = config["coronagraph"]["satellite_spots"].get("angle", -4)
                 offset_file = measure_offsets(
                     filename,
-                    method=config["registration"]["method"],
+                    method=config["registration"].get("method", "com"),
                     upsample_factor=config["registration"].get("upsample_factor", 1),
                     refmethod=config["registration"].get("reference_method", "com"),
                     center=frame_centers[cam_idx],
@@ -239,7 +246,7 @@ def main():
             else:
                 offset_file = measure_offsets(
                     filename,
-                    method=config["registration"]["method"],
+                    method=config["registration"].get("method", "peak"),
                     upsample_factor=config["registration"].get("upsample_factor", 1),
                     refmethod=config["registration"].get("reference_method", "com"),
                     center=frame_centers[cam_idx],
@@ -264,10 +271,10 @@ def main():
     ## Step 4: coadding
     if "coadd" in config:
         logger.info("Coadding registered frames")
-        outdir = output / config["coadd"]["output_directory"]
+        outdir = output / config["coadd"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
-        skip_coadd = not config["coadd"]["force"]
+        skip_coadd = not config["coadd"].get("force", False)
         for i in tqdm.trange(N_files, desc="Collapsing frames"):
             filename = working_files[i]
             outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"

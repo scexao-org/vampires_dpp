@@ -36,12 +36,10 @@ window_size = 30 # window size to measure offsets from
 [registration]
 method = "com" # offset measurement method, one of 'com', 'max', 'dft', 'moffat', 'airydisk', 'gaussian'
 window_size = 30 # window size to measure offsets from
-output_directory = "" # output directory for measured offsets and intermediate frames
-force = false # if files already exist, should we force the calculation and overwrite?
-
-[registration.dft] # options only for the 'dft' registration method
 upsampling_factor = 10 # the sub-pixel precision of the upsampled DFT
 reference_method = "com" # how to measure the offset of the reference frame
+output_directory = "" # output directory for measured offsets and intermediate frames
+force = false # if files already exist, should we force the calculation and overwrite?
 
 [coadd]
 output_directory = "" # output directory for intermediate frames
