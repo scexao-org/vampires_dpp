@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Optional, Union
 from numpy.typing import ArrayLike
 
+from vampires_dpp.fixes import fix_header
+
 
 def calibrate(
     data: ArrayLike,
@@ -52,16 +54,18 @@ def calibrate(
 
 def calibrate_file(
     filename: str,
-    suffix="_calib",
+    outname=None,
     hdu: int = 0,
     dark: Optional[str] = None,
     flat: Optional[str] = None,
-    flip: Union[str, bool] = "auto",
     skip=False,
     **kwargs,
 ):
     path = Path(filename)
-    outname = path.with_name(f"{path.stem}{suffix}{path.suffix}")
+    if outname is None:
+        outname = path.with_stem(f"{path.stem}_calib")
+    else:
+        outname = Path(outname)
     if skip and outname.is_file():
         return outname
 

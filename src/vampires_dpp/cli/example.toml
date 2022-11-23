@@ -3,11 +3,11 @@ version = "0.1.0" # vampires_dpp version
 name = "example" # simple name for analysis, used for automatic naming of some files
 directory = "" # root directory, will use CWD by default
 output_directory = "" # path to top-level output directory, if empty will use the current working directory
-coronagraphic = false
 
 [coronagraph] # these options only matter if `coronagraphic = true`
-satellite_spots = true # if true, will use the satellite spots for frame metrics, registration, etc. Otherwise will use the speckle halo
-mask_size = 90 # mask IWA in mas (listed on VAMPIRES web page)
+mask_size = 90 # IWA of mask, mas
+
+[coronagraph.satellite_spots]
 radius = 15.9 # radius of satellite spots in lam/D
 angle = -4 # angle offset of satellite spots in degrees, -4 is default
 
@@ -27,7 +27,7 @@ output_name = "master_flat"
 force = false # if file already exists, should we force the calibration and overwrite?
 
 [frame_selection]
-method = "l2norm" # frame selection metric, one of 'max', 'l2norm', 'normvar'
+metric = "l2norm" # frame selection metric, one of 'max', 'l2norm', 'normvar'
 q = 0.0 # frame selection quantile [0, 1). 0 is no frame seleciton, 1 removes all frames
 output_directory = "" # output directory for measured metrics and intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?

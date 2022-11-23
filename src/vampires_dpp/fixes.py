@@ -4,7 +4,21 @@ from pathlib import Path
 from typing import Optional
 
 
-def fix_header(filename, output: Optional[str] = None, skip=False):
+def fix_header(header):
+    # check if the millisecond delimiter is a colon
+    for key in ("UT-STR", "UT-END", "HST-STR", "HST-END"):
+        if header[key].count(":") == 3:
+            tokens = header[key].rpartition(":")
+            header[key] = f"{tokens[0]}.{tokens[2]}"
+    # fix UT/HST/MJD being time of file creation instead of typical time
+    for key in ("UT", "HST"):
+        header[key] = fix_typical_time_iso(header, key)
+    header["MJD"] = fix_typical_time_mjd(header)
+
+    return header
+
+
+def fix_header_file(filename, output: Optional[str] = None, skip=False):
     """
     Apply fixes to headers based on known bugs
 
@@ -42,17 +56,7 @@ def fix_header(filename, output: Optional[str] = None, skip=False):
         return output
 
     data, hdr = fits.getdata(filename, header=True)
-
-    # check if the millisecond delimiter is a color
-    for key in ("UT-STR", "UT-END", "HST-STR", "HST-END"):
-        if hdr[key].count(":") == 3:
-            tokens = hdr[key].rpartition(":")
-            hdr[key] = f"{tokens[0]}.{tokens[2]}"
-    # fix UT/HST/MJD being time of file creation instead of typical time
-    for key in ("UT", "HST"):
-        hdr[key] = fix_typical_time_iso(hdr, key)
-    hdr["MJD"] = fix_typical_time_mjd(hdr)
-
+    hdr = fix_header(hdr)
     # save file
     fits.writeto(output, data, header=hdr, overwrite=True)
     return output

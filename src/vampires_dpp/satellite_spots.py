@@ -4,7 +4,7 @@ from numpy.typing import ArrayLike
 from .image_processing import frame_center
 
 FILTER_ANGULAR_SIZE = {
-    "open": np.rad2deg(700e-9 / 7.79) * 3.6e6,
+    "Open": np.rad2deg(700e-9 / 7.79) * 3.6e6,
     "625-50": np.rad2deg(625e-9 / 7.79) * 3.6e6,
     "675-50": np.rad2deg(675e-9 / 7.79) * 3.6e6,
     "725-50": np.rad2deg(725e-9 / 7.79) * 3.6e6,
