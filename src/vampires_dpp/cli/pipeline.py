@@ -28,6 +28,9 @@ logger = logging.getLogger("VPP")
 # set up command line arguments
 parser = ArgumentParser()
 parser.add_argument("config", help="path to configuration file")
+parser.add_argument(
+    "-v", "--verbose", action="store_true", help="Print (extremely) verbose logging"
+)
 
 
 def parse_filenames(root, filenames):
@@ -46,6 +49,13 @@ def parse_filenames(root, filenames):
         # is a list of filenames
         paths = [root / f for f in filenames]
 
+    # cause ruckus if no files are found
+    if len(paths) == 0:
+        logger.warn(
+            "No files found; double check your configuration file. See debug information for more details"
+        )
+        logger.debug(f"No files found from input\n{filenames}")
+
     return paths
 
 
@@ -58,7 +68,10 @@ def check_version(config, vpp):
 def main():
     args = parser.parse_args()
 
-    logger.debug(f"loading config from {args.config}")
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+
+    logger.debug(f"loading config from {Path(args.config).absolute()}")
     config = toml.load(args.config)
 
     # make sure versions match within SemVar
@@ -69,7 +82,9 @@ def main():
 
     # set up paths
     root = Path(config["directory"])
+    logger.debug(f"Root directory is {root}")
     output = Path(config.get("output_directory", root))
+    logger.debug(f"Output directory is {output}")
     if not output.is_dir():
         output.mkdir(parents=True, exist_ok=True)
 
@@ -77,19 +92,26 @@ def main():
         frame_centers = [np.array(c)[::-1] for c in config["frame_centers"]]
     else:
         frame_centers = [None, None]
+    logger.debug(f"Cam 1 frame center is {frame_centers[0]} (y, x)")
+    logger.debug(f"Cam 2 frame center is {frame_centers[1]} (y, x)")
 
     ## Step 1: Fix headers and calibrate
     logger.info("Starting data calibration")
     outdir = output / config["calibration"].get("output_directory", "")
     if not outdir.is_dir():
         outdir.mkdir(parents=True, exist_ok=True)
+    logger.debug(f"Saving calibrated data to {outdir.absolute()}")
 
+    tripwire = False
     ## Step 1a: create master dark
     if "darks" in config["calibration"]:
         dark_filenames = parse_filenames(
             root, config["calibration"]["darks"]["filenames"]
         )
         skip_darks = not config["calibration"]["darks"].get("force", False)
+        if skip_darks:
+            logger.debug("skipping darks if files exist")
+        tripwire = tripwire or not skip_darks
         master_darks = []
         for dark in tqdm.tqdm(dark_filenames, desc="Making master darks"):
             outname = outdir / f"{dark.stem}_collapsed{dark.suffix}"
@@ -103,7 +125,13 @@ def main():
         dark_filenames = parse_filenames(
             root, config["calibration"]["flats"]["filenames"]
         )
-        skip_flats = not config["calibration"]["flats"].get("force", False)
+        # if darks were remade, need to remake flats
+        skip_flats = not tripwire and not config["calibration"]["flats"].get(
+            "force", False
+        )
+        if skip_flats:
+            logger.debug("skipping flats if files exist")
+        tripwire = tripwire or not skip_flats
         master_flats = []
         for dark, flat in zip(
             master_darks, tqdm.tqdm(dark_filenames, desc="Making master flats")
@@ -119,32 +147,29 @@ def main():
     ## Step 1c: calibrate files and fix headers
     filenames = parse_filenames(root, config["calibration"]["filenames"])
     N_files = len(filenames)
-    skip_calib = not config["calibration"].get("force", False)
+    skip_calib = not tripwire and not config["calibration"].get("force", False)
+    if skip_calib:
+        logger.debug("skipping calibration if files exist")
+    tripwire = tripwire or not skip_calib
     working_files = []
-    test_frames = [None, None]
-    test_filter = None
     for filename in tqdm.tqdm(filenames, desc="Calibrating files"):
+        logger.debug(f"calibrating {filename.absolute()}")
         outname = outdir / f"{filename.stem}_calib{filename.suffix}"
         if skip_calib and outname.is_file():
             working_files.append(outname)
             continue
         cube, header = fits.getdata(filename, header=True)
         header = fix_header(header)
-        if test_filter is None:
-            test_filter = header["U_FILTER"]
         if header["U_CAMERA"] == 1:
             calib_cube = calibrate(
                 cube, discard=2, dark=master_darks[0], flat=master_flats[0], flip=True
             )
-            if test_frames[0] is None:
-                test_frames[0] = np.mean(calib_cube, axis=0)
         else:
             calib_cube = calibrate(
                 cube, discard=2, dark=master_darks[1], flat=master_flats[1], flip=False
             )
-            if test_frames[1] is None:
-                test_frames[1] = np.mean(calib_cube, axis=0)
         fits.writeto(outname, calib_cube, header, overwrite=True)
+        logger.debug(f"saved calibrated file at {outname.absolute()}")
         working_files.append(outname)
 
     logger.info("Data calibration completed")
@@ -155,11 +180,16 @@ def main():
         outdir = output / config["frame_selection"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
-        skip_select = not config["frame_selection"].get("force", False)
+        logger.debug(f"Saving frame selection data to {outdir.absolute()}")
+        skip_select = not tripwire and not config["frame_selection"].get("force", False)
+        if skip_select:
+            logger.debug("skipping frame selection if files exist")
+        tripwire = tripwire or not skip_select
         metric_files = []
         ## 2a: measure metrics
         for i in tqdm.trange(N_files, desc="Measuring frame selection metric"):
             filename = working_files[i]
+            logger.debug(f"Measuring metric for {filename.absolute()}")
             header = fits.getheader(filename)
             cam_idx = int(header["U_CAMERA"] - 1)
             outname = outdir / f"{filename.stem}_metrics.csv"
@@ -190,6 +220,7 @@ def main():
                     output=outname,
                     skip=skip_select,
                 )
+            logger.debug(f"saving metrics to file {metric_file.absolute()}")
             metric_files.append(metric_file)
 
         ## 2b: perform frame selection
@@ -197,6 +228,7 @@ def main():
         if quantile > 0:
             for i in tqdm.trange(N_files, desc="Discarding frames"):
                 filename = working_files[i]
+                logger.debug(f"discarding frames from {filename.absolute()}")
                 metric_file = metric_files[i]
                 outname = outdir / f"{filename.stem}_cut{filename.suffix}"
                 working_files[i] = frame_select_file(
@@ -206,6 +238,7 @@ def main():
                     output=outname,
                     skip=skip_select,
                 )
+                logger.debug(f"saving data to {outname.absolute()}")
 
     logger.info("Frame selection complete")
 
@@ -215,8 +248,12 @@ def main():
         outdir = output / config["registration"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"saving image registration data to {outdir.absolute()}")
         offset_files = []
-        skip_reg = not config["registration"].get("force", False)
+        skip_reg = not tripwire and not config["registration"].get("force", False)
+        if skip_reg:
+            logger.debug("skipping offset files and aligned files if they exist")
+        tripwire = tripwire or not skip_reg
         kwargs = {
             "window": config["registration"].get("window_size", 30),
             "theta": config["coronagraph"]["satellite_spots"].get("angle", -4),
@@ -232,6 +269,7 @@ def main():
         ## 3a: measure offsets
         for i in tqdm.trange(N_files, desc="Measuring frame offsets"):
             filename = working_files[i]
+            logger.debug(f"measuring offsets for {filename.absolute()}")
             header = fits.getheader(filename)
             cam_idx = int(header["U_CAMERA"] - 1)
             outname = outdir / f"{filename.stem}_offsets.csv"
@@ -257,11 +295,14 @@ def main():
                     output=outname,
                     **kwargs,
                 )
+            logger.debug(f"saving offsets to {offset_file.absolute()}")
             offset_files.append(offset_file)
         ## 3b: registration
         for i in tqdm.trange(N_files, desc="Aligning frames"):
             filename = working_files[i]
             offset_file = offset_files[i]
+            logger.debug(f"aligning {filename.absolute()}")
+            logger.debug(f"using offsets {offset_file.absolute()}")
             outname = outdir / f"{filename.stem}_aligned{filename.suffix}"
             working_files[i] = register_file(
                 filename,
@@ -269,6 +310,7 @@ def main():
                 output=outname,
                 skip=skip_reg,
             )
+            logger.debug(f"aligned data saved to {outname.absolute()}")
         logger.info("Finished registering frames")
 
     ## Step 4: coadding
@@ -277,9 +319,14 @@ def main():
         outdir = output / config["coadd"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
-        skip_coadd = not config["coadd"].get("force", False)
+        logger.debug(f"saving collapsed data to {outdir.absolute()}")
+        skip_coadd = not tripwire and not config["coadd"].get("force", False)
+        if skip_coadd:
+            logger.debug("skipping collapsing cubes if files exist")
+        tripwire = tripwire or not skip_coadd
         for i in tqdm.trange(N_files, desc="Collapsing frames"):
             filename = working_files[i]
+            logger.debug(f"collapsing cube from {filename.absolute()}")
             outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
             if skip_coadd and outname.is_file():
                 working_files[i] = outname
@@ -287,6 +334,7 @@ def main():
             cube, header = fits.getdata(filename, header=True)
             frame = np.median(cube, axis=0)
             fits.writeto(outname, frame, overwrite=True)
+            logger.debug(f"saved collapsed data to {outname.absolute()}")
 
         logger.info("Finished coadding frames")
 
