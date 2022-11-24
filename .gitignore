@@ -160,3 +160,4 @@ cython_debug/
 _test
 md5sums.txt
 docs/**/*.fits
+*.tmp
