@@ -33,6 +33,6 @@ The message was: Cell execution timed out.
 Here is a preview of the cell contents:
 -------------------
 # download example data
-zenodo_get(["10.5281/zenodo.7353462", "-o", datadir.absolute()])
+zenodo_get(["10.5281/zenodo.7353462", "-o", datadir.absolute(), "-t", "300"])
 -------------------
 
