@@ -22,7 +22,7 @@ VAMPIRES data processing tools. Get started by installing the package
 
    pip install git+https://github.com/scexao-org/vampires_dpp.git#egg=vampires_dpp
 
-and heading over to the `tutorials <./tutorials>`_.
+checking out the `pipeline <./pipeline>`_, and heading over to the `tutorials <./tutorials>`_.
 
 Contents
 --------
