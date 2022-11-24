@@ -140,7 +140,7 @@ This section will enable standard image calibration of VAMPIRES data. The follow
 
 1. If dark files are provided, a master dark will be made
 2. If flat files are provided, a master flat will be made
-3. The FITS headers will be fixed using `fix_header`
+3. The FITS headers will be fixed using `fix_header` and WCS information will be added
 4. The leading 2 frames of each data cube will be discarded due to detector readout artifacts
 5. If dark files are provided, the cube will be dark subtracted
 6. If flat files are provided, the cube will be flat normalized
