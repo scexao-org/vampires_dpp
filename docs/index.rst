@@ -32,6 +32,7 @@ Contents
 
    installation
    gettingstarted
+   pipeline
    tutorials/index
    api/index
 
