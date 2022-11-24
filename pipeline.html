@@ -310,6 +310,18 @@ title="Print to PDF"
     <a class="reference internal nav-link" href="#global-options">
      Global Options
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#outputs">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#astrometry-options">
+     Astrometry Options
+    </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#coronagraph-options">
@@ -322,7 +334,7 @@ title="Print to PDF"
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#outputs">
+      <a class="reference internal nav-link" href="#id1">
        Outputs
       </a>
      </li>
@@ -334,7 +346,7 @@ title="Print to PDF"
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id1">
+      <a class="reference internal nav-link" href="#id2">
        Outputs
       </a>
      </li>
@@ -346,19 +358,19 @@ title="Print to PDF"
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id2">
+      <a class="reference internal nav-link" href="#id3">
        Outputs
       </a>
      </li>
     </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#coadding-options">
-     Coadding Options
+    <a class="reference internal nav-link" href="#collapsing-options">
+     Collapsing Options
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id3">
+      <a class="reference internal nav-link" href="#id4">
        Outputs
       </a>
      </li>
@@ -370,7 +382,7 @@ title="Print to PDF"
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id4">
+      <a class="reference internal nav-link" href="#id5">
        Outputs
       </a>
      </li>
@@ -416,6 +428,18 @@ title="Print to PDF"
     <a class="reference internal nav-link" href="#global-options">
      Global Options
     </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#outputs">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#astrometry-options">
+     Astrometry Options
+    </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#coronagraph-options">
@@ -428,7 +452,7 @@ title="Print to PDF"
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#outputs">
+      <a class="reference internal nav-link" href="#id1">
        Outputs
       </a>
      </li>
@@ -440,7 +464,7 @@ title="Print to PDF"
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id1">
+      <a class="reference internal nav-link" href="#id2">
        Outputs
       </a>
      </li>
@@ -452,19 +476,19 @@ title="Print to PDF"
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id2">
+      <a class="reference internal nav-link" href="#id3">
        Outputs
       </a>
      </li>
     </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#coadding-options">
-     Coadding Options
+    <a class="reference internal nav-link" href="#collapsing-options">
+     Collapsing Options
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id3">
+      <a class="reference internal nav-link" href="#id4">
        Outputs
       </a>
      </li>
@@ -476,7 +500,7 @@ title="Print to PDF"
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id4">
+      <a class="reference internal nav-link" href="#id5">
        Outputs
       </a>
      </li>
@@ -517,7 +541,7 @@ title="Print to PDF"
 <li><p>Calibration</p></li>
 <li><p>Frame Selection</p></li>
 <li><p>Image Registration</p></li>
-<li><p>Coadding</p></li>
+<li><p>Collapsing</p></li>
 <li><p>Derotation</p></li>
 </ol>
 <div class="tip admonition">
@@ -537,7 +561,7 @@ vpp config.toml -v &gt; vpp_output.txt
 </div></blockquote>
 <section id="version">
 <h3>Version<a class="headerlink" href="#version" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The first required option is the <code class="docutils literal notranslate"><span class="pre">version</span></code> which should be set to the same value as your <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> version, which you can get from</p>
@@ -560,11 +584,30 @@ vpp config.toml -v &gt; vpp_output.txt
 </pre></div>
 </div>
 <p>absolute path to top-level output directory, if empty will use the root directory</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_files.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file </span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression </span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">130</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
 </pre></div>
 </div>
 <p>A list of frame centers for cam1 and cam2 from visual inspection. This is useful in the case that the PSFs are not well-centered in the frame, which can make the windows used for frame selection or image registration poorly positioned.</p>
 <p>The frame centers must be given as a list of (x, y) lists, otherwise they will default to the geometric frame centers</p>
+<section id="outputs">
+<h4>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">#</a></h4>
+<p>After calibration, a FITS file of the angles required to rotate each frame clockwise to North up East left will be saved in <code class="docutils literal notranslate"><span class="pre">{config[&quot;name&quot;]}_derot_angles.fits</span></code>. A CSV with the header information scraped from all the calibrated data will be saved to <code class="docutils literal notranslate"><span class="pre">{config[&quot;name&quot;]}_headers.csv</span></code>.</p>
+</section>
+</section>
+<section id="astrometry-options">
+<h3>Astrometry Options<a class="headerlink" href="#astrometry-options" title="Permalink to this headline">#</a></h3>
+<p>The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> config.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[astrometry]</span><span class="w"></span>
+<span class="n">pixel_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">6.24</span><span class="w"> </span><span class="c1"># mas/px, optional</span><span class="w"></span>
+<span class="n">pupil_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">140.4</span><span class="w"> </span><span class="c1"># deg, optional</span><span class="w"></span>
+</pre></div>
+</div>
 </section>
 <section id="coronagraph-options">
 <h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Permalink to this headline">#</a></h3>
@@ -598,19 +641,13 @@ vpp config.toml -v &gt; vpp_output.txt
 <ol class="simple">
 <li><p>If dark files are provided, a master dark will be made</p></li>
 <li><p>If flat files are provided, a master flat will be made</p></li>
-<li><p>The FITS headers will be fixed using <code class="docutils literal notranslate"><span class="pre">fix_header</span></code></p></li>
+<li><p>The FITS headers will be fixed using <code class="docutils literal notranslate"><span class="pre">fix_header</span></code> and WCS information will be added</p></li>
 <li><p>The leading 2 frames of each data cube will be discarded due to detector readout artifacts</p></li>
 <li><p>If dark files are provided, the cube will be dark subtracted</p></li>
 <li><p>If flat files are provided, the cube will be flat normalized</p></li>
 <li><p>Cam 1 data will be flipped along the y-axis</p></li>
 <li><p>(Advanced) Interleaved polarimetric data will be deinterleaved into two cubes</p></li>
 </ol>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_files.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file </span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression </span><span class="w"></span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
 </pre></div>
 </div>
@@ -661,8 +698,8 @@ vpp config.toml -v &gt; vpp_output.txt
 </pre></div>
 </div>
 <p>By default, if the master flat already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the master flat <em>and all subsequent operations</em> will be redone.</p>
-<section id="outputs">
-<h4>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">#</a></h4>
+<section id="id1">
+<h4>Outputs<a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h4>
 <p>FITS files will be saved to the <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_calib</span></code> appended to the name. If <code class="docutils literal notranslate"><span class="pre">deinterleave</span></code> is true, the files will also have either <code class="docutils literal notranslate"><span class="pre">_FLC1</span></code> or <code class="docutils literal notranslate"><span class="pre">_FLC2</span></code> appended.</p>
 </section>
 </section>
@@ -692,8 +729,8 @@ vpp config.toml -v &gt; vpp_output.txt
 </pre></div>
 </div>
 <p>By default, if the frame selection metrics or the frame-selected data cubes already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the metric measurements, discarding, <em>and all subsequent operations</em> will be redone.</p>
-<section id="id1">
-<h4>Outputs<a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h4>
+<section id="id2">
+<h4>Outputs<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h4>
 <p>CSV files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_metric</span></code> appended to the file name with the frame selection metrics for each frame in the data cube. FITS files will be saved with <code class="docutils literal notranslate"><span class="pre">_cut</span></code> appended to the file name if frames are discarded (<code class="docutils literal notranslate"><span class="pre">q</span></code> &gt; 0).</p>
 </section>
 </section>
@@ -725,14 +762,14 @@ vpp config.toml -v &gt; vpp_output.txt
 </pre></div>
 </div>
 <p>By default, if the offsets or the aligned data cubes already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the offset measurements, alignment, <em>and all subsequent operations</em> will be redone.</p>
-<section id="id2">
-<h4>Outputs<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h4>
+<section id="id3">
+<h4>Outputs<a class="headerlink" href="#id3" title="Permalink to this headline">#</a></h4>
 <p>CSV files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_offsets</span></code> appended to the file name with the PSF offsets (y, x) for each frame in the data cube. FITS files will be saved with <code class="docutils literal notranslate"><span class="pre">_aligned</span></code> appended to the file name.</p>
 </section>
 </section>
-<section id="coadding-options">
-<h3>Coadding Options<a class="headerlink" href="#coadding-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coadd</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<section id="collapsing-options">
+<h3>Collapsing Options<a class="headerlink" href="#collapsing-options" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">collapsing</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
 </pre></div>
 </div>
 <p>If this section is set, the data cubes will be median-combined along the time axis.</p>
@@ -744,8 +781,8 @@ vpp config.toml -v &gt; vpp_output.txt
 </pre></div>
 </div>
 <p>By default, if the collapsed data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the collapsing, <em>and all subsequent operations</em> will be redone.</p>
-<section id="id3">
-<h4>Outputs<a class="headerlink" href="#id3" title="Permalink to this headline">#</a></h4>
+<section id="id4">
+<h4>Outputs<a class="headerlink" href="#id4" title="Permalink to this headline">#</a></h4>
 <p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_collapsed</span></code> appended to the file name.</p>
 </section>
 </section>
@@ -755,10 +792,6 @@ vpp config.toml -v &gt; vpp_output.txt
 </pre></div>
 </div>
 <p>If this section is set, the collapsed data will be derotated to North up, East left.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">pupil_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">140.4</span><span class="w"> </span><span class="c1"># deg, optional</span><span class="w"></span>
-</pre></div>
-</div>
-<p>The pupil offset between the IR bench and the Visible bench. This should not need to be changed unless you have a custom astrometric solution.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
 </pre></div>
 </div>
@@ -767,8 +800,8 @@ vpp config.toml -v &gt; vpp_output.txt
 </pre></div>
 </div>
 <p>By default, if the derotated data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the derotation, <em>and all subsequent operations</em> will be redone.</p>
-<section id="id4">
-<h4>Outputs<a class="headerlink" href="#id4" title="Permalink to this headline">#</a></h4>
+<section id="id5">
+<h4>Outputs<a class="headerlink" href="#id5" title="Permalink to this headline">#</a></h4>
 <p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_derot</span></code> appended to the file name.</p>
 </section>
 </section>
@@ -779,7 +812,7 @@ vpp config.toml -v &gt; vpp_output.txt
 <details>
 <summary>Non-coronagraphic Polarimetric Imaging</summary>
 <br>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
 <span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320&quot;</span><span class="w"></span>
@@ -801,7 +834,7 @@ vpp config.toml -v &gt; vpp_output.txt
 <span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span><span class="w"></span>
 
-<span class="k">[coadd]</span><span class="w"></span>
+<span class="k">[collapsing]</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span><span class="w"></span>
 
 <span class="k">[derotate]</span><span class="w"></span>
@@ -812,7 +845,7 @@ vpp config.toml -v &gt; vpp_output.txt
 <details>
 <summary>Coronagraphic Polarimetric Imaging</summary>
 <br>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
 <span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224&quot;</span><span class="w"></span>
@@ -841,7 +874,7 @@ vpp config.toml -v &gt; vpp_output.txt
 <span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span><span class="w"></span>
 
-<span class="k">[coadd]</span><span class="w"></span>
+<span class="k">[collapsing]</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span><span class="w"></span>
 
 <span class="k">[derotate]</span><span class="w"></span>
@@ -852,7 +885,7 @@ vpp config.toml -v &gt; vpp_output.txt
 <details>
 <summary>Single Camera Speckle Imaging</summary>
 <br>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;single_cam_example&quot;</span><span class="w"></span>
 <span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data&quot;</span><span class="w"></span>
@@ -874,7 +907,7 @@ vpp config.toml -v &gt; vpp_output.txt
 <span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span><span class="w"></span>
 
-<span class="k">[coadd]</span><span class="w"></span>
+<span class="k">[collapsing]</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span><span class="w"></span>
 
 <span class="k">[derotate]</span><span class="w"></span>
