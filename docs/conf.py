@@ -1,5 +1,6 @@
 from pkg_resources import DistributionNotFound, get_distribution
 from datetime import date
+import os
 
 # -- Project information -----------------------------------------------------
 try:
@@ -32,6 +33,8 @@ myst_enable_extensions = [
 ]
 myst_heading_anchors = 2
 source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}
+nb_execution_mode = "cache"
+nb_execution_show_tb = os.environ.get("CI", "false") == "true"
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
