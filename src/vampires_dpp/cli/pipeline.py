@@ -12,6 +12,7 @@ import vampires_dpp as vpp
 from vampires_dpp.calibration import make_dark_file, make_flat_file, calibrate
 from vampires_dpp.fixes import fix_header
 from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
+from vampires_dpp.headers import observation_table
 from vampires_dpp.image_processing import derotate_frame
 from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.satellite_spots import lamd_to_pixel
@@ -155,8 +156,16 @@ def main():
     if skip_calib:
         logger.debug("skipping calibration if files exist")
     tripwire = tripwire or not skip_calib
+    # save header table
+    table = observation_table(filenames).sort_values("DATE")
+    table_name = output / f"{config['name']}_headers.csv"
+    if not skip_calib or not table_name.is_file():
+        table.to_csv(table_name)
+        logger.debug(f"Saved table of headers to {table_name.absolute()}")
+
+    logger.debug
     working_files = []
-    for filename in tqdm.tqdm(filenames, desc="Calibrating files"):
+    for filename in tqdm.tqdm(table["path"], desc="Calibrating files"):
         logger.debug(f"calibrating {filename.absolute()}")
         outname = outdir / f"{filename.stem}_calib{filename.suffix}"
         if config["calibration"].get("deinterleave", False):
