@@ -39,7 +39,7 @@ docs = [
 ]
 
 [project.scripts]
-vpp = "vampires_dpp.cli.pipeline:main"
+vpp = "vampires_dpp.cli.vpp:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_dpp.__version__"}
