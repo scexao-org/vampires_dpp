@@ -1,4 +1,4 @@
-version = "0.1.0" # vampires_dpp version
+version = "0.2.0" # vampires_dpp version
 
 name = "example" # simple name for analysis, used for automatic naming of some files
 directory = "" # absolute path of root data directory
@@ -47,7 +47,7 @@ force = false # if files already exist, should we force the calculation and over
 upsampling_factor = 1 # the sub-pixel precision of the upsampled DFT, by default 1
 reference_method = "com" # how to measure the offset of the reference frame, by default 'com'
 
-[coadd]
+[collapsing]
 output_directory = "" # output directory for intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
 

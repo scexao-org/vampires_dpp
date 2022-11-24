@@ -17,7 +17,7 @@ The pipeline will reduce the data in the following order
 1. Calibration
 2. Frame Selection
 3. Image Registration
-4. Coadding
+4. Collapsing
 5. Derotation
 
 ```{admonition} Troubleshooting
@@ -40,7 +40,7 @@ There is a version of the configuration file with all possible options and brief
 ### Version
 
 ```toml
-version = "0.1.0" # vampires_dpp version
+version = "0.2.0" # vampires_dpp version
 ```
 
 The first required option is the `version` which should be set to the same value as your `vampires_dpp` version, which you can get from
@@ -298,10 +298,10 @@ By default, if the offsets or the aligned data cubes already exist the operation
 
 CSV files will be saved in `output_directory` with `_offsets` appended to the file name with the PSF offsets (y, x) for each frame in the data cube. FITS files will be saved with `_aligned` appended to the file name.
 
-### Coadding Options
+### Collapsing Options
 
 ```toml
-[coadd] # optional
+[collapsing] # optional
 ```
 
 If this section is set, the data cubes will be median-combined along the time axis.
@@ -352,7 +352,7 @@ Here are some simple examples of configuration files for various observing scena
 <br>
 
 ```toml
-version = "0.1.0" # vampires_dpp version
+version = "0.2.0" # vampires_dpp version
 
 name = "abaur_example"
 directory = "abaur_20190320"
@@ -374,7 +374,7 @@ output_directory = "selected"
 method = "peak"
 output_directory = "registered"
 
-[coadd]
+[collapsing]
 output_directory = "collapsed"
 
 [derotate]
@@ -387,7 +387,7 @@ output_directory = "derotated"
 <br>
 
 ```toml
-version = "0.1.0" # vampires_dpp version
+version = "0.2.0" # vampires_dpp version
 
 name = "abaur_example"
 directory = "abaur_20220224"
@@ -416,7 +416,7 @@ output_directory = "selected"
 method = "com"
 output_directory = "registered"
 
-[coadd]
+[collapsing]
 output_directory = "collapsed"
 
 [derotate]
@@ -430,7 +430,7 @@ output_directory = "derotated"
 <br>
 
 ```toml
-version = "0.1.0" # vampires_dpp version
+version = "0.2.0" # vampires_dpp version
 
 name = "single_cam_example"
 directory = "data"
@@ -452,7 +452,7 @@ output_directory = "selected"
 method = "peak"
 output_directory = "registered"
 
-[coadd]
+[collapsing]
 output_directory = "collapsed"
 
 [derotate]

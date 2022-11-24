@@ -367,30 +367,30 @@ def main():
             logger.debug(f"aligned data saved to {outname.absolute()}")
         logger.info("Finished registering frames")
 
-    ## Step 4: coadding
-    if "coadd" in config:
-        logger.info("Coadding registered frames")
-        outdir = output / config["coadd"].get("output_directory", "")
+    ## Step 4: collapsing
+    if "collapsing" in config:
+        logger.info("Collapsing registered frames")
+        outdir = output / config["collapsing"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
         logger.debug(f"saving collapsed data to {outdir.absolute()}")
-        skip_coadd = not tripwire and not config["coadd"].get("force", False)
-        if skip_coadd:
+        skip_collapse = not tripwire and not config["collapsing"].get("force", False)
+        if skip_collapse:
             logger.debug("skipping collapsing cubes if files exist")
-        tripwire = tripwire or not skip_coadd
+        tripwire = tripwire or not skip_collapse
         for i in tqdm.trange(len(working_files), desc="Collapsing frames"):
             filename = working_files[i]
             logger.debug(f"collapsing cube from {filename.absolute()}")
             outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
             working_files[i] = outname
-            if skip_coadd and outname.is_file():
+            if skip_collapse and outname.is_file():
                 continue
             cube, header = fits.getdata(filename, header=True)
             frame = np.median(cube, axis=0, overwrite_input=True)
             fits.writeto(outname, frame, header=header, overwrite=True)
             logger.debug(f"saved collapsed data to {outname.absolute()}")
 
-        logger.info("Finished coadding frames")
+        logger.info("Finished collapsing frames")
 
     if "derotate" in config:
         logger.info("Derotating collapsed frames")
