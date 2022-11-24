@@ -4,15 +4,15 @@ on:
     branches:
       - main
   workflow_dispatch:
-
+concurrency:
+  # Skip intermediate builds: always.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     name: Deploy docs
     runs-on: ubuntu-latest
     steps:
-      - uses: n1hility/cancel-previous-runs@v2
-        with: 
-          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v1
         with:
@@ -22,6 +22,12 @@ jobs:
         run: |
           pip install -U pip
           pip install .[docs]
+      - name: Cache example data
+        id: cache-example-data
+        uses: actions/cache@v3
+        with:
+          path: docs/examples/data
+          key: ${{ runner.os }}-example-data
       - name: Build docs with sphinx
         run: |
           mkdir -p ../_build

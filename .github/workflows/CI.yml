@@ -5,7 +5,9 @@ on:
     tags: ["*"]
   pull_request:
     branches: [main]
-
+concurrency:
+  # Skip intermediate builds: always.
+  group: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   test:
     name: Python ${{ matrix.version }} - ${{ matrix.os }}
@@ -20,9 +22,6 @@ jobs:
           - windows-latest
         arch: ["x64"]
     steps:
-      - uses: n1hility/cancel-previous-runs@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v2
       - name: Setup python ${{ matrix.version }}
         uses: actions/setup-python@v1
