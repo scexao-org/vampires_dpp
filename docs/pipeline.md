@@ -77,6 +77,16 @@ A list of frame centers for cam1 and cam2 from visual inspection. This is useful
 
 The frame centers must be given as a list of (x, y) lists, otherwise they will default to the geometric frame centers
 
+### Astrometry Options
+
+The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the `vampires_dpp` config.
+
+```toml
+[astrometry]
+pixel_scale = 6.24 # mas/px, optional
+pupil_offset = 140.4 # deg, optional
+```
+
 ### Coronagraph Options
 
 If you are reducing coronagraphic data, you will need to add the following section
@@ -314,12 +324,6 @@ FITS files will be saved in `output_directory` with `_collapsed` appended to the
 ```
 
 If this section is set, the collapsed data will be derotated to North up, East left.
-
-```toml
-pupil_offset = 140.4 # deg, optional
-```
-
-The pupil offset between the IR bench and the Visible bench. This should not need to be changed unless you have a custom astrometric solution.
 
 ```toml
 output_directory = "" # relative to root, optional

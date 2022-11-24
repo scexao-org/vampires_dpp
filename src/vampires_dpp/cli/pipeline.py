@@ -101,6 +101,15 @@ def main():
     logger.debug(f"Cam 1 frame center is {frame_centers[0]} (y, x)")
     logger.debug(f"Cam 2 frame center is {frame_centers[1]} (y, x)")
 
+    ## configure astrometry
+    if "astrometry" in config:
+        pxscale = config["astrometry"].get("pixel_scale", 6.24)  # mas/px
+        pupil_offset = config["astrometry"].get("pupil_offset", 140.4)  # deg
+    else:
+        # TODO set these values in a config file somewhere?
+        pxscale = 6.24
+        pupil_offset = 140.4
+
     ## Step 1: Fix headers and calibrate
     logger.info("Starting data calibration")
     outdir = output / config["calibration"].get("output_directory", "")
@@ -156,16 +165,9 @@ def main():
     if skip_calib:
         logger.debug("skipping calibration if files exist")
     tripwire = tripwire or not skip_calib
-    # save header table
-    table = observation_table(filenames).sort_values("DATE")
-    table_name = output / f"{config['name']}_headers.csv"
-    if not skip_calib or not table_name.is_file():
-        table.to_csv(table_name)
-        logger.debug(f"Saved table of headers to {table_name.absolute()}")
 
-    logger.debug
     working_files = []
-    for filename in tqdm.tqdm(table["path"], desc="Calibrating files"):
+    for filename in tqdm.tqdm(filenames, desc="Calibrating files"):
         logger.debug(f"calibrating {filename.absolute()}")
         outname = outdir / f"{filename.stem}_calib{filename.suffix}"
         if config["calibration"].get("deinterleave", False):
@@ -180,7 +182,7 @@ def main():
                 continue
         cube, header = fits.getdata(filename, header=True)
         header = fix_header(header)
-        header = apply_wcs(header)
+        header = apply_wcs(header, pxscale=pxscale, pupil_offset=pupil_offset)
         if header["U_CAMERA"] == 1:
             calib_cube = calibrate(
                 cube, discard=2, dark=master_darks[0], flat=master_flats[0], flip=True
@@ -205,6 +207,22 @@ def main():
             fits.writeto(outname, calib_cube, header, overwrite=True)
             logger.debug(f"saved calibrated file at {outname.absolute()}")
             working_files.append(outname)
+
+    # save header table
+    table = observation_table(working_files).sort_values("DATE")
+    working_files = [working_files[i] for i in table.index]
+    table_name = output / f"{config['name']}_headers.csv"
+    if not table_name.is_file():
+        table.to_csv(table_name)
+        logger.debug(f"Saved table of headers to {table_name.absolute()}")
+
+    # save derotation angle vector
+    pa_name = output / f"{config['name']}_derot_angles.fits"
+    if not pa_name.is_file():
+        fits.writeto(
+            pa_name, np.array(table["D_IMRPAD"] + pupil_offset, "f4"), overwrite=True
+        )
+        logger.debug(f"Saved derotation angle vector to {pa_name.absolute()}")
 
     logger.info("Data calibration completed")
 
@@ -380,7 +398,6 @@ def main():
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
         logger.debug(f"saving derotated data to {outdir.absolute()}")
-        pa_offset = config["derotate"].get("pupil_offset", 140.4)
         skip_derot = not tripwire and not config["derotate"].get("force", False)
         if skip_derot:
             logger.debug("skipping derotating frames if files exist")
@@ -393,8 +410,8 @@ def main():
             if skip_derot and outname.is_file():
                 continue
             frame, header = fits.getdata(filename, header=True)
-            derot_frame = derotate_frame(frame, header["D_IMRPAD"] + pa_offset)
-            header = derotate_wcs(header, header["D_IMRPAD"] + pa_offset)
+            derot_frame = derotate_frame(frame, header["D_IMRPAD"] + pupil_offset)
+            header = derotate_wcs(header, header["D_IMRPAD"] + pupil_offset)
             fits.writeto(outname, derot_frame, header=header, overwrite=True)
             logger.debug(f"saved derotated data to {outname.absolute()}")
 

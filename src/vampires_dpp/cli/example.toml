@@ -5,6 +5,10 @@ directory = "" # absolute path of root data directory
 output_directory = "" # absolute path to top-level output directory, if empty will use the root directory
 frame_centers = [[128, 128], [128, 129]] # optional cam 1, cam 2 centers (x, y) from visual inspection
 
+[astrometry]
+pixel_scale = 6.24 # mas/px, optional
+pupil_offset = 140.4 # deg, pupil rotation between IR and VIS benches
+
 [coronagraph] # optional, signifies coronagraph was used
 mask_size = 90 # IWA of mask, mas
 
@@ -49,5 +53,4 @@ force = false # if files already exist, should we force the calculation and over
 
 [derotate]
 output_directory = "" # output directory for intermediate frames
-pupil_offset = 140.4 # pupil rotation (deg) between IR and VIS benches
 force = false # if files already exist, should we force the calculation and overwrite?

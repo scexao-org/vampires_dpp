@@ -5,7 +5,7 @@ import astropy.units as u
 import numpy as np
 
 
-def apply_wcs(header):
+def apply_wcs(header, pxscale=6.24, pupil_offset=140.4):
     nx = header["NAXIS1"]
     ny = header["NAXIS2"]
 
@@ -16,9 +16,9 @@ def apply_wcs(header):
         Angle(header["DEC"], u.degree).degree,
     ]
     w.wcs.cunit = ["deg", "deg"]
-    w.wcs.cdelt = [-1.7333333333333332e-6, 1.7333333333333332e-6]
+    w.wcs.cdelt = [-pxscale / 3.6e6, pxscale / 3.6e6]
     w.wcs.ctype = ["RA", "DEC"]
-    ang = np.deg2rad(header["D_IMRPAD"] + 140.4)
+    ang = np.deg2rad(header["D_IMRPAD"] + pupil_offset)
     cosang = np.cos(ang)
     sinang = np.sin(ang)
     w.wcs.pc = [[cosang, -sinang], [sinang, cosang]]
