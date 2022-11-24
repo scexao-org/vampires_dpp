@@ -1,0 +1,805 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Pipeline &#8212; VAMPIRES DPP</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=4fea3ae4a0a4ba949df0a89bbae557cc2ce861ae" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/togglebutton.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Workflows" href="tutorials/index.html" />
+    <link rel="prev" title="Getting started" href="gettingstarted.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="index.html">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">VAMPIRES DPP</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="installation.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="gettingstarted.html">
+   Getting started
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Pipeline
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tutorials/index.html">
+   Workflows
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="api/index.html">
+   API/Reference
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/organization.html">
+     Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/calibration.html">
+     Calibration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/lucky_imaging.html">
+     Lucky Imaging
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/image_processing.html">
+     Image Processing
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/satellite_spots.html">
+     Satellite Spots
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right"><a href="https://github.com/scexao-org/vampires_dpp"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="bottom"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="_sources/pipeline.md.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.md</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#configuration">
+   Configuration
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#version">
+     Version
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#global-options">
+     Global Options
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#coronagraph-options">
+     Coronagraph Options
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#calibration">
+     Calibration
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#outputs">
+     Outputs
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#frame-selection">
+     Frame Selection
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id1">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#image-registration">
+     Image Registration
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id2">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#coadding">
+     Coadding
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id3">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#derotation">
+     Derotation
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id4">
+     Outputs
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id5">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Pipeline</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#configuration">
+   Configuration
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#version">
+     Version
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#global-options">
+     Global Options
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#coronagraph-options">
+     Coronagraph Options
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#calibration">
+     Calibration
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#outputs">
+     Outputs
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#frame-selection">
+     Frame Selection
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id1">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#image-registration">
+     Image Registration
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id2">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#coadding">
+     Coadding
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id3">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#derotation">
+     Derotation
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id4">
+     Outputs
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id5">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="pipeline">
+<h1>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">#</a></h1>
+<p>The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the <code class="docutils literal notranslate"><span class="pre">vpp</span></code> script</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">vpp</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="n">config</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">config</span>         <span class="n">path</span> <span class="n">to</span> <span class="n">configuration</span> <span class="n">file</span>
+
+<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>     <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">verbose</span>  <span class="n">Print</span> <span class="p">(</span><span class="n">extremely</span><span class="p">)</span> <span class="n">verbose</span> <span class="n">logging</span>
+</pre></div>
+</div>
+<p>The pipeline will reduce the data in the following order</p>
+<ol class="simple">
+<li><p>Calibration</p></li>
+<li><p>Frame Selection</p></li>
+<li><p>Image Registration</p></li>
+<li><p>Coadding</p></li>
+<li><p>Derotation</p></li>
+</ol>
+<div class="tip admonition">
+<p class="admonition-title">Troubleshooting</p>
+<p>If you run into problems, try running the pipeline in verbose mode (with the <code class="docutils literal notranslate"><span class="pre">-v</span></code> flag). This will output an overwhelming amount of text, so you may want to pipe this into a file</p>
+<p>.. code::
+vpp config.toml -v
+vpp config.toml -v &gt; vpp_output.txt</p>
+</div>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">#</a></h2>
+<p>The configuration file uses the <a class="reference external" href="https://toml.io">TOML</a> format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., <code class="docutils literal notranslate"><span class="pre">[calibration]</span></code>, <code class="docutils literal notranslate"><span class="pre">[frame_selection]</span></code>) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.</p>
+<section id="version">
+<h3>Version<a class="headerlink" href="#version" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The first required option is the <code class="docutils literal notranslate"><span class="pre">version</span></code> which should be set to the same value as your <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> version, which you can get from</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s1">&#39;import vampires_dpp as vpp; print(vpp.__version__)&#39;</span>
+</pre></div>
+</div>
+<p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, so there are certain guarantees about the backwards compatibility of the pipeline, which means you don’t have to have the exact same version of <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> as in the configuration- merely a version that is compatible.</p>
+</section>
+<section id="global-options">
+<h3>Global Options<a class="headerlink" href="#global-options" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="w"> </span>
+</pre></div>
+</div>
+<p>A simple filename-safe name that is used for some automatic naming.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The absolute path of the top-level data directory</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>absolute path to top-level output directory, if empty will use the root directory</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">130</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>A list of frame centers for cam1 and cam2 from visual inspection. This is useful in the case that the PSFs are not well-centered in the frame, which can make the windows used for frame selection or image registration poorly positioned.</p>
+<p>The frame centers must be given as a list of (x, y) lists, otherwise they will default to the geometric frame centers</p>
+</section>
+<section id="coronagraph-options">
+<h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Permalink to this headline">#</a></h3>
+<p>If you are reducing coronagraphic data, you will need to add the following section</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">90</span><span class="w"> </span><span class="c1"># mas</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The coronagraph mask inner working angle (IWA), in mas. The IWAs for the masks are listed on the <a class="reference external" href="https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html">VAMPIRES website</a>.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">.</span><span class="n">satellite_spots</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>This section signifies that satellite spots were used and will change how certain reduction steps are done. For frame selection and image registration, the satellite spots will be used instead of the central PSF, which is obscured by the coronagraph.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">15.9</span><span class="w"> </span><span class="c1"># lam/D</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The radius of the satellite spots in lambda/D. This is logged in the CHARIS data but otherwise must be communicated by SCExAO support astronomers.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-4</span><span class="w"> </span><span class="c1"># deg, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The angle, in degrees, of the closest satellite spot to the positive x-axis. By default -4 degrees. This should not need changed unless you are using custom satellite spot patterns.</p>
+</section>
+<section id="calibration">
+<h3>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration]</span><span class="w"></span>
+</pre></div>
+</div>
+<p>This section will enable standard image calibration of VAMPIRES data. The following steps will occur</p>
+<ol class="simple">
+<li><p>If dark files are provided, a master dark will be made</p></li>
+<li><p>If flat files are provided, a master flat will be made</p></li>
+<li><p>The FITS headers will be fixed using <code class="docutils literal notranslate"><span class="pre">fix_header</span></code></p></li>
+<li><p>The leading 2 frames of each data cube will be discarded due to detector readout artifacts</p></li>
+<li><p>If dark files are provided, the cube will be dark subtracted</p></li>
+<li><p>If flat files are provided, the cube will be flat normalized</p></li>
+<li><p>Cam 1 data will be flipped along the y-axis</p></li>
+<li><p>(Advanced) Interleaved polarimetric data will be deinterleaved into two cubes</p></li>
+</ol>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_files.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file </span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression </span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The output directory for the calibrated data. By default, will leave in the same directory as the input data (the root directory).</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>By default, if the output file already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the calibration <em>and all subsequent operations</em> will be redone.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">deinterleave</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>This is an advanced option for polarimetric data that is downloaded directly from the VAMPIRES computer (i.e., not from the STARS archive). If true, will deinterleave every-other frame into two cubes and will update the FITS header with the <code class="docutils literal notranslate"><span class="pre">U_FLCSTT</span></code> key.</p>
+<div class="warning admonition">
+<p class="admonition-title">Advanced Usage</p>
+<p>If your data starts with <code class="docutils literal notranslate"><span class="pre">VMPA*.fits</span></code> then you should not set this to true!</p>
+</div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.darks]</span><span class="w"></span>
+</pre></div>
+</div>
+<p>If this section is set, master dark frames will be created.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">    </span><span class="s">&quot;darks_5ms_em300_cam1.fits&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="s">&quot;darks_5ms_em300_cam2.fits&quot;</span><span class="w"></span>
+<span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_darks.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file </span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression </span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>By default, if the master dark already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the master dark <em>and all subsequent operations</em> will be redone.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.flats]</span><span class="w"></span>
+</pre></div>
+</div>
+<p>If this section is set, master flat frames will be created. If <code class="docutils literal notranslate"><span class="pre">[calibration.darks]</span></code> is also set, these flat frames will be dark-subtracted.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">    </span><span class="s">&quot;flats_em300_cam1.fits&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="s">&quot;flats_em300_cam2.fits&quot;</span><span class="w"></span>
+<span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_flats.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file </span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;flats/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression </span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>By default, if the master flat already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the master flat <em>and all subsequent operations</em> will be redone.</p>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">#</a></h3>
+<p>FITS files will be saved to the <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_calib</span></code> appended to the name. If <code class="docutils literal notranslate"><span class="pre">deinterleave</span></code> is true, the files will also have either <code class="docutils literal notranslate"><span class="pre">_FLC1</span></code> or <code class="docutils literal notranslate"><span class="pre">_FLC2</span></code> appended.</p>
+</section>
+<section id="frame-selection">
+<h3>Frame Selection<a class="headerlink" href="#frame-selection" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">frame_selection</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Frame selection is an optional step that can measure the image quality metrics and optionally discard frames with metrics below a certain quantile.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Frame selection metric, one of “max”, “l2norm”, or “normvar”. By default “l2norm”.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Frame selection quantile [0, 1). A value of 0 means no frames will be discarded (and we skip the step), and a value of 1 would discard all the frames. For example, to discard the lowest scoring 30% of frames based on the frame selection metric set <code class="docutils literal notranslate"><span class="pre">q</span> <span class="pre">=</span> <span class="pre">0.3</span></code>.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="c1"># pixels, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The frame selection metric is measured in a window for speed. In non-coronagraphic data this is a window around the frame center, and in coronagraphic data this is the window around each satellite spot.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The output directory for the metrics and frame-selected data. By default, will leave in the same directory as the input data (the root directory).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
+</pre></div>
+</div>
+<p>By default, if the frame selection metrics or the frame-selected data cubes already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the metric measurements, discarding, <em>and all subsequent operations</em> will be redone.</p>
+<section id="id1">
+<h4>Outputs<a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h4>
+<p>CSV files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_metric</span></code> appended to the file name with the frame selection metrics for each frame in the data cube. FITS files will be saved with <code class="docutils literal notranslate"><span class="pre">_cut</span></code> appended to the file name if frames are discarded (<code class="docutils literal notranslate"><span class="pre">q</span></code> &gt; 0).</p>
+</section>
+</section>
+<section id="image-registration">
+<h3>Image Registration<a class="headerlink" href="#image-registration" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">registration</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Image registration is an optional step that can measure the offset of the stellar PSF from the geometric frame center and co-align the frames.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Registration offset measurement method, one of “peak”, “com”, “dft”, “moffat”, “airydisk”, “gaussian”. By default “com” for coronagraphic data and “peak” for non-coronagraphic data.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">registration</span><span class="p">.</span><span class="n">dft</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<span class="n">upsample_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<span class="n">reference_method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Extra options for the cross-correlation registration method. See <code class="docutils literal notranslate"><span class="pre">measure_offsets</span></code> for more details.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="c1"># pixels, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The PSF offsets are measured in a window for speed. In non-coronagraphic data this is a window around the frame center, and in coronagraphic data this is the window around each satellite spot.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The output directory for the offsets and aligned data. By default, will leave in the same directory as the input data (the root directory).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
+</pre></div>
+</div>
+<p>By default, if the offsets or the aligned data cubes already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the offset measurements, alignment, <em>and all subsequent operations</em> will be redone.</p>
+<section id="id2">
+<h4>Outputs<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h4>
+<p>CSV files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_offsets</span></code> appended to the file name with the PSF offsets (y, x) for each frame in the data cube. FITS files will be saved with <code class="docutils literal notranslate"><span class="pre">_aligned</span></code> appended to the file name.</p>
+</section>
+</section>
+<section id="coadding">
+<h3>Coadding<a class="headerlink" href="#coadding" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coadd</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>If this section is set, the data cubes will be median-combined along the time axis.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The output directory for the collapsed data. By default, will leave in the same directory as the input data (the root directory).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
+</pre></div>
+</div>
+<p>By default, if the collapsed data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the collapsing, <em>and all subsequent operations</em> will be redone.</p>
+<section id="id3">
+<h4>Outputs<a class="headerlink" href="#id3" title="Permalink to this headline">#</a></h4>
+<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_collapsed</span></code> appended to the file name.</p>
+</section>
+</section>
+<section id="derotation">
+<h3>Derotation<a class="headerlink" href="#derotation" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">derotate</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>If this section is set, the collapsed data will be derotated to North up, East left.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">pupil_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">140.4</span><span class="w"> </span><span class="c1"># deg, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The pupil offset between the IR bench and the Visible bench. This should not need to be changed unless you have a custom astrometric solution.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
+</pre></div>
+</div>
+<p>By default, if the derotated data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the derotation, <em>and all subsequent operations</em> will be redone.</p>
+</section>
+<section id="id4">
+<h3>Outputs<a class="headerlink" href="#id4" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
+</pre></div>
+</div>
+<p>By default, if the derotated data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the derotation, <em>and all subsequent operations</em> will be redone.</p>
+<section id="id5">
+<h4>Outputs<a class="headerlink" href="#id5" title="Permalink to this headline">#</a></h4>
+<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_derot</span></code> appended to the file name.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="gettingstarted.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Getting started</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="tutorials/index.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Workflows</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Miles Lucas<br/>
+  
+      &copy; Copyright 2022, Miles Lucas.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>
