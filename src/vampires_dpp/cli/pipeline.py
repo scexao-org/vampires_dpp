@@ -15,6 +15,7 @@ from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
 from vampires_dpp.image_processing import derotate_frame
 from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.satellite_spots import lamd_to_pixel
+from vampires_dpp.wcs import apply_wcs, derotate_wcs
 
 # set up logging
 formatter = "%(asctime)s|%(name)s|%(levelname)s - %(message)s"
@@ -170,6 +171,7 @@ def main():
                 continue
         cube, header = fits.getdata(filename, header=True)
         header = fix_header(header)
+        header = apply_wcs(header)
         if header["U_CAMERA"] == 1:
             calib_cube = calibrate(
                 cube, discard=2, dark=master_darks[0], flat=master_flats[0], flip=True
@@ -265,7 +267,7 @@ def main():
                 )
                 logger.debug(f"saving data to {outname.absolute()}")
 
-    logger.info("Frame selection complete")
+        logger.info("Frame selection complete")
 
     ## 3: Image registration
     if "registration" in config:
@@ -357,7 +359,7 @@ def main():
             if skip_coadd and outname.is_file():
                 continue
             cube, header = fits.getdata(filename, header=True)
-            frame = np.median(cube, axis=0)
+            frame = np.median(cube, axis=0, overwrite_input=True)
             fits.writeto(outname, frame, header=header, overwrite=True)
             logger.debug(f"saved collapsed data to {outname.absolute()}")
 
@@ -383,6 +385,7 @@ def main():
                 continue
             frame, header = fits.getdata(filename, header=True)
             derot_frame = derotate_frame(frame, header["D_IMRPAD"] + pa_offset)
+            header = derotate_wcs(header, header["D_IMRPAD"] + pa_offset)
             fits.writeto(outname, derot_frame, header=header, overwrite=True)
             logger.debug(f"saved derotated data to {outname.absolute()}")
 
