@@ -62,7 +62,7 @@
    ],
    "source": [
     "# download example data\n",
-    "zenodo_get([\"10.5281/zenodo.7353462\", \"-o\", datadir.absolute(), \"-t\", \"300\"])"
+    "zenodo_get([\"10.5281/zenodo.7353462\", \"-o\", datadir.absolute()])"
    ]
   },
   {
