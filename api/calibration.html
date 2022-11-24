@@ -35,11 +35,9 @@
     <script src="../_static/togglebutton.js"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Lucky Imaging" href="lucky_imaging.html" />
+    <link rel="next" title="Frame Selection" href="frame_selection.html" />
     <link rel="prev" title="Organization" href="organization.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
@@ -129,8 +127,13 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="lucky_imaging.html">
-     Lucky Imaging
+    <a class="reference internal" href="frame_selection.html">
+     Frame Selection
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="image_registration.html">
+     Image Registration
     </a>
    </li>
    <li class="toctree-l2">
@@ -351,52 +354,6 @@ title="Print to PDF"
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_hadec">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_hadec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.823806</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_hadec" title="Permalink to this definition">#</a></dt>
-<dd><p>Calculate parallactic angle using the hour-angle and declination directly</p>
-<div class="math notranslate nohighlight">
-\[\theta_\mathrm{PA} = \atan2{\frac{\sin\theta_\mathrm{HA}}{\tan\theta_\mathrm{lat}\cos\delta - \sin\delta \cos\theta_\mathrm{HA}}}\]</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ha</strong> (<em>float</em>) – hour-angle, in hour angles</p></li>
-<li><p><strong>dec</strong> (<em>float</em>) – declination in degrees</p></li>
-<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – latitude of observation in degrees, by default 19.823806</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>parallactic angle, in degrees East of North</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_altaz">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_altaz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">az</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.823806</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_altaz" title="Permalink to this definition">#</a></dt>
-<dd><p>Calculate parallactic angle using the altitude/elevation and azimuth directly</p>
-<div class="math notranslate nohighlight">
-\[\theta_\mathrm{PA} = \atan2{\frac{\sin\theta_\mathrm{HA}}{\tan\theta_\mathrm{lat}\cos\delta - \sin\delta \cos\theta_\mathrm{HA}}}\]</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>alt</strong> (<em>float</em>) – altitude or elevation, in degrees</p></li>
-<li><p><strong>az</strong> (<em>float</em>) – azimuth, in degrees CCW from North</p></li>
-<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – latitude of observation in degrees, by default 19.823806</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>parallactic angle, in degrees East of North</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 
 
@@ -414,10 +371,10 @@ title="Print to PDF"
             <p class="prev-next-title">Organization</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="lucky_imaging.html" title="next page">
+    <a class='right-next' id="next-link" href="frame_selection.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Lucky Imaging</p>
+        <p class="prev-next-title">Frame Selection</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

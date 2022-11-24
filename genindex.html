@@ -124,8 +124,13 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="api/lucky_imaging.html">
-     Lucky Imaging
+    <a class="reference internal" href="api/frame_selection.html">
+     Frame Selection
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/image_registration.html">
+     Image Registration
     </a>
    </li>
    <li class="toctree-l2">
@@ -234,7 +239,9 @@ title="Source repository"
  <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#F"><strong>F</strong></a>
- | <a href="#P"><strong>P</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
@@ -247,6 +254,8 @@ title="Source repository"
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/calibration.html#vampires_dpp.calibration.calibrate_file">calibrate_file() (in module vampires_dpp.calibration)</a>
+</li>
+      <li><a href="api/satellite_spots.html#vampires_dpp.satellite_spots.cutout_slice">cutout_slice() (in module vampires_dpp.satellite_spots)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -271,16 +280,38 @@ title="Source repository"
       <li><a href="api/image_processing.html#vampires_dpp.image_processing.frame_center">frame_center() (in module vampires_dpp.image_processing)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/frame_selection.html#vampires_dpp.frame_selection.frame_select_file">frame_select_file() (in module vampires_dpp.frame_selection)</a>
+</li>
+  </ul></td>
 </tr></table>
 
-<h2 id="P">P</h2>
+<h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/calibration.html#vampires_dpp.headers.parallactic_angle_altaz">parallactic_angle_altaz() (in module vampires_dpp.headers)</a>
+      <li><a href="api/frame_selection.html#vampires_dpp.frame_selection.measure_metric">measure_metric() (in module vampires_dpp.frame_selection)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/calibration.html#vampires_dpp.headers.parallactic_angle_hadec">parallactic_angle_hadec() (in module vampires_dpp.headers)</a>
+      <li><a href="api/frame_selection.html#vampires_dpp.frame_selection.measure_metric_file">measure_metric_file() (in module vampires_dpp.frame_selection)</a>
+</li>
+      <li><a href="api/image_registration.html#vampires_dpp.image_registration.measure_offsets">measure_offsets() (in module vampires_dpp.image_registration)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/organization.html#vampires_dpp.headers.observation_table">observation_table() (in module vampires_dpp.headers)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/image_registration.html#vampires_dpp.image_registration.register_file">register_file() (in module vampires_dpp.image_registration)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -300,7 +331,7 @@ title="Source repository"
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/satellite_spots.html#vampires_dpp.satellite_spots.window_indices">window_indices() (in module vampires_dpp.satellite_spots)</a>
+      <li><a href="api/satellite_spots.html#vampires_dpp.satellite_spots.window_slices">window_slices() (in module vampires_dpp.satellite_spots)</a>
 </li>
   </ul></td>
 </tr></table>

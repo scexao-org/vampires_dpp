@@ -24,7 +24,6 @@ The pipeline will reduce the data in the following order
 :class: tip 
 If you run into problems, try running the pipeline in verbose mode (with the `-v` flag). This will output an overwhelming amount of text, so you may want to pipe this into a file
 
-.. code::
     vpp config.toml -v
     vpp config.toml -v > vpp_output.txt
 ```
@@ -33,6 +32,10 @@ If you run into problems, try running the pipeline in verbose mode (with the `-v
 ## Configuration
 
 The configuration file uses the [TOML](https://toml.io) format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., `[calibration]`, `[frame_selection]`) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.
+
+There is a version of the configuration file with all possible options and brief comments available in the GitHub repository.
+
+> [example.toml](https://github.com/scexao-org/vampires_dpp/blob/main/src/vampires_dpp/cli/example.toml)
 
 ### Version
 
@@ -106,7 +109,7 @@ angle = -4 # deg, optional
 
 The angle, in degrees, of the closest satellite spot to the positive x-axis. By default -4 degrees. This should not need changed unless you are using custom satellite spot patterns.
 
-### Calibration
+### Calibration Options
 
 ```toml
 [calibration]
@@ -194,11 +197,11 @@ force = false # optional
 ```
 By default, if the master flat already exists the calibration will be skipped to save time. If you set this to `true`, the master flat _and all subsequent operations_ will be redone.
 
-### Outputs
+#### Outputs
 
 FITS files will be saved to the `output_directory` with `_calib` appended to the name. If `deinterleave` is true, the files will also have either `_FLC1` or `_FLC2` appended.
 
-### Frame Selection
+### Frame Selection Options
 
 ```toml
 [frame_selection] # optional
@@ -238,7 +241,7 @@ By default, if the frame selection metrics or the frame-selected data cubes alre
 
 CSV files will be saved in `output_directory` with `_metric` appended to the file name with the frame selection metrics for each frame in the data cube. FITS files will be saved with `_cut` appended to the file name if frames are discarded (`q` > 0).
 
-### Image Registration
+### Image Registration Options
 
 ```toml
 [registration] # optional
@@ -281,7 +284,7 @@ By default, if the offsets or the aligned data cubes already exist the operation
 
 CSV files will be saved in `output_directory` with `_offsets` appended to the file name with the PSF offsets (y, x) for each frame in the data cube. FITS files will be saved with `_aligned` appended to the file name.
 
-### Coadding
+### Coadding Options
 
 ```toml
 [coadd] # optional
@@ -303,7 +306,7 @@ By default, if the collapsed data frames already exist the operations be skipped
 
 FITS files will be saved in `output_directory` with `_collapsed` appended to the file name.
 
-### Derotation
+### Derotation Options
 
 ```toml
 [derotate] # optional
@@ -328,18 +331,123 @@ force = false # optional
 ```
 By default, if the derotated data frames already exist the operations be skipped to save time. If you set this to `true`, the derotation, _and all subsequent operations_ will be redone.
 
-### Outputs
-
-```toml
-output_directory = "" # relative to root, optional
-```
-The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).
-
-```
-force = false # optional
-```
-By default, if the derotated data frames already exist the operations be skipped to save time. If you set this to `true`, the derotation, _and all subsequent operations_ will be redone.
-
 #### Outputs
 
 FITS files will be saved in `output_directory` with `_derot` appended to the file name.
+
+## Examples
+
+Here are some simple examples of configuration files for various observing scenarios. These do not make use of all the features, and make some assumptions about how the data is laid out that you are encouraged to tweak to your liking.
+
+<details>
+<summary>Non-coronagraphic Polarimetric Imaging</summary>
+<br>
+
+```toml
+version = "0.1.0" # vampires_dpp version
+
+name = "abaur_example"
+directory = "abaur_20190320"
+output_directory = "abaur_20190320/processed"
+
+[calibration]
+filenames = "science/VMPA*.fits"
+output_directory = "calibrated"
+
+[calibration.darks]
+filenames = "darks/VMPA*.fits"
+
+[frame_selection]
+metric = "l2norm"
+q = 0.7
+output_directory = "selected"
+
+[registration]
+method = "peak"
+output_directory = "registered"
+
+[coadd]
+output_directory = "collapsed"
+
+[derotate]
+output_directory = "derotated"
+```
+</details>
+
+<details>
+<summary>Coronagraphic Polarimetric Imaging</summary>
+<br>
+
+```toml
+version = "0.1.0" # vampires_dpp version
+
+name = "abaur_example"
+directory = "abaur_20220224"
+output_directory = "abaur_20220224/processed"
+frame_centers = [[128, 128], [128, 129]]
+
+[coronagraph]
+mask_size = 54 # mas
+
+[coronagraph.satellite_spots]
+radius = 31.8 # lam/D
+
+[calibration]
+filenames = "science/VMPA*.fits"
+output_directory = "calibrated"
+
+[calibration.darks]
+filenames = "darks/VMPA*.fits"
+
+[frame_selection]
+metric = "l2norm"
+q = 0.3
+output_directory = "selected"
+
+[registration]
+method = "com"
+output_directory = "registered"
+
+[coadd]
+output_directory = "collapsed"
+
+[derotate]
+output_directory = "derotated"
+```
+</details>
+
+
+<details>
+<summary>Single Camera Speckle Imaging</summary>
+<br>
+
+```toml
+version = "0.1.0" # vampires_dpp version
+
+name = "single_cam_example"
+directory = "data"
+output_directory = "processed"
+
+[calibration]
+filenames = "science/VMPA*.fits"
+output_directory = "calibrated"
+
+[calibration.darks]
+filenames = ["darks/VMPA013889.fits"]
+
+[frame_selection]
+metric = "l2norm"
+q = 0.7
+output_directory = "selected"
+
+[registration]
+method = "peak"
+output_directory = "registered"
+
+[coadd]
+output_directory = "collapsed"
+
+[derotate]
+output_directory = "derotated"
+```
+</details>
