@@ -1,26 +1,17 @@
 # Installation
 
-```{margin}
-`vampires_dpp` requires at least python 3.7
-```
 
 ## Using `pip`
+
+```{margin} Python Version
+`vampires_dpp` requires at least python 3.7
+```
 
 For now, install directly from GitHub
 
 ```bash
-pip install -U git+https://github.com/scexao-org/vampires_dpp.git#egg=vampires_dpp
+pip install -U git+https://github.com/scexao-org/vampires_dpp.git
 ```
-
-This will install the required dependencies:
-
-- [numpy](https://numpy.org)
-- [astropy](https://www.astropy.org)
-- [pandas](https://pandas.pydata.org/)
-- [scikit-image](https://scikit-image.org/)
-- [scipy](https://scipy.org/)
-- [tqdm](https://tqdm.github.io/)
-
 
 ## From Source
 
@@ -43,22 +34,8 @@ pip install -e .[test]
 and then execute:
 
 ```bash
-pytest -v tests
+pytest
 ```
 
 This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don't pass and if
 you can't sort out why, [open an issue on GitHub](https://github.com/scexao-org/vampires_dpp/issues).
-
-
-```{eval-rst}
-.. admonition:: Debugging tests in VS code
-    :class: tip
-    
-    The default pytest configuration runs with coverage, which disables certain python debugging environments, like in VS code. To fix this, add::
-    
-        "python.testing.pytestArgs": ["tests", "--no-cov"]
-    
-    to ``settings.json`` either globally or locally.
-```
-
-
