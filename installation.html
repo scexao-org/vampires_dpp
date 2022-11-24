@@ -101,17 +101,34 @@
    Pipeline
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tutorials/index.html">
-   Workflows
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="examples/index.html">
+   Examples
   </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="examples/image_registration.html">
+     Image Registration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="examples/frame_selection.html">
+     Frame Selection
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1 has-children">
   <a class="reference internal" href="api/index.html">
    API/Reference
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
    <i class="fas fa-chevron-down">
    </i>
   </label>
@@ -350,25 +367,16 @@ title="Print to PDF"
                 
   <section class="tex2jax_ignore mathjax_ignore" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">#</a></h1>
-<aside class="margin sidebar">
-<p class="sidebar-title"></p>
-<p><code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> requires at least python 3.7</p>
-</aside>
 <section id="using-pip">
 <h2>Using <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#using-pip" title="Permalink to this headline">#</a></h2>
+<aside class="margin sidebar">
+<p class="sidebar-title">Python Version</p>
+<p><code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> requires at least python 3.7</p>
+</aside>
 <p>For now, install directly from GitHub</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -U git+https://github.com/scexao-org/vampires_dpp.git#egg<span class="o">=</span>vampires_dpp
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -U git+https://github.com/scexao-org/vampires_dpp.git
 </pre></div>
 </div>
-<p>This will install the required dependencies:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://numpy.org">numpy</a></p></li>
-<li><p><a class="reference external" href="https://www.astropy.org">astropy</a></p></li>
-<li><p><a class="reference external" href="https://pandas.pydata.org/">pandas</a></p></li>
-<li><p><a class="reference external" href="https://scikit-image.org/">scikit-image</a></p></li>
-<li><p><a class="reference external" href="https://scipy.org/">scipy</a></p></li>
-<li><p><a class="reference external" href="https://tqdm.github.io/">tqdm</a></p></li>
-</ul>
 </section>
 <section id="from-source">
 <h2>From Source<a class="headerlink" href="#from-source" title="Permalink to this headline">#</a></h2>
@@ -386,19 +394,11 @@ pip install -e .
 </pre></div>
 </div>
 <p>and then execute:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest -v tests
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
 </pre></div>
 </div>
 <p>This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don’t pass and if
 you can’t sort out why, <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/issues">open an issue on GitHub</a>.</p>
-<div class="tip admonition">
-<p class="admonition-title">Debugging tests in VS code</p>
-<p>The default pytest configuration runs with coverage, which disables certain python debugging environments, like in VS code. To fix this, add:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;python.testing.pytestArgs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">,</span> <span class="s2">&quot;--no-cov&quot;</span><span class="p">]</span>
-</pre></div>
-</div>
-<p>to <code class="docutils literal notranslate"><span class="pre">settings.json</span></code> either globally or locally.</p>
-</div>
 </section>
 </section>
 

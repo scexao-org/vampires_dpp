@@ -144,15 +144,16 @@ force = false # optional
 ```
 By default, if the output file already exists the calibration will be skipped to save time. If you set this to `true`, the calibration _and all subsequent operations_ will be redone.
 
+```{warning}
+:class: margin
+If your data starts with `VMPA*.fits` then you should not set this to true!
+```
 ```toml
 deinterleave = false # optional
 ```
 This is an advanced option for polarimetric data that is downloaded directly from the VAMPIRES computer (i.e., not from the STARS archive). If true, will deinterleave every-other frame into two cubes and will update the FITS header with the `U_FLCSTT` key.
 
-```{admonition} Advanced Usage
-:class: warning
-If your data starts with `VMPA*.fits` then you should not set this to true!
-```
+
 
 ```toml
 [calibration.darks]
