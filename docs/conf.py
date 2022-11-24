@@ -35,6 +35,7 @@ myst_heading_anchors = 2
 source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}
 nb_execution_mode = "cache"
 nb_execution_show_tb = os.environ.get("CI", "false") == "true"
+nb_execution_timeout = 600
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

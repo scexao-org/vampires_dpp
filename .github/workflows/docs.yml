@@ -30,7 +30,7 @@ jobs:
           key: ${{ runner.os }}-example-data
       - name: Download example data
         run: |
-          zenodo_get "10.5281/zenodo.7353462" -o docs/examples/data -t 300
+          zenodo_get "10.5281/zenodo.7353462" -o docs/examples/data
       - name: Build docs with sphinx
         run: |
           mkdir -p ../_build
