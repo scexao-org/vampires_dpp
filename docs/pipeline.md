@@ -66,8 +66,15 @@ The absolute path of the top-level data directory
 ```toml
 output_directory = "" # optional
 ```
-
 absolute path to top-level output directory, if empty will use the root directory
+
+```toml
+filenames = [""] # list of filenames
+filenames = "input_files.txt" # the path to a text file 
+filenames = "science/VMPA*.fits" # python glob expression 
+```
+
+The `filenames` option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
 
 
 ```toml
@@ -76,6 +83,10 @@ frame_centers = [[128, 129], [130, 129]] # optional
 A list of frame centers for cam1 and cam2 from visual inspection. This is useful in the case that the PSFs are not well-centered in the frame, which can make the windows used for frame selection or image registration poorly positioned.
 
 The frame centers must be given as a list of (x, y) lists, otherwise they will default to the geometric frame centers
+
+#### Outputs
+
+After calibration, a FITS file of the angles required to rotate each frame clockwise to North up East left will be saved in `{config["name"]}_derot_angles.fits`. A CSV with the header information scraped from all the calibrated data will be saved to `{config["name"]}_headers.csv`.
 
 ### Astrometry Options
 
@@ -135,14 +146,6 @@ This section will enable standard image calibration of VAMPIRES data. The follow
 6. If flat files are provided, the cube will be flat normalized
 7. Cam 1 data will be flipped along the y-axis
 8. (Advanced) Interleaved polarimetric data will be deinterleaved into two cubes
-
-```toml
-filenames = [""] # list of filenames
-filenames = "input_files.txt" # the path to a text file 
-filenames = "science/VMPA*.fits" # python glob expression 
-```
-
-The `filenames` option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
 
 ```toml
 output_directory = "" # relative to root, optional
