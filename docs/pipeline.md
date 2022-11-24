@@ -3,14 +3,13 @@
 The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the `vpp` script
 
 ```
-usage: vpp [-h] [-v] config
+usage: vpp [-h] config
 
 positional arguments:
   config         path to configuration file
 
 optional arguments:
   -h, --help     show this help message and exit
-  -v, --verbose  Print (extremely) verbose logging
 ```
 
 The pipeline will reduce the data in the following order
@@ -22,10 +21,10 @@ The pipeline will reduce the data in the following order
 
 ```{admonition} Troubleshooting
 :class: tip 
-If you run into problems, try running the pipeline in verbose mode (with the `-v` flag). This will output an overwhelming amount of text, so you may want to pipe this into a file
+If you run into problems, take a look at the debug file, which will be saved to the output directory.
 
-    vpp config.toml -v
-    vpp config.toml -v > vpp_output.txt
+    vpp config.toml
+    tail output/example_debug.log
 ```
 
 
@@ -86,7 +85,7 @@ The frame centers must be given as a list of (x, y) lists, otherwise they will d
 
 #### Outputs
 
-After calibration, a FITS file of the angles required to rotate each frame clockwise to North up East left will be saved in `{config["name"]}_derot_angles.fits`. A CSV with the header information scraped from all the calibrated data will be saved to `{config["name"]}_headers.csv`.
+After calibration, a FITS file of the angles required to rotate each frame clockwise to North up East left will be saved in `{config["name"]}_derot_angles.fits`. A CSV with the header information scraped from all the calibrated data will be saved to `{config["name"]}_headers.csv`. A debug log will be saved to `{config["name"]}_debug.log`.
 
 ### Astrometry Options
 
@@ -357,9 +356,9 @@ version = "0.2.0" # vampires_dpp version
 name = "abaur_example"
 directory = "abaur_20190320"
 output_directory = "abaur_20190320/processed"
+filenames = "science/VMPA*.fits"
 
 [calibration]
-filenames = "science/VMPA*.fits"
 output_directory = "calibrated"
 
 [calibration.darks]
@@ -392,6 +391,7 @@ version = "0.2.0" # vampires_dpp version
 name = "abaur_example"
 directory = "abaur_20220224"
 output_directory = "abaur_20220224/processed"
+filenames = "science/VMPA*.fits"
 frame_centers = [[128, 128], [128, 129]]
 
 [coronagraph]
@@ -401,7 +401,6 @@ mask_size = 54 # mas
 radius = 31.8 # lam/D
 
 [calibration]
-filenames = "science/VMPA*.fits"
 output_directory = "calibrated"
 
 [calibration.darks]
@@ -435,9 +434,9 @@ version = "0.2.0" # vampires_dpp version
 name = "single_cam_example"
 directory = "data"
 output_directory = "processed"
+filenames = "science/VMPA*.fits"
 
 [calibration]
-filenames = "science/VMPA*.fits"
 output_directory = "calibrated"
 
 [calibration.darks]

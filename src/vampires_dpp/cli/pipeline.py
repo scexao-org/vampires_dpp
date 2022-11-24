@@ -19,22 +19,19 @@ from vampires_dpp.satellite_spots import lamd_to_pixel
 from vampires_dpp.wcs import apply_wcs, derotate_wcs
 
 # set up logging
-formatter = "%(asctime)s|%(name)s|%(levelname)s - %(message)s"
-datefmt = "%Y-%m-%d %H:%M:%S"
-logging.basicConfig(
-    level=logging.INFO,
-    format=formatter,
-    datefmt=datefmt,
-    handlers=[logging.StreamHandler()],
+formatter = logging.Formatter(
+    "%(asctime)s|%(name)s|%(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
 logger = logging.getLogger("VPP")
+logger.setLevel(logging.DEBUG)
+stream_handle = logging.StreamHandler()
+stream_handle.setLevel(logging.INFO)
+stream_handle.setFormatter(formatter)
+logger.addHandler(stream_handle)
 
 # set up command line arguments
 parser = ArgumentParser()
 parser.add_argument("config", help="path to configuration file")
-parser.add_argument(
-    "-v", "--verbose", action="store_true", help="Print (extremely) verbose logging"
-)
 
 
 def parse_filenames(root, filenames):
@@ -74,25 +71,30 @@ def check_version(config, vpp):
 def main():
     args = parser.parse_args()
 
-    if args.verbose:
-        logger.setLevel(logging.DEBUG)
-
-    logger.debug(f"loading config from {Path(args.config).absolute()}")
     config = toml.load(args.config)
 
     # make sure versions match within SemVar
     if not check_version(config["version"], vpp.__version__):
         raise ValueError(
-            f"Input pipeline version ({config['version']}) does not match installed version of `vampires_dpp` ({vpp.__version__}), and is therefore incompatible."
+            f"Input pipeline version ({config['version']}) is not compatible with installed version of `vampires_dpp` ({vpp.__version__})."
         )
 
     # set up paths
     root = Path(config["directory"])
-    logger.debug(f"Root directory is {root}")
     output = Path(config.get("output_directory", root))
-    logger.debug(f"Output directory is {output}")
     if not output.is_dir():
         output.mkdir(parents=True, exist_ok=True)
+
+    # set up logging
+    log_file = output / f"{config['name']}_debug.log"
+    file_handle = logging.FileHandler(log_file, mode="w")
+    file_handle.setLevel(logging.DEBUG)
+    file_handle.setFormatter(formatter)
+    logger.addHandler(file_handle)
+
+    logger.debug(f"loading config from {Path(args.config).absolute()}")
+    logger.debug(f"Root directory is {root}")
+    logger.debug(f"Output directory is {output}")
 
     if "frame_centers" in config:
         frame_centers = [np.array(c)[::-1] for c in config["frame_centers"]]
