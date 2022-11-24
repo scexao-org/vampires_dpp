@@ -160,7 +160,7 @@ def main():
         master_flats = [None, None]
 
     ## Step 1c: calibrate files and fix headers
-    filenames = parse_filenames(root, config["calibration"]["filenames"])
+    filenames = parse_filenames(root, config["filenames"])
     skip_calib = not tripwire and not config["calibration"].get("force", False)
     if skip_calib:
         logger.debug("skipping calibration if files exist")

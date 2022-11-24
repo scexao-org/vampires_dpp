@@ -3,6 +3,7 @@ version = "0.1.0" # vampires_dpp version
 name = "example" # simple name for analysis, used for automatic naming of some files
 directory = "" # absolute path of root data directory
 output_directory = "" # absolute path to top-level output directory, if empty will use the root directory
+filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
 frame_centers = [[128, 128], [128, 129]] # optional cam 1, cam 2 centers (x, y) from visual inspection
 
 [astrometry]
@@ -17,7 +18,6 @@ radius = 15.9 # radius of satellite spots in lam/D
 angle = -4 # angle offset of satellite spots in degrees, -4 is default
 
 [calibration]
-filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
 output_directory = "" # output directory, relative to root output directory, if empty will use same directory as files
 force = false # if calibrated file already exists, should we force the calibration and overwrite?
 deinterleave = false # deinterleave FLC states for polarimetric data downloaded directly from VAMPIRES computer
