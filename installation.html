@@ -326,6 +326,16 @@ title="Print to PDF"
    Testing
   </a>
  </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#contributing">
+   Contributing
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#documentation">
+   Documentation
+  </a>
+ </li>
 </ul>
 
     </nav>
@@ -363,6 +373,16 @@ title="Print to PDF"
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#testing">
    Testing
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#contributing">
+   Contributing
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#documentation">
+   Documentation
   </a>
  </li>
 </ul>
@@ -407,8 +427,28 @@ pip install -e .
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
 </pre></div>
 </div>
-<p>This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don’t pass and if
-you can’t sort out why, <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/issues">open an issue on GitHub</a>.</p>
+<p>This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don’t pass and if you can’t sort out why, <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/issues">open an issue on GitHub</a>.</p>
+</section>
+<section id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">#</a></h2>
+<p>If you would like to contribute, first off, thank you! To get started, you should install our git <a class="reference external" href="https://pre-commit.com/">pre-commit hooks</a> which autoformat the repository. After you have <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> installed, run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> vampires_dpp
+pre-commit install
+</pre></div>
+</div>
+<p>and you’re all set! Now whenever you <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code> the source files will be autoformatted using <a class="reference external" href="https://github.com/psf/black"><code class="docutils literal notranslate"><span class="pre">black</span></code></a>.</p>
+<p>Any contributions should be submitted as <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/pulls">pull requests</a>. Feel free to reach out ahead of time about questions or ambitions about contributing.</p>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">#</a></h2>
+<p>To build these docs locally, first install the documentation dependencies</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e .<span class="o">[</span>docs<span class="o">]</span>
+</pre></div>
+</div>
+<p>Then, run the <a class="reference external" href="https://www.sphinx-doc.org/en/master/">sphinx</a> make script</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sphinx-build docs docs/_build
+</pre></div>
+</div>
 </section>
 </section>
 
