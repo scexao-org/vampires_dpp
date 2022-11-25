@@ -37,5 +37,31 @@ and then execute:
 pytest
 ```
 
-This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don't pass and if
-you can't sort out why, [open an issue on GitHub](https://github.com/scexao-org/vampires_dpp/issues).
+This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don't pass and if you can't sort out why, [open an issue on GitHub](https://github.com/scexao-org/vampires_dpp/issues).
+
+## Contributing
+
+If you would like to contribute, first off, thank you! To get started, you should install our git [pre-commit hooks](https://pre-commit.com/) which autoformat the repository. After you have `pre-commit` installed, run
+
+```bash
+cd vampires_dpp
+pre-commit install
+```
+
+and you're all set! Now whenever you `git commit` the source files will be autoformatted using [`black`](https://github.com/psf/black).
+
+Any contributions should be submitted as [pull requests](https://github.com/scexao-org/vampires_dpp/pulls). Feel free to reach out ahead of time about questions or ambitions about contributing.
+
+## Documentation
+
+To build these docs locally, first install the documentation dependencies
+
+```bash
+pip install -e .[docs]
+```
+
+Then, run the [sphinx](https://www.sphinx-doc.org/en/master/) make script
+
+```bash
+sphinx-build docs docs/_build
+```
