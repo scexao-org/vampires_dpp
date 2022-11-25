@@ -32,7 +32,8 @@ nbclient.exceptions.CellTimeoutError: A cell timed out while it was being execut
 The message was: Cell execution timed out.
 Here is a preview of the cell contents:
 -------------------
-# download example data
-zenodo_get(["10.5281/zenodo.7353462", "-o", datadir.absolute(), "-t", "300"])
+['from vampires_dpp.image_registration import satellite_spot_offsets', 'from vampires_dpp.satellite_spots import lamd_to_pixel', '', '# radius of satellite spots', 'radius = lamd_to_pixel(31.6, abaur20220224_hdr["U_FILTER"])']
+...
+['    abaur20220224_cube, method="gaussian", **kwargs', ')', 'offsets_coro_airydisk = satellite_spot_offsets(', '    abaur20220224_cube, method="airydisk", **kwargs', ')']
 -------------------
 

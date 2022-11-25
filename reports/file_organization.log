@@ -1,0 +1,92 @@
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+    executenb(
+  File "/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/nbclient/client.py", line 1204, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/nbclient/util.py", line 84, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/nbclient/util.py", line 62, in just_run
+    return loop.run_until_complete(coro)
+  File "/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/asyncio/base_events.py", line 647, in run_until_complete
+    return future.result()
+  File "/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/nbclient/client.py", line 663, in async_execute
+    await self.async_execute_cell(
+  File "/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/nbclient/client.py", line 965, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/nbclient/client.py", line 862, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+from vampires_dpp.util import find_dark_settings
+
+print("\n".join(f"Science: {t} s / EM {e:.0f}" for t, e in find_dark_settings(sci_table.path)))
+print("\n".join(f"Pol. standard: {t} s / EM {e:.0f}" for t, e in find_dark_settings(pol_table.path)))
+print("\n".join(f"Unpol. standard: {t} s / EM {e:.0f}" for t, e in find_dark_settings(unpol_table.path)))
+print("\n".join(f"PSF ref.: {t} s / EM {e:.0f}" for t, e in find_dark_settings(psfref_table.path)))
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mFileNotFoundError[0m                         Traceback (most recent call last)
+Cell [0;32mIn [6], line 3[0m
+[1;32m      1[0m [38;5;28;01mfrom[39;00m [38;5;21;01mvampires_dpp[39;00m[38;5;21;01m.[39;00m[38;5;21;01mutil[39;00m [38;5;28;01mimport[39;00m find_dark_settings
+[0;32m----> 3[0m [38;5;28mprint[39m([38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;124m"[39m[38;5;241m.[39mjoin([38;5;124mf[39m[38;5;124m"[39m[38;5;124mScience: [39m[38;5;132;01m{[39;00mt[38;5;132;01m}[39;00m[38;5;124m s / EM [39m[38;5;132;01m{[39;00me[38;5;132;01m:[39;00m[38;5;124m.0f[39m[38;5;132;01m}[39;00m[38;5;124m"[39m [38;5;28;01mfor[39;00m t, e [38;5;129;01min[39;00m [43mfind_dark_settings[49m[43m([49m[43msci_table[49m[38;5;241;43m.[39;49m[43mpath[49m[43m)[49m))
+[1;32m      4[0m [38;5;28mprint[39m([38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;124m"[39m[38;5;241m.[39mjoin([38;5;124mf[39m[38;5;124m"[39m[38;5;124mPol. standard: [39m[38;5;132;01m{[39;00mt[38;5;132;01m}[39;00m[38;5;124m s / EM [39m[38;5;132;01m{[39;00me[38;5;132;01m:[39;00m[38;5;124m.0f[39m[38;5;132;01m}[39;00m[38;5;124m"[39m [38;5;28;01mfor[39;00m t, e [38;5;129;01min[39;00m find_dark_settings(pol_table[38;5;241m.[39mpath)))
+[1;32m      5[0m [38;5;28mprint[39m([38;5;124m"[39m[38;5;130;01m\n[39;00m[38;5;124m"[39m[38;5;241m.[39mjoin([38;5;124mf[39m[38;5;124m"[39m[38;5;124mUnpol. standard: [39m[38;5;132;01m{[39;00mt[38;5;132;01m}[39;00m[38;5;124m s / EM [39m[38;5;132;01m{[39;00me[38;5;132;01m:[39;00m[38;5;124m.0f[39m[38;5;132;01m}[39;00m[38;5;124m"[39m [38;5;28;01mfor[39;00m t, e [38;5;129;01min[39;00m find_dark_settings(unpol_table[38;5;241m.[39mpath)))
+
+File [0;32m/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/vampires_dpp/util.py:62[0m, in [0;36mfind_dark_settings[0;34m(filelist)[0m
+[1;32m     60[0m exp_set [38;5;241m=[39m [38;5;28mset[39m()
+[1;32m     61[0m [38;5;28;01mfor[39;00m filename [38;5;129;01min[39;00m filelist:
+[0;32m---> 62[0m     [38;5;28;01mwith[39;00m [43mfits[49m[38;5;241;43m.[39;49m[43mopen[49m[43m([49m[43mfilename[49m[43m)[49m [38;5;28;01mas[39;00m hdus:
+[1;32m     63[0m         hdr [38;5;241m=[39m hdus[[38;5;241m0[39m][38;5;241m.[39mheader
+[1;32m     64[0m         texp [38;5;241m=[39m hdr[[38;5;124m"[39m[38;5;124mEXPTIME[39m[38;5;124m"[39m]  [38;5;66;03m# exposure time in microseconds[39;00m
+
+File [0;32m/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/hdu/hdulist.py:175[0m, in [0;36mfitsopen[0;34m(name, mode, memmap, save_backup, cache, lazy_load_hdus, ignore_missing_simple, **kwargs)[0m
+[1;32m    172[0m [38;5;28;01mif[39;00m [38;5;129;01mnot[39;00m name:
+[1;32m    173[0m     [38;5;28;01mraise[39;00m [38;5;167;01mValueError[39;00m([38;5;124mf[39m[38;5;124m'[39m[38;5;124mEmpty filename: [39m[38;5;132;01m{[39;00mname[38;5;132;01m!r}[39;00m[38;5;124m'[39m)
+[0;32m--> 175[0m [38;5;28;01mreturn[39;00m [43mHDUList[49m[38;5;241;43m.[39;49m[43mfromfile[49m[43m([49m[43mname[49m[43m,[49m[43m [49m[43mmode[49m[43m,[49m[43m [49m[43mmemmap[49m[43m,[49m[43m [49m[43msave_backup[49m[43m,[49m[43m [49m[43mcache[49m[43m,[49m
+[1;32m    176[0m [43m                        [49m[43mlazy_load_hdus[49m[43m,[49m[43m [49m[43mignore_missing_simple[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+
+File [0;32m/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/hdu/hdulist.py:410[0m, in [0;36mHDUList.fromfile[0;34m(cls, fileobj, mode, memmap, save_backup, cache, lazy_load_hdus, ignore_missing_simple, **kwargs)[0m
+[1;32m    398[0m [38;5;129m@classmethod[39m
+[1;32m    399[0m [38;5;28;01mdef[39;00m [38;5;21mfromfile[39m([38;5;28mcls[39m, fileobj, mode[38;5;241m=[39m[38;5;28;01mNone[39;00m, memmap[38;5;241m=[39m[38;5;28;01mNone[39;00m,
+[1;32m    400[0m              save_backup[38;5;241m=[39m[38;5;28;01mFalse[39;00m, cache[38;5;241m=[39m[38;5;28;01mTrue[39;00m, lazy_load_hdus[38;5;241m=[39m[38;5;28;01mTrue[39;00m,
+[1;32m    401[0m              ignore_missing_simple[38;5;241m=[39m[38;5;28;01mFalse[39;00m, [38;5;241m*[39m[38;5;241m*[39mkwargs):
+[1;32m    402[0m     [38;5;124;03m"""[39;00m
+[1;32m    403[0m [38;5;124;03m    Creates an `HDUList` instance from a file-like object.[39;00m
+[1;32m    404[0m 
+[0;32m   (...)[0m
+[1;32m    407[0m [38;5;124;03m    documentation for details of the parameters accepted by this method).[39;00m
+[1;32m    408[0m [38;5;124;03m    """[39;00m
+[0;32m--> 410[0m     [38;5;28;01mreturn[39;00m [38;5;28;43mcls[39;49m[38;5;241;43m.[39;49m[43m_readfrom[49m[43m([49m[43mfileobj[49m[38;5;241;43m=[39;49m[43mfileobj[49m[43m,[49m[43m [49m[43mmode[49m[38;5;241;43m=[39;49m[43mmode[49m[43m,[49m[43m [49m[43mmemmap[49m[38;5;241;43m=[39;49m[43mmemmap[49m[43m,[49m
+[1;32m    411[0m [43m                         [49m[43msave_backup[49m[38;5;241;43m=[39;49m[43msave_backup[49m[43m,[49m[43m [49m[43mcache[49m[38;5;241;43m=[39;49m[43mcache[49m[43m,[49m
+[1;32m    412[0m [43m                         [49m[43mignore_missing_simple[49m[38;5;241;43m=[39;49m[43mignore_missing_simple[49m[43m,[49m
+[1;32m    413[0m [43m                         [49m[43mlazy_load_hdus[49m[38;5;241;43m=[39;49m[43mlazy_load_hdus[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+
+File [0;32m/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/hdu/hdulist.py:1062[0m, in [0;36mHDUList._readfrom[0;34m(cls, fileobj, data, mode, memmap, cache, lazy_load_hdus, ignore_missing_simple, **kwargs)[0m
+[1;32m   1059[0m [38;5;28;01mif[39;00m fileobj [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+[1;32m   1060[0m     [38;5;28;01mif[39;00m [38;5;129;01mnot[39;00m [38;5;28misinstance[39m(fileobj, _File):
+[1;32m   1061[0m         [38;5;66;03m# instantiate a FITS file object (ffo)[39;00m
+[0;32m-> 1062[0m         fileobj [38;5;241m=[39m [43m_File[49m[43m([49m[43mfileobj[49m[43m,[49m[43m [49m[43mmode[49m[38;5;241;43m=[39;49m[43mmode[49m[43m,[49m[43m [49m[43mmemmap[49m[38;5;241;43m=[39;49m[43mmemmap[49m[43m,[49m[43m [49m[43mcache[49m[38;5;241;43m=[39;49m[43mcache[49m[43m)[49m
+[1;32m   1063[0m     [38;5;66;03m# The Astropy mode is determined by the _File initializer if the[39;00m
+[1;32m   1064[0m     [38;5;66;03m# supplied mode was None[39;00m
+[1;32m   1065[0m     mode [38;5;241m=[39m fileobj[38;5;241m.[39mmode
+
+File [0;32m/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/file.py:170[0m, in [0;36m_File.__init__[0;34m(self, fileobj, mode, memmap, overwrite, cache)[0m
+[1;32m    168[0m     [38;5;28mself[39m[38;5;241m.[39m_open_fileobj(fileobj, mode, overwrite)
+[1;32m    169[0m [38;5;28;01melif[39;00m [38;5;28misinstance[39m(fileobj, ([38;5;28mstr[39m, [38;5;28mbytes[39m)):
+[0;32m--> 170[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_open_filename[49m[43m([49m[43mfileobj[49m[43m,[49m[43m [49m[43mmode[49m[43m,[49m[43m [49m[43moverwrite[49m[43m)[49m
+[1;32m    171[0m [38;5;28;01melse[39;00m:
+[1;32m    172[0m     [38;5;28mself[39m[38;5;241m.[39m_open_filelike(fileobj, mode, overwrite)
+
+File [0;32m/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/file.py:562[0m, in [0;36m_File._open_filename[0;34m(self, filename, mode, overwrite)[0m
+[1;32m    559[0m ext [38;5;241m=[39m os[38;5;241m.[39mpath[38;5;241m.[39msplitext([38;5;28mself[39m[38;5;241m.[39mname)[[38;5;241m1[39m]
+[1;32m    561[0m [38;5;28;01mif[39;00m [38;5;129;01mnot[39;00m [38;5;28mself[39m[38;5;241m.[39m_try_read_compressed([38;5;28mself[39m[38;5;241m.[39mname, magic, mode, ext[38;5;241m=[39mext):
+[0;32m--> 562[0m     [38;5;28mself[39m[38;5;241m.[39m_file [38;5;241m=[39m [38;5;28;43mopen[39;49m[43m([49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mname[49m[43m,[49m[43m [49m[43mIO_FITS_MODES[49m[43m[[49m[43mmode[49m[43m][49m[43m)[49m
+[1;32m    563[0m     [38;5;28mself[39m[38;5;241m.[39mclose_on_error [38;5;241m=[39m [38;5;28;01mTrue[39;00m
+[1;32m    565[0m [38;5;66;03m# Make certain we're back at the beginning of the file[39;00m
+[1;32m    566[0m [38;5;66;03m# BZ2File does not support seek when the file is open for writing, but[39;00m
+[1;32m    567[0m [38;5;66;03m# when opening a file for write, bz2.BZ2File always truncates anyway.[39;00m
+
+[0;31mFileNotFoundError[0m: [Errno 2] No such file or directory: '/Volumes/mlucas SSD1/2022/20220225/VMPA00022079.fits'
+FileNotFoundError: [Errno 2] No such file or directory: '/Volumes/mlucas SSD1/2022/20220225/VMPA00022079.fits'
+

@@ -45,7 +45,7 @@
       "Title: VAMPIRES DPP Example Files\n",
       "Keywords: \n",
       "Publication date: 2022-11-24\n",
-      "DOI: 10.5281/zenodo.7353462\n",
+      "DOI: 10.5281/zenodo.7359198\n",
       "Total size: 231.0 MB\n",
       "\n",
       "Link: https://zenodo.org/api/files/cc9ed3d2-b13e-4d43-a50c-db8c33f84c42/ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits   size: 100.0 MB\n",
@@ -62,7 +62,7 @@
    ],
    "source": [
     "# download example data\n",
-    "zenodo_get([\"10.5281/zenodo.7353462\", \"-o\", datadir.absolute()])"
+    "zenodo_get([\"10.5281/zenodo.7359198\", \"-o\", datadir.absolute()])"
    ]
   },
   {

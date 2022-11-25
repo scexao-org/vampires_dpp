@@ -112,6 +112,11 @@
   </label>
   <ul>
    <li class="toctree-l2">
+    <a class="reference internal" href="examples/file_organization.html">
+     File Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
     <a class="reference internal" href="examples/image_registration.html">
      Image Registration
     </a>
@@ -136,6 +141,11 @@
    <li class="toctree-l2">
     <a class="reference internal" href="api/organization.html">
      Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/pipeline.html">
+     Pipeline
     </a>
    </li>
    <li class="toctree-l2">
@@ -526,14 +536,13 @@ title="Print to PDF"
   <section class="tex2jax_ignore mathjax_ignore" id="pipeline">
 <h1>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">#</a></h1>
 <p>The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the <code class="docutils literal notranslate"><span class="pre">vpp</span></code> script</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">vpp</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="n">config</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">vpp</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">config</span>
 
 <span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
   <span class="n">config</span>         <span class="n">path</span> <span class="n">to</span> <span class="n">configuration</span> <span class="n">file</span>
 
 <span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
   <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>     <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
-  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">verbose</span>  <span class="n">Print</span> <span class="p">(</span><span class="n">extremely</span><span class="p">)</span> <span class="n">verbose</span> <span class="n">logging</span>
 </pre></div>
 </div>
 <p>The pipeline will reduce the data in the following order</p>
@@ -546,9 +555,9 @@ title="Print to PDF"
 </ol>
 <div class="tip admonition">
 <p class="admonition-title">Troubleshooting</p>
-<p>If you run into problems, try running the pipeline in verbose mode (with the <code class="docutils literal notranslate"><span class="pre">-v</span></code> flag). This will output an overwhelming amount of text, so you may want to pipe this into a file</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vpp config.toml -v
-vpp config.toml -v &gt; vpp_output.txt
+<p>If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with <code class="docutils literal notranslate"><span class="pre">_debug.log</span></code> appended to the file name.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vpp config.toml
+tail config_debug.log
 </pre></div>
 </div>
 </div>
@@ -817,9 +826,9 @@ vpp config.toml -v &gt; vpp_output.txt
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
 <span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320/processed&quot;</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
 
 <span class="k">[calibration]</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span><span class="w"></span>
 
 <span class="k">[calibration.darks]</span><span class="w"></span>
@@ -850,6 +859,7 @@ vpp config.toml -v &gt; vpp_output.txt
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
 <span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224/processed&quot;</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
 <span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]]</span><span class="w"></span>
 
 <span class="k">[coronagraph]</span><span class="w"></span>
@@ -859,7 +869,6 @@ vpp config.toml -v &gt; vpp_output.txt
 <span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">31.8</span><span class="w"> </span><span class="c1"># lam/D</span><span class="w"></span>
 
 <span class="k">[calibration]</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span><span class="w"></span>
 
 <span class="k">[calibration.darks]</span><span class="w"></span>
@@ -890,9 +899,9 @@ vpp config.toml -v &gt; vpp_output.txt
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;single_cam_example&quot;</span><span class="w"></span>
 <span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;processed&quot;</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
 
 <span class="k">[calibration]</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span><span class="w"></span>
 
 <span class="k">[calibration.darks]</span><span class="w"></span>

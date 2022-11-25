@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Frame Selection" href="frame_selection.html" />
-    <link rel="prev" title="Examples" href="index.html" />
+    <link rel="prev" title="File Organization" href="file_organization.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -111,6 +111,11 @@
    </i>
   </label>
   <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="file_organization.html">
+     File Organization
+    </a>
+   </li>
    <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
      Image Registration
@@ -136,6 +141,11 @@
    <li class="toctree-l2">
     <a class="reference internal" href="../api/organization.html">
      Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/pipeline.html">
+     Pipeline
     </a>
    </li>
    <li class="toctree-l2">
@@ -388,7 +398,7 @@ title="Print to PDF"
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># download example data</span>
-<span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7353462&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
+<span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
 </pre></div>
 </div>
 </div>
@@ -396,21 +406,24 @@ title="Print to PDF"
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Title: VAMPIRES DPP Example Files
 Keywords: 
 Publication date: 2022-11-24
-DOI: 10.5281/zenodo.7353462
-Total size: 231.0 MB
+DOI: 10.5281/zenodo.7359198
+Total size: 231.8 MB
 
-Link: https://zenodo.org/api/files/cc9ed3d2-b13e-4d43-a50c-db8c33f84c42/ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits   size: 100.0 MB
+Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits   size: 100.0 MB
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits is already downloaded correctly.
 
-Link: https://zenodo.org/api/files/cc9ed3d2-b13e-4d43-a50c-db8c33f84c42/ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits   size: 31.0 MB
+Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits   size: 31.0 MB
 ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits is already downloaded correctly.
 
-Link: https://zenodo.org/api/files/cc9ed3d2-b13e-4d43-a50c-db8c33f84c42/bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits   size: 100.0 MB
+Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits   size: 100.0 MB
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits is already downloaded correctly.
+
+Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/hd32297_20220225_headers.csv   size: 0.8 MB
+hd32297_20220225_headers.csv is already downloaded correctly.
 All files have been downloaded.
 </pre></div>
 </div>
@@ -623,6 +636,103 @@ All files have been downloaded.
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The fit may be unsuccessful; check fit_info[&#39;message&#39;] for more information. [astropy.modeling.fitting]
 </pre></div>
 </div>
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">KeyboardInterrupt</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">],</span> <span class="n">line</span> <span class="mi">29</span>
+<span class="g g-Whitespace">     </span><span class="mi">23</span> <span class="n">offsets_coro_moffat</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">24</span>     <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;moffat&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="g g-Whitespace">     </span><span class="mi">25</span> <span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">26</span> <span class="n">offsets_coro_gaussian</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">27</span>     <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="g g-Whitespace">     </span><span class="mi">28</span> <span class="p">)</span>
+<span class="ne">---&gt; </span><span class="mi">29</span> <span class="n">offsets_coro_airydisk</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">30</span>     <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;airydisk&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="g g-Whitespace">     </span><span class="mi">31</span> <span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/vampires_dpp/image_registration.py:74,</span> in <span class="ni">satellite_spot_offsets</span><span class="nt">(cube, method, refmethod, refidx, upsample_factor, center, background_subtract, **kwargs)</span>
+<span class="g g-Whitespace">     </span><span class="mi">72</span>     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cube</span><span class="p">):</span>
+<span class="g g-Whitespace">     </span><span class="mi">73</span>         <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">:</span>
+<span class="ne">---&gt; </span><span class="mi">74</span>             <span class="n">offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">offset_modelfit</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">sl</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">fitter</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">75</span>         <span class="n">offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">slices</span><span class="p">)</span> <span class="o">-</span> <span class="n">center</span>
+<span class="g g-Whitespace">     </span><span class="mi">77</span> <span class="k">return</span> <span class="n">offsets</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/vampires_dpp/image_registration.py:192,</span> in <span class="ni">offset_modelfit</span><span class="nt">(frame, inds, method, fitter)</span>
+<span class="g g-Whitespace">    </span><span class="mi">187</span> <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;airydisk&quot;</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">188</span>     <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">AiryDisk2D</span><span class="p">(</span>
+<span class="g g-Whitespace">    </span><span class="mi">189</span>         <span class="n">amplitude</span><span class="o">=</span><span class="n">peak</span><span class="p">,</span> <span class="n">x_0</span><span class="o">=</span><span class="n">view_center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">y_0</span><span class="o">=</span><span class="n">view_center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">radius</span><span class="o">=</span><span class="mi">2</span>
+<span class="g g-Whitespace">    </span><span class="mi">190</span>     <span class="p">)</span>
+<span class="ne">--&gt; </span><span class="mi">192</span> <span class="n">model_fit</span> <span class="o">=</span> <span class="n">fitter</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">view</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">194</span> <span class="c1"># normalize outputs</span>
+<span class="g g-Whitespace">    </span><span class="mi">195</span> <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;moffat&quot;</span> <span class="ow">or</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;airydisk&quot;</span><span class="p">:</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/modeling/fitting.py:269,</span> in <span class="ni">fitter_unit_support.&lt;locals&gt;.wrapper</span><span class="nt">(self, model, x, y, z, **kwargs)</span>
+<span class="g g-Whitespace">    </span><span class="mi">264</span>         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This model does not support being &quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">265</span>                                   <span class="s2">&quot;fit to data with units.&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">267</span> <span class="k">else</span><span class="p">:</span>
+<span class="ne">--&gt; </span><span class="mi">269</span>     <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/modeling/fitting.py:1224,</span> in <span class="ni">_NonLinearLSQFitter.__call__</span><span class="nt">(self, model, x, y, z, weights, maxiter, acc, epsilon, estimate_jacobian)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1221</span> <span class="n">model_copy</span><span class="o">.</span><span class="n">sync_constraints</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="g g-Whitespace">   </span><span class="mi">1222</span> <span class="n">farg</span> <span class="o">=</span> <span class="p">(</span><span class="n">model_copy</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="p">)</span> <span class="o">+</span> <span class="n">_convert_input</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+<span class="ne">-&gt; </span><span class="mi">1224</span> <span class="n">init_values</span><span class="p">,</span> <span class="n">fitparams</span><span class="p">,</span> <span class="n">cov_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_fitter</span><span class="p">(</span><span class="n">model_copy</span><span class="p">,</span> <span class="n">farg</span><span class="p">,</span>
+<span class="g g-Whitespace">   </span><span class="mi">1225</span>                                                  <span class="n">maxiter</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">estimate_jacobian</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1227</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_param_cov</span><span class="p">(</span><span class="n">model_copy</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">init_values</span><span class="p">,</span> <span class="n">cov_x</span><span class="p">,</span> <span class="n">fitparams</span><span class="p">,</span> <span class="n">farg</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1229</span> <span class="n">model</span><span class="o">.</span><span class="n">sync_constraints</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/modeling/fitting.py:1285,</span> in <span class="ni">LevMarLSQFitter._run_fitter</span><span class="nt">(self, model, farg, maxiter, acc, epsilon, estimate_jacobian)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1283</span>     <span class="n">dfunc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrap_deriv</span>
+<span class="g g-Whitespace">   </span><span class="mi">1284</span> <span class="n">init_values</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">model_to_fit_params</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="ne">-&gt; </span><span class="mi">1285</span> <span class="n">fitparams</span><span class="p">,</span> <span class="n">cov_x</span><span class="p">,</span> <span class="n">dinfo</span><span class="p">,</span> <span class="n">mess</span><span class="p">,</span> <span class="n">ierr</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">leastsq</span><span class="p">(</span>
+<span class="g g-Whitespace">   </span><span class="mi">1286</span>     <span class="bp">self</span><span class="o">.</span><span class="n">objective_function</span><span class="p">,</span> <span class="n">init_values</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">farg</span><span class="p">,</span> <span class="n">Dfun</span><span class="o">=</span><span class="n">dfunc</span><span class="p">,</span>
+<span class="g g-Whitespace">   </span><span class="mi">1287</span>     <span class="n">col_deriv</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">col_fit_deriv</span><span class="p">,</span> <span class="n">maxfev</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span> <span class="n">epsfcn</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
+<span class="g g-Whitespace">   </span><span class="mi">1288</span>     <span class="n">xtol</span><span class="o">=</span><span class="n">acc</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1289</span> <span class="n">fitter_to_model_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fitparams</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1290</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dinfo</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/scipy/optimize/_minpack_py.py:423,</span> in <span class="ni">leastsq</span><span class="nt">(func, x0, args, Dfun, full_output, col_deriv, ftol, xtol, gtol, maxfev, epsfcn, factor, diag)</span>
+<span class="g g-Whitespace">    </span><span class="mi">421</span>     <span class="k">if</span> <span class="n">maxfev</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">422</span>         <span class="n">maxfev</span> <span class="o">=</span> <span class="mi">200</span><span class="o">*</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<span class="ne">--&gt; </span><span class="mi">423</span>     <span class="n">retval</span> <span class="o">=</span> <span class="n">_minpack</span><span class="o">.</span><span class="n">_lmdif</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">full_output</span><span class="p">,</span> <span class="n">ftol</span><span class="p">,</span> <span class="n">xtol</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">424</span>                              <span class="n">gtol</span><span class="p">,</span> <span class="n">maxfev</span><span class="p">,</span> <span class="n">epsfcn</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">diag</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">425</span> <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">426</span>     <span class="k">if</span> <span class="n">col_deriv</span><span class="p">:</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/modeling/fitting.py:1068,</span> in <span class="ni">_NonLinearLSQFitter.objective_function</span><span class="nt">(self, fps, *args)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1066</span> <span class="n">model</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="g g-Whitespace">   </span><span class="mi">1067</span> <span class="n">weights</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="ne">-&gt; </span><span class="mi">1068</span> <span class="n">fitter_to_model_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_min_max_bounds</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1069</span> <span class="n">meas</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="g g-Whitespace">   </span><span class="mi">1071</span> <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/modeling/fitting.py:1839,</span> in <span class="ni">fitter_to_model_params</span><span class="nt">(model, fps, use_min_max_bounds)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1835</span> <span class="n">parameters</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span>
+<span class="g g-Whitespace">   </span><span class="mi">1837</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">has_tied</span> <span class="ow">or</span> <span class="n">has_fixed</span> <span class="ow">or</span> <span class="n">has_bound</span><span class="p">):</span>
+<span class="g g-Whitespace">   </span><span class="mi">1838</span>     <span class="c1"># We can just assign directly</span>
+<span class="ne">-&gt; </span><span class="mi">1839</span>     <span class="n">model</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">fps</span>
+<span class="g g-Whitespace">   </span><span class="mi">1840</span>     <span class="k">return</span>
+<span class="g g-Whitespace">   </span><span class="mi">1842</span> <span class="n">fit_param_indices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">fit_param_indices</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/modeling/core.py:922,</span> in <span class="ni">Model.__setattr__</span><span class="nt">(self, attr, value)</span>
+<span class="g g-Whitespace">    </span><span class="mi">920</span>     <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+<span class="g g-Whitespace">    </span><span class="mi">921</span> <span class="k">else</span><span class="p">:</span>
+<span class="ne">--&gt; </span><span class="mi">922</span>     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/modeling/core.py:1219,</span> in <span class="ni">Model.parameters</span><span class="nt">(self, value)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1215</span> <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="g g-Whitespace">   </span><span class="mi">1216</span>     <span class="k">raise</span> <span class="n">InputParameterError</span><span class="p">(</span>
+<span class="g g-Whitespace">   </span><span class="mi">1217</span>         <span class="s2">&quot;Input parameter values not compatible with the model &quot;</span>
+<span class="g g-Whitespace">   </span><span class="mi">1218</span>         <span class="sa">f</span><span class="s2">&quot;parameters array: </span><span class="si">{</span><span class="n">e</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="ne">-&gt; </span><span class="mi">1219</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array_to_parameters</span><span class="p">()</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/modeling/core.py:2595,</span> in <span class="ni">Model._array_to_parameters</span><span class="nt">(self)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2593</span> <span class="n">param</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">2594</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">param_metrics</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;slice&#39;</span><span class="p">]]</span>
+<span class="ne">-&gt; </span><span class="mi">2595</span> <span class="n">value</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">param_metrics</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span>
+<span class="g g-Whitespace">   </span><span class="mi">2596</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+
+<span class="ne">KeyboardInterrupt</span>: 
+</pre></div>
+</div>
 </div>
 </div>
 <div class="cell docutils container">
@@ -653,7 +763,10 @@ All files have been downloaded.
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_15_0.png" src="../_images/image_registration_15_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x2b81235b0&gt;
+</pre></div>
+</div>
+<img alt="../_images/image_registration_15_1.png" src="../_images/image_registration_15_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -747,7 +860,10 @@ All files have been downloaded.
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_21_0.png" src="../_images/image_registration_21_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0.5, 0.98, &#39;Bench Data 2022/06/29 Coronagraphic&#39;)
+</pre></div>
+</div>
+<img alt="../_images/image_registration_21_1.png" src="../_images/image_registration_21_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -810,7 +926,10 @@ All files have been downloaded.
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_23_0.png" src="../_images/image_registration_23_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x2aafb7f40&gt;
+</pre></div>
+</div>
+<img alt="../_images/image_registration_23_1.png" src="../_images/image_registration_23_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -845,7 +964,10 @@ All files have been downloaded.
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_25_0.png" src="../_images/image_registration_25_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0.5, 0.98, &#39;Bench Data 2022/06/29 Coronagraphic&#39;)
+</pre></div>
+</div>
+<img alt="../_images/image_registration_25_1.png" src="../_images/image_registration_25_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -878,7 +1000,10 @@ All files have been downloaded.
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_26_0.png" src="../_images/image_registration_26_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0.5, 0.98, &#39;Bench Data 2022/06/29 Coronagraphic&#39;)
+</pre></div>
+</div>
+<img alt="../_images/image_registration_26_1.png" src="../_images/image_registration_26_1.png" />
 </div>
 </div>
 </section>
@@ -892,11 +1017,11 @@ All files have been downloaded.
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="index.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="file_organization.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Examples</p>
+            <p class="prev-next-title">File Organization</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="frame_selection.html" title="next page">

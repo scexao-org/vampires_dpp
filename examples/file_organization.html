@@ -1,0 +1,912 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>File Organization &#8212; VAMPIRES DPP</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=4fea3ae4a0a4ba949df0a89bbae557cc2ce861ae" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/togglebutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Image Registration" href="image_registration.html" />
+    <link rel="prev" title="Examples" href="index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">VAMPIRES DPP</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../gettingstarted.html">
+   Getting started
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../pipeline.html">
+   Pipeline
+  </a>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="index.html">
+   Examples
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     File Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="image_registration.html">
+     Image Registration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="frame_selection.html">
+     Frame Selection
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../api/index.html">
+   API/Reference
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/organization.html">
+     Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/pipeline.html">
+     Pipeline
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/calibration.html">
+     Calibration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/frame_selection.html">
+     Frame Selection
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/image_registration.html">
+     Image Registration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/image_processing.html">
+     Image Processing
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/satellite_spots.html">
+     Satellite Spots
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right"><a href="https://github.com/scexao-org/vampires_dpp"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="bottom"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/examples/file_organization.ipynb.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#setup-and-imports">
+   Setup and Imports
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#observation-tables">
+   Observation Tables
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#sorting-files">
+   Sorting Files
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#calibration-files">
+     Calibration files
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#preparing-for-processing">
+   Preparing for processing
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#file-lists">
+     1. File lists
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#sub-directories">
+     2. Sub-directories
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#direct-configuration">
+     3. Direct configuration
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>File Organization</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#setup-and-imports">
+   Setup and Imports
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#observation-tables">
+   Observation Tables
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#sorting-files">
+   Sorting Files
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#calibration-files">
+     Calibration files
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#preparing-for-processing">
+   Preparing for processing
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#file-lists">
+     1. File lists
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#sub-directories">
+     2. Sub-directories
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#direct-configuration">
+     3. Direct configuration
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="file-organization">
+<h1>File Organization<a class="headerlink" href="#file-organization" title="Permalink to this headline">#</a></h1>
+<p>This notebook shows two ways of using <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> to help organize your data for processing. This notebook can be downloaded as <strong><a class="reference download internal" download="" href="../_downloads/e1b46699fa5b1f156d75fcf05768570e/file_organization.ipynb"><code class="xref download myst-nb docutils literal notranslate"><span class="pre">file_organization.ipynb</span></code></a></strong>.</p>
+<section id="setup-and-imports">
+<h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Permalink to this headline">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">zenodo_get</span> <span class="kn">import</span> <span class="n">zenodo_get</span>
+
+<span class="n">datadir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># download example data</span>
+<span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Title: VAMPIRES DPP Example Files
+Keywords: 
+Publication date: 2022-11-24
+DOI: 10.5281/zenodo.7359198
+Total size: 231.8 MB
+
+Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits   size: 100.0 MB
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits is already downloaded correctly.
+
+Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits   size: 31.0 MB
+ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits is already downloaded correctly.
+
+Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits   size: 100.0 MB
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits is already downloaded correctly.
+
+Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/hd32297_20220225_headers.csv   size: 0.8 MB
+hd32297_20220225_headers.csv is already downloaded correctly.
+All files have been downloaded.
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="observation-tables">
+<h2>Observation Tables<a class="headerlink" href="#observation-tables" title="Permalink to this headline">#</a></h2>
+<p>To help organize our data, which is often in a single directory with STARS frame IDs that provide no useful identification, we can sort, filter, and save all of the data from the FITS headers. We have an automated utility which scrapes all the FITS headers and stores the data into a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
+<p>Here is an example of how to load your input data into a table and save that to a CSV</p>
+<div class="cell tag_skip-execution docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.headers</span> <span class="kn">import</span> <span class="n">observation_table</span>
+
+<span class="n">datadir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+<span class="n">filelist</span> <span class="o">=</span> <span class="n">datadir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;VMPA*.fits&quot;</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">observation_table</span><span class="p">(</span><span class="n">filelist</span><span class="p">)</span> <span class="c1"># sorts by DATE by default</span>
+<span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd32297_20220225_headers.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>For this example, we will load a table from observations on 2022/02/25 of HD 32297 in polarimetric imaging mode.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd32297_20220225_headers.csv&quot;</span><span class="p">)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Index([&#39;Unnamed: 0&#39;, &#39;path&#39;, &#39;SIMPLE&#39;, &#39;BITPIX&#39;, &#39;NAXIS&#39;, &#39;NAXIS1&#39;, &#39;NAXIS2&#39;,
+       &#39;NAXIS3&#39;, &#39;EXTEND&#39;, &#39;BSCALE&#39;,
+       ...
+       &#39;D_LOOP&#39;, &#39;D_LTTG&#39;, &#39;D_PSUBG&#39;, &#39;D_STTG&#39;, &#39;D_TTCMTX&#39;, &#39;D_TTGAIN&#39;,
+       &#39;D_WTTG&#39;, &#39;DATE&#39;, &#39;U_FLCSTT&#39;, &#39;COMMENT&#39;],
+      dtype=&#39;object&#39;, length=116)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="sorting-files">
+<h2>Sorting Files<a class="headerlink" href="#sorting-files" title="Permalink to this headline">#</a></h2>
+<p>We need to separate out the calibration data from the science data, including the reference stars. From this observation, our targets were as follows</p>
+<p><strong>Science Targets</strong></p>
+<ul class="simple">
+<li><p>HD 32297</p></li>
+</ul>
+<p><strong>Reference Targets</strong></p>
+<ul class="simple">
+<li><p>HD 42352 (Polarized Standard)</p></li>
+<li><p>HD 87423 (Unpolarized Standard)</p></li>
+<li><p>HD 32909 (PSF Reference)</p></li>
+</ul>
+<p>We will use pandas’ <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.query.html"><code class="docutils literal notranslate"><span class="pre">query</span></code></a> functionality to easily sort our files by target</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sci_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;OBJECT == &#39;HD32297&#39;&quot;</span><span class="p">)</span>
+<span class="n">pol_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;OBJECT == &#39;HD42352&#39;&quot;</span><span class="p">)</span>
+<span class="n">unpol_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;OBJECT == &#39;HD87423&#39;&quot;</span><span class="p">)</span>
+<span class="n">psfref_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;OBJECT == &#39;HD32909&#39;&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Science files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sci_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pol. standard files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pol_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unpol. standard files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">unpol_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PSF ref. files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">psfref_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Science files: 650
+Pol. standard files: 30
+Unpol. standard files: 46
+PSF ref. files: 36
+</pre></div>
+</div>
+</div>
+</div>
+<section id="calibration-files">
+<h3>Calibration files<a class="headerlink" href="#calibration-files" title="Permalink to this headline">#</a></h3>
+<p>Depending on when you observed with VAMPIRES and who your suppert astronomers were, your calibration files (typically just dark frames) can be found a few ways.</p>
+<p>For example, if your darks were archived in STARS and were taken with the mirror in, you can use the <code class="docutils literal notranslate"><span class="pre">U_MASK</span></code> value to filter the table</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dark_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;U_MASK == &#39;Mirror&#39;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the darks were just taken during slews, you can try filtering <code class="docutils literal notranslate"><span class="pre">U_OGFNAM</span></code> (the filename as saved to the VAMPIRES computer, usually much more descriptive) for “skies”</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dark_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">table</span><span class="p">[</span><span class="s2">&quot;U_OGFNAM&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;skies&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>In some cases, you may be given the dark files directly if they were not saved in STARS. In that case, you should just store them in your data directory and add the filenames directly to your pipeline configuration.</p>
+<p>For our observations, we took dark frames during slews, so we’ll use the “skies” method.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dark_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">table</span><span class="p">[</span><span class="s2">&quot;U_OGFNAM&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;skies&quot;</span><span class="p">)]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dark frames (skies): </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dark_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Dark frames (skies): 26
+</pre></div>
+</div>
+</div>
+</div>
+<p>now we don’t need all of these cubes to make our calibration files- in general you shouldn’t need more than a few hundred or thousand frames in total (typically one data cube). It is important, however, to match the exposure time and EM gain of our other images!</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">find_dark_settings</span></code> function will automatically sort through the files and find the unique combinations of exposure times and EM gains.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.util</span> <span class="kn">import</span> <span class="n">find_dark_settings</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Science: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> s / EM </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">find_dark_settings</span><span class="p">(</span><span class="n">sci_table</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pol. standard: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> s / EM </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">find_dark_settings</span><span class="p">(</span><span class="n">pol_table</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unpol. standard: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> s / EM </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">find_dark_settings</span><span class="p">(</span><span class="n">unpol_table</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PSF ref.: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> s / EM </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">find_dark_settings</span><span class="p">(</span><span class="n">psfref_table</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">FileNotFoundError</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">line</span> <span class="mi">3</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">vampires_dpp.util</span> <span class="kn">import</span> <span class="n">find_dark_settings</span>
+<span class="nn">----&gt; 3 print(&quot;\n&quot;.join(f&quot;Science: {t} s / EM {e:.0f}&quot; for t, e</span> in <span class="ni">find_dark_settings</span><span class="nt">(sci_table.path)))</span>
+<span class="nn">      4 print(&quot;\n&quot;.join(f&quot;Pol. standard: {t} s / EM {e:.0f}&quot; for t, e</span> in <span class="ni">find_dark_settings</span><span class="nt">(pol_table.path)))</span>
+<span class="nn">      5 print(&quot;\n&quot;.join(f&quot;Unpol. standard: {t} s / EM {e:.0f}&quot; for t, e</span> in <span class="ni">find_dark_settings</span><span class="nt">(unpol_table.path)))</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/vampires_dpp/util.py:62,</span> in <span class="ni">find_dark_settings</span><span class="nt">(filelist)</span>
+<span class="g g-Whitespace">     </span><span class="mi">60</span> <span class="n">exp_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="g g-Whitespace">     </span><span class="mi">61</span> <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">:</span>
+<span class="ne">---&gt; </span><span class="mi">62</span>     <span class="k">with</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdus</span><span class="p">:</span>
+<span class="g g-Whitespace">     </span><span class="mi">63</span>         <span class="n">hdr</span> <span class="o">=</span> <span class="n">hdus</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">header</span>
+<span class="g g-Whitespace">     </span><span class="mi">64</span>         <span class="n">texp</span> <span class="o">=</span> <span class="n">hdr</span><span class="p">[</span><span class="s2">&quot;EXPTIME&quot;</span><span class="p">]</span>  <span class="c1"># exposure time in microseconds</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/hdu/hdulist.py:175,</span> in <span class="ni">fitsopen</span><span class="nt">(name, mode, memmap, save_backup, cache, lazy_load_hdus, ignore_missing_simple, **kwargs)</span>
+<span class="g g-Whitespace">    </span><span class="mi">172</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">173</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Empty filename: </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="ne">--&gt; </span><span class="mi">175</span> <span class="k">return</span> <span class="n">HDUList</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">memmap</span><span class="p">,</span> <span class="n">save_backup</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">176</span>                         <span class="n">lazy_load_hdus</span><span class="p">,</span> <span class="n">ignore_missing_simple</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/hdu/hdulist.py:410,</span> in <span class="ni">HDUList.fromfile</span><span class="nt">(cls, fileobj, mode, memmap, save_backup, cache, lazy_load_hdus, ignore_missing_simple, **kwargs)</span>
+<span class="g g-Whitespace">    </span><span class="mi">398</span> <span class="nd">@classmethod</span>
+<span class="g g-Whitespace">    </span><span class="mi">399</span> <span class="k">def</span> <span class="nf">fromfile</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">memmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">400</span>              <span class="n">save_backup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lazy_load_hdus</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">401</span>              <span class="n">ignore_missing_simple</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="g g-Whitespace">    </span><span class="mi">402</span>     <span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">403</span><span class="sd">     Creates an `HDUList` instance from a file-like object.</span>
+<span class="g g-Whitespace">    </span><span class="mi">404</span><span class="sd"> </span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">    </span><span class="mi">407</span><span class="sd">     documentation for details of the parameters accepted by this method).</span>
+<span class="g g-Whitespace">    </span><span class="mi">408</span><span class="sd">     &quot;&quot;&quot;</span>
+<span class="ne">--&gt; </span><span class="mi">410</span>     <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_readfrom</span><span class="p">(</span><span class="n">fileobj</span><span class="o">=</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">memmap</span><span class="o">=</span><span class="n">memmap</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">411</span>                          <span class="n">save_backup</span><span class="o">=</span><span class="n">save_backup</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">412</span>                          <span class="n">ignore_missing_simple</span><span class="o">=</span><span class="n">ignore_missing_simple</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">413</span>                          <span class="n">lazy_load_hdus</span><span class="o">=</span><span class="n">lazy_load_hdus</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/hdu/hdulist.py:1062,</span> in <span class="ni">HDUList._readfrom</span><span class="nt">(cls, fileobj, data, mode, memmap, cache, lazy_load_hdus, ignore_missing_simple, **kwargs)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1059</span> <span class="k">if</span> <span class="n">fileobj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="g g-Whitespace">   </span><span class="mi">1060</span>     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">_File</span><span class="p">):</span>
+<span class="g g-Whitespace">   </span><span class="mi">1061</span>         <span class="c1"># instantiate a FITS file object (ffo)</span>
+<span class="ne">-&gt; </span><span class="mi">1062</span>         <span class="n">fileobj</span> <span class="o">=</span> <span class="n">_File</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">memmap</span><span class="o">=</span><span class="n">memmap</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="n">cache</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1063</span>     <span class="c1"># The Astropy mode is determined by the _File initializer if the</span>
+<span class="g g-Whitespace">   </span><span class="mi">1064</span>     <span class="c1"># supplied mode was None</span>
+<span class="g g-Whitespace">   </span><span class="mi">1065</span>     <span class="n">mode</span> <span class="o">=</span> <span class="n">fileobj</span><span class="o">.</span><span class="n">mode</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/file.py:170,</span> in <span class="ni">_File.__init__</span><span class="nt">(self, fileobj, mode, memmap, overwrite, cache)</span>
+<span class="g g-Whitespace">    </span><span class="mi">168</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_open_fileobj</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">169</span> <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+<span class="ne">--&gt; </span><span class="mi">170</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_open_filename</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">171</span> <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">172</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_open_filelike</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/astropy/io/fits/file.py:562,</span> in <span class="ni">_File._open_filename</span><span class="nt">(self, filename, mode, overwrite)</span>
+<span class="g g-Whitespace">    </span><span class="mi">559</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="g g-Whitespace">    </span><span class="mi">561</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_try_read_compressed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">magic</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">):</span>
+<span class="ne">--&gt; </span><span class="mi">562</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">IO_FITS_MODES</span><span class="p">[</span><span class="n">mode</span><span class="p">])</span>
+<span class="g g-Whitespace">    </span><span class="mi">563</span>     <span class="bp">self</span><span class="o">.</span><span class="n">close_on_error</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="g g-Whitespace">    </span><span class="mi">565</span> <span class="c1"># Make certain we&#39;re back at the beginning of the file</span>
+<span class="g g-Whitespace">    </span><span class="mi">566</span> <span class="c1"># BZ2File does not support seek when the file is open for writing, but</span>
+<span class="g g-Whitespace">    </span><span class="mi">567</span> <span class="c1"># when opening a file for write, bz2.BZ2File always truncates anyway.</span>
+
+<span class="ne">FileNotFoundError</span>: [Errno 2] No such file or directory: &#39;/Volumes/mlucas SSD1/2022/20220225/VMPA00022079.fits&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<p>we can see from the EM gain switches that some of the standard stars were taken with the coronagraph in (high gain) and with the coronagraph out (low gain). We could use this information to further filter the tables with <code class="docutils literal notranslate"><span class="pre">query</span></code>, but for now we’re only going to focus on the main science observations, which are those with exposure time of 0.5 seconds and 300 EM gain.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sci_table</span> <span class="o">=</span> <span class="n">sci_table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;EXPTIME == 0.5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dark_table</span><span class="p">[</span><span class="s2">&quot;EXPTIME&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">(),</span> <span class="n">dark_table</span><span class="p">[</span><span class="s2">&quot;U_EMGAIN&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(array([0.5]), array([300.]))
+</pre></div>
+</div>
+</div>
+</div>
+<p>our sky frames only cover the 0.5 second, 300 EM gain files. In order to fully calibrate our reference data, we would need to reach out to the SCExAO team to record some darks for the other exposure times and gains.</p>
+<p>From the skies, we only need one cube per camera, so we’ll select the first two</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cam1_dark</span> <span class="o">=</span> <span class="n">dark_table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;U_CAMERA == 1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">cam2_dark</span> <span class="o">=</span> <span class="n">dark_table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;U_CAMERA == 2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cam 1 dark: </span><span class="si">{</span><span class="n">cam1_dark</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cam 2 dark: </span><span class="si">{</span><span class="n">cam2_dark</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Cam 1 dark: /Volumes/mlucas SSD1/2022/20220225/VMPA00022727.fits
+Cam 2 dark: /Volumes/mlucas SSD1/2022/20220225/VMPA00022723.fits
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="preparing-for-processing">
+<h2>Preparing for processing<a class="headerlink" href="#preparing-for-processing" title="Permalink to this headline">#</a></h2>
+<p>Now that we have our file lists, we can prepare them for processing using the <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> pipeline. We’ll show you a few ways for organizing your data so you can chose one that suits your needs and tweak to your liking!</p>
+<section id="file-lists">
+<h3>1. File lists<a class="headerlink" href="#file-lists" title="Permalink to this headline">#</a></h3>
+<p>We can take our dataframes and save the paths of our selected files to simple text files, which can be input directly into the pipeline</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sci_files</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd32297_files.txt&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">sci_files</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sci_table</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]))</span>
+
+<span class="n">dark_files</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;dark_files.txt&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dark_files</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cam1_dark</span><span class="p">,</span> <span class="n">cam2_dark</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>head data/hd32297_files.txt
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/Volumes/mlucas SSD1/2022/20220225/VMPA00022083.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022084.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022085.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022086.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022087.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022088.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022089.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022090.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022091.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022092.fits
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>head data/dark_files.txt
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/Volumes/mlucas SSD1/2022/20220225/VMPA00022727.fits
+/Volumes/mlucas SSD1/2022/20220225/VMPA00022723.fits
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">version = &quot;0.2.0&quot;</span>
+<span class="s2">name=&quot;HD32297_20220225&quot;</span>
+<span class="s2">directory=&quot;data&quot;</span>
+<span class="s2">output_directory=&quot;data/processed&quot;</span>
+<span class="s2">filenames=&quot;data/hd32297_files.txt&quot;</span>
+
+<span class="s2">[calibration]</span>
+<span class="s2">output_directory=&quot;calibrated&quot;</span>
+
+<span class="s2">[calibration.darks]</span>
+<span class="s2">filenames=&quot;data/dark_files.txt&quot;</span>
+
+<span class="s2">[registration]</span>
+<span class="s2">output_directory=&quot;registered&quot;</span>
+
+<span class="s2">[collapsing]</span>
+<span class="s2">output_directory=&quot;collapsed&quot;</span>
+
+<span class="s2">[derotate]</span>
+<span class="s2">output_directory=&quot;derotated&quot;</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="sub-directories">
+<h3>2. Sub-directories<a class="headerlink" href="#sub-directories" title="Permalink to this headline">#</a></h3>
+<p>If you prefer to copy your data into sub-directories, you can do that straight from our tables and using Python’s built-in file management tools. Here we will use symlinks to save storage space, but you could use <code class="docutils literal notranslate"><span class="pre">shutil.copyfile</span></code> if you wanted to make hard copies instead.</p>
+<div class="cell tag_skip-execution docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sci_dir</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd32297_science&quot;</span>
+<span class="n">sci_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sci_table</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]:</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="n">sci_dir</span> <span class="o">/</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">outpath</span><span class="o">.</span><span class="n">symlink_to</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+
+<span class="n">dark_dir</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;darks&quot;</span>
+<span class="n">dark_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cam1_dark</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">cam2_dark</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">outpath</span> <span class="o">=</span> <span class="n">dark_dir</span> <span class="o">/</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">outpath</span><span class="o">.</span><span class="n">symlink_to</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">version = &quot;0.2.0&quot;</span>
+<span class="s2">name=&quot;HD32297_20220225&quot;</span>
+<span class="s2">directory=&quot;data&quot;</span>
+<span class="s2">output_directory=&quot;data/processed&quot;</span>
+<span class="s2">filenames=&quot;hd32297_science/VMPA*.fits&quot;</span>
+
+<span class="s2">[calibration]</span>
+<span class="s2">output_directory=&quot;calibrated&quot;</span>
+
+<span class="s2">[calibration.darks]</span>
+<span class="s2">filenames=&quot;darks/VMPA*.fits&quot;</span>
+
+<span class="s2">[registration]</span>
+<span class="s2">output_directory=&quot;registered&quot;</span>
+
+<span class="s2">[collapsing]</span>
+<span class="s2">output_directory=&quot;collapsed&quot;</span>
+
+<span class="s2">[derotate]</span>
+<span class="s2">output_directory=&quot;derotated&quot;</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="direct-configuration">
+<h3>3. Direct configuration<a class="headerlink" href="#direct-configuration" title="Permalink to this headline">#</a></h3>
+<p>The last way we could do this is by directly creating a configuration dictionary, bypassing the TOML configuration altogether.</p>
+<div class="caution admonition">
+<p class="admonition-title">Advanced Usage</p>
+<p>Despite this methods ability to work in pure Python, the heavily-nested structure can be easy to screw up, leading to silent failures like missing dark subtraction.</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">({</span>
+    <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2.0&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;HD32297_20220225&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;directory&quot;</span><span class="p">:</span> <span class="n">datadir</span><span class="p">,</span>
+    <span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filenames&quot;</span><span class="p">:</span> <span class="n">sci_table</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;calibration&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="s2">&quot;calibrated&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;darks&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;filenames&quot;</span><span class="p">:</span> <span class="n">dark_table</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;registration&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="s2">&quot;registered&quot;</span><span class="p">},</span>
+    <span class="s2">&quot;collapsing&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="s2">&quot;collapsed&quot;</span><span class="p">},</span>
+    <span class="s2">&quot;derotate&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="s2">&quot;derotated&quot;</span><span class="p">},</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="index.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Examples</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="image_registration.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Image Registration</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Miles Lucas<br/>
+  
+      &copy; Copyright 2022, Miles Lucas.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>

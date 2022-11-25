@@ -4,8 +4,10 @@ VAMPIRES is a very dynamic instrument used in a variety of observing scenarios. 
 
 ## Processing Examples
 
-1. Non-coronagraphic polarimetric imaging (TODO)
-2. Coronagraphic polarimetric imaging (TODO)
+```{toctree}
+:maxdepth: 1
+file_organization
+```
 
 ## Exploratory Examples
 
