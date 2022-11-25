@@ -4,6 +4,7 @@
 :maxdepth: 1
 
 organization
+pipeline
 calibration
 frame_selection
 image_registration

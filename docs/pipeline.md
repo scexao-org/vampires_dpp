@@ -21,10 +21,10 @@ The pipeline will reduce the data in the following order
 
 ```{admonition} Troubleshooting
 :class: tip 
-If you run into problems, take a look at the debug file, which will be saved to the output directory.
+If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with `_debug.log` appended to the file name.
 
     vpp config.toml
-    tail output/example_debug.log
+    tail config_debug.log
 ```
 
 
@@ -85,7 +85,7 @@ The frame centers must be given as a list of (x, y) lists, otherwise they will d
 
 #### Outputs
 
-After calibration, a FITS file of the angles required to rotate each frame clockwise to North up East left will be saved in `{config["name"]}_derot_angles.fits`. A CSV with the header information scraped from all the calibrated data will be saved to `{config["name"]}_headers.csv`. A debug log will be saved to `{config["name"]}_debug.log`.
+After calibration, a FITS file of the angles required to rotate each frame clockwise to North up East left will be saved in `{config["name"]}_derot_angles.fits`. A CSV with the header information scraped from all the calibrated data will be saved to `{config["name"]}_headers.csv`.
 
 ### Astrometry Options
 
