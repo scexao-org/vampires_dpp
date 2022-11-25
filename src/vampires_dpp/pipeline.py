@@ -53,8 +53,7 @@ class Pipeline:
         Parameters
         ----------
         config : Dict
-            Dictionary with the configuraiton settings.
-
+            Dictionary with the configuration settings.
 
         Raises
         ------
@@ -83,6 +82,10 @@ class Pipeline:
         ------
         ValueError
             If the configuration `version` is not compatible with the current `vampires_dpp` version.
+
+        Examples
+        --------
+        >>> Pipeline.from_file("config.toml")
         """
         config = toml.load(filename)
         return cls(config)
@@ -90,7 +93,7 @@ class Pipeline:
     @classmethod
     def from_str(cls, toml_str: str):
         """
-        Load configuration from TOML string
+        Load configuration from TOML string.
 
         Parameters
         ----------
