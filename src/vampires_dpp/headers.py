@@ -40,7 +40,9 @@ def dict_from_header(filename):
 
 def observation_table(filenames, **kwargs):
     rows = [dict_from_header(filename) for filename in filenames]
-    return pd.DataFrame(rows)
+    df = pd.DataFrame(rows)
+    df.sort_values("DATE", inplace=True)
+    return df
 
 
 def parallactic_angle(header):

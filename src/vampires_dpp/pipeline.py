@@ -477,7 +477,7 @@ class Pipeline:
             if path.is_file():
                 # is a file with a list of filenames
                 fh = path.open("r")
-                paths = [Path(f) for f in fh.readlines()]
+                paths = [Path(f.rstrip()) for f in fh.readlines()]
                 fh.close()
             else:
                 # is a globbing expression
