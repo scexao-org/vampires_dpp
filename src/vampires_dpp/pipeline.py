@@ -6,6 +6,7 @@ import tqdm.auto as tqdm
 from astropy.io import fits
 import numpy as np
 import sys
+from os import PathLike
 from typing import Dict
 
 import vampires_dpp as vpp
@@ -69,13 +70,13 @@ class Pipeline:
             )
 
     @classmethod
-    def from_file(cls, filename):
+    def from_file(cls, filename: PathLike):
         """
         Load configuration from TOML file
 
         Parameters
         ----------
-        filename :
+        filename : PathLike
             Path to TOML file with configuration settings.
 
         Raises
@@ -107,6 +108,18 @@ class Pipeline:
         """
         config = toml.loads(toml_str)
         return cls(config)
+
+    def to_toml(self, filename: PathLike):
+        """
+        Save configuration settings to TOML file
+
+        Parameters
+        ----------
+        filename : PathLike
+            Output filename
+        """
+        with open(filename, "w") as fh:
+            toml.dump(self.config, fh)
 
     def run(self):
         """
