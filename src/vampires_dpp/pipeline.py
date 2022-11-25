@@ -360,7 +360,6 @@ class Pipeline:
             tripwire = tripwire or not skip_reg
             kwargs = {
                 "window": self.config["registration"].get("window_size", 30),
-                "theta": self.config["coronagraph"]["satellite_spots"].get("angle", -4),
                 "skip": skip_reg,
             }
             if "registration.dft" in self.config:
@@ -388,6 +387,9 @@ class Pipeline:
                         center=frame_centers[cam_idx],
                         coronagraphic=True,
                         radius=r,
+                        theta=self.config["coronagraph"]["satellite_spots"].get(
+                            "angle", -4
+                        ),
                         output=outname,
                         **kwargs,
                     )
