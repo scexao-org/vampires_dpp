@@ -293,7 +293,7 @@ def triplediff_average_angles(filenames):
     pas = np.zeros(N_hwp_sets, dtype="f4")
     for i in range(pas.shape[0]):
         ix = i * 16
-        pas[i] = average_angle(tbl["D_IMRPAD"].iloc[ix : ix + 16] + 140.4)
+        pas[i] = average_angle(tbl["D_IMRPAD"].iloc[ix : ix + 16] + PUPIL_OFFSET)
 
     return pas
 
@@ -321,7 +321,7 @@ def polarization_calibration_model(filenames):
             hwp_theta=hwp_theta,
             pa=pa,
             altitude=altitude,
-            pupil_offset=np.deg2rad(140.4),
+            pupil_offset=np.deg2rad(PUPIL_OFFSET),
         )
         # only keep the X -> I terms
         mueller_mats[i] = M[0]

@@ -58,6 +58,11 @@ name = "example"
 A simple filename-safe name that is used for some automatic naming.
 
 ```toml
+target = "" # optional
+```
+A [SIMBAD](https://simbad.cds.unistra.fr/simbad/)-friendly target name. This will be used for any SIMBAD or Vizier querying.
+
+```toml
 directory = ""
 ```
 The absolute path of the top-level data directory
@@ -89,13 +94,49 @@ After calibration, a FITS file of the angles required to rotate each frame clock
 
 ### Astrometry Options
 
-The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the `vampires_dpp` config.
+The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the `vampires_dpp.constants`.
 
 ```toml
 [astrometry]
 pixel_scale = 6.24 # mas/px, optional
 pupil_offset = 140.4 # deg, optional
 ```
+
+```toml
+[astrometry.coord]
+```
+
+The coordinates of the object will be updated and proper-motion corrected during calibration. These values can be looked up using the GAIA DR3. If you do not want to look the values, either because you are not connected to the internet or there are no GAIA DR3 entries for your target, you can manually specify the following options
+
+```toml
+ra = "" # sexagesimal hour angles, optional
+dec = "" # sexagesimal degrees, optional
+```
+The RA and DEC in sexagesimal. If not provided, will use the RA and DEC in the FITS headers.
+
+```toml
+pm_ra = 0 # mas/yr, optional
+pm_dec = 0 # mas/yr, optional
+```
+Optional proper motions. If not provided, will not be used for calculating the space-motion corrected coordinates.
+
+```toml
+plx = 0 # mas, optional
+```
+Optional parallax used to calculate distance
+
+```toml
+frame = "" # optional
+obstime = "" # optional
+```
+The frame for the input RA and DEC coordinates. By default will scrape from the FITS headers.
+
+```{admonition}
+:class: tip
+
+If you are storing the coordinates retrieved from GAIA, make sure to set the frame to "ICRS" and the obstime to "J2016"
+```
+
 
 ### Coronagraph Options
 
@@ -106,7 +147,7 @@ If you are reducing coronagraphic data, you will need to add the following secti
 ```
 
 ```toml
-mask_size = 90 # mas
+mask_size = 94 # mas
 ```
 
 The coronagraph mask inner working angle (IWA), in mas. The IWAs for the masks are listed on the [VAMPIRES website](https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html).
@@ -356,6 +397,7 @@ Here are some simple examples of configuration files for various observing scena
 version = "0.2.0" # vampires_dpp version
 
 name = "abaur_example"
+target = "AB Aur"
 directory = "abaur_20190320"
 output_directory = "abaur_20190320/processed"
 filenames = "science/VMPA*.fits"
@@ -391,13 +433,14 @@ output_directory = "derotated"
 version = "0.2.0" # vampires_dpp version
 
 name = "abaur_example"
+target = "AB Aur"
 directory = "abaur_20220224"
 output_directory = "abaur_20220224/processed"
 filenames = "science/VMPA*.fits"
 frame_centers = [[128, 128], [128, 129]]
 
 [coronagraph]
-mask_size = 54 # mas
+mask_size = 58 # mas
 
 [coronagraph.satellite_spots]
 radius = 31.8 # lam/D

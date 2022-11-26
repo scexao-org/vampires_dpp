@@ -1,6 +1,7 @@
 version = "0.2.0" # vampires_dpp version
 
 name = "example" # simple name for analysis, used for automatic naming of some files
+target = "" # SIMBAD compatible target name
 directory = "" # absolute path of root data directory
 output_directory = "" # absolute path to top-level output directory, if empty will use the root directory
 filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
@@ -9,6 +10,16 @@ frame_centers = [[128, 128], [128, 129]] # optional cam 1, cam 2 centers (x, y) 
 [astrometry]
 pixel_scale = 6.24 # mas/px, optional
 pupil_offset = 140.4 # deg, pupil rotation between IR and VIS benches
+
+# the following options do not need to be set- they will be looked up in GAIA DR3 by default
+[astrometry.coord]
+ra = "" # sexagesimal ra in hour angles, optional
+dec = "" # sexagesimal dec in degrees, optional
+pm_ra = 0 # mas/yr, optional
+pm_dec = 0 # mas/yr, optional
+plx = 0 # mas, optional
+frame = "" # optional
+obstime = "" # optional
 
 [coronagraph] # optional, signifies coronagraph was used
 mask_size = 90 # IWA of mask, mas

@@ -1,4 +1,5 @@
 from astropy.io import fits
+import astropy.units as u
 import numpy as np
 from pathlib import Path
 import pandas as pd
@@ -6,6 +7,7 @@ from scipy.ndimage import fourier_shift
 from numpy.typing import ArrayLike, NDArray
 from typing import Union
 import cv2
+from astropy.coordinates import Angle
 
 from vampires_dpp.headers import dict_from_header
 
@@ -213,16 +215,16 @@ def collapse_cube_header(header, method="median"):
     return header
 
 
-def combine_frames(frames, headers=None):
+def combine_frames(frames, headers=None, **kwargs):
     cube = np.array(frames)
 
     if headers is not None:
-        headers = combine_frames_headers(headers)
+        headers = combine_frames_headers(headers, **kwargs)
 
     return cube, headers
 
 
-def combine_frames_headers(headers):
+def combine_frames_headers(headers, wcs=False):
     output_header = fits.Header()
     # let's make this easier with tables
     table = pd.DataFrame([dict_from_header(header) for header in headers])
@@ -234,10 +236,45 @@ def combine_frames_headers(headers):
     for key, val in unique_row.items():
         output_header[key] = val
 
+    # average position using average angle formula
+    ras = Angle(table["RA"], unit=u.hourangle)
+    ave_ra = np.arctan2(np.sin(ras.rad).mean(), np.cos(ras.rad).mean())
+    decs = Angle(table["DEC"], unit=u.deg)
+    ave_dec = np.arctan2(np.sin(decs.rad).mean(), np.cos(decs.rad).mean())
+    output_header["RA"] = Angle(ave_ra * u.rad).to_string(unit=u.hourangle, sep=":")
+    output_header["DEC"] = Angle(ave_dec * u.rad).to_string(unit=u.deg, sep=":")
+    if wcs:
+        # need to get average CRVALs and PCs
+        output_header["CRVAL1"] = np.rad2deg(ave_ra)
+        output_header["CRVAL2"] = np.rad2deg(ave_dec)
+        output_header["PC1_1"] = table["PC1_1"].mean()
+        output_header["PC1_2"] = table["PC1_2"].mean()
+        output_header["PC2_1"] = table["PC2_1"].mean()
+        output_header["PC2_2"] = table["PC2_2"].mean()
+    else:
+        for k in (
+            "WCSAXES",
+            "CRPIX1",
+            "CRPIX2",
+            "CDELT1",
+            "CDELT2",
+            "CUNIT1",
+            "CUNIT2",
+            "CTYPE1",
+            "CTYPE2",
+            "CRVAL1",
+            "CRVAL2",
+            "PC1_1",
+            "PC1_2",
+            "PC2_1",
+            "PC2_2",
+        ):
+            del table[k]
+
     return output_header
 
 
-def combine_frames_files(filenames, output, skip=False):
+def combine_frames_files(filenames, output, skip=False, **kwargs):
     path = Path(output)
     if skip and path.is_file():
         return path
@@ -249,7 +286,7 @@ def combine_frames_files(filenames, output, skip=False):
         frames.append(frame)
         headers.append(header)
 
-    cube, header = combine_frames(frames, headers)
+    cube, header = combine_frames(frames, headers, **kwargs)
 
     fits.writeto(path, cube, header=header, overwrite=True)
     return path

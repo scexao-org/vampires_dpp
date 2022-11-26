@@ -2,6 +2,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from .image_processing import frame_center
+from vampires_dpp.constants import PIXEL_SCALE
 
 FILTER_ANGULAR_SIZE = {
     "Open": np.rad2deg(700e-9 / 7.79) * 3.6e6,
@@ -13,7 +14,7 @@ FILTER_ANGULAR_SIZE = {
 }
 
 
-def lamd_to_pixel(ld, filter="Open", pxscale=6.24):
+def lamd_to_pixel(ld, filter="Open", pxscale=PIXEL_SCALE):
     dist = FILTER_ANGULAR_SIZE[filter.strip().lower()]
     return ld * dist / pxscale
 

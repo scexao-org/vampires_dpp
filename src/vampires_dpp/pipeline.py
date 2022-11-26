@@ -5,19 +5,28 @@ from packaging import version
 import tqdm.auto as tqdm
 from astropy.io import fits
 import numpy as np
+import astropy.units as u
+from astropy.time import Time
+from astropy.coordinates import SkyCoord
 import sys
 from os import PathLike
 from typing import Dict
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import make_dark_file, make_flat_file, calibrate
+from vampires_dpp.constants import PUPIL_OFFSET, PIXEL_SCALE, SUBARU_LOC
 from vampires_dpp.fixes import fix_header, filter_empty_frames
 from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
 from vampires_dpp.headers import observation_table
 from vampires_dpp.image_processing import derotate_frame
 from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.satellite_spots import lamd_to_pixel
-from vampires_dpp.wcs import apply_wcs, derotate_wcs
+from vampires_dpp.wcs import (
+    apply_wcs,
+    derotate_wcs,
+    get_gaia_astrometry,
+    get_coord_header,
+)
 
 
 def check_version(config: str, vpp: str) -> bool:
@@ -144,12 +153,48 @@ class Pipeline:
 
         ## configure astrometry
         if "astrometry" in self.config:
-            pxscale = self.config["astrometry"].get("pixel_scale", 6.24)  # mas/px
-            pupil_offset = self.config["astrometry"].get("pupil_offset", 140.4)  # deg
+            pxscale = self.config["astrometry"].get(
+                "pixel_scale", PIXEL_SCALE
+            )  # mas/px
+            pupil_offset = self.config["astrometry"].get(
+                "pupil_offset", PUPIL_OFFSET
+            )  # deg
+            # if custom coord
+            if "coord" in self.config["astrometry"]:
+                coord_dict = self.config["astrometry"]["coord"]
+                plx = coord_dict.get("plx", None)
+                if plx is not None:
+                    distance = (plx * u.mas).to(u.parsec, equivalencies=u.parallax())
+                else:
+                    distance = None
+                if "pm_ra" in coord_dict:
+                    pm_ra = coord_dict["pm_ra"] * u.mas / u.year
+                else:
+                    pm_ra = None
+                if "pm_dec" in coord_dict:
+                    pm_dec = coord_dict["pm_ra"] * u.mas / u.year
+                else:
+                    pm_dec = None
+                coord = SkyCoord(
+                    ra=coord_dict["ra"] * u.deg,
+                    dec=coord_dict["dec"] * u.deg,
+                    pm_ra_cosdec=pm_ra,
+                    pm_dec=pm_dec,
+                    distance=distance,
+                    frame=coord_dict.get("frame", "ICRS"),
+                    obstime=coord_dict.get("obstime", "J2016"),
+                )
+            elif "target" in self.config:
+                coord = get_gaia_astrometry(self.config["target"])
+            else:
+                # get from header
+                coord = None
         else:
             # TODO set these values in a config file somewhere?
-            pxscale = 6.24
-            pupil_offset = 140.4
+            pxscale = PIXEL_SCALE
+            pupil_offset = PUPIL_OFFSET
+            # query from GAIA DR3
+            coord = get_gaia_astrometry(self.config["target"])
 
         ## Step 1: Fix headers and calibrate
         self.logger.info("Starting data calibration")
@@ -231,6 +276,12 @@ class Pipeline:
                 )
                 continue
             header = fix_header(header)
+            time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
+            if coord is None:
+                coord_now = get_coord_header(header, time)
+            coord_now = coord.apply_space_motion(time)
+            header["RA"] = coord_now.ra.to_string(unit=u.hourangle, sep=":")
+            header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
             header = apply_wcs(header, pxscale=pxscale, pupil_offset=pupil_offset)
             if header["U_CAMERA"] == 1:
                 calib_cube = calibrate(
