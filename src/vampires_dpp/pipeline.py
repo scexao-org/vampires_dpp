@@ -11,7 +11,7 @@ from typing import Dict
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import make_dark_file, make_flat_file, calibrate
-from vampires_dpp.fixes import fix_header
+from vampires_dpp.fixes import fix_header, filter_empty_frames
 from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
 from vampires_dpp.headers import observation_table
 from vampires_dpp.image_processing import derotate_frame
@@ -223,7 +223,13 @@ class Pipeline:
                 if skip_calib and outname.is_file():
                     working_files.append(outname)
                     continue
-            cube, header = fits.getdata(filename, header=True)
+            raw_cube, header = fits.getdata(filename, header=True)
+            cube = filter_empty_frames(raw_cube)
+            if cube.shape[0] < raw_cube.shape[0] / 2:
+                self.logger.warning(
+                    f"{filename} will be discarded since it is majority empty frames"
+                )
+                continue
             header = fix_header(header)
             header = apply_wcs(header, pxscale=pxscale, pupil_offset=pupil_offset)
             if header["U_CAMERA"] == 1:

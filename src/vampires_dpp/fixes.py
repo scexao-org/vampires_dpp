@@ -2,6 +2,12 @@ from astropy.io import fits
 from astropy.time import Time
 from pathlib import Path
 from typing import Optional
+import numpy as np
+
+
+def filter_empty_frames(cube):
+    output = np.array([frame for frame in cube if np.any(frame)])
+    return output
 
 
 def fix_header(header):
