@@ -6,9 +6,9 @@ from collections import OrderedDict
 from pathlib import Path
 
 
-def dict_from_header(filename):
+def dict_from_header_file(filename):
     """
-    Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
+    Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
     Parameters
     ----------
@@ -21,8 +21,25 @@ def dict_from_header(filename):
     """
     summary = OrderedDict()
     summary["path"] = Path(filename).resolve()
-
     header = fits.getheader(filename)
+    summary.update(dict_from_header(header))
+    return summary
+
+
+def dict_from_header(header: fits.Header):
+    """
+    Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
+
+    Parameters
+    ----------
+    header : Header
+        FITS header to parse
+
+    Returns
+    -------
+    OrderedDict
+    """
+    summary = OrderedDict()
     multi_entry_keys = {"COMMENT": [], "HISTORY": []}
     for k, v in header.items():
         if k == "":
@@ -39,7 +56,19 @@ def dict_from_header(filename):
 
 
 def observation_table(filenames, **kwargs):
-    rows = [dict_from_header(filename) for filename in filenames]
+    """
+    Create a pandas DataFrame from the FITS headers of the given files. An additional entry, `path` will be added with the absolute path of each filename, for posterity.
+
+    Parameters
+    ----------
+    filenames
+        Iterable of FITS files to parse into the table
+
+    Returns
+    -------
+    DataFrame
+    """
+    rows = [dict_from_header_file(filename) for filename in filenames]
     df = pd.DataFrame(rows)
     df.sort_values("DATE", inplace=True)
     return df
