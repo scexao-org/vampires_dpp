@@ -58,6 +58,11 @@ name = "example"
 A simple filename-safe name that is used for some automatic naming.
 
 ```toml
+target = "" # optional
+```
+A [SIMBAD](https://simbad.cds.unistra.fr/simbad/)-friendly target name. This will be used for any SIMBAD or Vizier querying.
+
+```toml
 directory = ""
 ```
 The absolute path of the top-level data directory
@@ -89,13 +94,49 @@ After calibration, a FITS file of the angles required to rotate each frame clock
 
 ### Astrometry Options
 
-The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the `vampires_dpp` config.
+The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the `vampires_dpp.constants`.
 
 ```toml
 [astrometry]
 pixel_scale = 6.24 # mas/px, optional
 pupil_offset = 140.4 # deg, optional
 ```
+
+```toml
+[astrometry.coord]
+```
+
+The coordinates of the object will be updated and proper-motion corrected during calibration. These values can be looked up using the GAIA DR3. If you do not want to look the values, either because you are not connected to the internet or there are no GAIA DR3 entries for your target, you can manually specify the following options
+
+```toml
+ra = "" # sexagesimal hour angles, optional
+dec = "" # sexagesimal degrees, optional
+```
+The RA and DEC in sexagesimal. If not provided, will use the RA and DEC in the FITS headers.
+
+```toml
+pm_ra = 0 # mas/yr, optional
+pm_dec = 0 # mas/yr, optional
+```
+Optional proper motions. If not provided, will not be used for calculating the space-motion corrected coordinates.
+
+```toml
+plx = 0 # mas, optional
+```
+Optional parallax used to calculate distance
+
+```toml
+frame = "" # optional
+obstime = "" # optional
+```
+The frame for the input RA and DEC coordinates. By default will scrape from the FITS headers.
+
+```{admonition}
+:class: tip
+
+If you are storing the coordinates retrieved from GAIA, make sure to set the frame to "ICRS" and the obstime to "J2016"
+```
+
 
 ### Coronagraph Options
 
@@ -106,7 +147,7 @@ If you are reducing coronagraphic data, you will need to add the following secti
 ```
 
 ```toml
-mask_size = 90 # mas
+mask_size = 94 # mas
 ```
 
 The coronagraph mask inner working angle (IWA), in mas. The IWAs for the masks are listed on the [VAMPIRES website](https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html).
@@ -141,6 +182,8 @@ This section will enable standard image calibration of VAMPIRES data. The follow
 2. If flat files are provided, a master flat will be made
 3. The FITS headers will be fixed using `fix_header` and WCS information will be added
 4. The leading 2 frames of each data cube will be discarded due to detector readout artifacts
+5. The remaining frames in the cube will be filtered to exclude empty frames
+    - If over half the cube is empty it will be discarded
 5. If dark files are provided, the cube will be dark subtracted
 6. If flat files are provided, the cube will be flat normalized
 7. Cam 1 data will be flipped along the y-axis
@@ -317,7 +360,7 @@ By default, if the collapsed data frames already exist the operations be skipped
 
 #### Outputs
 
-FITS files will be saved in `output_directory` with `_collapsed` appended to the file name.
+FITS files will be saved in `output_directory` with `_collapsed` appended to the file name. In addition, a cube constructed from all the collapsed frames will be saved with filename `config["name"]_collapsed_cube`.
 
 ### Derotation Options
 
@@ -340,7 +383,54 @@ By default, if the derotated data frames already exist the operations be skipped
 
 #### Outputs
 
-FITS files will be saved in `output_directory` with `_derot` appended to the file name.
+FITS files will be saved in `output_directory` with `_derot` appended to the file name. In addition, a cube constructed from all the derotated frames will be saved with filename `config["name"]_derot_cube`.
+
+### Polarimetry Options
+
+```toml
+[polarimetry]
+```
+
+If this section is set, polarimetric differential imaging (PDI) will be carried out on the derotated frames.
+
+```toml
+method = "mueller" # optional
+```
+The PDI method, one of "mueller" or "triplediff". In both cases, we use Mueller calculus to construct the cubes, which allows us to utilize all of the frames, rather than only complete HWP cycles.
+
+```toml
+output_directory = "" # relative to root, optional
+```
+
+The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).
+
+```
+force = false # optional
+```
+By default, if the Stokes cube already exists the operations be skipped to save time. If you set this to `true`, the polarimetric calibration, _and all subsequent operations_ will be redone.
+
+
+```toml
+[polarimetry.ip]
+radius = 5 # px, optional
+```
+If this section is set, instrumental polarization (IP) will be removed from the constructed Stokes cube. By default, it will measure the IP contributions inside a frame-centered circular aperture with radius `radius`.
+
+```toml
+cQ = 0 # optional
+cU = 0 # optional
+```
+The I -> Q and I -> U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.a
+
+```
+force = false # optional
+```
+By default, if the IP-corrected Stokes cube already exists the operations be skipped to save time. If you set this to `true`, the IP measurement, correction, _and all subsequent operations_ will be redone.
+
+
+#### Outputs
+
+FITS files will be saved in `output_directory` with filename `config["name"]_stokes_cube`. If instrumental polarization is corrected, an additional FITS file is saved with name `config["name"]_stokes_cube_ip`.
 
 ## Examples
 
@@ -354,6 +444,7 @@ Here are some simple examples of configuration files for various observing scena
 version = "0.2.0" # vampires_dpp version
 
 name = "abaur_example"
+target = "AB Aur"
 directory = "abaur_20190320"
 output_directory = "abaur_20190320/processed"
 filenames = "science/VMPA*.fits"
@@ -389,13 +480,14 @@ output_directory = "derotated"
 version = "0.2.0" # vampires_dpp version
 
 name = "abaur_example"
+target = "AB Aur"
 directory = "abaur_20220224"
 output_directory = "abaur_20220224/processed"
 filenames = "science/VMPA*.fits"
 frame_centers = [[128, 128], [128, 129]]
 
 [coronagraph]
-mask_size = 54 # mas
+mask_size = 58 # mas
 
 [coronagraph.satellite_spots]
 radius = 31.8 # lam/D

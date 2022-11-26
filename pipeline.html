@@ -398,6 +398,18 @@ title="Print to PDF"
      </li>
     </ul>
    </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polarimetry-options">
+     Polarimetry Options
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id6">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -516,6 +528,18 @@ title="Print to PDF"
      </li>
     </ul>
    </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polarimetry-options">
+     Polarimetry Options
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#id6">
+       Outputs
+      </a>
+     </li>
+    </ul>
+   </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -585,6 +609,10 @@ tail config_debug.log
 </pre></div>
 </div>
 <p>A simple filename-safe name that is used for some automatic naming.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>A <a class="reference external" href="https://simbad.cds.unistra.fr/simbad/">SIMBAD</a>-friendly target name. This will be used for any SIMBAD or Vizier querying.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"></span>
 </pre></div>
 </div>
@@ -611,12 +639,35 @@ tail config_debug.log
 </section>
 <section id="astrometry-options">
 <h3>Astrometry Options<a class="headerlink" href="#astrometry-options" title="Permalink to this headline">#</a></h3>
-<p>The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> config.</p>
+<p>The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the <code class="docutils literal notranslate"><span class="pre">vampires_dpp.constants</span></code>.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[astrometry]</span><span class="w"></span>
 <span class="n">pixel_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">6.24</span><span class="w"> </span><span class="c1"># mas/px, optional</span><span class="w"></span>
 <span class="n">pupil_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">140.4</span><span class="w"> </span><span class="c1"># deg, optional</span><span class="w"></span>
 </pre></div>
 </div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[astrometry.coord]</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The coordinates of the object will be updated and proper-motion corrected during calibration. These values can be looked up using the GAIA DR3. If you do not want to look the values, either because you are not connected to the internet or there are no GAIA DR3 entries for your target, you can manually specify the following options</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># sexagesimal hour angles, optional</span><span class="w"></span>
+<span class="n">dec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># sexagesimal degrees, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The RA and DEC in sexagesimal. If not provided, will use the RA and DEC in the FITS headers.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">pm_ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas/yr, optional</span><span class="w"></span>
+<span class="n">pm_dec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas/yr, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Optional proper motions. If not provided, will not be used for calculating the space-motion corrected coordinates.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">plx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Optional parallax used to calculate distance</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<span class="n">obstime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The frame for the input RA and DEC coordinates. By default will scrape from the FITS headers.</p>
 </section>
 <section id="coronagraph-options">
 <h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Permalink to this headline">#</a></h3>
@@ -624,7 +675,7 @@ tail config_debug.log
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
 </pre></div>
 </div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">90</span><span class="w"> </span><span class="c1"># mas</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">94</span><span class="w"> </span><span class="c1"># mas</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The coronagraph mask inner working angle (IWA), in mas. The IWAs for the masks are listed on the <a class="reference external" href="https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html">VAMPIRES website</a>.</p>
@@ -652,6 +703,11 @@ tail config_debug.log
 <li><p>If flat files are provided, a master flat will be made</p></li>
 <li><p>The FITS headers will be fixed using <code class="docutils literal notranslate"><span class="pre">fix_header</span></code> and WCS information will be added</p></li>
 <li><p>The leading 2 frames of each data cube will be discarded due to detector readout artifacts</p></li>
+<li><p>The remaining frames in the cube will be filtered to exclude empty frames</p>
+<ul class="simple">
+<li><p>If over half the cube is empty it will be discarded</p></li>
+</ul>
+</li>
 <li><p>If dark files are provided, the cube will be dark subtracted</p></li>
 <li><p>If flat files are provided, the cube will be flat normalized</p></li>
 <li><p>Cam 1 data will be flipped along the y-axis</p></li>
@@ -792,7 +848,7 @@ tail config_debug.log
 <p>By default, if the collapsed data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the collapsing, <em>and all subsequent operations</em> will be redone.</p>
 <section id="id4">
 <h4>Outputs<a class="headerlink" href="#id4" title="Permalink to this headline">#</a></h4>
-<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_collapsed</span></code> appended to the file name.</p>
+<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_collapsed</span></code> appended to the file name. In addition, a cube constructed from all the collapsed frames will be saved with filename <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_collapsed_cube</span></code>.</p>
 </section>
 </section>
 <section id="derotation-options">
@@ -811,7 +867,44 @@ tail config_debug.log
 <p>By default, if the derotated data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the derotation, <em>and all subsequent operations</em> will be redone.</p>
 <section id="id5">
 <h4>Outputs<a class="headerlink" href="#id5" title="Permalink to this headline">#</a></h4>
-<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_derot</span></code> appended to the file name.</p>
+<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_derot</span></code> appended to the file name. In addition, a cube constructed from all the derotated frames will be saved with filename <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_derot_cube</span></code>.</p>
+</section>
+</section>
+<section id="polarimetry-options">
+<h3>Polarimetry Options<a class="headerlink" href="#polarimetry-options" title="Permalink to this headline">#</a></h3>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry]</span><span class="w"></span>
+</pre></div>
+</div>
+<p>If this section is set, polarimetric differential imaging (PDI) will be carried out on the derotated frames.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;mueller&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The PDI method, one of “mueller” or “triplediff”. In both cases, we use Mueller calculus to construct the cubes, which allows us to utilize all of the frames, rather than only complete HWP cycles.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
+</pre></div>
+</div>
+<p>By default, if the Stokes cube already exists the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the polarimetric calibration, <em>and all subsequent operations</em> will be redone.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry.ip]</span><span class="w"></span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="c1"># px, optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>If this section is set, instrumental polarization (IP) will be removed from the constructed Stokes cube. By default, it will measure the IP contributions inside a frame-centered circular aperture with radius <code class="docutils literal notranslate"><span class="pre">radius</span></code>.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">cQ</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<span class="n">cU</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The I -&gt; Q and I -&gt; U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.a</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
+</pre></div>
+</div>
+<p>By default, if the IP-corrected Stokes cube already exists the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the IP measurement, correction, <em>and all subsequent operations</em> will be redone.</p>
+<section id="id6">
+<h4>Outputs<a class="headerlink" href="#id6" title="Permalink to this headline">#</a></h4>
+<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with filename <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube</span></code>. If instrumental polarization is corrected, an additional FITS file is saved with name <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube_ip</span></code>.</p>
 </section>
 </section>
 </section>
@@ -824,6 +917,7 @@ tail config_debug.log
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span><span class="w"></span>
 <span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320/processed&quot;</span><span class="w"></span>
 <span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
@@ -857,13 +951,14 @@ tail config_debug.log
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span><span class="w"></span>
 <span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224&quot;</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224/processed&quot;</span><span class="w"></span>
 <span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
 <span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]]</span><span class="w"></span>
 
 <span class="k">[coronagraph]</span><span class="w"></span>
-<span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">54</span><span class="w"> </span><span class="c1"># mas</span><span class="w"></span>
+<span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">58</span><span class="w"> </span><span class="c1"># mas</span><span class="w"></span>
 
 <span class="k">[coronagraph.satellite_spots]</span><span class="w"></span>
 <span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">31.8</span><span class="w"> </span><span class="c1"># lam/D</span><span class="w"></span>
