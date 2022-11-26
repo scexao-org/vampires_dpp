@@ -1,10 +1,13 @@
 from astropy.io import fits
 import numpy as np
 from pathlib import Path
+import pandas as pd
 from scipy.ndimage import fourier_shift
 from numpy.typing import ArrayLike, NDArray
 from typing import Union
 import cv2
+
+from vampires_dpp.headers import dict_from_header
 
 
 def shift_frame_fft(data: ArrayLike, shift):
@@ -190,3 +193,63 @@ def frame_angles(frame: ArrayLike, center=None):
     Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
     thetas = np.arctan2(center[1] - Xs, Ys - center[0])
     return thetas
+
+
+def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs):
+    # clean inputs
+    method = method.strip().lower()
+
+    if method == "median":
+        frame = np.median(cube, axis=0, **kwargs)
+
+    if header is not None:
+        header = collapse_cube_header(header, method=method)
+
+    return frame, header
+
+
+def collapse_cube_header(header, method="median"):
+    header["VPP_COLL"] = method, "VAMPIRES DPP cube collapse method"
+    return header
+
+
+def combine_frames(frames, headers=None):
+    cube = np.array(frames)
+
+    if headers is not None:
+        headers = combine_frames_headers(headers)
+
+    return cube, headers
+
+
+def combine_frames_headers(headers):
+    output_header = fits.Header()
+    # let's make this easier with tables
+    table = pd.DataFrame([dict_from_header(header) for header in headers])
+
+    # which columns have only a single unique value?
+    unique_values = table.apply(lambda col: col.unique())
+    unique_mask = unique_values.apply(lambda values: len(values) == 1)
+    unique_row = table.loc[0, unique_mask]
+    for key, val in unique_row.items():
+        output_header[key] = val
+
+    return output_header
+
+
+def combine_frames_files(filenames, output, skip=False):
+    path = Path(output)
+    if skip and path.is_file():
+        return path
+
+    frames = []
+    headers = []
+    for filename in filenames:
+        frame, header = fits.getdata(filename, header=True)
+        frames.append(frame)
+        headers.append(header)
+
+    cube, header = combine_frames(frames, headers)
+
+    fits.writeto(path, cube, header=header, overwrite=True)
+    return path
