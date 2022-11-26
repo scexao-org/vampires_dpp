@@ -1,7 +1,7 @@
 version = "0.2.0" # vampires_dpp version
 
 name = "example" # simple name for analysis, used for automatic naming of some files
-target = "" # SIMBAD compatible target name
+target = "" # SIMBAD compatible target name, optional
 directory = "" # absolute path of root data directory
 output_directory = "" # absolute path to top-level output directory, if empty will use the root directory
 filenames = [""] # list of filenames, the path to a textfile with names, or a python glob expression
@@ -65,3 +65,13 @@ force = false # if files already exist, should we force the calculation and over
 [derotate]
 output_directory = "" # output directory for intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
+
+[polarimetry]
+output_directory = "" # output directory for intermediate frames
+force = false # if files already exist, should we force the calculation and overwrite?
+method = "mueller" # calibration method, one of "mueller" or "triplediff"
+
+[polarimetry.ip]
+force = false # if files already exist, should we force the calculation and overwrite?
+cQ = 0 # I -> Q instrumental polarization term, if not provided will be measured
+cU = 0 # I -> U instrumental polarization term, if not provided will be measured

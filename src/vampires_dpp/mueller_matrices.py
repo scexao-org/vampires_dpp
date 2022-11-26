@@ -2,6 +2,7 @@ from astropy.io import fits
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from vampires_dpp.constants import PUPIL_OFFSET
 
 __all__ = (
     "hwp",
@@ -421,22 +422,25 @@ def mueller_matrix_model(
     hwp_theta,
     pa,
     altitude,
-    pupil_offset,
+    pupil_offset=PUPIL_OFFSET,
 ):
     cam_idx = 0 if camera == 1 else 1
     flc_ang = 0 if flc_state == 1 else np.pi / 4
     cals = CAL_DICT[filter]
     M = np.linalg.multi_dot(
         (
-            wollaston(camera == 2),  # Polarizing beamsplitter
+            wollaston(camera == 1),  # Polarizing beamsplitter
             hwp(theta=flc_ang),  # FLC
-            rotator(pupil_offset),
+            mirror(),
+            rotator(-pupil_offset),
+            mirror(),
             qwp(theta=qwp2),  # QWP 2
             qwp(theta=qwp1),  # QWP 1
             hwp(theta=imr_theta),  # delta=cals["imr_delta"]),  # AO 188 K-mirror
             hwp(theta=hwp_theta),  # delta=cals["hwp_delta"]),  # AO 188 HWP,
-            rotator(theta=-altitude),
-            rotator(theta=pa),
+            rotator(theta=altitude),
+            mirror(),
+            rotator(theta=np.pi / 2 - pa),
         )
     )
     return cals["pbs_throughput"][cam_idx] * M

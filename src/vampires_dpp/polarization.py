@@ -6,16 +6,24 @@ from typing import Optional, Tuple, Sequence
 from pathlib import Path
 from photutils import CircularAperture, CircularAnnulus, aperture_photometry
 import tqdm.auto as tqdm
+from astropy.wcs import WCS
+from astropy.wcs.utils import add_stokes_axis_to_wcs
 
-from .image_processing import frame_angles, frame_center, weighted_collapse
+from .constants import PUPIL_OFFSET
+from .image_processing import (
+    frame_angles,
+    frame_center,
+    weighted_collapse,
+    combine_frames_headers,
+)
 from .satellite_spots import window_slices
-from .mueller_matrices import mueller_matrix_triplediff, mueller_matrix_model, rotator
+from .mueller_matrices import mueller_matrix_model
 from .image_registration import offset_centroid
 from .headers import observation_table
 from .util import average_angle
 
 
-def measure_instpol(stokes_cube: ArrayLike, r=5, center=None) -> Tuple:
+def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None) -> Tuple:
     """
     Use aperture photometry to estimate the instrument polarization.
 
@@ -34,17 +42,15 @@ def measure_instpol(stokes_cube: ArrayLike, r=5, center=None) -> Tuple:
         (cQ, cU) tuple of instrument polarization coefficients
     """
     if center is None:
-        center = frame_center(stokes_cube)
+        center = frame_center(I)
 
-    q = stokes_cube[1] / stokes_cube[0]
-    u = stokes_cube[2] / stokes_cube[0]
+    x = X / I
 
     ap = CircularAperture((center[1], center[0]), r)
 
-    cQ = aperture_photometry(q, ap)["aperture_sum"][0] / ap.area
-    cU = aperture_photometry(u, ap)["aperture_sum"][0] / ap.area
+    cX = aperture_photometry(x, ap)["aperture_sum"][0] / ap.area
 
-    return cQ, cU
+    return cX
 
 
 def measure_instpol_satellite_spots(stokes_cube: ArrayLike, r=5, **kwargs) -> Tuple:
@@ -326,31 +332,68 @@ def polarization_calibration_model(filenames):
         # only keep the X -> I terms
         mueller_mats[i] = M[0]
 
-    return mueller_matrix_calibration(mueller_mats, cube)
+    return mueller_mats
 
 
-def polarization_calibration(filenames, method="model", output=None, skip=False):
+def mueller_mats_files(filenames, method="mueller", output=None, skip=False):
     if output is None:
         indir = Path(filenames[0]).parent
-        hdr = fits.getheader(filenames[0])
-        name = hdr["OBJECT"]
-        date = hdr["DATE-OBS"].replace("-", " ")
-        output = indir / f"{name}_{date}_stokes.fits"
+        output = indir / f"mueller_mats.fits"
     else:
         output = Path(output)
 
-    if skip and output.exists():
-        stokes_cube = fits.getdata(output)
-    elif method == "model":
-        stokes_cube = polarization_calibration_model(filenames)
+    if skip and output.is_file():
+        return output
+
+    elif method == "mueller":
+        mueller_mats = polarization_calibration_model(filenames)
     elif method == "triplediff":
-        stokes_cube = polarization_calibration_triplediff(filenames)
+        mueller_mats = polarization_calibration_triplediff(filenames)
     else:
         raise ValueError(
             f'\'method\' must be either "model" or "triplediff" (got {method})'
         )
 
-    return stokes_cube
+    hdu = fits.PrimaryHDU(mueller_mats)
+    hdu.header["METHOD"] = method
+    hdu.writeto(output, overwrite=True)
+
+    return output
+
+
+def mueller_matrix_calibration_files(
+    filenames, mueller_matrix_file=None, output=None, skip=False
+):
+    if output is None:
+        indir = Path(filenames[0]).parent
+        output = indir / f"stokes_cube.fits"
+    else:
+        output = Path(output)
+
+    if skip and output.is_file():
+        return output
+
+    if mueller_matrix_file is None:
+        mueller_matrix_file = mueller_mats_files(filenames)
+
+    mueller_mats, muller_mat_hdr = fits.getdata(mueller_matrix_file, header=True)
+    cube = np.array([fits.getdata(f) for f in filenames])
+    stokes_cube = mueller_matrix_calibration(mueller_mats, cube)
+    headers = (fits.getheader(f) for f in filenames)
+    header = combine_frames_headers(headers, wcs=True)
+
+    # add in stokes WCS information
+    wcs = WCS(header)
+    wcs = add_stokes_axis_to_wcs(wcs, 2)
+
+    header.update(wcs.to_header())
+    header["VPP_PDI"] = (
+        muller_mat_hdr["METHOD"],
+        "VAMPIRES DPP polarization calibration method",
+    )
+
+    fits.writeto(output, stokes_cube, header=header, overwrite=True)
+    return output
 
 
 # def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:

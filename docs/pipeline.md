@@ -385,6 +385,53 @@ By default, if the derotated data frames already exist the operations be skipped
 
 FITS files will be saved in `output_directory` with `_derot` appended to the file name. In addition, a cube constructed from all the derotated frames will be saved with filename `config["name"]_derot_cube`.
 
+### Polarimetry Options
+
+```toml
+[polarimetry]
+```
+
+If this section is set, polarimetric differential imaging (PDI) will be carried out on the derotated frames.
+
+```toml
+method = "mueller" # optional
+```
+The PDI method, one of "mueller" or "triplediff". In both cases, we use Mueller calculus to construct the cubes, which allows us to utilize all of the frames, rather than only complete HWP cycles.
+
+```toml
+output_directory = "" # relative to root, optional
+```
+
+The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).
+
+```
+force = false # optional
+```
+By default, if the Stokes cube already exists the operations be skipped to save time. If you set this to `true`, the polarimetric calibration, _and all subsequent operations_ will be redone.
+
+
+```toml
+[polarimetry.ip]
+radius = 5 # px, optional
+```
+If this section is set, instrumental polarization (IP) will be removed from the constructed Stokes cube. By default, it will measure the IP contributions inside a frame-centered circular aperture with radius `radius`.
+
+```toml
+cQ = 0 # optional
+cU = 0 # optional
+```
+The I -> Q and I -> U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.a
+
+```
+force = false # optional
+```
+By default, if the IP-corrected Stokes cube already exists the operations be skipped to save time. If you set this to `true`, the IP measurement, correction, _and all subsequent operations_ will be redone.
+
+
+#### Outputs
+
+FITS files will be saved in `output_directory` with filename `config["name"]_stokes_cube`. If instrumental polarization is corrected, an additional FITS file is saved with name `config["name"]_stokes_cube_ip`.
+
 ## Examples
 
 Here are some simple examples of configuration files for various observing scenarios. These do not make use of all the features, and make some assumptions about how the data is laid out that you are encouraged to tweak to your liking.

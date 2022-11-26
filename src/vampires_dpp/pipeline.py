@@ -24,6 +24,13 @@ from vampires_dpp.image_processing import (
     collapse_file,
 )
 from vampires_dpp.image_registration import measure_offsets, register_file
+from vampires_dpp.polarization import (
+    mueller_mats_files,
+    mueller_matrix_calibration_files,
+    measure_instpol,
+    instpol_correct,
+    radial_stokes,
+)
 from vampires_dpp.satellite_spots import lamd_to_pixel
 from vampires_dpp.wcs import (
     apply_wcs,
@@ -555,6 +562,74 @@ class Pipeline:
             derot_file = combine_frames_files(
                 working_files, output=outname, skip=skip_derot, wcs=True
             )
+            self.logger.info("Finished derotating frames")
+
+        if "polarimetry" in self.config:
+            self.logger.info("Performing polarimetric calibration")
+            outdir = output / self.config["polarimetry"].get("output_directory", "")
+            if not outdir.is_dir():
+                outdir.mkdir(parents=True, exist_ok=True)
+            self.logger.debug(f"saving Stokes data to {outdir.absolute()}")
+            skip_pdi = not tripwire and not self.config["polarimetry"].get(
+                "force", False
+            )
+            if skip_pdi:
+                self.logger.debug("skipping PDI if files exist")
+            tripwire = tripwire or not skip_pdi
+            outname = outdir / f"{self.config['name']}_mueller_mats.fits"
+            mueller_mat_file = mueller_mats_files(
+                working_files,
+                method=self.config["polarimetry"].get("method", "mueller"),
+                output=outname,
+                skip=skip_pdi,
+            )
+            self.logger.debug(f"saved derotated data to {mueller_mat_file.absolute()}")
+
+            # generate stokes cube
+            outname = outdir / f"{self.config['name']}_stokes_cube.fits"
+            stokes_cube_file = mueller_matrix_calibration_files(
+                working_files, mueller_mat_file, output=outname, skip=skip_pdi
+            )
+            if "ip" in self.config["polarimetry"]:
+                ip_config = self.config["polarimetry"]["ip"]
+                # generate IP cube
+                skip_ip = not tripwire and not ip_config.get("force", False)
+                if skip_ip:
+                    self.logger.debug("skipping IP correction if files exist")
+                tripwire = tripwire or not skip_ip
+                outname = outdir / f"{self.config['name']}_stokes_cube_ip.fits"
+                if not skip_ip or not outname.is_file():
+                    stokes_cube, stokes_hdr = fits.getdata(
+                        stokes_cube_file, header=True
+                    )
+                    if "cQ" in ip_config:
+                        cQ = ip_config["cQ"]
+                    else:
+                        cQ = measure_instpol(
+                            stokes_cube[0], stokes_cube[1], r=ip_config.get("radius", 5)
+                        )
+                    if "cU" in ip_config:
+                        cU = ip_config["cU"]
+                    else:
+                        cU = measure_instpol(
+                            stokes_cube[0], stokes_cube[2], r=ip_config.get("radius", 5)
+                        )
+                    stokes_ip_cube = instpol_correct(stokes_cube, cQ=cQ, cU=cU)
+                    stokes_hdr["cQ"] = (
+                        cQ,
+                        "VAMPIRES DPP I -> Q IP contribution (corrected)",
+                    )
+                    stokes_hdr["cU"] = (
+                        cU,
+                        "VAMPIRES DPP I -> Q IP contribution (corrected)",
+                    )
+                    fits.writeto(
+                        outname, stokes_ip_cube, header=stokes_hdr, overwrite=True
+                    )
+                    stokes_cube_file = outname
+                    self.logger.debug(f"saved Stokes IP cube to {outname.absolute()}")
+
+            self.logger.info("Finished PDI")
 
         self.logger.info("Finished running pipeline")
 
