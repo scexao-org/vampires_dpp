@@ -18,7 +18,11 @@ from vampires_dpp.constants import PUPIL_OFFSET, PIXEL_SCALE, SUBARU_LOC
 from vampires_dpp.fixes import fix_header, filter_empty_frames
 from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
 from vampires_dpp.headers import observation_table
-from vampires_dpp.image_processing import derotate_frame
+from vampires_dpp.image_processing import (
+    derotate_frame,
+    combine_frames_files,
+    collapse_file,
+)
 from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.satellite_spots import lamd_to_pixel
 from vampires_dpp.wcs import (
@@ -514,6 +518,11 @@ class Pipeline:
                 fits.writeto(outname, frame, header=header, overwrite=True)
                 self.logger.debug(f"saved collapsed data to {outname.absolute()}")
 
+            # generate cube
+            outname = outdir / f"{self.config['name']}_collapsed_cube.fits"
+            cube_file = combine_frames_files(
+                working_files, output=outname, skip=skip_collapse
+            )
             self.logger.info("Finished collapsing frames")
 
         if "derotate" in self.config:
@@ -540,6 +549,12 @@ class Pipeline:
                 header = derotate_wcs(header, header["D_IMRPAD"] + pupil_offset)
                 fits.writeto(outname, derot_frame, header=header, overwrite=True)
                 self.logger.debug(f"saved derotated data to {outname.absolute()}")
+
+            # generate derotated cube
+            outname = outdir / f"{self.config['name']}_derot_cube.fits"
+            derot_file = combine_frames_files(
+                working_files, output=outname, skip=skip_derot, wcs=True
+            )
 
         self.logger.info("Finished running pipeline")
 

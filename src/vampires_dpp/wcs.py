@@ -72,7 +72,7 @@ def get_gaia_astrometry(target, catalog="I/355/gaiadr3"):
         pm_dec=gaia_info["pmDE"] * u.mas / u.year,
         distance=plx.to(u.parsec, equivalencies=u.parallax()),
         frame="icrs",
-        equinox="J2016",
+        obstime="J2016",
     )
     return coord
 

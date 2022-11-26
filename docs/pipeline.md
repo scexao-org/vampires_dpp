@@ -360,7 +360,7 @@ By default, if the collapsed data frames already exist the operations be skipped
 
 #### Outputs
 
-FITS files will be saved in `output_directory` with `_collapsed` appended to the file name.
+FITS files will be saved in `output_directory` with `_collapsed` appended to the file name. In addition, a cube constructed from all the collapsed frames will be saved with filename `config["name"]_collapsed_cube`.
 
 ### Derotation Options
 
@@ -383,7 +383,7 @@ By default, if the derotated data frames already exist the operations be skipped
 
 #### Outputs
 
-FITS files will be saved in `output_directory` with `_derot` appended to the file name.
+FITS files will be saved in `output_directory` with `_derot` appended to the file name. In addition, a cube constructed from all the derotated frames will be saved with filename `config["name"]_derot_cube`.
 
 ## Examples
 
