@@ -565,6 +565,8 @@ class Pipeline:
             self.logger.info("Finished derotating frames")
 
         if "polarimetry" in self.config:
+            if "derotate" not in self.config:
+                raise ValueError("Cannot do PDI without derotating data.")
             self.logger.info("Performing polarimetric calibration")
             outdir = output / self.config["polarimetry"].get("output_directory", "")
             if not outdir.is_dir():
