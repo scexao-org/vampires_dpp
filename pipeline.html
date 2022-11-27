@@ -569,6 +569,7 @@ title="Print to PDF"
   <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>     <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
 </pre></div>
 </div>
+<p>or create a <code class="docutils literal notranslate"><span class="pre">Pipeline</span></code> object and call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method.</p>
 <p>The pipeline will reduce the data in the following order</p>
 <ol class="simple">
 <li><p>Calibration</p></li>
@@ -576,6 +577,7 @@ title="Print to PDF"
 <li><p>Image Registration</p></li>
 <li><p>Collapsing</p></li>
 <li><p>Derotation</p></li>
+<li><p>Polarimetric differential imaging</p></li>
 </ol>
 <div class="tip admonition">
 <p class="admonition-title">Troubleshooting</p>
@@ -605,7 +607,7 @@ tail config_debug.log
 </section>
 <section id="global-options">
 <h3>Global Options<a class="headerlink" href="#global-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="w"> </span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="w"></span>
 </pre></div>
 </div>
 <p>A simple filename-safe name that is used for some automatic naming.</p>
@@ -622,8 +624,8 @@ tail config_debug.log
 </div>
 <p>absolute path to top-level output directory, if empty will use the root directory</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_files.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file </span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression </span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_files.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
@@ -737,8 +739,8 @@ tail config_debug.log
 <span class="w">    </span><span class="s">&quot;darks_5ms_em300_cam1.fits&quot;</span><span class="p">,</span><span class="w"></span>
 <span class="w">    </span><span class="s">&quot;darks_5ms_em300_cam2.fits&quot;</span><span class="w"></span>
 <span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_darks.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file </span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression </span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_darks.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
@@ -754,8 +756,8 @@ tail config_debug.log
 <span class="w">    </span><span class="s">&quot;flats_em300_cam1.fits&quot;</span><span class="p">,</span><span class="w"></span>
 <span class="w">    </span><span class="s">&quot;flats_em300_cam2.fits&quot;</span><span class="w"></span>
 <span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_flats.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file </span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;flats/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression </span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_flats.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;flats/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
@@ -897,7 +899,7 @@ tail config_debug.log
 <span class="n">cU</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
 </pre></div>
 </div>
-<p>The I -&gt; Q and I -&gt; U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.a</p>
+<p>The I -&gt; Q and I -&gt; U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
 </pre></div>
 </div>
@@ -942,6 +944,13 @@ tail config_debug.log
 
 <span class="k">[derotate]</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span><span class="w"></span>
+
+<span class="k">[polarimetry]</span><span class="w"></span>
+<span class="n">method</span><span class="o">=</span><span class="s">&quot;mueller&quot;</span><span class="w"></span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span><span class="w"></span>
+
+<span class="k">[polarimetry.ip]</span><span class="w"></span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"></span>
 </pre></div>
 </div>
 </details>
@@ -983,6 +992,13 @@ tail config_debug.log
 
 <span class="k">[derotate]</span><span class="w"></span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span><span class="w"></span>
+
+<span class="k">[polarimetry]</span><span class="w"></span>
+<span class="n">method</span><span class="o">=</span><span class="s">&quot;mueller&quot;</span><span class="w"></span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span><span class="w"></span>
+
+<span class="k">[polarimetry.ip]</span><span class="w"></span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span><span class="w"></span>
 </pre></div>
 </div>
 </details>
