@@ -670,6 +670,10 @@ tail config_debug.log
 </pre></div>
 </div>
 <p>The frame for the input RA and DEC coordinates. By default will scrape from the FITS headers.</p>
+<div class="tip admonition">
+<p class="admonition-title">Tip</p>
+<p>If you are storing the coordinates retrieved from GAIA, make sure to set the frame to “ICRS” and the obstime to “J2016”</p>
+</div>
 </section>
 <section id="coronagraph-options">
 <h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Permalink to this headline">#</a></h3>
@@ -915,7 +919,6 @@ tail config_debug.log
 <p>Here are some simple examples of configuration files for various observing scenarios. These do not make use of all the features, and make some assumptions about how the data is laid out that you are encouraged to tweak to your liking.</p>
 <details>
 <summary>Non-coronagraphic Polarimetric Imaging</summary>
-<br>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
@@ -956,7 +959,6 @@ tail config_debug.log
 </details>
 <details>
 <summary>Coronagraphic Polarimetric Imaging</summary>
-<br>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
@@ -1004,7 +1006,6 @@ tail config_debug.log
 </details>
 <details>
 <summary>Single Camera Speckle Imaging</summary>
-<br>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
 
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;single_cam_example&quot;</span><span class="w"></span>

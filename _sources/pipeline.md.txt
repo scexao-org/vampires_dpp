@@ -134,7 +134,7 @@ obstime = "" # optional
 ```
 The frame for the input RA and DEC coordinates. By default will scrape from the FITS headers.
 
-```{admonition}
+```{admonition} Tip
 :class: tip
 
 If you are storing the coordinates retrieved from GAIA, make sure to set the frame to "ICRS" and the obstime to "J2016"
@@ -441,7 +441,6 @@ Here are some simple examples of configuration files for various observing scena
 
 <details>
 <summary>Non-coronagraphic Polarimetric Imaging</summary>
-<br>
 
 ```toml
 version = "0.2.0" # vampires_dpp version
@@ -484,7 +483,6 @@ radius = 3
 
 <details>
 <summary>Coronagraphic Polarimetric Imaging</summary>
-<br>
 
 ```toml
 version = "0.2.0" # vampires_dpp version
@@ -535,7 +533,6 @@ radius = 7
 
 <details>
 <summary>Single Camera Speckle Imaging</summary>
-<br>
 
 ```toml
 version = "0.2.0" # vampires_dpp version
