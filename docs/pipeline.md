@@ -12,15 +12,18 @@ optional arguments:
   -h, --help     show this help message and exit
 ```
 
+or create a `Pipeline` object and call the `run` method.
+
 The pipeline will reduce the data in the following order
 1. Calibration
 2. Frame Selection
 3. Image Registration
 4. Collapsing
 5. Derotation
+6. Polarimetric differential imaging
 
 ```{admonition} Troubleshooting
-:class: tip 
+:class: tip
 If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with `_debug.log` appended to the file name.
 
     vpp config.toml
@@ -53,7 +56,7 @@ We use [semantic versioning](https://semver.org/), so there are certain guarante
 ### Global Options
 
 ```toml
-name = "example" 
+name = "example"
 ```
 A simple filename-safe name that is used for some automatic naming.
 
@@ -74,8 +77,8 @@ absolute path to top-level output directory, if empty will use the root director
 
 ```toml
 filenames = [""] # list of filenames
-filenames = "input_files.txt" # the path to a text file 
-filenames = "science/VMPA*.fits" # python glob expression 
+filenames = "input_files.txt" # the path to a text file
+filenames = "science/VMPA*.fits" # python glob expression
 ```
 
 The `filenames` option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
@@ -220,8 +223,8 @@ filenames = [
     "darks_5ms_em300_cam1.fits",
     "darks_5ms_em300_cam2.fits"
 ] # list of filenames
-filenames = "input_darks.txt" # the path to a text file 
-filenames = "darks/VMPA*.fits" # python glob expression 
+filenames = "input_darks.txt" # the path to a text file
+filenames = "darks/VMPA*.fits" # python glob expression
 ```
 
 The `filenames` option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
@@ -242,8 +245,8 @@ filenames = [
     "flats_em300_cam1.fits",
     "flats_em300_cam2.fits"
 ] # list of filenames
-filenames = "input_flats.txt" # the path to a text file 
-filenames = "flats/VMPA*.fits" # python glob expression 
+filenames = "input_flats.txt" # the path to a text file
+filenames = "flats/VMPA*.fits" # python glob expression
 ```
 
 The `filenames` option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
@@ -420,7 +423,7 @@ If this section is set, instrumental polarization (IP) will be removed from the 
 cQ = 0 # optional
 cU = 0 # optional
 ```
-The I -> Q and I -> U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.a
+The I -> Q and I -> U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.
 
 ```
 force = false # optional
@@ -469,6 +472,13 @@ output_directory = "collapsed"
 
 [derotate]
 output_directory = "derotated"
+
+[polarimetry]
+method="mueller"
+output_directory = "stokes"
+
+[polarimetry.ip]
+radius = 3
 ```
 </details>
 
@@ -512,6 +522,13 @@ output_directory = "collapsed"
 
 [derotate]
 output_directory = "derotated"
+
+[polarimetry]
+method="mueller"
+output_directory = "stokes"
+
+[polarimetry.ip]
+radius = 7
 ```
 </details>
 
