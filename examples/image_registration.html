@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Frame Selection" href="frame_selection.html" />
-    <link rel="prev" title="File Organization" href="file_organization.html" />
+    <link rel="prev" title="Polarimetric Differential Imaging (PDI)" href="polarimetric_differential_imaging.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -114,6 +114,11 @@
    <li class="toctree-l2">
     <a class="reference internal" href="file_organization.html">
      File Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="polarimetric_differential_imaging.html">
+     Polarimetric Differential Imaging (PDI)
     </a>
    </li>
    <li class="toctree-l2 current active">
@@ -382,49 +387,23 @@ title="Print to PDF"
 <h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Permalink to this headline">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">proplot</span> <span class="k">as</span> <span class="nn">pro</span>
-<span class="kn">from</span> <span class="nn">zenodo_get</span> <span class="kn">import</span> <span class="n">zenodo_get</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from astropy.io import fits
+import numpy as np
+from pathlib import Path
+import proplot as pro
+from zenodo_get import zenodo_get
 
-<span class="n">pro</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;ggplot&quot;</span>
-<span class="n">pro</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s2">&quot;image.origin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;lower&quot;</span>
-<span class="n">datadir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+pro.rc[&quot;style&quot;] = &quot;ggplot&quot;
+pro.rc[&quot;image.origin&quot;] = &quot;lower&quot;
+datadir = Path(&quot;data&quot;)
 </pre></div>
 </div>
 </div>
 </div>
-<div class="cell docutils container">
+<div class="cell tag_remove-output docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># download example data</span>
-<span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Title: VAMPIRES DPP Example Files
-Keywords: 
-Publication date: 2022-11-24
-DOI: 10.5281/zenodo.7359198
-Total size: 231.8 MB
-
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits   size: 100.0 MB
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits is already downloaded correctly.
-
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits   size: 31.0 MB
-ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits is already downloaded correctly.
-
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits   size: 100.0 MB
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits is already downloaded correctly.
-
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/hd32297_20220225_headers.csv   size: 0.8 MB
-hd32297_20220225_headers.csv is already downloaded correctly.
-All files have been downloaded.
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># download example data
+zenodo_get([&quot;10.5281/zenodo.7359198&quot;, &quot;-o&quot;, datadir.absolute()])
 </pre></div>
 </div>
 </div>
@@ -435,24 +414,24 @@ All files have been downloaded.
 <p>This example uses non-coronagraphic data of AB Aurigae from 2019/03/20. This data was taken in polarimetric imaging mode, but we will ignore that. This data has high signal-to-noise ratio (S/N), but suffers from low wind effect (LWE) causing PSF splitting. This means we have to be careful about which frame we use a reference for the cross-correlation method.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">abaur20190320_cube</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span>
-    <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits&quot;</span>
-<span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>abaur20190320_cube = fits.getdata(
+    datadir / &quot;ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits&quot;
+)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">frame_idx</span> <span class="o">=</span> <span class="mi">248</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots()
+frame_idx = 248
 
-<span class="n">frame</span> <span class="o">=</span> <span class="n">abaur20190320_cube</span><span class="p">[</span><span class="n">frame_idx</span><span class="p">]</span>
+frame = abaur20190320_cube[frame_idx]
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;</span><span class="p">);</span>
+c = axes[0].imshow(frame, cmap=&quot;magma&quot;)
+fig.colorbar(c)
+axes.format(grid=False)
+fig.suptitle(&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -462,21 +441,21 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.image_registration</span> <span class="kn">import</span> <span class="n">psf_offsets</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.image_registration import psf_offsets
 
-<span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">window</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+kwargs = dict(center=(128, 128), window=30)
 
-<span class="n">offsets_com</span> <span class="o">=</span> <span class="n">psf_offsets</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;com&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_peak</span> <span class="o">=</span> <span class="n">psf_offsets</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;peak&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_dft</span> <span class="o">=</span> <span class="n">psf_offsets</span><span class="p">(</span>
-    <span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;dft&quot;</span><span class="p">,</span> <span class="n">refidx</span><span class="o">=</span><span class="n">frame_idx</span><span class="p">,</span> <span class="n">upsample_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">offsets_dft_10</span> <span class="o">=</span> <span class="n">psf_offsets</span><span class="p">(</span>
-    <span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;dft&quot;</span><span class="p">,</span> <span class="n">refidx</span><span class="o">=</span><span class="n">frame_idx</span><span class="p">,</span> <span class="n">upsample_factor</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">offsets_moffat</span> <span class="o">=</span> <span class="n">psf_offsets</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;moffat&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_gaussian</span> <span class="o">=</span> <span class="n">psf_offsets</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_airydisk</span> <span class="o">=</span> <span class="n">psf_offsets</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;airydisk&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+offsets_com = psf_offsets(abaur20190320_cube, method=&quot;com&quot;, **kwargs)
+offsets_peak = psf_offsets(abaur20190320_cube, method=&quot;peak&quot;, **kwargs)
+offsets_dft = psf_offsets(
+    abaur20190320_cube, method=&quot;dft&quot;, refidx=frame_idx, upsample_factor=1, **kwargs
+)
+offsets_dft_10 = psf_offsets(
+    abaur20190320_cube, method=&quot;dft&quot;, refidx=frame_idx, upsample_factor=10, **kwargs
+)
+offsets_moffat = psf_offsets(abaur20190320_cube, method=&quot;moffat&quot;, **kwargs)
+offsets_gaussian = psf_offsets(abaur20190320_cube, method=&quot;gaussian&quot;, **kwargs)
+offsets_airydisk = psf_offsets(abaur20190320_cube, method=&quot;airydisk&quot;, **kwargs)
 </pre></div>
 </div>
 </div>
@@ -488,36 +467,36 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">sharex</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(sharex=0, ncols=2)
 
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;Center of Mass&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Peak&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;DFT (f=1)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;DFT (f=10)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Moffat PSF&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Gaussian PSF&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;AiryDisk PSF&quot;</span><span class="p">,</span>
-<span class="p">]</span>
-<span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">offsets_com</span><span class="p">,</span>
-    <span class="n">offsets_peak</span><span class="p">,</span>
-    <span class="n">offsets_dft</span><span class="p">,</span>
-    <span class="n">offsets_dft_10</span><span class="p">,</span>
-    <span class="n">offsets_moffat</span><span class="p">,</span>
-    <span class="n">offsets_gaussian</span><span class="p">,</span>
-    <span class="n">offsets_airydisk</span><span class="p">,</span>
-<span class="p">]</span>
+labels = [
+    &quot;Center of Mass&quot;,
+    &quot;Peak&quot;,
+    &quot;DFT (f=1)&quot;,
+    &quot;DFT (f=10)&quot;,
+    &quot;Moffat PSF&quot;,
+    &quot;Gaussian PSF&quot;,
+    &quot;AiryDisk PSF&quot;,
+]
+offsets = [
+    offsets_com,
+    offsets_peak,
+    offsets_dft,
+    offsets_dft_10,
+    offsets_moffat,
+    offsets_gaussian,
+    offsets_airydisk,
+]
 
 
-<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">samples</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">offsets</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samples</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samples</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Delta$x (mas)&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Delta$y (mas)&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">dualx</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span> <span class="o">/</span> <span class="mf">6.24</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;(px)&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suptitle</span><span class="o">=</span><span class="s2">&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">);</span>
+for label, samples in zip(labels, offsets):
+    axes[0].hist(samples[:, 1], bins=&quot;auto&quot;, fill=False, lw=1, label=label)
+    axes[1].hist(samples[:, 0], bins=&quot;auto&quot;, fill=False, lw=1)
+axes[0].format(xlabel=r&quot;$\Delta$x (mas)&quot;, ylabel=&quot;count&quot;)
+axes[1].format(xlabel=r&quot;$\Delta$y (mas)&quot;)
+axes.dualx(lambda a: a / 6.24, label=&quot;(px)&quot;)
+fig.format(suptitle=&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;)
+fig.legend(loc=&quot;bottom&quot;, ncols=4);
 </pre></div>
 </div>
 </div>
@@ -527,36 +506,36 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.image_processing</span> <span class="kn">import</span> <span class="n">shift_cube</span><span class="p">,</span> <span class="n">shift_frame</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.image_processing import shift_cube, shift_frame
 
-<span class="n">collapsed_frames</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsets</span><span class="p">:</span>
-    <span class="n">registered_cube</span> <span class="o">=</span> <span class="n">shift_cube</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="o">-</span><span class="n">offset</span><span class="p">)</span>
-    <span class="n">collapsed_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">registered_cube</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">overwrite_input</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+collapsed_frames = []
+for offset in offsets:
+    registered_cube = shift_cube(abaur20190320_cube, -offset)
+    collapsed_frames.append(np.median(registered_cube, axis=0, overwrite_input=True))
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(nrows=2, ncols=4)
 
-<span class="n">long_expo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+long_expo = np.median(abaur20190320_cube, 0)
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-    <span class="n">long_expo</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">3.5e4</span>
-<span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Long exposure&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+c = axes[0].imshow(
+    long_expo, origin=&quot;lower&quot;, cmap=&quot;magma&quot;, norm=&quot;log&quot;, vmin=100, vmax=3.5e4
+)
+axes[0].format(title=&quot;Long exposure&quot;)
+fig.colorbar(c)
 
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">collapsed_frames</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-        <span class="n">frame</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">3.5e4</span>
-    <span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+for i, frame, label in zip(range(1, 8), collapsed_frames, labels):
+    axes[i].imshow(
+        frame, origin=&quot;lower&quot;, cmap=&quot;magma&quot;, norm=&quot;log&quot;, vmin=100, vmax=3.5e4
+    )
+    axes[i].format(title=label)
 
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">yticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">155</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">155</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suptitle</span><span class="o">=</span><span class="s2">&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;</span><span class="p">);</span>
+axes.format(xticks=False, yticks=False, xlim=(100, 155), ylim=(100, 155))
+fig.format(suptitle=&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -570,25 +549,25 @@ All files have been downloaded.
 <p>This example uses coronagraphic data of AB Aurigae from 2022/02/24. These data are also polarimetric but we will ignore that, again. These data are taking in poor seeing conditions with long exposure times (0.3 s) and have much lower S/N than the non-coronagraphic data above.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">abaur20220224_hdr</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span>
-    <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits&quot;</span><span class="p">,</span>
-    <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>abaur20220224_cube, abaur20220224_hdr = fits.getdata(
+    datadir / &quot;ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits&quot;,
+    header=True,
+)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">frame_idx_coro</span> <span class="o">=</span> <span class="mi">112</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots()
+frame_idx_coro = 112
 
-<span class="n">frame</span> <span class="o">=</span> <span class="n">abaur20220224_cube</span><span class="p">[</span><span class="n">frame_idx_coro</span><span class="p">]</span>
+frame = abaur20220224_cube[frame_idx_coro]
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;</span><span class="p">);</span>
+c = axes[0].imshow(frame, cmap=&quot;magma&quot;)
+fig.colorbar(c)
+axes.format(grid=False)
+fig.suptitle(&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -598,37 +577,37 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.image_registration</span> <span class="kn">import</span> <span class="n">satellite_spot_offsets</span>
-<span class="kn">from</span> <span class="nn">vampires_dpp.satellite_spots</span> <span class="kn">import</span> <span class="n">lamd_to_pixel</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.image_registration import satellite_spot_offsets
+from vampires_dpp.satellite_spots import lamd_to_pixel
 
-<span class="c1"># radius of satellite spots</span>
-<span class="n">radius</span> <span class="o">=</span> <span class="n">lamd_to_pixel</span><span class="p">(</span><span class="mf">31.6</span><span class="p">,</span> <span class="n">abaur20220224_hdr</span><span class="p">[</span><span class="s2">&quot;U_FILTER&quot;</span><span class="p">])</span>
+# radius of satellite spots
+radius = lamd_to_pixel(31.6, abaur20220224_hdr[&quot;U_FILTER&quot;])
 
-<span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">130</span><span class="p">,</span> <span class="mi">130</span><span class="p">),</span>
-    <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-    <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">radius</span><span class="p">,</span>
-    <span class="s2">&quot;refidx&quot;</span><span class="p">:</span> <span class="n">frame_idx_coro</span><span class="p">,</span>
-<span class="p">}</span>
+kwargs = {
+    &quot;center&quot;: (130, 130),
+    &quot;window&quot;: 30,
+    &quot;radius&quot;: radius,
+    &quot;refidx&quot;: frame_idx_coro,
+}
 
 
-<span class="n">offsets_coro_com</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;com&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_coro_peak</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;peak&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_coro_dft</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;dft&quot;</span><span class="p">,</span> <span class="n">refmethod</span><span class="o">=</span><span class="s2">&quot;com&quot;</span><span class="p">,</span> <span class="n">upsample_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">offsets_coro_dft_10</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;dft&quot;</span><span class="p">,</span> <span class="n">refmethod</span><span class="o">=</span><span class="s2">&quot;com&quot;</span><span class="p">,</span> <span class="n">upsample_factor</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">offsets_coro_moffat</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;moffat&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">offsets_coro_gaussian</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">offsets_coro_airydisk</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;airydisk&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
+offsets_coro_com = satellite_spot_offsets(abaur20220224_cube, method=&quot;com&quot;, **kwargs)
+offsets_coro_peak = satellite_spot_offsets(abaur20220224_cube, method=&quot;peak&quot;, **kwargs)
+offsets_coro_dft = satellite_spot_offsets(
+    abaur20220224_cube, method=&quot;dft&quot;, refmethod=&quot;com&quot;, upsample_factor=1, **kwargs
+)
+offsets_coro_dft_10 = satellite_spot_offsets(
+    abaur20220224_cube, method=&quot;dft&quot;, refmethod=&quot;com&quot;, upsample_factor=10, **kwargs
+)
+offsets_coro_moffat = satellite_spot_offsets(
+    abaur20220224_cube, method=&quot;moffat&quot;, **kwargs
+)
+offsets_coro_gaussian = satellite_spot_offsets(
+    abaur20220224_cube, method=&quot;gaussian&quot;, **kwargs
+)
+offsets_coro_airydisk = satellite_spot_offsets(
+    abaur20220224_cube, method=&quot;airydisk&quot;, **kwargs
+)
 </pre></div>
 </div>
 </div>
@@ -640,28 +619,28 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">sharex</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(sharex=0, ncols=2)
 
-<span class="n">offsets_coro</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">offsets_coro_com</span><span class="p">,</span>
-    <span class="n">offsets_coro_peak</span><span class="p">,</span>
-    <span class="n">offsets_coro_dft</span><span class="p">,</span>
-    <span class="n">offsets_coro_dft_10</span><span class="p">,</span>
-    <span class="n">offsets_coro_moffat</span><span class="p">,</span>
-    <span class="n">offsets_coro_gaussian</span><span class="p">,</span>
-    <span class="n">offsets_coro_airydisk</span><span class="p">,</span>
-<span class="p">]</span>
+offsets_coro = [
+    offsets_coro_com,
+    offsets_coro_peak,
+    offsets_coro_dft,
+    offsets_coro_dft_10,
+    offsets_coro_moffat,
+    offsets_coro_gaussian,
+    offsets_coro_airydisk,
+]
 
 
-<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">samples</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">offsets_coro</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samples</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samples</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Delta$x (mas)&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Delta$y (mas)&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">dualx</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span> <span class="o">/</span> <span class="mf">6.24</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;(px)&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suptitle</span><span class="o">=</span><span class="s2">&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">);</span>
+for label, samples in zip(labels, offsets_coro):
+    axes[0].hist(samples[:, 1], bins=&quot;auto&quot;, fill=False, lw=1, label=label)
+    axes[1].hist(samples[:, 0], bins=&quot;auto&quot;, fill=False, lw=1)
+axes[0].format(xlabel=r&quot;$\Delta$x (mas)&quot;, ylabel=&quot;count&quot;)
+axes[1].format(xlabel=r&quot;$\Delta$y (mas)&quot;)
+axes.dualx(lambda a: a / 6.24, label=&quot;(px)&quot;)
+axes.format(xlim=(-5, 8))
+fig.format(suptitle=&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;)
+fig.legend(loc=&quot;bottom&quot;, ncols=4);
 </pre></div>
 </div>
 </div>
@@ -671,34 +650,34 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.image_processing</span> <span class="kn">import</span> <span class="n">shift_cube</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.image_processing import shift_cube
 
-<span class="n">collapsed_coro_frames</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsets_coro</span><span class="p">:</span>
-    <span class="n">registered_cube</span> <span class="o">=</span> <span class="n">shift_cube</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="o">-</span><span class="n">offset</span><span class="p">)</span>
-    <span class="n">collapsed_coro_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">registered_cube</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">overwrite_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">)</span>
+collapsed_coro_frames = []
+for offset in offsets_coro:
+    registered_cube = shift_cube(abaur20220224_cube, -offset)
+    collapsed_coro_frames.append(
+        np.median(registered_cube, axis=0, overwrite_input=True)
+    )
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(nrows=2, ncols=4)
 
-<span class="n">long_expo_coro</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+long_expo_coro = np.median(abaur20220224_cube, 0)
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">long_expo_coro</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">9e3</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Long exposure&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+c = axes[0].imshow(long_expo_coro, cmap=&quot;magma&quot;, vmin=500, vmax=9e3)
+axes[0].format(title=&quot;Long exposure&quot;)
+fig.colorbar(c)
 
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">collapsed_coro_frames</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">9e3</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+for i, frame, label in zip(range(1, 8), collapsed_coro_frames, labels):
+    axes[i].imshow(frame, cmap=&quot;magma&quot;, vmin=500, vmax=9e3)
+    axes[i].format(title=label)
 
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">yticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">157</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">157</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suptitle</span><span class="o">=</span><span class="s2">&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;</span><span class="p">);</span>
+axes.format(xticks=False, yticks=False, xlim=(100, 157), ylim=(100, 157))
+fig.format(suptitle=&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -708,23 +687,23 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(nrows=2, ncols=4)
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">long_expo_coro</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;symlog&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">5e3</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Long exposure&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+c = axes[0].imshow(long_expo_coro, cmap=&quot;magma&quot;, norm=&quot;symlog&quot;, vmin=100, vmax=5e3)
+axes[0].format(title=&quot;Long exposure&quot;)
+fig.colorbar(c)
 
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">collapsed_coro_frames</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;symlog&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">5e3</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+for i, frame, label in zip(range(1, 8), collapsed_coro_frames, labels):
+    axes[i].imshow(frame, cmap=&quot;magma&quot;, norm=&quot;symlog&quot;, vmin=100, vmax=5e3)
+    axes[i].format(title=label)
 
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-    <span class="n">xticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">yticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">98</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)),</span> <span class="mi">156</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">))),</span>
-    <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">98</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)),</span> <span class="mi">156</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">))),</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suptitle</span><span class="o">=</span><span class="s2">&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;</span><span class="p">);</span>
+axes.format(
+    xticks=False,
+    yticks=False,
+    xlim=(98 + radius * np.cos(np.deg2rad(-4)), 156 + radius * np.cos(np.deg2rad(-4))),
+    ylim=(98 + radius * np.sin(np.deg2rad(-4)), 156 + radius * np.sin(np.deg2rad(-4))),
+)
+fig.format(suptitle=&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -738,24 +717,24 @@ All files have been downloaded.
 <p>Test using bench data from 2022/06/29</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bench_cube</span><span class="p">,</span> <span class="n">bench_hdr</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span>
-    <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits&quot;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span>
-<span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>bench_cube, bench_hdr = fits.getdata(
+    datadir / &quot;bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits&quot;, header=True
+)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">frame_idx_bench</span> <span class="o">=</span> <span class="n">bench_cube</span><span class="o">.</span><span class="n">max</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots()
+frame_idx_bench = bench_cube.max((1, 2)).argmax()
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
-    <span class="n">bench_cube</span><span class="p">[</span><span class="n">frame_idx_bench</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;symlog&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">2e4</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">181</span><span class="p">,</span> <span class="mi">336</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">181</span><span class="p">,</span> <span class="mi">336</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Bench Data 2022/06/29 Coronagraphic&quot;</span><span class="p">);</span>
+c = axes[0].imshow(
+    bench_cube[frame_idx_bench], cmap=&quot;magma&quot;, norm=&quot;symlog&quot;, vmin=10, vmax=2e4
+)
+fig.colorbar(c)
+axes.format(grid=False, xlim=(181, 336), ylim=(181, 336))
+fig.suptitle(&quot;Bench Data 2022/06/29 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -765,28 +744,28 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># radius of satellite spots</span>
-<span class="n">radius_bench</span> <span class="o">=</span> <span class="n">lamd_to_pixel</span><span class="p">(</span><span class="mf">15.8</span><span class="p">,</span> <span class="n">bench_hdr</span><span class="p">[</span><span class="s2">&quot;U_FILTER&quot;</span><span class="p">])</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># radius of satellite spots
+radius_bench = lamd_to_pixel(15.8, bench_hdr[&quot;U_FILTER&quot;])
 
-<span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">264</span><span class="p">,</span> <span class="mi">262</span><span class="p">),</span>
-    <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-    <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">radius_bench</span><span class="p">,</span>
-    <span class="s2">&quot;refidx&quot;</span><span class="p">:</span> <span class="n">frame_idx_bench</span><span class="p">,</span>
-    <span class="s2">&quot;refmethod&quot;</span><span class="p">:</span> <span class="s2">&quot;peak&quot;</span><span class="p">,</span>
-<span class="p">}</span>
+kwargs = {
+    &quot;center&quot;: (264, 262),
+    &quot;window&quot;: 30,
+    &quot;radius&quot;: radius_bench,
+    &quot;refidx&quot;: frame_idx_bench,
+    &quot;refmethod&quot;: &quot;peak&quot;,
+}
 
-<span class="n">offsets_bench_com</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span><span class="n">bench_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;com&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_bench_peak</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span><span class="n">bench_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;peak&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_bench_dft</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
-    <span class="n">bench_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;dft&quot;</span><span class="p">,</span> <span class="n">upsample_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">offsets_bench_dft_10</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span>
-    <span class="n">bench_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;dft&quot;</span><span class="p">,</span> <span class="n">upsample_factor</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">offsets_bench_moffat</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span><span class="n">bench_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;moffat&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_bench_gaussian</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span><span class="n">bench_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">offsets_bench_airydisk</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span><span class="n">bench_cube</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;airydisk&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+offsets_bench_com = satellite_spot_offsets(bench_cube, method=&quot;com&quot;, **kwargs)
+offsets_bench_peak = satellite_spot_offsets(bench_cube, method=&quot;peak&quot;, **kwargs)
+offsets_bench_dft = satellite_spot_offsets(
+    bench_cube, method=&quot;dft&quot;, upsample_factor=1, **kwargs
+)
+offsets_bench_dft_10 = satellite_spot_offsets(
+    bench_cube, method=&quot;dft&quot;, upsample_factor=10, **kwargs
+)
+offsets_bench_moffat = satellite_spot_offsets(bench_cube, method=&quot;moffat&quot;, **kwargs)
+offsets_bench_gaussian = satellite_spot_offsets(bench_cube, method=&quot;gaussian&quot;, **kwargs)
+offsets_bench_airydisk = satellite_spot_offsets(bench_cube, method=&quot;airydisk&quot;, **kwargs)
 </pre></div>
 </div>
 </div>
@@ -798,27 +777,27 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">sharex</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(sharex=0, ncols=2)
 
-<span class="n">offsets_bench</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">offsets_bench_com</span><span class="p">,</span>
-    <span class="n">offsets_bench_peak</span><span class="p">,</span>
-    <span class="n">offsets_bench_dft</span><span class="p">,</span>
-    <span class="n">offsets_bench_dft_10</span><span class="p">,</span>
-    <span class="n">offsets_bench_moffat</span><span class="p">,</span>
-    <span class="n">offsets_bench_gaussian</span><span class="p">,</span>
-    <span class="n">offsets_bench_airydisk</span><span class="p">,</span>
-<span class="p">]</span>
+offsets_bench = [
+    offsets_bench_com,
+    offsets_bench_peak,
+    offsets_bench_dft,
+    offsets_bench_dft_10,
+    offsets_bench_moffat,
+    offsets_bench_gaussian,
+    offsets_bench_airydisk,
+]
 
 
-<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">samples</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">offsets_bench</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samples</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samples</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Delta$x (mas)&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$\Delta$y (mas)&quot;</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">dualx</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span> <span class="o">/</span> <span class="mf">6.24</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;(px)&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suptitle</span><span class="o">=</span><span class="s2">&quot;Bench Data 2022/06/29 Coronagraphic&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">);</span>
+for label, samples in zip(labels, offsets_bench):
+    axes[0].hist(samples[:, 1], bins=&quot;auto&quot;, fill=False, lw=1, label=label)
+    axes[1].hist(samples[:, 0], bins=&quot;auto&quot;, fill=False, lw=1)
+axes[0].format(xlabel=r&quot;$\Delta$x (mas)&quot;, ylabel=&quot;count&quot;)
+axes[1].format(xlabel=r&quot;$\Delta$y (mas)&quot;)
+axes.dualx(lambda a: a / 6.24, label=&quot;(px)&quot;)
+fig.format(suptitle=&quot;Bench Data 2022/06/29 Coronagraphic&quot;)
+fig.legend(loc=&quot;bottom&quot;, ncols=4);
 </pre></div>
 </div>
 </div>
@@ -828,32 +807,32 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">collapsed_bench_frames</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsets_bench</span><span class="p">:</span>
-    <span class="n">registered_cube</span> <span class="o">=</span> <span class="n">shift_cube</span><span class="p">(</span><span class="n">bench_cube</span><span class="p">,</span> <span class="o">-</span><span class="n">offset</span><span class="p">)</span>
-    <span class="n">collapsed_bench_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">registered_cube</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">overwrite_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>collapsed_bench_frames = []
+for offset in offsets_bench:
+    registered_cube = shift_cube(bench_cube, -offset)
+    collapsed_bench_frames.append(
+        np.median(registered_cube, axis=0, overwrite_input=True)
+    )
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(nrows=2, ncols=4)
 
-<span class="n">long_expo_bench</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">bench_cube</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+long_expo_bench = np.median(bench_cube, 0)
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">long_expo_bench</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;symlog&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">3e4</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Long exposure&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+c = axes[0].imshow(long_expo_bench, cmap=&quot;magma&quot;, norm=&quot;symlog&quot;, vmin=10, vmax=3e4)
+axes[0].format(title=&quot;Long exposure&quot;)
+fig.colorbar(c)
 
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">collapsed_bench_frames</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;symlog&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">3e4</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+for i, frame, label in zip(range(1, 8), collapsed_bench_frames, labels):
+    axes[i].imshow(frame, cmap=&quot;magma&quot;, norm=&quot;symlog&quot;, vmin=10, vmax=3e4)
+    axes[i].format(title=label)
 
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">yticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">181</span><span class="p">,</span> <span class="mi">330</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">181</span><span class="p">,</span> <span class="mi">330</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Bench Data 2022/06/29 Coronagraphic&quot;</span><span class="p">);</span>
+axes.format(xticks=False, yticks=False, xlim=(181, 330), ylim=(181, 330))
+fig.suptitle(&quot;Bench Data 2022/06/29 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -863,30 +842,30 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(nrows=2, ncols=4)
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">long_expo_bench</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;symlog&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">3e4</span><span class="p">)</span>
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Long exposure&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+c = axes[0].imshow(long_expo_bench, cmap=&quot;magma&quot;, norm=&quot;symlog&quot;, vmin=10, vmax=3e4)
+axes[0].format(title=&quot;Long exposure&quot;)
+fig.colorbar(c)
 
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">collapsed_bench_frames</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;symlog&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">3e4</span><span class="p">)</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+for i, frame, label in zip(range(1, 8), collapsed_bench_frames, labels):
+    axes[i].imshow(frame, cmap=&quot;magma&quot;, norm=&quot;symlog&quot;, vmin=10, vmax=3e4)
+    axes[i].format(title=label)
 
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-    <span class="n">xticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">yticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">xlim</span><span class="o">=</span><span class="p">(</span>
-        <span class="mi">231</span> <span class="o">+</span> <span class="n">radius_bench</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)),</span>
-        <span class="mi">280</span> <span class="o">+</span> <span class="n">radius_bench</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)),</span>
-    <span class="p">),</span>
-    <span class="n">ylim</span><span class="o">=</span><span class="p">(</span>
-        <span class="mi">231</span> <span class="o">+</span> <span class="n">radius_bench</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)),</span>
-        <span class="mi">280</span> <span class="o">+</span> <span class="n">radius_bench</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)),</span>
-    <span class="p">),</span>
-<span class="p">)</span>
+axes.format(
+    xticks=False,
+    yticks=False,
+    xlim=(
+        231 + radius_bench * np.cos(np.deg2rad(-4)),
+        280 + radius_bench * np.cos(np.deg2rad(-4)),
+    ),
+    ylim=(
+        231 + radius_bench * np.sin(np.deg2rad(-4)),
+        280 + radius_bench * np.sin(np.deg2rad(-4)),
+    ),
+)
 
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Bench Data 2022/06/29 Coronagraphic&quot;</span><span class="p">);</span>
+fig.suptitle(&quot;Bench Data 2022/06/29 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -905,11 +884,11 @@ All files have been downloaded.
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="file_organization.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="polarimetric_differential_imaging.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">File Organization</p>
+            <p class="prev-next-title">Polarimetric Differential Imaging (PDI)</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="frame_selection.html" title="next page">

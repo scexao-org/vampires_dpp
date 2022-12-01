@@ -121,7 +121,11 @@
   {
    "cell_type": "code",
    "execution_count": 15,
-   "metadata": {},
+   "metadata": {
+    "tags": [
+     "remove-output"
+    ]
+   },
    "outputs": [],
    "source": [
     "## do the frame selection\n",

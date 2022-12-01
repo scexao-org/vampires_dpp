@@ -37,7 +37,7 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Image Registration" href="image_registration.html" />
+    <link rel="next" title="Polarimetric Differential Imaging (PDI)" href="polarimetric_differential_imaging.html" />
     <link rel="prev" title="Examples" href="index.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
@@ -114,6 +114,11 @@
    <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
      File Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="polarimetric_differential_imaging.html">
+     Polarimetric Differential Imaging (PDI)
     </a>
    </li>
    <li class="toctree-l2">
@@ -430,46 +435,20 @@ title="Print to PDF"
 <h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Permalink to this headline">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">vampires_dpp</span> <span class="k">as</span> <span class="nn">vpp</span>
-<span class="kn">from</span> <span class="nn">zenodo_get</span> <span class="kn">import</span> <span class="n">zenodo_get</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pathlib import Path
+import pandas as pd
+import vampires_dpp as vpp
+from zenodo_get import zenodo_get
 
-<span class="n">datadir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+datadir = Path(&quot;data&quot;)
 </pre></div>
 </div>
 </div>
 </div>
-<div class="cell docutils container">
+<div class="cell tag_remove-output docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># download example data</span>
-<span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Title: VAMPIRES DPP Example Files
-Keywords: 
-Publication date: 2022-11-24
-DOI: 10.5281/zenodo.7359198
-Total size: 231.8 MB
-
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits   size: 100.0 MB
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits is already downloaded correctly.
-
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits   size: 31.0 MB
-ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits is already downloaded correctly.
-
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits   size: 100.0 MB
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits is already downloaded correctly.
-
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/hd32297_20220225_headers.csv   size: 0.8 MB
-hd32297_20220225_headers.csv is already downloaded correctly.
-All files have been downloaded.
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># download example data
+zenodo_get([&quot;10.5281/zenodo.7359198&quot;, &quot;-o&quot;, datadir.absolute()])
 </pre></div>
 </div>
 </div>
@@ -481,12 +460,12 @@ All files have been downloaded.
 <p>Here is an example of how to load your input data into a table and save that to a CSV</p>
 <div class="cell tag_skip-execution docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.headers</span> <span class="kn">import</span> <span class="n">observation_table</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.headers import observation_table
 
-<span class="n">datadir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
-<span class="n">filelist</span> <span class="o">=</span> <span class="n">datadir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;VMPA*.fits&quot;</span><span class="p">)</span>
-<span class="n">table</span> <span class="o">=</span> <span class="n">observation_table</span><span class="p">(</span><span class="n">filelist</span><span class="p">)</span> <span class="c1"># sorts by DATE by default</span>
-<span class="n">table</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd32297_20220225_headers.csv&quot;</span><span class="p">)</span>
+datadir = Path(&quot;data&quot;)
+filelist = datadir.glob(&quot;VMPA*.fits&quot;)
+table = observation_table(filelist) # sorts by DATE by default
+table.to_csv(datadir / &quot;hd32297_20220225_headers.csv&quot;)
 </pre></div>
 </div>
 </div>
@@ -494,8 +473,8 @@ All files have been downloaded.
 <p>For this example, we will load a table from observations on 2022/02/25 of HD 32297 in polarimetric imaging mode.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd32297_20220225_headers.csv&quot;</span><span class="p">)</span>
-<span class="n">table</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table = pd.read_csv(datadir / &quot;hd32297_20220225_headers.csv&quot;)
+table.keys()
 </pre></div>
 </div>
 </div>
@@ -527,15 +506,15 @@ All files have been downloaded.
 <p>We will use pandas’ <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.query.html"><code class="docutils literal notranslate"><span class="pre">query</span></code></a> functionality to easily sort our files by target</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sci_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;OBJECT == &#39;HD32297&#39;&quot;</span><span class="p">)</span>
-<span class="n">pol_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;OBJECT == &#39;HD42352&#39;&quot;</span><span class="p">)</span>
-<span class="n">unpol_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;OBJECT == &#39;HD87423&#39;&quot;</span><span class="p">)</span>
-<span class="n">psfref_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;OBJECT == &#39;HD32909&#39;&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sci_table = table.query(&quot;OBJECT == &#39;HD32297&#39;&quot;)
+pol_table = table.query(&quot;OBJECT == &#39;HD42352&#39;&quot;)
+unpol_table = table.query(&quot;OBJECT == &#39;HD87423&#39;&quot;)
+psfref_table = table.query(&quot;OBJECT == &#39;HD32909&#39;&quot;)
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Science files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sci_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pol. standard files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pol_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unpol. standard files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">unpol_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PSF ref. files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">psfref_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+print(f&quot;Science files: {len(sci_table)}&quot;)
+print(f&quot;Pol. standard files: {len(pol_table)}&quot;)
+print(f&quot;Unpol. standard files: {len(unpol_table)}&quot;)
+print(f&quot;PSF ref. files: {len(psfref_table)}&quot;)
 </pre></div>
 </div>
 </div>
@@ -544,6 +523,48 @@ All files have been downloaded.
 Pol. standard files: 30
 Unpol. standard files: 46
 PSF ref. files: 36
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pol_table.FRAMEID
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>0     VMPA00022047
+1     VMPA00022048
+2     VMPA00022049
+3     VMPA00022050
+4     VMPA00022051
+5     VMPA00022052
+6     VMPA00022053
+7     VMPA00022054
+8     VMPA00022055
+9     VMPA00022056
+10    VMPA00022057
+11    VMPA00022058
+12    VMPA00022059
+13    VMPA00022060
+14    VMPA00022063
+15    VMPA00022064
+16    VMPA00022065
+17    VMPA00022066
+18    VMPA00022067
+19    VMPA00022068
+20    VMPA00022069
+21    VMPA00022070
+22    VMPA00022071
+23    VMPA00022072
+24    VMPA00022073
+25    VMPA00022074
+26    VMPA00022075
+27    VMPA00022076
+28    VMPA00022077
+29    VMPA00022078
+Name: FRAMEID, dtype: object
 </pre></div>
 </div>
 </div>
@@ -563,9 +584,9 @@ PSF ref. files: 36
 <p>For our observations, we took dark frames during slews, so we’ll use the “skies” method.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dark_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">table</span><span class="p">[</span><span class="s2">&quot;U_OGFNAM&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;skies&quot;</span><span class="p">)]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dark_table = table.loc[table[&quot;U_OGFNAM&quot;].str.contains(&quot;skies&quot;)]
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dark frames (skies): </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dark_table</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+print(f&quot;Dark frames (skies): {len(dark_table)}&quot;)
 </pre></div>
 </div>
 </div>
@@ -579,12 +600,12 @@ PSF ref. files: 36
 <p>The <code class="docutils literal notranslate"><span class="pre">find_dark_settings</span></code> function will automatically sort through the files and find the unique combinations of exposure times and EM gains.</p>
 <div class="cell tag_skip-execution docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.util</span> <span class="kn">import</span> <span class="n">find_dark_settings</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.util import find_dark_settings
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Science: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> s / EM </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">find_dark_settings</span><span class="p">(</span><span class="n">sci_table</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pol. standard: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> s / EM </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">find_dark_settings</span><span class="p">(</span><span class="n">pol_table</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unpol. standard: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> s / EM </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">find_dark_settings</span><span class="p">(</span><span class="n">unpol_table</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PSF ref.: </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> s / EM </span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">find_dark_settings</span><span class="p">(</span><span class="n">psfref_table</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>
+print(&quot;\n&quot;.join(f&quot;Science: {t} s / EM {e:.0f}&quot; for t, e in find_dark_settings(sci_table.path)))
+print(&quot;\n&quot;.join(f&quot;Pol. standard: {t} s / EM {e:.0f}&quot; for t, e in find_dark_settings(pol_table.path)))
+print(&quot;\n&quot;.join(f&quot;Unpol. standard: {t} s / EM {e:.0f}&quot; for t, e in find_dark_settings(unpol_table.path)))
+print(&quot;\n&quot;.join(f&quot;PSF ref.: {t} s / EM {e:.0f}&quot; for t, e in find_dark_settings(psfref_table.path)))
 </pre></div>
 </div>
 </div>
@@ -603,14 +624,14 @@ PSF ref.: 0.5 s / EM 300
 <p>we can see from the EM gain switches that some of the standard stars were taken with the coronagraph in (high gain) and with the coronagraph out (low gain). We could use this information to further filter the tables with <code class="docutils literal notranslate"><span class="pre">query</span></code>, but for now we’re only going to focus on the main science observations, which are those with exposure time of 0.5 seconds and 300 EM gain.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sci_table</span> <span class="o">=</span> <span class="n">sci_table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;EXPTIME == 0.5&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sci_table = sci_table.query(&quot;EXPTIME == 0.5&quot;)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dark_table</span><span class="p">[</span><span class="s2">&quot;EXPTIME&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">(),</span> <span class="n">dark_table</span><span class="p">[</span><span class="s2">&quot;U_EMGAIN&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dark_table[&quot;EXPTIME&quot;].unique(), dark_table[&quot;U_EMGAIN&quot;].unique()
 </pre></div>
 </div>
 </div>
@@ -624,10 +645,10 @@ PSF ref.: 0.5 s / EM 300
 <p>From the skies, we only need one cube per camera, so we’ll select the first two</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cam1_dark</span> <span class="o">=</span> <span class="n">dark_table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;U_CAMERA == 1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">cam2_dark</span> <span class="o">=</span> <span class="n">dark_table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;U_CAMERA == 2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cam 1 dark: </span><span class="si">{</span><span class="n">cam1_dark</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cam 2 dark: </span><span class="si">{</span><span class="n">cam2_dark</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>cam1_dark = dark_table.query(&quot;U_CAMERA == 1&quot;).iloc[0]
+cam2_dark = dark_table.query(&quot;U_CAMERA == 2&quot;).iloc[0]
+print(f&quot;Cam 1 dark: {cam1_dark.path}&quot;)
+print(f&quot;Cam 2 dark: {cam2_dark.path}&quot;)
 </pre></div>
 </div>
 </div>
@@ -648,20 +669,20 @@ Cam 2 dark: /Volumes/mlucas SSD1/2022/20220225/VMPA00022723.fits
 <p>We can take our dataframes and save the paths of our selected files to simple text files, which can be input directly into the pipeline</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sci_files</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd32297_files.txt&quot;</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">sci_files</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-    <span class="n">fh</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sci_table</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sci_files = datadir / &quot;hd32297_files.txt&quot;
+with open(sci_files, &quot;w&quot;) as fh:
+    fh.writelines(&quot;\n&quot;.join(sci_table[&quot;path&quot;]))
 
-<span class="n">dark_files</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;dark_files.txt&quot;</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dark_files</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-    <span class="n">fh</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cam1_dark</span><span class="p">,</span> <span class="n">cam2_dark</span><span class="p">)))</span>
+dark_files = datadir / &quot;dark_files.txt&quot;
+with open(dark_files, &quot;w&quot;) as fh:
+    fh.writelines(&quot;\n&quot;.join(c.path for c in (cam1_dark, cam2_dark)))
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>head data/hd32297_files.txt
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!head data/hd32297_files.txt
 </pre></div>
 </div>
 </div>
@@ -682,7 +703,7 @@ Cam 2 dark: /Volumes/mlucas SSD1/2022/20220225/VMPA00022723.fits
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>head data/dark_files.txt
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!head data/dark_files.txt
 </pre></div>
 </div>
 </div>
@@ -695,36 +716,36 @@ Cam 2 dark: /Volumes/mlucas SSD1/2022/20220225/VMPA00022723.fits
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.pipeline import Pipeline
 
-<span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">version = &quot;</span><span class="si">{</span><span class="n">vpp</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="s2">name=&quot;HD32297_20220225&quot;</span>
-<span class="s2">directory=&quot;</span><span class="si">{</span><span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="s2">output_directory=&quot;</span><span class="si">{</span><span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="s2">filenames=&quot;</span><span class="si">{</span><span class="n">sci_files</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+pipeline = Pipeline.from_str(f&quot;&quot;&quot;
+version = &quot;{vpp.__version__}&quot;
+name=&quot;HD32297_20220225&quot;
+directory=&quot;{datadir.absolute()}&quot;
+output_directory=&quot;{datadir.absolute() / &quot;processed&quot;}&quot;
+filenames=&quot;{sci_files.absolute()}&quot;
 
-<span class="s2">[coronagraph]</span>
-<span class="s2">mask_size=58 # mas</span>
+[coronagraph]
+mask_size=58 # mas
 
-<span class="s2">[coronagraph.satellite_spots]</span>
-<span class="s2">radius = 31.8 # lam/D</span>
+[coronagraph.satellite_spots]
+radius = 31.8 # lam/D
 
-<span class="s2">[calibration]</span>
-<span class="s2">output_directory=&quot;calibrated&quot;</span>
+[calibration]
+output_directory=&quot;calibrated&quot;
 
-<span class="s2">[calibration.darks]</span>
-<span class="s2">filenames=&quot;</span><span class="si">{</span><span class="n">dark_files</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+[calibration.darks]
+filenames=&quot;{dark_files.absolute()}&quot;
 
-<span class="s2">[registration]</span>
-<span class="s2">output_directory=&quot;registered&quot;</span>
+[registration]
+output_directory=&quot;registered&quot;
 
-<span class="s2">[collapsing]</span>
-<span class="s2">output_directory=&quot;collapsed&quot;</span>
+[collapsing]
+output_directory=&quot;collapsed&quot;
 
-<span class="s2">[derotate]</span>
-<span class="s2">output_directory=&quot;derotated&quot;</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+[derotate]
+output_directory=&quot;derotated&quot;
+&quot;&quot;&quot;)
 </pre></div>
 </div>
 </div>
@@ -735,54 +756,54 @@ Cam 2 dark: /Volumes/mlucas SSD1/2022/20220225/VMPA00022723.fits
 <p>If you prefer to copy your data into sub-directories, you can do that straight from our tables and using Python’s built-in file management tools. Here we will use symlinks to save storage space, but you could use <code class="docutils literal notranslate"><span class="pre">shutil.copyfile</span></code> if you wanted to make hard copies instead.</p>
 <div class="cell tag_skip-execution docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sci_dir</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd32297_science&quot;</span>
-<span class="n">sci_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sci_table</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]:</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="n">outpath</span> <span class="o">=</span> <span class="n">sci_dir</span> <span class="o">/</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">outpath</span><span class="o">.</span><span class="n">symlink_to</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sci_dir = datadir / &quot;hd32297_science&quot;
+sci_dir.mkdir(parents=True, exist_ok=True)
+for filename in sci_table[&quot;path&quot;]:
+    path = Path(filename)
+    outpath = sci_dir / path.name
+    outpath.symlink_to(path)
 
 
-<span class="n">dark_dir</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;darks&quot;</span>
-<span class="n">dark_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cam1_dark</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">cam2_dark</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="n">outpath</span> <span class="o">=</span> <span class="n">dark_dir</span> <span class="o">/</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span>
-    <span class="n">outpath</span><span class="o">.</span><span class="n">symlink_to</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+dark_dir = datadir / &quot;darks&quot;
+dark_dir.mkdir(parents=True, exist_ok=True)
+for filename in (cam1_dark.path, cam2_dark.path):
+    path = Path(filename)
+    outpath = dark_dir / path.name
+    outpath.symlink_to(path)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_str</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">version = &quot;</span><span class="si">{</span><span class="n">vpp</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="s2">name=&quot;HD32297_20220225&quot;</span>
-<span class="s2">directory=&quot;</span><span class="si">{</span><span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="s2">output_directory=&quot;</span><span class="si">{</span><span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span><span class="si">}</span><span class="s2">&quot;</span>
-<span class="s2">filenames=&quot;hd32297_science/VMPA*.fits&quot;</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pipeline = Pipeline.from_str(f&quot;&quot;&quot;
+version = &quot;{vpp.__version__}&quot;
+name=&quot;HD32297_20220225&quot;
+directory=&quot;{datadir.absolute()}&quot;
+output_directory=&quot;{datadir.absolute() / &quot;processed&quot;}&quot;
+filenames=&quot;hd32297_science/VMPA*.fits&quot;
 
-<span class="s2">[coronagraph]</span>
-<span class="s2">mask_size=58 # mas</span>
+[coronagraph]
+mask_size=58 # mas
 
-<span class="s2">[coronagraph.satellite_spots]</span>
-<span class="s2">radius = 31.8 # lam/D</span>
+[coronagraph.satellite_spots]
+radius = 31.8 # lam/D
 
-<span class="s2">[calibration]</span>
-<span class="s2">output_directory=&quot;calibrated&quot;</span>
+[calibration]
+output_directory=&quot;calibrated&quot;
 
-<span class="s2">[calibration.darks]</span>
-<span class="s2">filenames=&quot;darks/VMPA*.fits&quot;</span>
+[calibration.darks]
+filenames=&quot;darks/VMPA*.fits&quot;
 
-<span class="s2">[registration]</span>
-<span class="s2">output_directory=&quot;registered&quot;</span>
+[registration]
+output_directory=&quot;registered&quot;
 
-<span class="s2">[collapsing]</span>
-<span class="s2">output_directory=&quot;collapsed&quot;</span>
+[collapsing]
+output_directory=&quot;collapsed&quot;
 
-<span class="s2">[derotate]</span>
-<span class="s2">output_directory=&quot;derotated&quot;</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+[derotate]
+output_directory=&quot;derotated&quot;
+&quot;&quot;&quot;)
 </pre></div>
 </div>
 </div>
@@ -797,21 +818,21 @@ Cam 2 dark: /Volumes/mlucas SSD1/2022/20220225/VMPA00022723.fits
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">({</span>
-    <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">vpp</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
-    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;HD32297_20220225&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;directory&quot;</span><span class="p">:</span> <span class="n">datadir</span><span class="p">,</span>
-    <span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;filenames&quot;</span><span class="p">:</span> <span class="n">sci_table</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;coronagraph&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;mask_size&quot;</span><span class="p">:</span> <span class="mi">58</span><span class="p">,</span> <span class="s2">&quot;satellite_spots&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mf">31.8</span><span class="p">}},</span>
-    <span class="s2">&quot;calibration&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="s2">&quot;calibrated&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;darks&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;filenames&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">cam1_dark</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">cam2_dark</span><span class="o">.</span><span class="n">path</span><span class="p">)}</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;registration&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="s2">&quot;registered&quot;</span><span class="p">},</span>
-    <span class="s2">&quot;collapsing&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="s2">&quot;collapsed&quot;</span><span class="p">},</span>
-    <span class="s2">&quot;derotate&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;output_directory&quot;</span><span class="p">:</span> <span class="s2">&quot;derotated&quot;</span><span class="p">},</span>
-<span class="p">})</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pipeline = Pipeline({
+    &quot;version&quot;: vpp.__version__,
+    &quot;name&quot;: &quot;HD32297_20220225&quot;,
+    &quot;directory&quot;: datadir,
+    &quot;output_directory&quot;: datadir / &quot;processed&quot;,
+    &quot;filenames&quot;: sci_table[&quot;path&quot;],
+    &quot;coronagraph&quot;: {&quot;mask_size&quot;: 58, &quot;satellite_spots&quot;: {&quot;radius&quot;: 31.8}},
+    &quot;calibration&quot;: {
+        &quot;output_directory&quot;: &quot;calibrated&quot;,
+        &quot;darks&quot;: {&quot;filenames&quot;: (cam1_dark.path, cam2_dark.path)}
+    },
+    &quot;registration&quot;: {&quot;output_directory&quot;: &quot;registered&quot;},
+    &quot;collapsing&quot;: {&quot;output_directory&quot;: &quot;collapsed&quot;},
+    &quot;derotate&quot;: {&quot;output_directory&quot;: &quot;derotated&quot;},
+})
 </pre></div>
 </div>
 </div>
@@ -835,10 +856,10 @@ Cam 2 dark: /Volumes/mlucas SSD1/2022/20220225/VMPA00022723.fits
             <p class="prev-next-title">Examples</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="image_registration.html" title="next page">
+    <a class='right-next' id="next-link" href="polarimetric_differential_imaging.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Image Registration</p>
+        <p class="prev-next-title">Polarimetric Differential Imaging (PDI)</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

@@ -117,6 +117,11 @@
     </a>
    </li>
    <li class="toctree-l2">
+    <a class="reference internal" href="polarimetric_differential_imaging.html">
+     Polarimetric Differential Imaging (PDI)
+    </a>
+   </li>
+   <li class="toctree-l2">
     <a class="reference internal" href="image_registration.html">
      Image Registration
     </a>
@@ -372,15 +377,15 @@ title="Print to PDF"
 <h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Permalink to this headline">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">proplot</span> <span class="k">as</span> <span class="nn">pro</span>
-<span class="kn">from</span> <span class="nn">zenodo_get</span> <span class="kn">import</span> <span class="n">zenodo_get</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from astropy.io import fits
+import numpy as np
+from pathlib import Path
+import proplot as pro
+from zenodo_get import zenodo_get
 
-<span class="n">pro</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;ggplot&quot;</span>
-<span class="n">pro</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s2">&quot;image.origin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;lower&quot;</span>
-<span class="n">datadir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+pro.rc[&quot;style&quot;] = &quot;ggplot&quot;
+pro.rc[&quot;image.origin&quot;] = &quot;lower&quot;
+datadir = Path(&quot;data&quot;)
 </pre></div>
 </div>
 </div>
@@ -393,8 +398,8 @@ title="Print to PDF"
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># download example data</span>
-<span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># download example data
+zenodo_get([&quot;10.5281/zenodo.7359198&quot;, &quot;-o&quot;, datadir.absolute()])
 </pre></div>
 </div>
 </div>
@@ -431,24 +436,24 @@ All files have been downloaded.
 <p>This example uses non-coronagraphic data of AB Aurigae from 2019/03/20. This data was taken in polarimetric imaging mode, but we will ignore that. This data has high signal-to-noise ratio (S/N), but suffers from low wind effect (LWE) causing PSF splitting. This means we have to be careful about which frame we use a reference for the cross-correlation method.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">abaur20190320_cube</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span>
-    <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits&quot;</span>
-<span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>abaur20190320_cube = fits.getdata(
+    datadir / &quot;ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits&quot;
+)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">frame_idx</span> <span class="o">=</span> <span class="mi">248</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots()
+frame_idx = 248
 
-<span class="n">frame</span> <span class="o">=</span> <span class="n">abaur20190320_cube</span><span class="p">[</span><span class="n">frame_idx</span><span class="p">]</span>
+frame = abaur20190320_cube[frame_idx]
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;</span><span class="p">);</span>
+c = axes[0].imshow(frame, cmap=&quot;magma&quot;)
+fig.colorbar(c)
+axes.format(grid=False)
+fig.suptitle(&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -456,35 +461,35 @@ All files have been downloaded.
 <img alt="../_images/frame_selection_6_0.png" src="../_images/frame_selection_6_0.png" />
 </div>
 </div>
-<div class="cell docutils container">
+<div class="cell tag_remove-output docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## do the frame selection</span>
-<span class="kn">from</span> <span class="nn">vampires_dpp.frame_selection</span> <span class="kn">import</span> <span class="n">measure_metric</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>## do the frame selection
+from vampires_dpp.frame_selection import measure_metric
 
-<span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span> <span class="n">window</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-<span class="n">metric_max</span> <span class="o">=</span> <span class="n">measure_metric</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">metric_l2norm</span> <span class="o">=</span> <span class="n">measure_metric</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;l2norm&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="n">metric_normvar</span> <span class="o">=</span> <span class="n">measure_metric</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;normvar&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+kwargs = dict(center=(128, 128), window=30)
+metric_max = measure_metric(abaur20190320_cube, metric=&quot;max&quot;, **kwargs)
+metric_l2norm = measure_metric(abaur20190320_cube, metric=&quot;l2norm&quot;, **kwargs)
+metric_normvar = measure_metric(abaur20190320_cube, metric=&quot;normvar&quot;, **kwargs)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(ncols=3, sharex=0)
 
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Maximum&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$L_2$ norm&quot;</span><span class="p">,</span> <span class="s2">&quot;Normalized Variance&quot;</span><span class="p">]</span>
-<span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">metric_max</span><span class="p">,</span> <span class="n">metric_l2norm</span><span class="p">,</span> <span class="n">metric_normvar</span><span class="p">]</span>
+labels = [&quot;Maximum&quot;, r&quot;$L_2$ norm&quot;, &quot;Normalized Variance&quot;]
+metrics = [metric_max, metric_l2norm, metric_normvar]
 
-<span class="n">handles</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">fillalpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">])</span>
-    <span class="n">ls</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span>
-    <span class="n">handles</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qs</span><span class="p">,</span> <span class="n">ls</span><span class="p">)]</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;25%&quot;</span><span class="p">,</span> <span class="s2">&quot;Median&quot;</span><span class="p">,</span> <span class="s2">&quot;75%&quot;</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;</span><span class="p">);</span>
+handles = None
+for label, samples, ax in zip(labels, metrics, axes):
+    ax.hist(samples, bins=&quot;auto&quot;, fillalpha=0.9, lw=1)
+    qs = np.quantile(samples, [0.25, 0.5, 0.75])
+    ls = &quot;--&quot;, &quot;-&quot;, &quot;--&quot;
+    handles = [ax.axvline(q, color=&quot;k&quot;, ls=l) for q, l in zip(qs, ls)]
+    ax.format(xlabel=label, ylabel=&quot;count&quot;)
+fig.legend(handles, [&quot;25%&quot;, &quot;Median&quot;, &quot;75%&quot;], loc=&quot;b&quot;)
+fig.suptitle(&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -494,49 +499,49 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.image_registration</span> <span class="kn">import</span> <span class="n">psf_offsets</span>
-<span class="kn">from</span> <span class="nn">vampires_dpp.image_processing</span> <span class="kn">import</span> <span class="n">shift_cube</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.image_registration import psf_offsets
+from vampires_dpp.image_processing import shift_cube
 
-<span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
-    <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-    <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;dft&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;upsample_factor&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-    <span class="s2">&quot;refidx&quot;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">argmax</span><span class="p">(),</span>
-<span class="p">}</span>
+kwargs = {
+    &quot;center&quot;: (128, 128),
+    &quot;window&quot;: 30,
+    &quot;method&quot;: &quot;dft&quot;,
+    &quot;upsample_factor&quot;: 10,
+    &quot;refidx&quot;: metrics[0].argmax(),
+}
 
-<span class="n">cutoffs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">]</span>
+cutoffs = [0, 0.25, 0.5, 0.75]
 
-<span class="n">offsets</span> <span class="o">=</span> <span class="n">psf_offsets</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+offsets = psf_offsets(abaur20190320_cube, **kwargs)
 
-<span class="n">collapsed_frames</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
-    <span class="n">qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cutoffs</span><span class="p">)</span>
-    <span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">metric</span> <span class="o">&gt;</span> <span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qs</span><span class="p">]</span>
-    <span class="n">registered</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">shift_cube</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="o">-</span><span class="n">offsets</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span>
-    <span class="p">]</span>
-    <span class="n">collapsed_frames</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">overwrite_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">registered</span><span class="p">])</span>
+collapsed_frames = []
+for metric in metrics:
+    qs = np.quantile(metric, cutoffs)
+    masks = [metric &gt; q for q in qs]
+    registered = [
+        shift_cube(abaur20190320_cube[mask], -offsets[mask]) for mask in masks
+    ]
+    collapsed_frames.append([np.median(r, 0, overwrite_input=True) for r in registered])
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">share</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(nrows=3, ncols=4, share=0)
 
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;No Frame Selection&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">collapsed_frames</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">fr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">frames</span><span class="p">):</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">fr</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">7e4</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+axes[0, 0].format(ylabel=&quot;No Frame Selection&quot;)
+for i, frames in enumerate(collapsed_frames):
+    axes[i, 0].format(ylabel=labels[i])
+    for j, fr in zip(range(4), frames):
+        c = axes[i, j].imshow(fr, cmap=&quot;magma&quot;, norm=&quot;log&quot;, vmin=100, vmax=7e4)
+fig.colorbar(c)
 
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cutoffs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+for j in range(4):
+    axes[0, j].format(title=f&quot;{cutoffs[j] * 100:.0f}%&quot;)
 
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">yticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">155</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">155</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;</span><span class="p">);</span>
+axes.format(xticks=False, yticks=False, xlim=(100, 155), ylim=(100, 155))
+fig.suptitle(&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -550,25 +555,25 @@ All files have been downloaded.
 <p>This example uses coronagraphic data of AB Aurigae from 2022/02/24. These data are also polarimetric but we will ignore that, again. These data are taking in poor seeing conditions with long exposure times (0.3 s) and have much lower S/N than the non-coronagraphic data above.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">abaur20220224_hdr</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span>
-    <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits&quot;</span><span class="p">,</span>
-    <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>abaur20220224_cube, abaur20220224_hdr = fits.getdata(
+    datadir / &quot;ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits&quot;,
+    header=True,
+)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">frame_idx</span> <span class="o">=</span> <span class="mi">112</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots()
+frame_idx = 112
 
-<span class="n">frame</span> <span class="o">=</span> <span class="n">abaur20220224_cube</span><span class="p">[</span><span class="n">frame_idx</span><span class="p">]</span>
+frame = abaur20220224_cube[frame_idx]
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;</span><span class="p">);</span>
+c = axes[0].imshow(frame, cmap=&quot;magma&quot;)
+fig.colorbar(c)
+axes.format(grid=False)
+fig.suptitle(&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -578,43 +583,43 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.satellite_spots</span> <span class="kn">import</span> <span class="n">lamd_to_pixel</span>
-<span class="kn">from</span> <span class="nn">vampires_dpp.frame_selection</span> <span class="kn">import</span> <span class="n">measure_satellite_spot_metrics</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.satellite_spots import lamd_to_pixel
+from vampires_dpp.frame_selection import measure_satellite_spot_metrics
 
-<span class="c1"># radius of satellite spots</span>
-<span class="n">radius</span> <span class="o">=</span> <span class="n">lamd_to_pixel</span><span class="p">(</span><span class="mf">31.6</span><span class="p">,</span> <span class="n">abaur20220224_hdr</span><span class="p">[</span><span class="s2">&quot;U_FILTER&quot;</span><span class="p">])</span>
+# radius of satellite spots
+radius = lamd_to_pixel(31.6, abaur20220224_hdr[&quot;U_FILTER&quot;])
 
-<span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">radius</span><span class="p">,</span> <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">130</span><span class="p">,</span> <span class="mi">130</span><span class="p">),</span> <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}</span>
+kwargs = {&quot;radius&quot;: radius, &quot;center&quot;: (130, 130), &quot;window&quot;: 30}
 
-<span class="n">metric_satspot_max</span> <span class="o">=</span> <span class="n">measure_satellite_spot_metrics</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">metric_satspot_l2norm</span> <span class="o">=</span> <span class="n">measure_satellite_spot_metrics</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;l2norm&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
-<span class="n">metric_satspot_normvar</span> <span class="o">=</span> <span class="n">measure_satellite_spot_metrics</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;normvar&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
+metric_satspot_max = measure_satellite_spot_metrics(
+    abaur20220224_cube, metric=&quot;max&quot;, **kwargs
+)
+metric_satspot_l2norm = measure_satellite_spot_metrics(
+    abaur20220224_cube, metric=&quot;l2norm&quot;, **kwargs
+)
+metric_satspot_normvar = measure_satellite_spot_metrics(
+    abaur20220224_cube, metric=&quot;normvar&quot;, **kwargs
+)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(ncols=3, sharex=0)
 
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Maximum&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$L_2$ norm&quot;</span><span class="p">,</span> <span class="s2">&quot;Normalized Variance&quot;</span><span class="p">]</span>
-<span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">metric_satspot_max</span><span class="p">,</span> <span class="n">metric_satspot_l2norm</span><span class="p">,</span> <span class="n">metric_satspot_normvar</span><span class="p">]</span>
+labels = [&quot;Maximum&quot;, r&quot;$L_2$ norm&quot;, &quot;Normalized Variance&quot;]
+metrics = [metric_satspot_max, metric_satspot_l2norm, metric_satspot_normvar]
 
-<span class="n">handles</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">fillalpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">])</span>
-    <span class="n">ls</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span>
-    <span class="n">handles</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qs</span><span class="p">,</span> <span class="n">ls</span><span class="p">)]</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;25%&quot;</span><span class="p">,</span> <span class="s2">&quot;Median&quot;</span><span class="p">,</span> <span class="s2">&quot;75%&quot;</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;</span><span class="p">);</span>
+handles = None
+for label, samples, ax in zip(labels, metrics, axes):
+    ax.hist(samples, bins=&quot;auto&quot;, fillalpha=0.9, lw=1)
+    qs = np.quantile(samples, [0.25, 0.5, 0.75])
+    ls = &quot;--&quot;, &quot;-&quot;, &quot;--&quot;
+    handles = [ax.axvline(q, color=&quot;k&quot;, ls=l) for q, l in zip(qs, ls)]
+    ax.format(xlabel=label, ylabel=&quot;count&quot;)
+fig.legend(handles, [&quot;25%&quot;, &quot;Median&quot;, &quot;75%&quot;], loc=&quot;b&quot;)
+fig.suptitle(&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -624,52 +629,52 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.image_registration</span> <span class="kn">import</span> <span class="n">satellite_spot_offsets</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.image_registration import satellite_spot_offsets
 
-<span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">130</span><span class="p">,</span> <span class="mi">130</span><span class="p">),</span>
-    <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-    <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;com&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">radius</span><span class="p">,</span>
-<span class="p">}</span>
+kwargs = {
+    &quot;center&quot;: (130, 130),
+    &quot;window&quot;: 30,
+    &quot;method&quot;: &quot;com&quot;,
+    &quot;radius&quot;: radius,
+}
 
-<span class="n">cutoffs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">]</span>
+cutoffs = [0, 0.25, 0.5, 0.75]
 
-<span class="n">offsets</span> <span class="o">=</span> <span class="n">satellite_spot_offsets</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+offsets = satellite_spot_offsets(abaur20220224_cube, **kwargs)
 
-<span class="n">collapsed_satspot_frames</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
-    <span class="n">qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cutoffs</span><span class="p">)</span>
-    <span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">metric</span> <span class="o">&gt;</span> <span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qs</span><span class="p">]</span>
-    <span class="n">registered</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">shift_cube</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="o">-</span><span class="n">offsets</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span>
-    <span class="p">]</span>
-    <span class="n">collapsed_satspot_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">overwrite_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">registered</span><span class="p">]</span>
-    <span class="p">)</span>
+collapsed_satspot_frames = []
+for metric in metrics:
+    qs = np.quantile(metric, cutoffs)
+    masks = [metric &gt; q for q in qs]
+    registered = [
+        shift_cube(abaur20220224_cube[mask], -offsets[mask]) for mask in masks
+    ]
+    collapsed_satspot_frames.append(
+        [np.median(r, 0, overwrite_input=True) for r in registered]
+    )
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">share</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(nrows=3, ncols=4, share=0)
 
 
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;No Frame Selection&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">collapsed_satspot_frames</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">fr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">frames</span><span class="p">):</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">fr</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">9e3</span><span class="p">)</span>
+axes[0, 0].format(ylabel=&quot;No Frame Selection&quot;)
+for i, frames in enumerate(collapsed_satspot_frames):
+    axes[i, 0].format(ylabel=labels[i])
+    for j, fr in zip(range(4), frames):
+        c = axes[i, j].imshow(fr, cmap=&quot;magma&quot;, vmin=500, vmax=9e3)
 
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+fig.colorbar(c)
 
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cutoffs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+for j in range(4):
+    axes[0, j].format(title=f&quot;{cutoffs[j] * 100:.0f}%&quot;)
 
 
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">175</span><span class="p">),</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">175</span><span class="p">),</span> <span class="n">xticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">yticks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;</span><span class="p">);</span>
+axes.format(xlim=(80, 175), ylim=(80, 175), xticks=False, yticks=False)
+fig.suptitle(&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
@@ -679,26 +684,26 @@ All files have been downloaded.
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">pro</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">share</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = pro.subplots(nrows=3, ncols=4, share=0)
 
 
-<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;No Frame Selection&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">collapsed_satspot_frames</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ylabel</span><span class="o">=</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">fr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">frames</span><span class="p">):</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">fr</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">5e3</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+axes[0, 0].format(ylabel=&quot;No Frame Selection&quot;)
+for i, frames in enumerate(collapsed_satspot_frames):
+    axes[i, 0].format(ylabel=labels[i])
+    for j, fr in zip(range(4), frames):
+        c = axes[i, j].imshow(fr, cmap=&quot;magma&quot;, norm=&quot;log&quot;, vmin=100, vmax=5e3)
+fig.colorbar(c, loc=&quot;r&quot;)
 
-<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cutoffs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+for j in range(4):
+    axes[0, j].format(title=f&quot;{cutoffs[j] * 100:.0f}%&quot;)
 
-<span class="n">axes</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-    <span class="n">xticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">yticks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">98</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)),</span> <span class="mi">156</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">))),</span>
-    <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">98</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">)),</span> <span class="mi">156</span> <span class="o">+</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">))),</span>
-<span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;</span><span class="p">);</span>
+axes.format(
+    xticks=False,
+    yticks=False,
+    xlim=(98 + radius * np.cos(np.deg2rad(-4)), 156 + radius * np.cos(np.deg2rad(-4))),
+    ylim=(98 + radius * np.sin(np.deg2rad(-4)), 156 + radius * np.sin(np.deg2rad(-4))),
+)
+fig.suptitle(&quot;AB Aurigae 2022/02/24 Coronagraphic&quot;);
 </pre></div>
 </div>
 </div>
