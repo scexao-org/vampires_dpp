@@ -17,7 +17,7 @@ from .image_processing import (
     combine_frames_headers,
 )
 from .satellite_spots import window_slices
-from .mueller_matrices import mueller_matrix_model
+from .mueller_matrices import mueller_matrix_model, mueller_matrix_triplediff
 from .image_registration import offset_centroid
 from .headers import observation_table
 from .util import average_angle
@@ -197,7 +197,7 @@ def collapse_stokes_cube(stokes_cube, pa):
     return out
 
 
-def polarization_calibration_triplediff(filenames: Sequence[str]) -> NDArray:
+def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArray:
     """
     Return a Stokes cube using the _bona fide_ triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
@@ -304,12 +304,31 @@ def triplediff_average_angles(filenames):
     return pas
 
 
+def polarization_calibration_triplediff(filenames: Sequence[str]) -> NDArray:
+    headers = [fits.getheader(f) for f in filenames]
+    mueller_mats = np.empty((len(headers), 4), dtype="f4")
+    for i in range(mueller_mats.shape[0]):
+        header = headers[i]
+        derot_angle = np.deg2rad(header["D_IMRPAD"] + PUPIL_OFFSET)
+        hwp_theta = np.deg2rad(header["U_HWPANG"])
+
+        M = mueller_matrix_triplediff(
+            camera=header["U_CAMERA"],
+            flc_state=header["U_FLCSTT"],
+            theta=derot_angle,
+            hwp_theta=hwp_theta,
+        )
+        # only keep the X -> I terms
+        mueller_mats[i] = M[0]
+
+    return mueller_mats
+
+
 def polarization_calibration_model(filenames):
-    cube = np.array([fits.getdata(f) for f in filenames])
-    table = observation_table(filenames)
-    mueller_mats = np.empty((cube.shape[0], 4), dtype="f4")
-    for i in range(cube.shape[0]):
-        header = table.iloc[i]
+    headers = [fits.getheader(f) for f in filenames]
+    mueller_mats = np.empty((len(headers), 4), dtype="f4")
+    for i in range(mueller_mats.shape[0]):
+        header = headers[i]
         pa = np.deg2rad(header["D_IMRPAD"] + header["LONPOLE"] - header["D_IMRPAP"])
         altitude = np.deg2rad(header["ALTITUDE"])
         hwp_theta = np.deg2rad(header["U_HWPANG"])

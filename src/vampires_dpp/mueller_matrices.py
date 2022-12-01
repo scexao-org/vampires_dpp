@@ -438,9 +438,9 @@ def mueller_matrix_model(
             qwp(theta=qwp1),  # QWP 1
             hwp(theta=imr_theta),  # delta=cals["imr_delta"]),  # AO 188 K-mirror
             hwp(theta=hwp_theta),  # delta=cals["hwp_delta"]),  # AO 188 HWP,
-            rotator(theta=altitude),
+            rotator(theta=-altitude),
             mirror(),
-            rotator(theta=np.pi / 2 - pa),
+            rotator(theta=pa),
         )
     )
     return cals["pbs_throughput"][cam_idx] * M

@@ -7,6 +7,7 @@ VAMPIRES is a very dynamic instrument used in a variety of observing scenarios. 
 ```{toctree}
 :maxdepth: 1
 file_organization
+polarimetric_differential_imaging
 ```
 
 ## Exploratory Examples

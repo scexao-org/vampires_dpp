@@ -553,8 +553,8 @@ class Pipeline:
                     continue
                 frame, header = fits.getdata(filename, header=True)
                 derot_frame = derotate_frame(frame, header["D_IMRPAD"] + pupil_offset)
-                header = derotate_wcs(header, header["D_IMRPAD"] + pupil_offset)
-                fits.writeto(outname, derot_frame, header=header, overwrite=True)
+                derot_header = derotate_wcs(header, header["D_IMRPAD"] + pupil_offset)
+                fits.writeto(outname, derot_frame, header=derot_header, overwrite=True)
                 self.logger.debug(f"saved derotated data to {outname.absolute()}")
 
             # generate derotated cube

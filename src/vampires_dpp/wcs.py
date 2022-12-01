@@ -34,10 +34,17 @@ def derotate_wcs(header, angle):
     ang = -np.deg2rad(angle)
     cosang = np.cos(ang)
     sinang = np.sin(ang)
-    header["PC1_1"] += cosang
-    header["PC1_2"] += -sinang
-    header["PC2_1"] += sinang
-    header["PC2_2"] += cosang
+    # store temporarily because inplace operations ruin calculation
+    components = (
+        cosang * header["PC1_1"] - sinang * header["PC2_1"],
+        cosang * header["PC1_2"] - sinang * header["PC2_2"],
+        sinang * header["PC1_1"] + cosang * header["PC2_1"],
+        sinang * header["PC1_2"] + cosang * header["PC2_2"],
+    )
+    header["PC1_1"] = components[0]
+    header["PC1_2"] = components[1]
+    header["PC2_1"] = components[2]
+    header["PC2_2"] = components[3]
     return header
 
 
