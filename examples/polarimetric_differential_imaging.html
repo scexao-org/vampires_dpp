@@ -415,6 +415,10 @@ zenodo_get([&quot;10.5281/zenodo.7359198&quot;, &quot;-o&quot;, datadir.parent.a
 </section>
 <section id="pipeline-processing">
 <h2>Pipeline processing<a class="headerlink" href="#pipeline-processing" title="Permalink to this headline">#</a></h2>
+<div class="margin admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This data needs to be deinterleaved because it is directly from the VAMPIRES computer and not the STARS archive. In general, you should leave <code class="docutils literal notranslate"><span class="pre">deinterleave</span></code> at its default value <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
+</div>
 <p>We will use the pipeline to process our data, making sure to set the <code class="docutils literal notranslate"><span class="pre">[polarimetry]</span></code> section. The below is the configuration file used for the pipeline-</p>
 <details>
 <summary>hd36819_20220128_config.toml</summary>
