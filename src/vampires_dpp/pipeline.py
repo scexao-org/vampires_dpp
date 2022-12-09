@@ -201,7 +201,6 @@ class Pipeline:
                 # get from header
                 coord = None
         else:
-            # TODO set these values in a config file somewhere?
             pxscale = PIXEL_SCALE
             pupil_offset = PUPIL_OFFSET
             # query from GAIA DR3
@@ -231,6 +230,11 @@ class Pipeline:
                     make_dark_file(dark, outname, skip=skip_darks)
                 )
                 master_darks.append(dark_frame)
+
+            # if only a single file is given, assume it is for cam 1
+            if len(master_darks) == 1:
+                self.logger.warning("only using one dark frame")
+                master_darks.append(None)
         else:
             master_darks = [None, None]
 
@@ -255,6 +259,11 @@ class Pipeline:
                     make_flat_file(flat, dark, outname, skip=skip_flats)
                 )
                 master_flats.append(flat_frame)
+
+            # if only a single file is given, assume it is for cam 1
+            if len(master_flats) == 1:
+                self.logger.warning("only using one flat frame")
+                master_flats.append(None)
         else:
             master_flats = [None, None]
 
