@@ -2,7 +2,7 @@ from astropy.io import fits
 from astropy.time import Time
 from pathlib import Path
 
-from vampires_dpp.fixes import fix_header
+from vampires_dpp.headers import fix_header
 
 TEST_DIR = Path(__file__).parent
 TEST_FILE = Path(TEST_DIR, "data", "VMPA00021059.fits")

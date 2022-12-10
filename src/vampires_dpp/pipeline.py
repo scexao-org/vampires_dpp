@@ -13,10 +13,15 @@ from os import PathLike
 from typing import Dict
 
 import vampires_dpp as vpp
-from vampires_dpp.calibration import make_dark_file, make_flat_file, calibrate
+from vampires_dpp.calibration import (
+    make_dark_file,
+    make_flat_file,
+    calibrate,
+    filter_empty_frames,
+)
 from vampires_dpp.constants import PUPIL_OFFSET, PIXEL_SCALE, SUBARU_LOC
 from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
-from vampires_dpp.headers import observation_table, fix_header, filter_empty_frames
+from vampires_dpp.headers import observation_table, fix_header
 from vampires_dpp.image_processing import (
     derotate_frame,
     combine_frames_files,

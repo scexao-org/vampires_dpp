@@ -1,10 +1,8 @@
 import numpy as np
 
-from vampires_dpp.satellite_spots import (
+from vampires_dpp.indexing import (
     window_centers,
-    window_slices,
     cutout_slice,
-    window_indices,
 )
 
 

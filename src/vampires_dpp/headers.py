@@ -2,6 +2,7 @@ import pandas as pd
 from astropy.io import fits
 import numpy as np
 from collections import OrderedDict
+from typing import Optional
 from pathlib import Path
 from astropy.time import Time
 

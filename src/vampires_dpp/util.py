@@ -4,16 +4,16 @@ from numpy.typing import ArrayLike
 from scipy.stats import circmean
 
 
-def flc_inds(flc_states: ArrayLike, n=4):
+def pol_inds(flc_states: ArrayLike, n=4):
     """
-    Find consistent runs of FLC states.
+    Find consistent runs of FLC and HWP states.
 
     A consistent FLC run will have either 2 or 4 files per HWP state, and will have exactly 4 HWP states per cycle. Sometimes when VAMPIRES is syncing with CHARIS a HWP state will get skipped, creating partial HWP cycles. This function will return the indices which create consistent HWP cycles from the given list of FLC states, which should already be sorted by time.
 
     Parameters
     ----------
-    flc_states : ArrayLike
-        The FLC states to sort through
+    hwp_polstt : ArrayLike
+        The HWP states to sort through
     n : int, optional
         The number of files per HWP state, either 2 or 4. By default 4
 
