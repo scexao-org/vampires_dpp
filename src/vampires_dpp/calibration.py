@@ -3,10 +3,10 @@
 from astropy.io import fits
 import numpy as np
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 from numpy.typing import ArrayLike
 
-from vampires_dpp.fixes import fix_header
+from vampires_dpp.headers import fix_header
 
 
 def calibrate(

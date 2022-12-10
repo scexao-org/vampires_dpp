@@ -15,9 +15,8 @@ from typing import Dict
 import vampires_dpp as vpp
 from vampires_dpp.calibration import make_dark_file, make_flat_file, calibrate
 from vampires_dpp.constants import PUPIL_OFFSET, PIXEL_SCALE, SUBARU_LOC
-from vampires_dpp.fixes import fix_header, filter_empty_frames
 from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
-from vampires_dpp.headers import observation_table
+from vampires_dpp.headers import observation_table, fix_header, filter_empty_frames
 from vampires_dpp.image_processing import (
     derotate_frame,
     combine_frames_files,
@@ -31,7 +30,7 @@ from vampires_dpp.polarization import (
     instpol_correct,
     radial_stokes,
 )
-from vampires_dpp.satellite_spots import lamd_to_pixel
+from vampires_dpp.indexing import lamd_to_pixel
 from vampires_dpp.wcs import (
     apply_wcs,
     derotate_wcs,

@@ -1,6 +1,5 @@
 import astropy.units as u
 from astropy.coordinates import EarthLocation
-from astropy.coordinates import SkyCoord
 import numpy as np
 
 # important parameters

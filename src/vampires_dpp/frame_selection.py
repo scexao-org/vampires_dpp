@@ -2,7 +2,7 @@ from astropy.io import fits
 import numpy as np
 from pathlib import Path
 
-from .satellite_spots import cutout_slice, window_slices
+from vampires_dpp.indexing import cutout_slice, window_slices
 
 
 def measure_metric(cube, metric="l2norm", center=None, window=None):

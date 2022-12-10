@@ -7,7 +7,7 @@ from skimage.registration import phase_cross_correlation
 from skimage.measure import centroid
 
 from vampires_dpp.image_processing import frame_center, shift_cube
-from vampires_dpp.satellite_spots import (
+from vampires_dpp.indexing import (
     cutout_slice,
     window_slices,
 )

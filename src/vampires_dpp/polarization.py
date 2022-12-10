@@ -16,7 +16,7 @@ from .image_processing import (
     weighted_collapse,
     combine_frames_headers,
 )
-from .satellite_spots import window_slices
+from .indexing import window_slices
 from .mueller_matrices import mueller_matrix_model, mueller_matrix_triplediff
 from .image_registration import offset_centroid
 from .headers import observation_table
