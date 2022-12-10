@@ -167,3 +167,8 @@ def make_flat_file(
 
     fits.writeto(outname, master_flat, header=header, overwrite=True)
     return outname
+
+
+def filter_empty_frames(cube):
+    output = np.array([frame for frame in cube if np.any(frame)])
+    return output
