@@ -1,0 +1,557 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Speckle Imaging / Lucky Imaging &#8212; VAMPIRES DPP</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=4fea3ae4a0a4ba949df0a89bbae557cc2ce861ae" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/togglebutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">VAMPIRES DPP</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../gettingstarted.html">
+   Getting started
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../pipeline.html">
+   Pipeline
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="index.html">
+   Examples
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="file_organization.html">
+     File Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="polarimetric_differential_imaging.html">
+     Polarimetric Differential Imaging (PDI)
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="image_registration.html">
+     Image Registration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="frame_selection.html">
+     Frame Selection
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../api/index.html">
+   API/Reference
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/organization.html">
+     Organization
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/pipeline.html">
+     Pipeline
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/calibration.html">
+     Calibration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/frame_selection.html">
+     Frame Selection
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/image_registration.html">
+     Image Registration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/image_processing.html">
+     Image Processing
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/satellite_spots.html">
+     Satellite Spots
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right"><a href="https://github.com/scexao-org/vampires_dpp"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="bottom"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/examples/speckle_imaging.ipynb.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#setup-and-imports">
+   Setup and Imports
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pipeline-processing">
+   Pipeline processing
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#reviewing-outputs">
+   Reviewing Outputs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#hierarchical-modeling">
+   Hierarchical Modeling
+  </a>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Speckle Imaging / Lucky Imaging</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#setup-and-imports">
+   Setup and Imports
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pipeline-processing">
+   Pipeline processing
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#reviewing-outputs">
+   Reviewing Outputs
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#hierarchical-modeling">
+   Hierarchical Modeling
+  </a>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="speckle-imaging-lucky-imaging">
+<h1>Speckle Imaging / Lucky Imaging<a class="headerlink" href="#speckle-imaging-lucky-imaging" title="Permalink to this headline">#</a></h1>
+<p>This notebook shows a full example of standard speckle/lucky imaging using some single-camera data taken in February 2022 of HIP 58234. This notebook can be downloaded as <strong><a class="reference download internal" download="" href="../_downloads/554761896343b53dac2c4bf49a10fdd2/speckle_imaging.ipynb"><code class="xref download myst-nb docutils literal notranslate"><span class="pre">speckle_imaging.ipynb</span></code></a></strong>.</p>
+<section id="setup-and-imports">
+<h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Permalink to this headline">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pathlib import Path
+import vampires_dpp.mueller_matrices as mm
+from astropy.io import fits
+from zenodo_get import zenodo_get
+import proplot as pro
+import numpy as np
+
+datadir = Path(&quot;data/hip58234_20220225/&quot;)
+pro.rc[&quot;style&quot;] = &quot;ggplot&quot;
+pro.rc[&quot;image.origin&quot;] = &quot;lower&quot;
+pro.rc[&quot;image.cmap&quot;] = &quot;magma&quot;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell tag_remove-output docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># download example data
+zenodo_get([&quot;10.5281/zenodo.7359198&quot;, &quot;-o&quot;, datadir.parent.absolute()])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="pipeline-processing">
+<h2>Pipeline processing<a class="headerlink" href="#pipeline-processing" title="Permalink to this headline">#</a></h2>
+<p>We will use the pipeline to process our data, making sure to set the <code class="docutils literal notranslate"><span class="pre">[polarimetry]</span></code> section. The below is the configuration file used for the pipeline-</p>
+<details>
+<summary>hip58234_20220225_config.toml</summary>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;hip58234_20220225&quot;</span><span class="w"></span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;HIP 58234&quot;</span><span class="w"></span>
+<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/hip58234_20220225&quot;</span><span class="w"></span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/hip58234_20220225/processed&quot;</span><span class="w"></span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;HIP58234*.fits&quot;</span><span class="w"></span>
+
+<span class="k">[calibration]</span><span class="w"></span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span><span class="w"></span>
+
+<span class="k">[frame_selection]</span><span class="w"></span>
+<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span><span class="w"></span>
+
+<span class="k">[registration]</span><span class="w"></span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;dft&quot;</span><span class="w"></span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span><span class="w"></span>
+
+<span class="k">[registration.dft]</span><span class="w"></span>
+<span class="n">updample_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="w"></span>
+
+<span class="k">[collapsing]</span><span class="w"></span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span><span class="w"></span>
+
+<span class="k">[derotate]</span><span class="w"></span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</details><div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.pipeline import Pipeline
+
+pipeline = Pipeline.from_file(datadir / &quot;hip58234_20220225_config.toml&quot;)
+pipeline.run()
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">FileNotFoundError</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">line</span> <span class="mi">3</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">vampires_dpp.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="ne">----&gt; </span><span class="mi">3</span> <span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hip58234_20220225_config.toml&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:111,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
+<span class="g g-Whitespace">     </span><span class="mi">92</span> <span class="nd">@classmethod</span>
+<span class="g g-Whitespace">     </span><span class="mi">93</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<span class="g g-Whitespace">     </span><span class="mi">94</span>     <span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">     </span><span class="mi">95</span><span class="sd">     Load configuration from TOML file</span>
+<span class="g g-Whitespace">     </span><span class="mi">96</span><span class="sd"> </span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">    </span><span class="mi">109</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
+<span class="g g-Whitespace">    </span><span class="mi">110</span><span class="sd">     &quot;&quot;&quot;</span>
+<span class="ne">--&gt; </span><span class="mi">111</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">112</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/toml/decoder.py:133,</span> in <span class="ni">load</span><span class="nt">(f, _dict, decoder)</span>
+<span class="g g-Whitespace">    </span><span class="mi">114</span> <span class="sd">&quot;&quot;&quot;Parses named file or files as toml and returns a dictionary</span>
+<span class="g g-Whitespace">    </span><span class="mi">115</span><span class="sd"> </span>
+<span class="g g-Whitespace">    </span><span class="mi">116</span><span class="sd"> Args:</span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">    </span><span class="mi">129</span><span class="sd">     (Python 2 / Python 3)          file paths is passed</span>
+<span class="g g-Whitespace">    </span><span class="mi">130</span><span class="sd"> &quot;&quot;&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">132</span> <span class="k">if</span> <span class="n">_ispath</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+<span class="ne">--&gt; </span><span class="mi">133</span>     <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">_getpath</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ffile</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">134</span>         <span class="k">return</span> <span class="n">loads</span><span class="p">(</span><span class="n">ffile</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="n">_dict</span><span class="p">,</span> <span class="n">decoder</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">135</span> <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+
+<span class="ne">FileNotFoundError</span>: [Errno 2] No such file or directory: &#39;data/hip58234_20220225/hip58234_20220225_config.toml&#39;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="reviewing-outputs">
+<h2>Reviewing Outputs<a class="headerlink" href="#reviewing-outputs" title="Permalink to this headline">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>collapsed_frame = fits.getdata(datadir / &quot;processed&quot; / &quot;derotated&quot; / &quot;HIP58234_20220225_750-50_EmptySlot2_00_cam1_calib_cut_aligned_collapsed_derot.fits&quot;)
+</pre></div>
+</div>
+</div>
+</div>
+<p>let’s plot our outputs (code hidden for brevity)</p>
+<div class="cell tag_remove-input docutils container">
+<div class="cell_output docutils container">
+<img alt="../_images/speckle_imaging_9_0.png" src="../_images/speckle_imaging_9_0.png" />
+</div>
+</div>
+</section>
+<section id="hierarchical-modeling">
+<h2>Hierarchical Modeling<a class="headerlink" href="#hierarchical-modeling" title="Permalink to this headline">#</a></h2>
+<p>Now we will fit the three stars using analytical PSF models and extract the position of the two companions. From the positions, we will calculate the separation on sky and the position angle.</p>
+<p>For our models, we will use two-dimensional Moffat models which have shared shape parameters, since we expect the PSF to be invariant over the field (a good enough approximation).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from astropy.modeling import models, fitting
+
+star_a = models.Moffat2D(x_0=256.5, y_0=250, gamma=4, )
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Miles Lucas<br/>
+  
+      &copy; Copyright 2022, Miles Lucas.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>
