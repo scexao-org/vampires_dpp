@@ -390,7 +390,7 @@ datadir = Path(&quot;data&quot;)
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/proplot/__init__.py:73: ProplotWarning: Rebuilding font cache. This usually happens after installing or updating proplot.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/proplot/__init__.py:73: ProplotWarning: Rebuilding font cache. This usually happens after installing or updating proplot.
   register_fonts(default=True)
 </pre></div>
 </div>
@@ -600,6 +600,18 @@ metric_satspot_l2norm = measure_satellite_spot_metrics(
 metric_satspot_normvar = measure_satellite_spot_metrics(
     abaur20220224_cube, metric=&quot;normvar&quot;, **kwargs
 )
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">vampires_dpp.satellite_spots</span> <span class="kn">import</span> <span class="n">lamd_to_pixel</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="kn">from</span> <span class="nn">vampires_dpp.frame_selection</span> <span class="kn">import</span> <span class="n">measure_satellite_spot_metrics</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="c1"># radius of satellite spots</span>
+
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;vampires_dpp.satellite_spots&#39;
 </pre></div>
 </div>
 </div>

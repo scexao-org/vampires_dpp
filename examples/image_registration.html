@@ -612,7 +612,15 @@ offsets_coro_airydisk = satellite_spot_offsets(
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The fit may be unsuccessful; check fit_info[&#39;message&#39;] for more information. [astropy.modeling.fitting]
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">11</span><span class="p">],</span> <span class="n">line</span> <span class="mi">2</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">vampires_dpp.image_registration</span> <span class="kn">import</span> <span class="n">satellite_spot_offsets</span>
+<span class="ne">----&gt; </span><span class="mi">2</span> <span class="kn">from</span> <span class="nn">vampires_dpp.satellite_spots</span> <span class="kn">import</span> <span class="n">lamd_to_pixel</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="c1"># radius of satellite spots</span>
+<span class="g g-Whitespace">      </span><span class="mi">5</span> <span class="n">radius</span> <span class="o">=</span> <span class="n">lamd_to_pixel</span><span class="p">(</span><span class="mf">31.6</span><span class="p">,</span> <span class="n">abaur20220224_hdr</span><span class="p">[</span><span class="s2">&quot;U_FILTER&quot;</span><span class="p">])</span>
+
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;vampires_dpp.satellite_spots&#39;
 </pre></div>
 </div>
 </div>
@@ -645,7 +653,10 @@ fig.legend(loc=&quot;bottom&quot;, ncols=4);
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_15_0.png" src="../_images/image_registration_15_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x2b81235b0&gt;
+</pre></div>
+</div>
+<img alt="../_images/image_registration_15_1.png" src="../_images/image_registration_15_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -739,7 +750,10 @@ fig.suptitle(&quot;Bench Data 2022/06/29 Coronagraphic&quot;);
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_21_0.png" src="../_images/image_registration_21_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0.5, 0.98, &#39;Bench Data 2022/06/29 Coronagraphic&#39;)
+</pre></div>
+</div>
+<img alt="../_images/image_registration_21_1.png" src="../_images/image_registration_21_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -802,7 +816,10 @@ fig.legend(loc=&quot;bottom&quot;, ncols=4);
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_23_0.png" src="../_images/image_registration_23_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x2aafb7f40&gt;
+</pre></div>
+</div>
+<img alt="../_images/image_registration_23_1.png" src="../_images/image_registration_23_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -837,7 +854,10 @@ fig.suptitle(&quot;Bench Data 2022/06/29 Coronagraphic&quot;);
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_25_0.png" src="../_images/image_registration_25_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0.5, 0.98, &#39;Bench Data 2022/06/29 Coronagraphic&#39;)
+</pre></div>
+</div>
+<img alt="../_images/image_registration_25_1.png" src="../_images/image_registration_25_1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -870,7 +890,10 @@ fig.suptitle(&quot;Bench Data 2022/06/29 Coronagraphic&quot;);
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/image_registration_26_0.png" src="../_images/image_registration_26_0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0.5, 0.98, &#39;Bench Data 2022/06/29 Coronagraphic&#39;)
+</pre></div>
+</div>
+<img alt="../_images/image_registration_26_1.png" src="../_images/image_registration_26_1.png" />
 </div>
 </div>
 </section>

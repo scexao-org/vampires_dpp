@@ -472,19 +472,19 @@ pipeline.run()
 <span class="ne">----&gt; </span><span class="mi">3</span> <span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd36819_20220128_config.toml&quot;</span><span class="p">)</span>
 <span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:111,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
-<span class="g g-Whitespace">     </span><span class="mi">92</span> <span class="nd">@classmethod</span>
-<span class="g g-Whitespace">     </span><span class="mi">93</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
-<span class="g g-Whitespace">     </span><span class="mi">94</span>     <span class="sd">&quot;&quot;&quot;</span>
-<span class="g g-Whitespace">     </span><span class="mi">95</span><span class="sd">     Load configuration from TOML file</span>
-<span class="g g-Whitespace">     </span><span class="mi">96</span><span class="sd"> </span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:115,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
+<span class="g g-Whitespace">     </span><span class="mi">96</span> <span class="nd">@classmethod</span>
+<span class="g g-Whitespace">     </span><span class="mi">97</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<span class="g g-Whitespace">     </span><span class="mi">98</span>     <span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">     </span><span class="mi">99</span><span class="sd">     Load configuration from TOML file</span>
+<span class="g g-Whitespace">    </span><span class="mi">100</span><span class="sd"> </span>
 <span class="sd">   (...)</span>
-<span class="g g-Whitespace">    </span><span class="mi">109</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
-<span class="g g-Whitespace">    </span><span class="mi">110</span><span class="sd">     &quot;&quot;&quot;</span>
-<span class="ne">--&gt; </span><span class="mi">111</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">112</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">113</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
+<span class="g g-Whitespace">    </span><span class="mi">114</span><span class="sd">     &quot;&quot;&quot;</span>
+<span class="ne">--&gt; </span><span class="mi">115</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">116</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.9.15/x64/lib/python3.9/site-packages/toml/decoder.py:133,</span> in <span class="ni">load</span><span class="nt">(f, _dict, decoder)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/toml/decoder.py:133,</span> in <span class="ni">load</span><span class="nt">(f, _dict, decoder)</span>
 <span class="g g-Whitespace">    </span><span class="mi">114</span> <span class="sd">&quot;&quot;&quot;Parses named file or files as toml and returns a dictionary</span>
 <span class="g g-Whitespace">    </span><span class="mi">115</span><span class="sd"> </span>
 <span class="g g-Whitespace">    </span><span class="mi">116</span><span class="sd"> Args:</span>
@@ -527,6 +527,21 @@ Qphi, Uphi = radial_stokes(stokes_cube, phi=0)
 <div class="cell tag_remove-input docutils container">
 <div class="cell_output docutils container">
 <img alt="../_images/polarimetric_differential_imaging_11_0.png" src="../_images/polarimetric_differential_imaging_11_0.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>stokes_hdr = fits.getheader(datadir / &quot;processed&quot; / &quot;hd36819_20220128_stokes_cube_ip.fits&quot;)
+print(f&quot;cQ: {stokes_hdr[&#39;cQ&#39;]*100:.03f}%&quot;)
+print(f&quot;cU: {stokes_hdr[&#39;cU&#39;]*100:.03f}%&quot;)
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>cQ: 1.599%
+cU: -0.359%
+</pre></div>
+</div>
 </div>
 </div>
 </section>
