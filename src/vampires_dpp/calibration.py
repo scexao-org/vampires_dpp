@@ -11,10 +11,11 @@ from vampires_dpp.headers import fix_header
 
 def calibrate(
     data: ArrayLike,
-    discard: int = 2,
+    discard: int = 0,
     dark: Optional[ArrayLike] = None,
     flat: Optional[ArrayLike] = None,
     flip: bool = False,
+    header=None,
 ):
     """
     Basic frame calibration.
@@ -26,7 +27,7 @@ def calibrate(
     data : ArrayLike
         3-D cube (t, y, x) of data
     discard : int, optional
-        The amount of leading frames to discard (for data which has destructive readout frames), by default 2
+        The amount of leading frames to discard (for data which has destructive readout frames), by default 0.
     dark : ArrayLike, optional
         If provided, will dark-subtract all frames by the provided 2-D master dark (y, x), by default None
     flat : ArrayLike, optional
@@ -42,14 +43,15 @@ def calibrate(
         3-D calibrated data cube (t, y, x)
     """
     # discard frames
-    out = data[discard:]
+    # need to copy so inplace operations don't allocate new arrays
+    output = data[discard:].copy()
     if dark is not None:
-        out = out - dark
+        output -= dark
     if flat is not None:
-        out = out / flat
+        output /= flat
     if flip:
-        out = np.flip(out, axis=-2)
-    return out
+        output = np.flip(output, axis=-2)
+    return output, header
 
 
 def calibrate_file(
@@ -59,6 +61,7 @@ def calibrate_file(
     dark: Optional[str] = None,
     flat: Optional[str] = None,
     skip=False,
+    deinterleave=False,
     **kwargs,
 ):
     path = Path(filename)
@@ -72,38 +75,32 @@ def calibrate_file(
     data, hdr = fits.getdata(path, hdu, header=True)
     data = data.astype("f4")
     if dark is not None:
-        hdr["VPP_DARK"] = (Path(dark).name, "file used for dark subtraction")
         dark = fits.getdata(dark).astype("f4")
     if flat is not None:
-        hdr["VPP_FLAT"] = (Path(flat).name, "file used for flat-fielding")
         flat = fits.getdata(flat).astype("f4")
     if flip == "auto":  # flip camera 1 (vcamim1)
         if "U_CAMERA" in hdr:
             flip = hdr["U_CAMERA"] == 1
         else:
             flip = "cam1" in path.stem
-    processed = calibrate(data, dark=dark, flat=flat, flip=flip, **kwargs)
-    fits.writeto(outname, processed, hdr, overwrite=True)
+    if "U_FLCSTT" in hdr:
+        discard = 0
+    else:
+        discard = 2
+    processed = calibrate(
+        data, dark=dark, flat=flat, flip=flip, discard=discard, **kwargs
+    )
+    if deinterleave:
+        set1 = processed[::2]
+        hdr["U_FLCSTT"] = 1, "FLC state (1 or 2)"
+        out1 = outname
+        fits.writeto(outname, processed, hdr, overwrite=True)
+        set2 = processed[1::2]
+        hdr["U_FLCSTT"] = 1, "FLC state (1 or 2)"
+        fits.writeto(outname, processed, hdr, overwrite=True)
+    else:
+        fits.writeto(outname, processed, hdr, overwrite=True)
     return outname
-
-
-def deinterleave(data: ArrayLike):
-    """
-    Deinterleave data into two seperate FLC states
-
-    Parameters
-    ----------
-    data : ArrayLike
-        3-D data cube (t, y, x) from a single camera
-
-    Returns
-    -------
-    (state1, state2) : Tuple[ArrayLike, ArrayLike]
-        two 3-D data cubes (t, y, x), one for every other frame from the original cube
-    """
-    set1 = data[::2]
-    set2 = data[1::2]
-    return set1, set2
 
 
 def deinterleave_file(filename: str, hdu: int = 0, skip=False, **kwargs):
