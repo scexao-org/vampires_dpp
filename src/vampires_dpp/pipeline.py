@@ -600,7 +600,7 @@ class Pipeline:
             if pol_method == "triplediff":
                 # sort table
                 table = observation_table(collapse_files).sort_values("DATE")
-                inds = pol_inds(table["U_PLSTIT"], 4)
+                inds = pol_inds(table["U_HWPANG"], 4)
                 table_filt = table.loc[inds]
                 self.logger.info(
                     f"using {len(table_filt)}/{len(table)} files for triple-differential processing"

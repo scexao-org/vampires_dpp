@@ -229,17 +229,14 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
         )
 
     # make sure we get data in correct order using FITS headers
-    # tbl = observation_table(filenames).sort_values(
-    #     ["DATE", "U_PLSTIT", "U_FLCSTT", "U_CAMERA"]
-    # )
+    tbl = observation_table(filenames)
 
     # once more check again that we have proper HWP sets
-    # hwpangs = tbl["U_HWPANG"].values.reshape((-1, 4, 4)).mean(axis=(0, 2))
-    # print(hwpangs)
-    # if hwpangs[0] != 0 or hwpangs[1] != 45 or hwpangs[2] != 22.5 or hwpangs[3] != 67.5:
-    #     raise ValueError(
-    #         "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
-    #     )
+    hwpangs = tbl["U_HWPANG"].values.reshape((-1, 4, 4)).mean(axis=(0, 2))
+    if hwpangs[0] != 0 or hwpangs[1] != 45 or hwpangs[2] != 22.5 or hwpangs[3] != 67.5:
+        raise ValueError(
+            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
+        )
 
     # now do triple-differential calibration
 

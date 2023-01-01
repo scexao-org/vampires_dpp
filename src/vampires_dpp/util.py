@@ -24,11 +24,11 @@ def pol_inds(flc_states: ArrayLike, n=4):
     """
     states = np.asarray(flc_states)
     N_cycle = n * 4
-    state_list = np.repeat([1, 2, 3, 4], n)
+    ang_list = np.repeat([0, 45, 22.5, 67.5], n)
     inds = []
     idx = 0
     while idx <= len(flc_states) - N_cycle:
-        if np.all(states[idx : idx + N_cycle] == state_list):
+        if np.all(states[idx : idx + N_cycle] == ang_list):
             inds.extend(range(idx, idx + N_cycle))
             idx += N_cycle
         else:
