@@ -365,10 +365,13 @@ def mueller_matrix_triplediff(camera, flc_state, theta, hwp_theta):
         (
             wollaston(camera == 1),  # Polarizing beamsplitter
             hwp(theta=flc_theta),  # FLC
-            rotator(theta=theta),  # Pupil rotation
+            rotator(-theta),
+            mirror(),
             hwp(theta=hwp_theta),  # HWP angle
         )
     )
+    if camera == 1:
+        M *= 0.65
     return M
 
 
@@ -431,16 +434,18 @@ def mueller_matrix_model(
         (
             wollaston(camera == 1),  # Polarizing beamsplitter
             hwp(theta=flc_ang),  # FLC
-            mirror(),
-            rotator(-pupil_offset),
-            mirror(),
+            # mirror(),
+            # rotator(theta=-pupil_offset),
+            # mirror(),
             qwp(theta=qwp2),  # QWP 2
             qwp(theta=qwp1),  # QWP 1
-            hwp(theta=imr_theta),  # delta=cals["imr_delta"]),  # AO 188 K-mirror
-            hwp(theta=hwp_theta),  # delta=cals["hwp_delta"]),  # AO 188 HWP,
-            rotator(theta=-altitude),
+            waveplate(theta=imr_theta, delta=cals["imr_delta"]),  # AO 188 K-mirror
+            waveplate(theta=hwp_theta, delta=cals["hwp_delta"]),  # AO 188 HWP,
+            rotator(theta=altitude),
             mirror(),
             rotator(theta=pa),
         )
     )
-    return cals["pbs_throughput"][cam_idx] * M
+    if camera == 1:
+        M *= 0.65
+    return M

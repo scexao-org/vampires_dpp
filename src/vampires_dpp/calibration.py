@@ -46,9 +46,9 @@ def calibrate(
     # need to copy so inplace operations don't allocate new arrays
     output = data[discard:].copy()
     if dark is not None:
-        output -= dark
+        output = output - dark
     if flat is not None:
-        output /= flat
+        output = output - flat
     if flip:
         output = np.flip(output, axis=-2)
     return output, header

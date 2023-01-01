@@ -75,3 +75,4 @@ method = "mueller" # calibration method, one of "mueller" or "triplediff"
 force = false # if files already exist, should we force the calculation and overwrite?
 cQ = 0 # I -> Q instrumental polarization term, if not provided will be measured
 cU = 0 # I -> U instrumental polarization term, if not provided will be measured
+radius = 5 # radius of photometric aperture to measure IP from

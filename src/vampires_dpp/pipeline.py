@@ -33,9 +33,13 @@ from vampires_dpp.polarization import (
     mueller_matrix_calibration_files,
     measure_instpol,
     instpol_correct,
+    polarization_calibration_triplediff_naive,
+    triplediff_average_angles,
     radial_stokes,
+    collapse_stokes_cube,
 )
 from vampires_dpp.indexing import lamd_to_pixel
+from vampires_dpp.util import pol_inds
 from vampires_dpp.wcs import (
     apply_wcs,
     derotate_wcs,
@@ -308,7 +312,7 @@ class Pipeline:
             header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
             header = apply_wcs(header, pxscale=pxscale, pupil_offset=pupil_offset)
             if header["U_CAMERA"] == 1:
-                calib_cube = calibrate(
+                calib_cube, _ = calibrate(
                     cube,
                     discard=2,
                     dark=master_darks[0],
@@ -316,7 +320,7 @@ class Pipeline:
                     flip=True,
                 )
             else:
-                calib_cube = calibrate(
+                calib_cube, _ = calibrate(
                     cube,
                     discard=2,
                     dark=master_darks[1],
@@ -537,7 +541,7 @@ class Pipeline:
                 frame = np.median(cube, axis=0, overwrite_input=True)
                 fits.writeto(outname, frame, header=header, overwrite=True)
                 self.logger.debug(f"saved collapsed data to {outname.absolute()}")
-
+            collapse_files = working_files.copy()
             # generate cube
             outname = outdir / f"{self.config['name']}_collapsed_cube.fits"
             cube_file = combine_frames_files(
@@ -591,20 +595,42 @@ class Pipeline:
             if skip_pdi:
                 self.logger.debug("skipping PDI if files exist")
             tripwire = tripwire or not skip_pdi
-            outname = outdir / f"{self.config['name']}_mueller_mats.fits"
-            mueller_mat_file = mueller_mats_files(
-                working_files,
-                method=self.config["polarimetry"].get("method", "mueller"),
-                output=outname,
-                skip=skip_pdi,
-            )
-            self.logger.debug(f"saved derotated data to {mueller_mat_file.absolute()}")
 
-            # generate stokes cube
-            outname = outdir / f"{self.config['name']}_stokes_cube.fits"
-            stokes_cube_file = mueller_matrix_calibration_files(
-                working_files, mueller_mat_file, output=outname, skip=skip_pdi
-            )
+            pol_method = self.config["polarimetry"].get("method", "triplediff")
+            if pol_method == "triplediff":
+                # sort table
+                table = observation_table(collapse_files).sort_values("DATE")
+                inds = pol_inds(table["U_PLSTIT"], 4)
+                table_filt = table.loc[inds]
+                self.logger.info(
+                    f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
+                )
+
+                outname = outdir / f"{self.config['name']}_stokes_frames.fits"
+                if not skip_pdi or not outname.is_file():
+                    stokes_cube = polarization_calibration_triplediff_naive(
+                        table_filt["path"]
+                    )
+                    fits.writeto(outname, stokes_cube, overwrite=True)
+                    self.logger.debug(f"saved Stokes cube to {outname.absolute()}")
+                    stokes_cube_file = outname
+            elif pol_method == "mueller":
+                outname = outdir / f"{self.config['name']}_mueller_mats.fits"
+                mueller_mat_file = mueller_mats_files(
+                    working_files,
+                    method=self.config["polarimetry"].get("method", "mueller"),
+                    output=outname,
+                    skip=skip_pdi,
+                )
+                self.logger.debug(
+                    f"saved Mueller matrices to {mueller_mat_file.absolute()}"
+                )
+
+                # generate stokes cube
+                outname = outdir / f"{self.config['name']}_stokes_cube.fits"
+                stokes_cube_file = mueller_matrix_calibration_files(
+                    working_files, mueller_mat_file, output=outname, skip=skip_pdi
+                )
             if "ip" in self.config["polarimetry"]:
                 ip_config = self.config["polarimetry"]["ip"]
                 # generate IP cube

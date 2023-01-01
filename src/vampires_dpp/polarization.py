@@ -13,6 +13,7 @@ from .constants import PUPIL_OFFSET
 from .image_processing import (
     frame_angles,
     frame_center,
+    derotate_frame,
     weighted_collapse,
     combine_frames_headers,
 )
@@ -190,9 +191,9 @@ def collapse_stokes_cube(stokes_cube, pa):
         stokes_cube.dtype,
     )
     # derotate polarization frame
-    stokes_cube_derot = rotate_stokes(stokes_cube, -pa)
+    # stokes_cube_derot = rotate_stokes(stokes_cube, pa)
     for s in range(stokes_cube.shape[0]):
-        out[s] = weighted_collapse(stokes_cube_derot[s], pa)
+        out[s] = weighted_collapse(stokes_cube[s], pa)
 
     return out
 
@@ -228,54 +229,54 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
         )
 
     # make sure we get data in correct order using FITS headers
-    tbl = observation_table(filenames).sort_values(
-        ["DATE", "U_PLSTIT", "U_FLCSTT", "U_CAMERA"]
-    )
+    # tbl = observation_table(filenames).sort_values(
+    #     ["DATE", "U_PLSTIT", "U_FLCSTT", "U_CAMERA"]
+    # )
 
     # once more check again that we have proper HWP sets
-    hwpangs = tbl["U_HWPANG"].values.reshape((-1, 4, 4)).mean(axis=(0, 2))
-    if hwpangs[0] != 0 or hwpangs[1] != 45 or hwpangs[2] != 22.5 or hwpangs[3] != 67.5:
-        raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
-        )
+    # hwpangs = tbl["U_HWPANG"].values.reshape((-1, 4, 4)).mean(axis=(0, 2))
+    # print(hwpangs)
+    # if hwpangs[0] != 0 or hwpangs[1] != 45 or hwpangs[2] != 22.5 or hwpangs[3] != 67.5:
+    #     raise ValueError(
+    #         "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
+    #     )
 
     # now do triple-differential calibration
-    image_cube = np.array([fits.getdata(p) for p in tbl["path"]])
-    N_hwp_sets = image_cube.shape[0] // 16
-    stokes_cube = np.zeros(
-        shape=(4, N_hwp_sets, image_cube.shape[1], image_cube.shape[2]), dtype="f4"
-    )
 
+    N_hwp_sets = len(filenames) // 16
+    with fits.open(filenames.iloc[0]) as hdus:
+        stokes_cube = np.zeros(shape=(4, N_hwp_sets, *hdus[0].shape), dtype="f4")
+    angles = triplediff_average_angles(filenames)
     iter = tqdm.trange(N_hwp_sets, desc="Triple-differential calibration")
     for i in iter:
         ix = i * 16  # offset index
-
+        cube = np.asarray([fits.getdata(f) for f in filenames.iloc[ix : ix + 16]])
         # (cam1 - cam2) - (cam1 - cam2)
-        pQ0 = image_cube[ix + 0] - image_cube[ix + 2]
-        mQ0 = image_cube[ix + 1] - image_cube[ix + 3]
+        pQ0 = cube[0] - cube[2]
+        mQ0 = cube[1] - cube[3]
         Q0 = 0.5 * (pQ0 - mQ0)
 
-        pQ1 = image_cube[ix + 4] - image_cube[ix + 6]
-        mQ1 = image_cube[ix + 5] - image_cube[ix + 7]
+        pQ1 = cube[4] - cube[6]
+        mQ1 = cube[5] - cube[7]
         Q1 = 0.5 * (pQ1 - mQ1)
 
         # (cam1 - cam2) - (cam1 - cam2)
-        pU0 = image_cube[ix + 8] - image_cube[ix + 10]
-        mU0 = image_cube[ix + 9] - image_cube[ix + 11]
+        pU0 = cube[8] - cube[10]
+        mU0 = cube[9] - cube[11]
         U0 = 0.5 * (pU0 - mU0)
 
-        pU1 = image_cube[ix + 12] - image_cube[ix + 14]
-        mU1 = image_cube[ix + 13] - image_cube[ix + 15]
+        pU1 = cube[12] - cube[14]
+        mU1 = cube[13] - cube[15]
         U1 = 0.5 * (pU1 - mU1)
 
         # factor of 2 because intensity is cut in half by beamsplitter
-        stokes_cube[0, i] = 2 * np.mean(image_cube[ix : ix + 16], axis=0)
+        stokes_cube[0, i] = 2 * np.mean(cube, axis=0)
         # Q = 0.5 * (Q+ - Q-)
         stokes_cube[1, i] = 0.5 * (Q0 - Q1)
         # U = 0.5 * (U+ - U-)
         stokes_cube[2, i] = 0.5 * (U0 - U1)
 
-    return stokes_cube
+    return collapse_stokes_cube(stokes_cube, angles)
 
 
 def triplediff_average_angles(filenames):
@@ -396,9 +397,18 @@ def mueller_matrix_calibration_files(
         mueller_matrix_file = mueller_mats_files(filenames)
 
     mueller_mats, muller_mat_hdr = fits.getdata(mueller_matrix_file, header=True)
-    cube = np.array([fits.getdata(f) for f in filenames])
+
+    cubes = []
+    headers = []
+    for f in filenames:
+        with fits.open(f) as hdus:
+            cubes.append(hdus[0].data.copy())
+            headers.append(hdus[0].header)
+            # have to manually close mmap file descriptor
+            # https://docs.astropy.org/en/stable/io/fits/index.html#working-with-large-files
+            del hdus[0].data
+    cube = np.asarray(cubes)
     stokes_cube = mueller_matrix_calibration(mueller_mats, cube)
-    headers = (fits.getheader(f) for f in filenames)
     header = combine_frames_headers(headers, wcs=True)
 
     # add in stokes WCS information
