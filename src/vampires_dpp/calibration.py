@@ -66,7 +66,7 @@ def calibrate_file(
 ):
     path = Path(filename)
     if outname is None:
-        outname = path.with_stem(f"{path.stem}_calib")
+        outname = path.with_name(f"{path.stem}_calib{path.suffix}")
     else:
         outname = Path(outname)
     if skip and outname.is_file():

@@ -232,7 +232,7 @@ def measure_offsets(
 def register_file(filename, offset_file, output=None, skip=False, **kwargs):
     if output is None:
         path = Path(filename)
-        output = path.with_stem(f"{path.stem}_registered")
+        output = path.with_name(f"{path.stem}_registered{path.suffix}")
     else:
         output = Path(output)
 

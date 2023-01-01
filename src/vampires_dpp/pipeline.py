@@ -287,8 +287,8 @@ class Pipeline:
             self.logger.debug(f"calibrating {filename.absolute()}")
             outname = outdir / f"{filename.stem}_calib{filename.suffix}"
             if self.config["calibration"].get("deinterleave", False):
-                outname_flc1 = outname.with_stem(f"{outname.stem}_FLC1")
-                outname_flc2 = outname.with_stem(f"{outname.stem}_FLC2")
+                outname_flc1 = outname.with_name(f"{outname.stem}_FLC1{outname.suffix}")
+                outname_flc2 = outname.with_name(f"{outname.stem}_FLC2{outname.suffix}")
                 if skip_calib and outname_flc1.is_file() and outname_flc2.is_file():
                     working_files.extend((outname_flc1, outname_flc2))
                     continue

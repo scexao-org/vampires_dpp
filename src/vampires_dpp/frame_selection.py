@@ -76,7 +76,7 @@ def frame_select_file(
 ):
     if output is None:
         path = Path(filename)
-        output = path.with_stem(f"{path.stem}_selected")
+        output = path.with_name(f"{path.stem}_selected{path.suffix}")
     else:
         output = Path(output)
 

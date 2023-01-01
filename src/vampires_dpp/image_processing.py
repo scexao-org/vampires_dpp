@@ -92,7 +92,7 @@ def derotate_cube(data: ArrayLike, angles: Union[ArrayLike, float], **kwargs):
 def collapse_file(filename, output=None, skip=False, **kwargs):
     if output is None:
         path = Path(filename)
-        output = path.with_stem(f"{path.stem}_collapsed")
+        output = path.with_name(f"{path.stem}_collapsed{path.suffix}")
     else:
         output = Path(output)
 
