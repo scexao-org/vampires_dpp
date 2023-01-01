@@ -606,7 +606,7 @@ class Pipeline:
                     f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
                 )
 
-                outname = outdir / f"{self.config['name']}_stokes_frames.fits"
+                outname = outdir / f"{self.config['name']}_stokes_cube.fits"
                 if not skip_pdi or not outname.is_file():
                     stokes_cube = polarization_calibration_triplediff_naive(
                         table_filt["path"]
