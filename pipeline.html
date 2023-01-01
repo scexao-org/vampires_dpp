@@ -601,7 +601,7 @@ tail config_debug.log
 </div></blockquote>
 <section id="version">
 <h3>Version<a class="headerlink" href="#version" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
 </pre></div>
 </div>
 <p>The first required option is the <code class="docutils literal notranslate"><span class="pre">version</span></code> which should be set to the same value as your <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> version, which you can get from</p>
@@ -612,29 +612,29 @@ tail config_debug.log
 </section>
 <section id="global-options">
 <h3>Global Options<a class="headerlink" href="#global-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;example&quot;</span>
 </pre></div>
 </div>
 <p>A simple filename-safe name that is used for some automatic naming.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>A <a class="reference external" href="https://simbad.cds.unistra.fr/simbad/">SIMBAD</a>-friendly target name. This will be used for any SIMBAD or Vizier querying.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
 </pre></div>
 </div>
 <p>The absolute path of the top-level data directory</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>absolute path to top-level output directory, if empty will use the root directory</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_files.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_files.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">130</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">130</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]]</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>A list of frame centers for cam1 and cam2 from visual inspection. This is useful in the case that the PSFs are not well-centered in the frame, which can make the windows used for frame selection or image registration poorly positioned.</p>
@@ -647,31 +647,31 @@ tail config_debug.log
 <section id="astrometry-options">
 <h3>Astrometry Options<a class="headerlink" href="#astrometry-options" title="Permalink to this headline">#</a></h3>
 <p>The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the <code class="docutils literal notranslate"><span class="pre">vampires_dpp.constants</span></code>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[astrometry]</span><span class="w"></span>
-<span class="n">pixel_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">6.24</span><span class="w"> </span><span class="c1"># mas/px, optional</span><span class="w"></span>
-<span class="n">pupil_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">140.4</span><span class="w"> </span><span class="c1"># deg, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[astrometry]</span>
+<span class="n">pixel_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">6.24</span><span class="w"> </span><span class="c1"># mas/px, optional</span>
+<span class="n">pupil_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">140.4</span><span class="w"> </span><span class="c1"># deg, optional</span>
 </pre></div>
 </div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[astrometry.coord]</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[astrometry.coord]</span>
 </pre></div>
 </div>
 <p>The coordinates of the object will be updated and proper-motion corrected during calibration. These values can be looked up using the GAIA DR3. If you do not want to look the values, either because you are not connected to the internet or there are no GAIA DR3 entries for your target, you can manually specify the following options</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># sexagesimal hour angles, optional</span><span class="w"></span>
-<span class="n">dec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># sexagesimal degrees, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># sexagesimal hour angles, optional</span>
+<span class="n">dec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># sexagesimal degrees, optional</span>
 </pre></div>
 </div>
 <p>The RA and DEC in sexagesimal. If not provided, will use the RA and DEC in the FITS headers.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">pm_ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas/yr, optional</span><span class="w"></span>
-<span class="n">pm_dec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas/yr, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">pm_ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas/yr, optional</span>
+<span class="n">pm_dec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas/yr, optional</span>
 </pre></div>
 </div>
 <p>Optional proper motions. If not provided, will not be used for calculating the space-motion corrected coordinates.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">plx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">plx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas, optional</span>
 </pre></div>
 </div>
 <p>Optional parallax used to calculate distance</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
-<span class="n">obstime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span>
+<span class="n">obstime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>The frame for the input RA and DEC coordinates. By default will scrape from the FITS headers.</p>
@@ -683,29 +683,29 @@ tail config_debug.log
 <section id="coronagraph-options">
 <h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Permalink to this headline">#</a></h3>
 <p>If you are reducing coronagraphic data, you will need to add the following section</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">94</span><span class="w"> </span><span class="c1"># mas</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">94</span><span class="w"> </span><span class="c1"># mas</span>
 </pre></div>
 </div>
 <p>The coronagraph mask inner working angle (IWA), in mas. The IWAs for the masks are listed on the <a class="reference external" href="https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html">VAMPIRES website</a>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">.</span><span class="n">satellite_spots</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">.</span><span class="n">satellite_spots</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>This section signifies that satellite spots were used and will change how certain reduction steps are done. For frame selection and image registration, the satellite spots will be used instead of the central PSF, which is obscured by the coronagraph.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">15.9</span><span class="w"> </span><span class="c1"># lam/D</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">15.9</span><span class="w"> </span><span class="c1"># lam/D</span>
 </pre></div>
 </div>
 <p>The radius of the satellite spots in lambda/D. This is logged in the CHARIS data but otherwise must be communicated by SCExAO support astronomers.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-4</span><span class="w"> </span><span class="c1"># deg, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-4</span><span class="w"> </span><span class="c1"># deg, optional</span>
 </pre></div>
 </div>
 <p>The angle, in degrees, of the closest satellite spot to the positive x-axis. By default -4 degrees. This should not need changed unless you are using custom satellite spot patterns.</p>
 </section>
 <section id="calibration-options">
 <h3>Calibration Options<a class="headerlink" href="#calibration-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration]</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration]</span>
 </pre></div>
 </div>
 <p>This section will enable standard image calibration of VAMPIRES data. The following steps will occur</p>
@@ -724,11 +724,11 @@ tail config_debug.log
 <li><p>Cam 1 data will be flipped along the y-axis</p></li>
 <li><p>(Advanced) Interleaved polarimetric data will be deinterleaved into two cubes</p></li>
 </ol>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
 </pre></div>
 </div>
 <p>The output directory for the calibrated data. By default, will leave in the same directory as the input data (the root directory).</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>By default, if the output file already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the calibration <em>and all subsequent operations</em> will be redone.</p>
@@ -736,41 +736,41 @@ tail config_debug.log
 <p class="admonition-title">Warning</p>
 <p>If your data starts with <code class="docutils literal notranslate"><span class="pre">VMPA*.fits</span></code> then you should not set this to true!</p>
 </div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">deinterleave</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">deinterleave</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>This is an advanced option for polarimetric data that is downloaded directly from the VAMPIRES computer (i.e., not from the STARS archive). If true, will deinterleave every-other frame into two cubes and will update the FITS header with the <code class="docutils literal notranslate"><span class="pre">U_FLCSTT</span></code> key.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.darks]</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.darks]</span>
 </pre></div>
 </div>
 <p>If this section is set, master dark frames will be created.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
-<span class="w">    </span><span class="s">&quot;darks_5ms_em300_cam1.fits&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="s">&quot;darks_5ms_em300_cam2.fits&quot;</span><span class="w"></span>
-<span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_darks.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="s">&quot;darks_5ms_em300_cam1.fits&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;darks_5ms_em300_cam2.fits&quot;</span>
+<span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_darks.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>By default, if the master dark already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the master dark <em>and all subsequent operations</em> will be redone.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.flats]</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.flats]</span>
 </pre></div>
 </div>
 <p>If this section is set, master flat frames will be created. If <code class="docutils literal notranslate"><span class="pre">[calibration.darks]</span></code> is also set, these flat frames will be dark-subtracted.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
-<span class="w">    </span><span class="s">&quot;flats_em300_cam1.fits&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="s">&quot;flats_em300_cam2.fits&quot;</span><span class="w"></span>
-<span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_flats.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;flats/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="s">&quot;flats_em300_cam1.fits&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;flats_em300_cam2.fits&quot;</span>
+<span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_flats.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;flats/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>By default, if the master flat already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the master flat <em>and all subsequent operations</em> will be redone.</p>
@@ -781,23 +781,23 @@ tail config_debug.log
 </section>
 <section id="frame-selection-options">
 <h3>Frame Selection Options<a class="headerlink" href="#frame-selection-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">frame_selection</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">frame_selection</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>Frame selection is an optional step that can measure the image quality metrics and optionally discard frames with metrics below a certain quantile.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>Frame selection metric, one of “max”, “l2norm”, or “normvar”. By default “l2norm”.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>Frame selection quantile [0, 1). A value of 0 means no frames will be discarded (and we skip the step), and a value of 1 would discard all the frames. For example, to discard the lowest scoring 30% of frames based on the frame selection metric set <code class="docutils literal notranslate"><span class="pre">q</span> <span class="pre">=</span> <span class="pre">0.3</span></code>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="c1"># pixels, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="c1"># pixels, optional</span>
 </pre></div>
 </div>
 <p>The frame selection metric is measured in a window for speed. In non-coronagraphic data this is a window around the frame center, and in coronagraphic data this is the window around each satellite spot.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
 </pre></div>
 </div>
 <p>The output directory for the metrics and frame-selected data. By default, will leave in the same directory as the input data (the root directory).</p>
@@ -812,25 +812,25 @@ tail config_debug.log
 </section>
 <section id="image-registration-options">
 <h3>Image Registration Options<a class="headerlink" href="#image-registration-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">registration</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">registration</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>Image registration is an optional step that can measure the offset of the stellar PSF from the geometric frame center and co-align the frames.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>Registration offset measurement method, one of “peak”, “com”, “dft”, “moffat”, “airydisk”, “gaussian”. By default “com” for coronagraphic data and “peak” for non-coronagraphic data.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">registration</span><span class="p">.</span><span class="n">dft</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
-<span class="n">upsample_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
-<span class="n">reference_method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">registration</span><span class="p">.</span><span class="n">dft</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
+<span class="n">upsample_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="c1"># optional</span>
+<span class="n">reference_method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>Extra options for the cross-correlation registration method. See <code class="docutils literal notranslate"><span class="pre">measure_offsets</span></code> for more details.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="c1"># pixels, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="c1"># pixels, optional</span>
 </pre></div>
 </div>
 <p>The PSF offsets are measured in a window for speed. In non-coronagraphic data this is a window around the frame center, and in coronagraphic data this is the window around each satellite spot.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
 </pre></div>
 </div>
 <p>The output directory for the offsets and aligned data. By default, will leave in the same directory as the input data (the root directory).</p>
@@ -845,11 +845,11 @@ tail config_debug.log
 </section>
 <section id="collapsing-options">
 <h3>Collapsing Options<a class="headerlink" href="#collapsing-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">collapsing</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">collapsing</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>If this section is set, the data cubes will be median-combined along the time axis.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
 </pre></div>
 </div>
 <p>The output directory for the collapsed data. By default, will leave in the same directory as the input data (the root directory).</p>
@@ -864,11 +864,11 @@ tail config_debug.log
 </section>
 <section id="derotation-options">
 <h3>Derotation Options<a class="headerlink" href="#derotation-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">derotate</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">derotate</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>If this section is set, the collapsed data will be derotated to North up, East left.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
 </pre></div>
 </div>
 <p>The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).</p>
@@ -883,15 +883,15 @@ tail config_debug.log
 </section>
 <section id="polarimetry-options">
 <h3>Polarimetry Options<a class="headerlink" href="#polarimetry-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry]</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry]</span>
 </pre></div>
 </div>
 <p>If this section is set, polarimetric differential imaging (PDI) will be carried out on the derotated frames.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;mueller&quot;</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;mueller&quot;</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>The PDI method, one of “mueller” or “triplediff”. In both cases, we use Mueller calculus to construct the cubes, which allows us to utilize all of the frames, rather than only complete HWP cycles.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
 </pre></div>
 </div>
 <p>The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).</p>
@@ -899,13 +899,13 @@ tail config_debug.log
 </pre></div>
 </div>
 <p>By default, if the Stokes cube already exists the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the polarimetric calibration, <em>and all subsequent operations</em> will be redone.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry.ip]</span><span class="w"></span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="c1"># px, optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry.ip]</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="c1"># px, optional</span>
 </pre></div>
 </div>
 <p>If this section is set, instrumental polarization (IP) will be removed from the constructed Stokes cube. By default, it will measure the IP contributions inside a frame-centered circular aperture with radius <code class="docutils literal notranslate"><span class="pre">radius</span></code>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">cQ</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
-<span class="n">cU</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">cQ</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span>
+<span class="n">cU</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
 <p>The I -&gt; Q and I -&gt; U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.</p>
@@ -924,120 +924,120 @@ tail config_debug.log
 <p>Here are some simple examples of configuration files for various observing scenarios. These do not make use of all the features, and make some assumptions about how the data is laid out that you are encouraged to tweak to your liking.</p>
 <details>
 <summary>Non-coronagraphic Polarimetric Imaging</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
 
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
-<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span><span class="w"></span>
-<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320/processed&quot;</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span>
+<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320/processed&quot;</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span>
 
-<span class="k">[calibration]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span><span class="w"></span>
+<span class="k">[calibration]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
 
-<span class="k">[calibration.darks]</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span><span class="w"></span>
+<span class="k">[calibration.darks]</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span>
 
-<span class="k">[frame_selection]</span><span class="w"></span>
-<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span><span class="w"></span>
-<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span><span class="w"></span>
+<span class="k">[frame_selection]</span>
+<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span>
+<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
 
-<span class="k">[registration]</span><span class="w"></span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span><span class="w"></span>
+<span class="k">[registration]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 
-<span class="k">[collapsing]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span><span class="w"></span>
+<span class="k">[collapsing]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
 
-<span class="k">[derotate]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span><span class="w"></span>
+<span class="k">[derotate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span>
 
-<span class="k">[polarimetry]</span><span class="w"></span>
-<span class="n">method</span><span class="o">=</span><span class="s">&quot;mueller&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span><span class="w"></span>
+<span class="k">[polarimetry]</span>
+<span class="n">method</span><span class="o">=</span><span class="s">&quot;mueller&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span>
 
-<span class="k">[polarimetry.ip]</span><span class="w"></span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"></span>
+<span class="k">[polarimetry.ip]</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
 </pre></div>
 </div>
 </details>
 <details>
 <summary>Coronagraphic Polarimetric Imaging</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
 
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span><span class="w"></span>
-<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span><span class="w"></span>
-<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224/processed&quot;</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
-<span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]]</span><span class="w"></span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span>
+<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224/processed&quot;</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span>
+<span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]]</span>
 
-<span class="k">[coronagraph]</span><span class="w"></span>
-<span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">58</span><span class="w"> </span><span class="c1"># mas</span><span class="w"></span>
+<span class="k">[coronagraph]</span>
+<span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">58</span><span class="w"> </span><span class="c1"># mas</span>
 
-<span class="k">[coronagraph.satellite_spots]</span><span class="w"></span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">31.8</span><span class="w"> </span><span class="c1"># lam/D</span><span class="w"></span>
+<span class="k">[coronagraph.satellite_spots]</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">31.8</span><span class="w"> </span><span class="c1"># lam/D</span>
 
-<span class="k">[calibration]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span><span class="w"></span>
+<span class="k">[calibration]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
 
-<span class="k">[calibration.darks]</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span><span class="w"></span>
+<span class="k">[calibration.darks]</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span>
 
-<span class="k">[frame_selection]</span><span class="w"></span>
-<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span><span class="w"></span>
-<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.3</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span><span class="w"></span>
+<span class="k">[frame_selection]</span>
+<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span>
+<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.3</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
 
-<span class="k">[registration]</span><span class="w"></span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span><span class="w"></span>
+<span class="k">[registration]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 
-<span class="k">[collapsing]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span><span class="w"></span>
+<span class="k">[collapsing]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
 
-<span class="k">[derotate]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span><span class="w"></span>
+<span class="k">[derotate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span>
 
-<span class="k">[polarimetry]</span><span class="w"></span>
-<span class="n">method</span><span class="o">=</span><span class="s">&quot;mueller&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span><span class="w"></span>
+<span class="k">[polarimetry]</span>
+<span class="n">method</span><span class="o">=</span><span class="s">&quot;mueller&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span>
 
-<span class="k">[polarimetry.ip]</span><span class="w"></span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span><span class="w"></span>
+<span class="k">[polarimetry.ip]</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span>
 </pre></div>
 </div>
 </details>
 <details>
 <summary>Single Camera Speckle Imaging</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
 
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;single_cam_example&quot;</span><span class="w"></span>
-<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;processed&quot;</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"></span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;single_cam_example&quot;</span>
+<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;processed&quot;</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span>
 
-<span class="k">[calibration]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span><span class="w"></span>
+<span class="k">[calibration]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
 
-<span class="k">[calibration.darks]</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;darks/VMPA013889.fits&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="k">[calibration.darks]</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;darks/VMPA013889.fits&quot;</span><span class="p">]</span>
 
-<span class="k">[frame_selection]</span><span class="w"></span>
-<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span><span class="w"></span>
-<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span><span class="w"></span>
+<span class="k">[frame_selection]</span>
+<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span>
+<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
 
-<span class="k">[registration]</span><span class="w"></span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span><span class="w"></span>
+<span class="k">[registration]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 
-<span class="k">[collapsing]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span><span class="w"></span>
+<span class="k">[collapsing]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
 
-<span class="k">[derotate]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span><span class="w"></span>
+<span class="k">[derotate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span>
 </pre></div>
 </div>
 </details></section>
@@ -1074,7 +1074,7 @@ tail config_debug.log
   
     By Miles Lucas<br/>
   
-      &copy; Copyright 2022, Miles Lucas.<br/>
+      &copy; Copyright 2022, 2023, Miles Lucas.<br/>
 </p>
         </footer>
     </div>

@@ -414,32 +414,32 @@ zenodo_get([&quot;10.5281/zenodo.7359198&quot;, &quot;-o&quot;, datadir.parent.a
 <p>We will use the pipeline to process our data, making sure to set the <code class="docutils literal notranslate"><span class="pre">[polarimetry]</span></code> section. The below is the configuration file used for the pipeline-</p>
 <details>
 <summary>hip58234_20220225_config.toml</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.2.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
 
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;hip58234_20220225&quot;</span><span class="w"></span>
-<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;HIP 58234&quot;</span><span class="w"></span>
-<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/hip58234_20220225&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/hip58234_20220225/processed&quot;</span><span class="w"></span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;HIP58234*.fits&quot;</span><span class="w"></span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;hip58234_20220225&quot;</span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;HIP 58234&quot;</span>
+<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/hip58234_20220225&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/hip58234_20220225/processed&quot;</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;HIP58234*.fits&quot;</span>
 
-<span class="k">[calibration]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span><span class="w"></span>
+<span class="k">[calibration]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
 
-<span class="k">[frame_selection]</span><span class="w"></span>
-<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span><span class="w"></span>
+<span class="k">[frame_selection]</span>
+<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span>
 
-<span class="k">[registration]</span><span class="w"></span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;dft&quot;</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span><span class="w"></span>
+<span class="k">[registration]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;dft&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 
-<span class="k">[registration.dft]</span><span class="w"></span>
-<span class="n">updample_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="w"></span>
+<span class="k">[registration.dft]</span>
+<span class="n">updample_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
 
-<span class="k">[collapsing]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span><span class="w"></span>
+<span class="k">[collapsing]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
 
-<span class="k">[derotate]</span><span class="w"></span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span><span class="w"></span>
+<span class="k">[derotate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span>
 </pre></div>
 </div>
 </details><div class="cell docutils container">
@@ -459,20 +459,20 @@ pipeline.run()
 <span class="ne">----&gt; </span><span class="mi">3</span> <span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hip58234_20220225_config.toml&quot;</span><span class="p">)</span>
 <span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:115,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
-<span class="g g-Whitespace">     </span><span class="mi">96</span> <span class="nd">@classmethod</span>
-<span class="g g-Whitespace">     </span><span class="mi">97</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
-<span class="g g-Whitespace">     </span><span class="mi">98</span>     <span class="sd">&quot;&quot;&quot;</span>
-<span class="g g-Whitespace">     </span><span class="mi">99</span><span class="sd">     Load configuration from TOML file</span>
-<span class="g g-Whitespace">    </span><span class="mi">100</span><span class="sd"> </span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:119,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
+<span class="g g-Whitespace">    </span><span class="mi">100</span> <span class="nd">@classmethod</span>
+<span class="g g-Whitespace">    </span><span class="mi">101</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<span class="g g-Whitespace">    </span><span class="mi">102</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">103</span><span class="sd">     Load configuration from TOML file</span>
+<span class="g g-Whitespace">    </span><span class="mi">104</span><span class="sd"> </span>
 <span class="sd">   (...)</span>
-<span class="g g-Whitespace">    </span><span class="mi">113</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
-<span class="g g-Whitespace">    </span><span class="mi">114</span><span class="sd">     &quot;&quot;&quot;</span>
-<span class="ne">--&gt; </span><span class="mi">115</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">116</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">117</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
+<span class="g g-Whitespace">    </span><span class="mi">118</span><span class="sd">     &quot;&quot;&quot;</span>
+<span class="ne">--&gt; </span><span class="mi">119</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">120</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
 <span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/toml/decoder.py:133,</span> in <span class="ni">load</span><span class="nt">(f, _dict, decoder)</span>
-<span class="g g-Whitespace">    </span><span class="mi">114</span> <span class="sd">&quot;&quot;&quot;Parses named file or files as toml and returns a dictionary</span>
+<span class="g g-Whitespace">    </span><span class="mi">114</span><span class="w"> </span><span class="sd">&quot;&quot;&quot;Parses named file or files as toml and returns a dictionary</span>
 <span class="g g-Whitespace">    </span><span class="mi">115</span><span class="sd"> </span>
 <span class="g g-Whitespace">    </span><span class="mi">116</span><span class="sd"> Args:</span>
 <span class="sd">   (...)</span>
@@ -538,7 +538,7 @@ star_a = models.Moffat2D(x_0=256.5, y_0=250, gamma=4, )
   
     By Miles Lucas<br/>
   
-      &copy; Copyright 2022, Miles Lucas.<br/>
+      &copy; Copyright 2022, 2023, Miles Lucas.<br/>
 </p>
         </footer>
     </div>

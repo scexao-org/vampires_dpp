@@ -409,23 +409,23 @@ title="Print to PDF"
 <p><code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> requires at least python 3.7</p>
 </aside>
 <p>For now, install directly from GitHub</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -U git+https://github.com/scexao-org/vampires_dpp.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>git+https://github.com/scexao-org/vampires_dpp.git
 </pre></div>
 </div>
 </section>
 <section id="from-source">
 <h2>From Source<a class="headerlink" href="#from-source" title="Permalink to this headline">#</a></h2>
 <p>The source code for <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> can be downloaded and installed <a class="reference external" href="https://github.com/scexao-org/vampires_dpp">from GitHub</a> by running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/scexao-org/vampires_dpp
-<span class="nb">cd</span> vampires_dpp
-pip install -e .
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/scexao-org/vampires_dpp
+<span class="nb">cd</span><span class="w"> </span>vampires_dpp
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 </section>
 <section id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">#</a></h2>
 <p>To run the unit tests, install the development dependencies using pip:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e .<span class="o">[</span>test<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>test<span class="o">]</span>
 </pre></div>
 </div>
 <p>and then execute:</p>
@@ -437,8 +437,8 @@ pip install -e .
 <section id="contributing">
 <h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">#</a></h2>
 <p>If you would like to contribute, first off, thank you! To get started, you should install our git <a class="reference external" href="https://pre-commit.com/">pre-commit hooks</a> which autoformat the repository. After you have <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> installed, run</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> vampires_dpp
-pre-commit install
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>vampires_dpp
+pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
 <p>and you’re all set! Now whenever you <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code> the source files will be autoformatted using <a class="reference external" href="https://github.com/psf/black"><code class="docutils literal notranslate"><span class="pre">black</span></code></a>.</p>
@@ -447,11 +447,11 @@ pre-commit install
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">#</a></h2>
 <p>To build these docs locally, first install the documentation dependencies</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e .<span class="o">[</span>docs<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
 </pre></div>
 </div>
 <p>Then, run the <a class="reference external" href="https://www.sphinx-doc.org/en/master/">sphinx</a> make script</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sphinx-build docs docs/_build
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sphinx-build<span class="w"> </span>docs<span class="w"> </span>docs/_build
 </pre></div>
 </div>
 </section>
@@ -488,7 +488,7 @@ pre-commit install
   
     By Miles Lucas<br/>
   
-      &copy; Copyright 2022, Miles Lucas.<br/>
+      &copy; Copyright 2022, 2023, Miles Lucas.<br/>
 </p>
         </footer>
     </div>

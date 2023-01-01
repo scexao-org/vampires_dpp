@@ -30,20 +30,20 @@ Cell [0;32mIn[3], line 3[0m
 [0;32m----> 3[0m pipeline [38;5;241m=[39m [43mPipeline[49m[38;5;241;43m.[39;49m[43mfrom_file[49m[43m([49m[43mdatadir[49m[43m [49m[38;5;241;43m/[39;49m[43m [49m[38;5;124;43m"[39;49m[38;5;124;43mhip58234_20220225_config.toml[39;49m[38;5;124;43m"[39;49m[43m)[49m
 [1;32m      4[0m pipeline[38;5;241m.[39mrun()
 
-File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:115[0m, in [0;36mPipeline.from_file[0;34m(cls, filename)[0m
-[1;32m     96[0m [38;5;129m@classmethod[39m
-[1;32m     97[0m [38;5;28;01mdef[39;00m [38;5;21mfrom_file[39m([38;5;28mcls[39m, filename: PathLike):
-[1;32m     98[0m     [38;5;124;03m"""[39;00m
-[1;32m     99[0m [38;5;124;03m    Load configuration from TOML file[39;00m
-[1;32m    100[0m 
+File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:119[0m, in [0;36mPipeline.from_file[0;34m(cls, filename)[0m
+[1;32m    100[0m [38;5;129m@classmethod[39m
+[1;32m    101[0m [38;5;28;01mdef[39;00m [38;5;21mfrom_file[39m([38;5;28mcls[39m, filename: PathLike):
+[1;32m    102[0m [38;5;250m    [39m[38;5;124;03m"""[39;00m
+[1;32m    103[0m [38;5;124;03m    Load configuration from TOML file[39;00m
+[1;32m    104[0m 
 [0;32m   (...)[0m
-[1;32m    113[0m [38;5;124;03m    >>> Pipeline.from_file("config.toml")[39;00m
-[1;32m    114[0m [38;5;124;03m    """[39;00m
-[0;32m--> 115[0m     config [38;5;241m=[39m [43mtoml[49m[38;5;241;43m.[39;49m[43mload[49m[43m([49m[43mfilename[49m[43m)[49m
-[1;32m    116[0m     [38;5;28;01mreturn[39;00m [38;5;28mcls[39m(config)
+[1;32m    117[0m [38;5;124;03m    >>> Pipeline.from_file("config.toml")[39;00m
+[1;32m    118[0m [38;5;124;03m    """[39;00m
+[0;32m--> 119[0m     config [38;5;241m=[39m [43mtoml[49m[38;5;241;43m.[39;49m[43mload[49m[43m([49m[43mfilename[49m[43m)[49m
+[1;32m    120[0m     [38;5;28;01mreturn[39;00m [38;5;28mcls[39m(config)
 
 File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/toml/decoder.py:133[0m, in [0;36mload[0;34m(f, _dict, decoder)[0m
-[1;32m    114[0m [38;5;124;03m"""Parses named file or files as toml and returns a dictionary[39;00m
+[1;32m    114[0m [38;5;250m[39m[38;5;124;03m"""Parses named file or files as toml and returns a dictionary[39;00m
 [1;32m    115[0m 
 [1;32m    116[0m [38;5;124;03mArgs:[39;00m
 [0;32m   (...)[0m
