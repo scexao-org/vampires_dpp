@@ -571,6 +571,7 @@ If you use VSCode you can create a custom task which will run the processing pip
 
 <details>
 <summary>tasks.json</summary>
+
 ```json
 {
     "version": "2.0.0",

@@ -1057,27 +1057,27 @@ tail config_debug.log
 <p>If you use VSCode you can create a custom task which will run the processing pipeline given a configuration TOML file. To enable this, open VSCode into a working directory. From here copy the following JSON configuration into <code class="docutils literal notranslate"><span class="pre">.vscode/tasks.json</span></code></p>
 <details>
 <summary>tasks.json</summary>
-```json
-{
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "vpp",
-            "type": "shell",
-            "command": "${command:python.interpreterPath}",
-            "args": ["-m", "vampires_dpp.cli.vpp", "${file}"],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
-            "presentation": {
-                "reveal": "silent",
-                "panel": "new"
-            },
-            "problemMatcher": []
-        }
-    ]
-}
-```
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tasks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vpp&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shell&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${command:python.interpreterPath}&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;vampires_dpp.cli.vpp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${file}&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;cwd&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${fileDirname}&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;presentation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;reveal&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;silent&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;panel&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;new&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;problemMatcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </details>
 <div class="tip admonition">
 <p class="admonition-title">User-level settings</p>
