@@ -564,3 +564,40 @@ output_directory = "collapsed"
 output_directory = "derotated"
 ```
 </details>
+
+## VSCode Integration
+
+If you use VSCode you can create a custom task which will run the processing pipeline given a configuration TOML file. To enable this, open VSCode into a working directory. From here copy the following JSON configuration into `.vscode/tasks.json`
+
+<details>
+<summary>tasks.json</summary>
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "vpp ${fileBasename}",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": ["-m", "vampires_dpp.cli.vpp", "${file}"],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
+```
+</details>
+
+```{admonition} User-level settings
+:class: tip
+
+If you want to enable this task for all VSCode sessions, and not on a directory-by-directory basis, you can add it to your user-level settings. To do this, hit `Cmd/Ctrl+Shift+p` to bring up the command palette. Type "open user tasks" and choose the "Tasks: Open User Tasks" command. Then, paste the JSON from above into this file.
+```
+
+To use the task, open a TOML file configured for use with the pipeline and hit `Terminal > Run Task` (or the same command from the command palette). Choose 

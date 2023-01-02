@@ -242,7 +242,9 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
 
     N_hwp_sets = len(filenames) // 16
     with fits.open(filenames.iloc[0]) as hdus:
-        stokes_cube = np.zeros(shape=(4, N_hwp_sets, *hdus[0].shape), dtype="f4")
+        stokes_cube = np.zeros(
+            shape=(4, N_hwp_sets, *hdus[0].shape), dtype=hdus[0].data.dtype
+        )
     angles = triplediff_average_angles(filenames)
     iter = tqdm.trange(N_hwp_sets, desc="Triple-differential calibration")
     for i in iter:
