@@ -576,7 +576,7 @@ If you use VSCode you can create a custom task which will run the processing pip
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "vpp ${fileBasename}",
+            "label": "vpp",
             "type": "shell",
             "command": "${command:python.interpreterPath}",
             "args": ["-m", "vampires_dpp.cli.vpp", "${file}"],
