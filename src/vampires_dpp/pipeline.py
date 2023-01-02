@@ -298,7 +298,7 @@ class Pipeline:
                     continue
             raw_cube, header = fits.getdata(filename, header=True)
             cube = filter_empty_frames(raw_cube)
-            if cube.shape[0] < raw_cube.shape[0] / 2:
+            if cube.shape[0] < raw_cube.shape[0] / 2 or cube.shape[0] < 3:
                 self.logger.warning(
                     f"{filename} will be discarded since it is majority empty frames"
                 )
