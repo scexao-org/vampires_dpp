@@ -422,6 +422,11 @@ title="Print to PDF"
    Examples
   </a>
  </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#vscode-integration">
+   VSCode Integration
+  </a>
+ </li>
 </ul>
 
     </nav>
@@ -550,6 +555,11 @@ title="Print to PDF"
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#examples">
    Examples
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#vscode-integration">
+   VSCode Integration
   </a>
  </li>
 </ul>
@@ -1040,7 +1050,41 @@ tail config_debug.log
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span>
 </pre></div>
 </div>
-</details></section>
+</details>
+</section>
+<section id="vscode-integration">
+<h2>VSCode Integration<a class="headerlink" href="#vscode-integration" title="Permalink to this headline">#</a></h2>
+<p>If you use VSCode you can create a custom task which will run the processing pipeline given a configuration TOML file. To enable this, open VSCode into a working directory. From here copy the following JSON configuration into <code class="docutils literal notranslate"><span class="pre">.vscode/tasks.json</span></code></p>
+<details>
+<summary>tasks.json</summary>
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "vpp",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": ["-m", "vampires_dpp.cli.vpp", "${file}"],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
+```
+</details>
+<div class="tip admonition">
+<p class="admonition-title">User-level settings</p>
+<p>If you want to enable this task for all VSCode sessions, and not on a directory-by-directory basis, you can add it to your user-level settings. To do this, hit <code class="docutils literal notranslate"><span class="pre">Cmd/Ctrl+Shift+p</span></code> to bring up the command palette. Type “open user tasks” and choose the “Tasks: Open User Tasks” command. Then, paste the JSON from above into this file.</p>
+</div>
+<p>To use the task, open a TOML file configured for use with the pipeline and hit <code class="docutils literal notranslate"><span class="pre">Terminal</span> <span class="pre">&gt;</span> <span class="pre">Run</span> <span class="pre">Task</span></code> (or the same command from the command palette). Choose</p>
+</section>
 </section>
 
 
