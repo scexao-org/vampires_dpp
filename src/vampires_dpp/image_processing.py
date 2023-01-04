@@ -21,14 +21,7 @@ def shift_frame_fft(data: ArrayLike, shift):
 
 def shift_frame(data: ArrayLike, shift, **kwargs):
     M = np.float32(((1, 0, shift[1]), (0, 1, shift[0])))
-    shape = (data.shape[1], data.shape[0])
-    default_kwargs = {
-        "flags": cv2.INTER_CUBIC,
-        "borderMode": cv2.BORDER_CONSTANT,
-        "borderValue": np.nan,
-    }
-    default_kwargs.update(**kwargs)
-    return cv2.warpAffine(data.astype("f4"), M, shape, **default_kwargs)
+    return distort_frame(data, **kwargs)
 
 
 def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
@@ -51,14 +44,7 @@ def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
     if center is None:
         center = frame_center(data)
     M = cv2.getRotationMatrix2D(center[::-1], -angle, 1)
-    shape = (data.shape[1], data.shape[0])
-    default_kwargs = {
-        "flags": cv2.INTER_CUBIC,
-        "borderMode": cv2.BORDER_CONSTANT,
-        "borderValue": np.nan,
-    }
-    default_kwargs.update(**kwargs)
-    return cv2.warpAffine(data.astype("f4"), M, shape, **default_kwargs)
+    return distort_frame(data, M, **kwargs)
 
 
 def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
@@ -66,14 +52,18 @@ def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
         center = frame_center(data)
     M = cv2.getRotationMatrix2D(center[::-1], -angle, 1)
     M[::-1, 2] += shift
-    shape = (data.shape[1], data.shape[0])
+    return distort_frame(data, M, **kwargs)
+
+
+def distort_frame(data: ArrayLike, matrix, **kwargs):
     default_kwargs = {
         "flags": cv2.INTER_CUBIC,
         "borderMode": cv2.BORDER_CONSTANT,
         "borderValue": np.nan,
     }
     default_kwargs.update(**kwargs)
-    return cv2.warpAffine(data.astype("f4"), M, shape, **default_kwargs)
+    shape = (data.shape[1], data.shape[0])
+    return cv2.warpAffine(data.astype("f4"), matrix, shape, **default_kwargs)
 
 
 def derotate_cube(data: ArrayLike, angles: Union[ArrayLike, float], **kwargs):
@@ -193,7 +183,7 @@ def frame_angles(frame: ArrayLike, center=None):
     if center is None:
         center = frame_center(frame)
     Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
-    # thetas = np.arctan2(center[1] - Xs, Ys - center[0])
+    # y flip + x flip
     thetas = np.arctan2(Xs - center[1], center[0] - Ys)
     return thetas
 

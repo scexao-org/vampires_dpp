@@ -26,6 +26,7 @@ from vampires_dpp.image_processing import (
     derotate_frame,
     combine_frames_files,
     collapse_file,
+    distort_frame,
 )
 from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.polarization import (
@@ -34,9 +35,7 @@ from vampires_dpp.polarization import (
     measure_instpol,
     instpol_correct,
     polarization_calibration_triplediff_naive,
-    triplediff_average_angles,
-    radial_stokes,
-    collapse_stokes_cube,
+    write_stokes_products,
 )
 from vampires_dpp.indexing import lamd_to_pixel
 from vampires_dpp.util import pol_inds
@@ -352,19 +351,19 @@ class Pipeline:
         table = observation_table(working_files).sort_values("DATE")
         working_files = [working_files[i] for i in table.index]
         table_name = output / f"{self.config['name']}_headers.csv"
-        if not table_name.is_file():
-            table.to_csv(table_name)
-            self.logger.debug(f"Saved table of headers to {table_name.absolute()}")
+        # if not table_name.is_file():
+        table.to_csv(table_name)
+        self.logger.debug(f"Saved table of headers to {table_name.absolute()}")
 
         # save derotation angle vector
         pa_name = output / f"{self.config['name']}_derot_angles.fits"
-        if not pa_name.is_file():
-            fits.writeto(
-                pa_name,
-                np.array(table["D_IMRPAD"] + pupil_offset, "f4"),
-                overwrite=True,
-            )
-            self.logger.debug(f"Saved derotation angle vector to {pa_name.absolute()}")
+        # if not pa_name.is_file():
+        fits.writeto(
+            pa_name,
+            np.array(table["D_IMRPAD"] + pupil_offset, "f4"),
+            overwrite=True,
+        )
+        self.logger.debug(f"Saved derotation angle vector to {pa_name.absolute()}")
 
         self.logger.info("Data calibration completed")
 
@@ -542,15 +541,106 @@ class Pipeline:
                 fits.writeto(outname, frame, header=header, overwrite=True)
                 self.logger.debug(f"saved collapsed data to {outname.absolute()}")
             collapse_files = working_files.copy()
-            # generate cube
-            outname = outdir / f"{self.config['name']}_collapsed_cube.fits"
-            cube_file = combine_frames_files(
-                working_files, output=outname, skip=skip_collapse
-            )
+            for camidx in (1, 2):
+                cam_tbl = table.query(f"U_CAMERA == {camidx}")
+                cam_files = [working_files[i] for i in cam_tbl.index]
+                # generate cube
+                outname = (
+                    outdir / f"{self.config['name']}_cam{camidx}_collapsed_cube.fits"
+                )
+                collapse_cube_file = combine_frames_files(
+                    cam_files, output=outname, skip=False
+                )
+                self.logger.debug(
+                    f"saved collapsed cube to {collapse_cube_file.absolute()}"
+                )
+                # derot angles
+                derot_angles = np.array(cam_tbl["D_IMRPAD"] + pupil_offset, "f4")
+                outname = (
+                    outdir
+                    / f"{self.config['name']}_cam{camidx}_collapsed_derot_angles.fits"
+                )
+                fits.writeto(outname, derot_angles, overwrite=True)
+                self.logger.debug(f"saved derot angles to {outname.absolute()}")
             self.logger.info("Finished collapsing frames")
 
+        if "rescale" in self.config:
+            if "collapsing" not in self.config:
+                raise ValueError("Cannot do rescaling without collapsing data.")
+            self.logger.info("Rescaling frames")
+            rescale_config = self.config["rescale"]
+
+            outdir = output / rescale_config.get("output_directory", "")
+            if not outdir.is_dir():
+                outdir.mkdir(parents=True, exist_ok=True)
+            self.logger.debug(f"saving rescaled data to {outdir.absolute()}")
+            skip_rescale = not tripwire and not rescale_config.get("force", False)
+            if skip_rescale:
+                self.logger.debug("skipping scaling frames if files exist")
+            tripwire = tripwire or not skip_rescale
+
+            M = np.asarray(
+                (
+                    (1.01707649e00, -3.10675619e-03, -3.56926672e00),
+                    (3.10675619e-03, 1.01707649e00, -5.15681913e00),
+                ),
+                "f4",
+            )
+            for i in tqdm.trange(len(working_files), desc="Derotating frames"):
+                filename = working_files[i]
+                outname = outdir / f"{filename.stem}_scaled{filename.suffix}"
+                working_files[i] = outname
+                if skip_rescale and outname.is_file():
+                    continue
+                self.logger.debug(f"rescaling {filename.absolute}")
+                frame, hdr = fits.getdata(filename, header=True)
+                if table.iloc[i]["U_CAMERA"] == 1:
+                    rescaled_frame = distort_frame(frame, M)
+                    hdr["VPP_DXX"] = M[0, 0], "similarity transform X -> X"
+                    hdr["VPP_DXY"] = M[0, 1], "similarity transform X -> Y"
+                    hdr["VPP_DXZ"] = M[0, 2], "similarity transform X -> Z"
+                    hdr["VPP_DYX"] = M[1, 0], "similarity transform Y -> X"
+                    hdr["VPP_DYY"] = M[1, 1], "similarity transform Y -> Y"
+                    hdr["VPP_DYZ"] = M[1, 2], "similarity transform Y -> Z"
+                else:
+                    rescaled_frame = frame
+                    hdr["VPP_DXX"] = 1, "similarity transform X -> X"
+                    hdr["VPP_DXY"] = 0, "similarity transform X -> Y"
+                    hdr["VPP_DXZ"] = 0, "similarity transform X -> Z"
+                    hdr["VPP_DYX"] = 0, "similarity transform Y -> X"
+                    hdr["VPP_DYY"] = 0, "similarity transform Y -> Y"
+                    hdr["VPP_DYZ"] = 0, "similarity transform Y -> Z"
+                fits.writeto(outname, rescaled_frame, header=hdr, overwrite=True)
+                self.logger.debug(f"saved rescaled data to {outname.absolute()}")
+
+            rescaled_files = working_files.copy()
+            for camidx in (1, 2):
+                cam_tbl = table.query(f"U_CAMERA == {camidx}")
+                cam_files = [working_files[i] for i in cam_tbl.index]
+                # generate cube
+                outname = (
+                    outdir
+                    / f"{self.config['name']}_cam{camidx}_collapsed_scaled_cube.fits"
+                )
+                rescale_cube_file = combine_frames_files(
+                    cam_files, output=outname, skip=False
+                )
+                self.logger.debug(
+                    f"saved rescaled cube to {rescale_cube_file.absolute()}"
+                )
+                # derot angles
+                derot_angles = np.array(cam_tbl["D_IMRPAD"] + pupil_offset, "f4")
+                outname = (
+                    outdir
+                    / f"{self.config['name']}_cam{camidx}_collapsed_scaled_derot_angles.fits"
+                )
+                fits.writeto(outname, derot_angles, overwrite=True)
+                self.logger.debug(f"saved derot angles to {outname.absolute()}")
+
+            self.logger.info("Finished rescaling frames")
+
         if "derotate" in self.config:
-            self.logger.info("Derotating collapsed frames")
+            self.logger.info("Derotating frames")
             outdir = output / self.config["derotate"].get("output_directory", "")
             if not outdir.is_dir():
                 outdir.mkdir(parents=True, exist_ok=True)
@@ -575,15 +665,26 @@ class Pipeline:
                 self.logger.debug(f"saved derotated data to {outname.absolute()}")
 
             # generate derotated cube
-            outname = outdir / f"{self.config['name']}_derot_cube.fits"
-            derot_file = combine_frames_files(
-                working_files, output=outname, skip=skip_derot, wcs=True
-            )
+            for camidx in (1, 2):
+                cam_tbl = table.query(f"U_CAMERA == {camidx}")
+                cam_files = [working_files[i] for i in cam_tbl.index]
+                # generate cube
+                outname = (
+                    outdir
+                    / f"{self.config['name']}_cam{camidx}_collapsed_scaled_derot_cube.fits"
+                )
+                derot_cube_file = combine_frames_files(
+                    cam_files, output=outname, skip=False
+                )
+                self.logger.debug(
+                    f"saved derotated cube to {derot_cube_file.absolute()}"
+                )
+
             self.logger.info("Finished derotating frames")
 
         if "polarimetry" in self.config:
-            if "derotate" not in self.config:
-                raise ValueError("Cannot do PDI without derotating data.")
+            if "rescale" not in self.config:
+                raise ValueError("Cannot do PDI without rescaling data.")
             self.logger.info("Performing polarimetric calibration")
             outdir = output / self.config["polarimetry"].get("output_directory", "")
             if not outdir.is_dir():
@@ -595,7 +696,6 @@ class Pipeline:
             if skip_pdi:
                 self.logger.debug("skipping PDI if files exist")
             tripwire = tripwire or not skip_pdi
-
             pol_method = self.config["polarimetry"].get("method", "triplediff")
             if pol_method == "triplediff":
                 # sort table
@@ -611,14 +711,24 @@ class Pipeline:
                     stokes_cube = polarization_calibration_triplediff_naive(
                         table_filt["path"]
                     )
-                    fits.writeto(outname, stokes_cube, overwrite=True)
-                    self.logger.debug(f"saved Stokes cube to {outname.absolute()}")
                     stokes_cube_file = outname
+                    write_stokes_products(
+                        stokes_cube, outname=stokes_cube_file, skip=False
+                    )
+                    self.logger.debug(f"saved Stokes cube to {outname.absolute()}")
             elif pol_method == "mueller":
+                # sort table
+                table = observation_table(working_files).sort_values("DATE")
+                inds = pol_inds(table["U_HWPANG"], 4)
+                table_filt = table.loc[inds]
+                self.logger.info(
+                    f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
+                )
+
                 outname = outdir / f"{self.config['name']}_mueller_mats.fits"
                 mueller_mat_file = mueller_mats_files(
                     working_files,
-                    method=self.config["polarimetry"].get("method", "mueller"),
+                    method="triplediff",
                     output=outname,
                     skip=skip_pdi,
                 )
@@ -630,6 +740,13 @@ class Pipeline:
                 outname = outdir / f"{self.config['name']}_stokes_cube.fits"
                 stokes_cube_file = mueller_matrix_calibration_files(
                     working_files, mueller_mat_file, output=outname, skip=skip_pdi
+                )
+                stokes_cube, stokes_header = fits.getdata(stokes_cube_file, header=True)
+                write_stokes_products(
+                    stokes_cube, stokes_header, outname=stokes_cube_file, skip=False
+                )
+                self.logger.debug(
+                    f"saved Stokes IP cube to {stokes_cube_file.absolute()}"
                 )
             if "ip" in self.config["polarimetry"]:
                 ip_config = self.config["polarimetry"]["ip"]
@@ -664,11 +781,11 @@ class Pipeline:
                         cU,
                         "VAMPIRES DPP I -> Q IP contribution (corrected)",
                     )
-                    fits.writeto(
-                        outname, stokes_ip_cube, header=stokes_hdr, overwrite=True
-                    )
-                    stokes_cube_file = outname
-                    self.logger.debug(f"saved Stokes IP cube to {outname.absolute()}")
+                stokes_cube_file = outname
+                write_stokes_products(
+                    stokes_ip_cube, stokes_hdr, outname=stokes_cube_file, skip=False
+                )
+                self.logger.debug(f"saved Stokes IP cube to {outname.absolute()}")
 
             self.logger.info("Finished PDI")
 

@@ -13,6 +13,7 @@ from .constants import PUPIL_OFFSET
 from .image_processing import (
     frame_angles,
     frame_center,
+    derotate_cube,
     derotate_frame,
     weighted_collapse,
     combine_frames_headers,
@@ -135,7 +136,7 @@ def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None) -> NDArra
     ..math::
         Q_\phi = -Q\cos(2\theta) - U\sin(2\theta) \\
         U_\phi = Q\sin(2\theta) - Q\cos(2\theta)
-        
+
 
     Parameters
     ----------
@@ -175,6 +176,7 @@ def Uphi_loss(X: float, stokes_cube: ArrayLike, thetas: ArrayLike) -> float:
     return l2norm
 
 
+# generally not needed because HWP tracks the pupil
 def rotate_stokes(stokes_cube, angles):
     out = stokes_cube.copy()
     thetas = np.deg2rad(angles)[None, :, None, None]
@@ -186,16 +188,12 @@ def rotate_stokes(stokes_cube, angles):
 
 
 def collapse_stokes_cube(stokes_cube, pa):
-    out = np.empty(
-        (stokes_cube.shape[0], stokes_cube.shape[-2], stokes_cube.shape[-1]),
-        stokes_cube.dtype,
+    stokes_out = np.empty_like(
+        stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:])
     )
-    # derotate polarization frame
-    # stokes_cube_derot = rotate_stokes(stokes_cube, pa)
     for s in range(stokes_cube.shape[0]):
-        out[s] = weighted_collapse(stokes_cube[s], pa)
-
-    return out
+        stokes_out[s] = weighted_collapse(stokes_cube[s], pa)
+    return stokes_out
 
 
 def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArray:
@@ -249,31 +247,36 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
     iter = tqdm.trange(N_hwp_sets, desc="Triple-differential calibration")
     for i in iter:
         ix = i * 16  # offset index
-        cube = np.asarray([fits.getdata(f) for f in filenames.iloc[ix : ix + 16]])
+        cube_dict = {}
+        for file in filenames.iloc[ix : ix + 16]:
+            cube, hdr = fits.getdata(file, header=True)
+            key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
+            cube_dict[key] = cube
+        ## stokes Q
         # (cam1 - cam2) - (cam1 - cam2)
-        pQ0 = cube[0] - cube[2]
-        mQ0 = cube[1] - cube[3]
+        pQ0 = cube_dict[(0, 1, 1)] - cube_dict[(0, 1, 2)]
+        mQ0 = cube_dict[(0, 2, 1)] - cube_dict[(0, 2, 2)]
         Q0 = 0.5 * (pQ0 - mQ0)
 
-        pQ1 = cube[4] - cube[6]
-        mQ1 = cube[5] - cube[7]
+        pQ1 = cube_dict[(45, 1, 1)] - cube_dict[(45, 1, 2)]
+        mQ1 = cube_dict[(45, 2, 1)] - cube_dict[(45, 2, 2)]
         Q1 = 0.5 * (pQ1 - mQ1)
 
         # (cam1 - cam2) - (cam1 - cam2)
-        pU0 = cube[8] - cube[10]
-        mU0 = cube[9] - cube[11]
+        pU0 = cube_dict[(22.5, 1, 1)] - cube_dict[(22.5, 1, 2)]
+        mU0 = cube_dict[(22.5, 2, 1)] - cube_dict[(22.5, 2, 2)]
         U0 = 0.5 * (pU0 - mU0)
 
-        pU1 = cube[12] - cube[14]
-        mU1 = cube[13] - cube[15]
+        pU1 = cube_dict[(67.5, 1, 1)] - cube_dict[(67.5, 1, 2)]
+        mU1 = cube_dict[(67.5, 2, 1)] - cube_dict[(67.5, 2, 2)]
         U1 = 0.5 * (pU1 - mU1)
 
         # factor of 2 because intensity is cut in half by beamsplitter
-        stokes_cube[0, i] = 2 * np.mean(cube, axis=0)
+        stokes_cube[0, i] = 2 * np.mean(list(cube_dict.values()), axis=0)
         # Q = 0.5 * (Q+ - Q-)
-        stokes_cube[1, i] = 0.5 * (Q0 - Q1)
+        stokes_cube[2, i] = -0.5 * (Q0 - Q1)
         # U = 0.5 * (U+ - U-)
-        stokes_cube[2, i] = 0.5 * (U0 - U1)
+        stokes_cube[1, i] = -0.5 * (U0 - U1)
 
     return collapse_stokes_cube(stokes_cube, angles)
 
@@ -445,3 +448,31 @@ def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> 
             )[0]
 
     return stokes_cube
+
+
+def write_stokes_products(
+    stokes_cube, stokes_header=None, outname=None, skip=False, phi=0
+):
+    if outname is None:
+        path = Path("stokes_cube.fits")
+    else:
+        path = Path(outname)
+
+    if skip and path.is_file():
+        return path
+
+    pi = np.hypot(stokes_cube[2], stokes_cube[1])
+    aolp = np.arctan2(stokes_cube[2], stokes_cube[1])
+    Qphi, Uphi = radial_stokes(stokes_cube, phi=phi)
+
+    if stokes_header is not None:
+        stokes_header["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP"
+        stokes_header["VPP_PHI"] = phi, "deg, angle of linear polarization offset"
+
+    data = np.asarray(
+        (stokes_cube[0], stokes_cube[1], stokes_cube[2], Qphi, Uphi, pi, aolp)
+    )
+
+    fits.writeto(path, data, header=stokes_header, overwrite=True)
+
+    return path

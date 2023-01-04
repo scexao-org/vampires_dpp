@@ -31,13 +31,12 @@ def satellite_spot_offsets(
         background = model_background(cube, slices, center=center)
         cube = cube - background
 
-    offsets = np.zeros((cube.shape[0], 2))
+    offsets = np.zeros((cube.shape[0], len(slices), 2))
 
     if method == "com":
         for i, frame in enumerate(cube):
-            for sl in slices:
-                offsets[i] += offset_centroid(frame, sl)
-            offsets[i] = offsets[i] / len(slices) - center
+            for j, sl in enumerate(slices):
+                offsets[i, j] = offset_centroid(frame, sl) - center
     elif method == "dft":
         refframe = cube[refidx]
         # measure peak index from each
@@ -51,28 +50,25 @@ def satellite_spot_offsets(
 
         for i in range(cube.shape[0]):
             if i == refidx:
-                offsets[i] = refoffset
+                offsets[i, j] = refoffset
                 continue
             frame = cube[i]
-            for sl in slices:
+            for j, sl in enumerate(slices):
                 refview = refframe[sl[0], sl[1]]
                 view = frame[sl[0], sl[1]]
                 dft_offset = phase_cross_correlation(
                     refview, view, return_error=False, upsample_factor=upsample_factor
                 )
-                offsets[i] += dft_offset
-            offsets[i] = refoffset - offsets[i] / len(slices)
+                offsets[i, j] = refoffset - dft_offset
     elif method == "peak":
         for i, frame in enumerate(cube):
-            for sl in slices:
-                offsets[i] += offset_peak(frame, sl)
-            offsets[i] = offsets[i] / len(slices) - center
+            for j, sl in enumerate(slices):
+                offsets[i, j] = offset_peak(frame, sl) - center
     elif method in ("moffat", "airydisk", "gaussian"):
         fitter = fitting.LevMarLSQFitter()
         for i, frame in enumerate(cube):
-            for sl in slices:
-                offsets[i] += offset_modelfit(frame, sl, method, fitter)
-            offsets[i] = offsets[i] / len(slices) - center
+            for j, sl in enumerate(slices):
+                offsets[i, j] += offset_modelfit(frame, sl, method, fitter) - center
 
     return offsets
 
@@ -115,11 +111,11 @@ def psf_offsets(
             slice(0, cube.shape[-1]),
         )
     center = frame_center(cube)
-    offsets = np.zeros((cube.shape[0], 2))
+    offsets = np.zeros((cube.shape[0], 1, 2))
 
     if method == "com":
         for i, frame in enumerate(cube):
-            offsets[i] = offset_centroid(frame, inds) - center
+            offsets[i, 0] = offset_centroid(frame, inds) - center
     elif method == "dft":
         refframe = cube[refidx]
         if refmethod == "com":
@@ -136,14 +132,14 @@ def psf_offsets(
             dft_offset = phase_cross_correlation(
                 refview, view, return_error=False, **kwargs
             )
-            offsets[i] = refoffset - dft_offset
+            offsets[i, 0] = refoffset - dft_offset
     elif method == "peak":
         for i, frame in enumerate(cube):
-            offsets[i] = offset_peak(frame, inds) - center
+            offsets[i, 0] = offset_peak(frame, inds) - center
     elif method in ("moffat", "airydisk", "gaussian"):
         fitter = fitting.LevMarLSQFitter()
         for i, frame in enumerate(cube):
-            offsets[i] = offset_modelfit(frame, inds, method, fitter) - center
+            offsets[i, 0] = offset_modelfit(frame, inds, method, fitter) - center
 
     return offsets
 
@@ -225,7 +221,11 @@ def measure_offsets(
     else:
         offsets = psf_offsets(cube, method=method, refidx=refidx, **kwargs)
 
-    np.savetxt(output, offsets, delimiter=",")
+    # flatten offsets
+    # this puts them in (y1, x1, y2, x2, y3, x3, ...) order
+    offsets_flat = offsets.reshape(len(offsets), -1)
+
+    np.savetxt(output, offsets_flat, delimiter=",")
     return output
 
 
@@ -240,7 +240,11 @@ def register_file(filename, offset_file, output=None, skip=False, **kwargs):
         return output
 
     cube, header = fits.getdata(filename, header=True)
-    offsets = np.loadtxt(offset_file, delimiter=",")
+    offsets_flat = np.loadtxt(offset_file, delimiter=",")
+
+    # reshape offsets into a single average
+    offsets = offsets_flat.reshape(len(offsets_flat), -1, 2).mean(1)
+
     shifted = shift_cube(cube, -offsets)
 
     fits.writeto(output, shifted, header=header, overwrite=True)

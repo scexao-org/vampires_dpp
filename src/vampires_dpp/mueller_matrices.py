@@ -363,7 +363,6 @@ def mueller_matrix_triplediff(camera, flc_state, theta, hwp_theta):
     flc_theta = 0 if flc_state == 1 else np.pi / 4
     M = np.linalg.multi_dot(
         (
-            rotator(theta=-theta),
             wollaston(camera == 1),  # Polarizing beamsplitter
             hwp(theta=flc_theta),  # FLC
             hwp(theta=hwp_theta),  # HWP angle
