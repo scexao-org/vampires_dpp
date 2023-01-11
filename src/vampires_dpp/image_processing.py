@@ -21,7 +21,7 @@ def shift_frame_fft(data: ArrayLike, shift):
 
 def shift_frame(data: ArrayLike, shift, **kwargs):
     M = np.float32(((1, 0, shift[1]), (0, 1, shift[0])))
-    return distort_frame(data, **kwargs)
+    return distort_frame(data, M, **kwargs)
 
 
 def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
@@ -105,19 +105,21 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs):
 
 def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs):
     variance_frame = np.var(data, axis=0, keepdims=True)
+
     # if the variance is zero, return the mean
     if np.allclose(variance_frame, 0):
         derotated = derotate_cube(data, angles, **kwargs)
-        return np.mean(derotated, 0)
+        return np.nanmean(derotated, 0)
 
     # expand the variance frame into a cube
     variance_cube = np.repeat(variance_frame, data.shape[0], axis=0)
     # derotate both signal and variance
     derotated_data = derotate_cube(data, angles, **kwargs)
     derotated_variance = derotate_cube(variance_cube, angles, **kwargs)
+    derotated_variance[derotated_variance == 0] = np.inf
     # calculate weighted sum
-    numer = np.sum(derotated_data / derotated_variance, 0)
-    denom = np.sum(1 / derotated_variance, 0)
+    numer = np.nansum(derotated_data / derotated_variance, axis=0)
+    denom = np.nansum(1 / derotated_variance, axis=0)
     weighted_frame = numer / denom
     return weighted_frame
 
@@ -183,8 +185,8 @@ def frame_angles(frame: ArrayLike, center=None):
     if center is None:
         center = frame_center(frame)
     Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
-    # y flip + x flip
-    thetas = np.arctan2(Xs - center[1], center[0] - Ys)
+    # y flip + x flip TODO
+    thetas = np.arctan2(Ys - center[0], Xs - center[1])
     return thetas
 
 

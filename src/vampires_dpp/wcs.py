@@ -2,7 +2,6 @@ from astropy import wcs
 from astroquery.vizier import Vizier
 import astropy.units as u
 from astropy.coordinates import Angle, SkyCoord
-import astropy.units as u
 import numpy as np
 from astropy.time import Time
 
@@ -56,9 +55,9 @@ def get_coord_header(header, time=None):
     coord = SkyCoord(
         ra=header["RA"],
         dec=header["DEC"],
-        units=(u.hourangle, u.deg),
-        frame=header["RADESYS"],
-        equinox=header["EQUINOX"],
+        unit=(u.hourangle, u.deg),
+        frame=header["RADESYS"].lower(),
+        equinox=f"J{header['EQUINOX']}",
         obstime=time,
     )
     return coord

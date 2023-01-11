@@ -6,7 +6,7 @@ from pathlib import Path
 from skimage.registration import phase_cross_correlation
 from skimage.measure import centroid
 
-from vampires_dpp.image_processing import frame_center, shift_cube
+from vampires_dpp.image_processing import frame_center, shift_cube, shift_frame
 from vampires_dpp.indexing import (
     cutout_slice,
     window_slices,
@@ -247,5 +247,21 @@ def register_file(filename, offset_file, output=None, skip=False, **kwargs):
 
     shifted = shift_cube(cube, -offsets)
 
+    fits.writeto(output, shifted, header=header, overwrite=True)
+    return output
+
+
+def coregister_file(filename, offset, output=None, skip=False, **kwargs):
+    if output is None:
+        path = Path(filename)
+        output = path.with_name(f"{path.stem}_coreg{path.suffix}")
+    else:
+        output = Path(output)
+
+    if skip and output.is_file():
+        return output
+
+    frame, header = fits.getdata(filename, header=True)
+    shifted = shift_frame(frame, -offset)
     fits.writeto(output, shifted, header=header, overwrite=True)
     return output
