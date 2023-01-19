@@ -168,6 +168,7 @@ class Pipeline:
         output = Path(self.config.get("output_directory", root))
         if not output.is_dir():
             output.mkdir(parents=True, exist_ok=True)
+        self.output_directory = output
 
         self.logger.debug(f"Root directory is {root}")
         self.logger.debug(f"Output directory is {output}")
@@ -588,7 +589,7 @@ class Pipeline:
                 )
             self.logger.info("Correcting frame distortion")
             distort_config = self.config["distortion"]
-            distort_file = distort_config["coefficients"]
+            distort_file = distort_config["transform"]
             distort_coeffs = pd.read_csv(distort_file, index_col=0)
 
             outdir = output / distort_config.get("output_directory", "")
