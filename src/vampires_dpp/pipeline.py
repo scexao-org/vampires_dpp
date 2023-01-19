@@ -237,57 +237,70 @@ class Pipeline:
 
         tripwire = False
         ## Step 1a: create master dark
+        self.master_darks = {"cam1": None, "cam2": None}
         if "darks" in self.config["calibration"]:
-            dark_filenames = self.parse_filenames(
-                root, self.config["calibration"]["darks"]["filenames"]
-            )
-            skip_darks = not self.config["calibration"]["darks"].get("force", False)
+            dark_config = self.config["calibration"]["darks"]
+            skip_darks = not dark_config.get("force", False)
             if skip_darks:
                 self.logger.debug("skipping darks if files exist")
             tripwire = tripwire or not skip_darks
-            master_darks = []
-            for dark in tqdm.tqdm(dark_filenames, desc="Making master darks"):
-                outname = outdir / f"{dark.stem}_collapsed{dark.suffix}"
-                dark_frame = fits.getdata(
-                    make_dark_file(dark, outname, skip=skip_darks)
-                )
-                master_darks.append(dark_frame)
-
-            # if only a single file is given, assume it is for cam 1
-            if len(master_darks) == 1:
-                self.logger.warning("only using one dark frame")
-                master_darks.append(None)
-        else:
-            master_darks = [None, None]
-
+            for key in ("cam1", "cam2"):
+                if key in dark_config:
+                    dark_filenames = self.parse_filenames(root, dark_config[key])
+                    dark_frames = []
+                    for filename in tqdm.tqdm(
+                        dark_filenames, desc="Making master darks"
+                    ):
+                        outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
+                        dark_frames.append(
+                            make_dark_file(filename, output=outname, skip=skip_darks)
+                        )
+                    self.master_darks[key] = (
+                        outdir / f"{self.config['name']}_master_dark_{key}.fits"
+                    )
+                    master_dark = np.mean(
+                        [fits.getdata(f) for f in dark_frames], axis=0
+                    )
+                    fits.writeto(self.master_darks[key], master_dark, overwrite=True)
+                    self.logger.debug(
+                        f"saved master dark to {self.master_darks[key].absolute()}"
+                    )
         ## Step 1b: create master flats
         if "flats" in self.config["calibration"]:
-            dark_filenames = self.parse_filenames(
-                root, self.config["calibration"]["flats"]["filenames"]
-            )
+            flat_config = self.config["calibration"]["flats"]
             # if darks were remade, need to remake flats
-            skip_flats = not tripwire and not self.config["calibration"]["flats"].get(
-                "force", False
-            )
+            skip_flats = not tripwire and not flat_config.get("force", False)
             if skip_flats:
                 self.logger.debug("skipping flats if files exist")
             tripwire = tripwire or not skip_flats
-            master_flats = []
-            for dark, flat in zip(
-                master_darks, tqdm.tqdm(dark_filenames, desc="Making master flats")
-            ):
-                outname = outdir / f"{flat.stem}_collapsed{flat.suffix}"
-                flat_frame = fits.getdata(
-                    make_flat_file(flat, dark, outname, skip=skip_flats)
-                )
-                master_flats.append(flat_frame)
-
-            # if only a single file is given, assume it is for cam 1
-            if len(master_flats) == 1:
-                self.logger.warning("only using one flat frame")
-                master_flats.append(None)
-        else:
-            master_flats = [None, None]
+            self.master_flats = {"cam1": None, "cam2": None}
+            for key in ("cam1", "cam2"):
+                if key in flat_config:
+                    flat_filenames = self.parse_filenames(root, flat_config[key])
+                    dark_filename = self.master_darks[key]
+                    flat_frames = []
+                    for filename in tqdm.tqdm(
+                        flat_filenames, desc="Making master darks"
+                    ):
+                        outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
+                        flat_frames.append(
+                            make_flat_file(
+                                filename,
+                                dark=dark_filename,
+                                output=outname,
+                                skip=skip_flats,
+                            )
+                        )
+                    self.master_flats[key] = (
+                        outdir / f"{self.config['name']}_master_flat_{key}.fits"
+                    )
+                    master_flat = np.mean(
+                        [fits.getdata(f) for f in flat_frames], axis=0
+                    )
+                    fits.writeto(self.master_flats[key], master_flat, overwrite=True)
+                    self.logger.debug(
+                        f"saved master dark to {self.master_flats[key].absolute()}"
+                    )
 
         ## Step 1c: calibrate files and fix headers
         filenames = self.parse_filenames(root, self.config["filenames"])
