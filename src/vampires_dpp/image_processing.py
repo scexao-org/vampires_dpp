@@ -4,10 +4,12 @@ import numpy as np
 from pathlib import Path
 import pandas as pd
 from scipy.ndimage import fourier_shift
+from scipy.interpolate import griddata
 from numpy.typing import ArrayLike, NDArray
 from typing import Union
 import cv2
 from astropy.coordinates import Angle
+from astropy.modeling.models import Polynomial2D
 
 from vampires_dpp.headers import dict_from_header
 
@@ -283,3 +285,66 @@ def combine_frames_files(filenames, output, skip=False, **kwargs):
 
     fits.writeto(path, cube, header=header, overwrite=True)
     return path
+
+
+def correct_distortion(
+    frame: ArrayLike,
+    angle: float = 0,
+    scale: float = 1,
+    header=None,
+    center=None,
+    **kwargs,
+):
+    if center is None:
+        center = frame_center(frame)
+    M = cv2.getRotationMatrix2D(center[::-1], angle, scale)
+    corr_frame = distort_frame(frame, M, **kwargs)
+    if header is not None:
+        header["VPP_SCAL"] = scale, "scaling ratio for distortion correction"
+        header["VPP_ANGL"] = angle, "deg, offset angle for distortion correction"
+    return corr_frame, header
+
+
+# DEGREE_LOOKUP_TABLE = {
+#     6: 2,
+#     10: 3,
+#     15: 4,
+#     21: 5,
+#     28: 6,
+#     36: 7,
+#     45: 8,
+#     55: 9
+# }
+
+# def correct_distortion(frame: ArrayLike, coeff_x: ArrayLike, coeff_y: ArrayLike, header=None):
+#     Ny, Nx = frame.shape[-2:]
+#     degree = DEGREE_LOOKUP_TABLE[len(coeff_x)]
+#     poly = Polynomial2D(
+#         degree=degree,
+#         x_domain=(0, Nx),
+#         y_domain=(0, Ny)
+#     )
+#     # get the coordinates to interpolate over
+#     Y, X = np.mgrid[:Ny, :Nx]
+#     # x coeffs
+#     poly.parameters = coeff_x
+#     x_new = X - poly(X, Y)
+#     # y coeffs
+#     poly.parameters = coeff_y
+#     y_new = Y - poly(X, Y)
+
+#     # need to mask out NaN values or interpolation will fail
+#     flat_values = frame.ravel()
+#     mask = np.isnan(flat_values)
+#     flat_values[mask] = 0
+#     new_coord = (y_new.ravel(), x_new.ravel())
+#     orig_coord = (Y.ravel(), X.ravel())
+#     corrected_values = griddata(new_coord, flat_values, orig_coord, method="linear")
+#     corrected_values[mask] = np.nan
+#     corrected_frame = corrected_values.reshape(frame.shape)
+
+#     # update header values
+#     if header is not None:
+#         pass # TODO
+
+#     return corrected_frame, header

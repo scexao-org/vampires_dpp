@@ -6,6 +6,7 @@ import tqdm.auto as tqdm
 from astropy.io import fits
 import numpy as np
 import astropy.units as u
+import pandas as pd
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
 import sys
@@ -29,6 +30,7 @@ from vampires_dpp.image_processing import (
     collapse_file,
     frame_center,
     distort_frame,
+    correct_distortion,
 )
 from vampires_dpp.image_registration import (
     measure_offsets,
@@ -579,68 +581,64 @@ class Pipeline:
             self.logger.info("Finished collapsing frames")
 
         ## Step 5: re-scaling
-        if "rescale" in self.config:
+        if "distortion" in self.config:
             if "collapsing" not in self.config:
-                raise ValueError("Cannot do rescaling without collapsing data.")
-            self.logger.info("Rescaling frames")
-            rescale_config = self.config["rescale"]
+                raise ValueError(
+                    "Cannot do distortion correction without collapsing data."
+                )
+            self.logger.info("Correcting frame distortion")
+            distort_config = self.config["distortion"]
+            distort_file = distort_config["coefficients"]
+            distort_coeffs = pd.read_csv(distort_file, index_col=0)
 
-            outdir = output / rescale_config.get("output_directory", "")
+            outdir = output / distort_config.get("output_directory", "")
             if not outdir.is_dir():
                 outdir.mkdir(parents=True, exist_ok=True)
-            self.logger.debug(f"saving rescaled data to {outdir.absolute()}")
-            skip_rescale = not tripwire and not rescale_config.get("force", False)
-            if skip_rescale:
-                self.logger.debug("skipping scaling frames if files exist")
-            tripwire = tripwire or not skip_rescale
+            self.logger.debug(
+                f"saving distortion-corrected data to {outdir.absolute()}"
+            )
+            skip_distort = not tripwire and not distort_config.get("force", False)
+            if skip_distort:
+                self.logger.debug("skipping distortion correction if files exist")
+            tripwire = tripwire or not skip_distort
 
-            for i in tqdm.trange(len(working_files), desc="Rescaling frames"):
+            for i in tqdm.trange(len(working_files), desc="Correcting distortion"):
                 filename = working_files[i]
-                outname = outdir / f"{filename.stem}_scaled{filename.suffix}"
+                outname = outdir / f"{filename.stem}_distcorr{filename.suffix}"
                 working_files[i] = outname
-                if skip_rescale and outname.is_file():
+                if skip_distort and outname.is_file():
                     continue
-                self.logger.debug(f"rescaling {filename.absolute}")
+                self.logger.debug(f"correcting distortion for {filename.absolute}")
                 frame, hdr = fits.getdata(filename, header=True)
-                ctr = frame_center(frame)
-                M = cv2.getRotationMatrix2D(ctr[::-1], -0.36836798, 1.0314529)
+                params = distort_coeffs.loc[f"cam{hdr['U_CAMERA']:.0f}"]
+                distcorr_frame, distcorr_hdr = correct_distortion(
+                    frame, *params, header=hdr
+                )
 
-                if hdr["U_CAMERA"] == 1:
-                    rescaled_frame = distort_frame(frame, M)
-                    hdr["VPP_DXX"] = M[0, 0], "similarity transform X -> X"
-                    hdr["VPP_DXY"] = M[0, 1], "similarity transform X -> Y"
-                    hdr["VPP_DXZ"] = M[0, 2], "similarity transform X -> Z"
-                    hdr["VPP_DYX"] = M[1, 0], "similarity transform Y -> X"
-                    hdr["VPP_DYY"] = M[1, 1], "similarity transform Y -> Y"
-                    hdr["VPP_DYZ"] = M[1, 2], "similarity transform Y -> Z"
-                else:
-                    rescaled_frame = frame
-                    hdr["VPP_DXX"] = 1, "similarity transform X -> X"
-                    hdr["VPP_DXY"] = 0, "similarity transform X -> Y"
-                    hdr["VPP_DXZ"] = 0, "similarity transform X -> Z"
-                    hdr["VPP_DYX"] = 0, "similarity transform Y -> X"
-                    hdr["VPP_DYY"] = 1, "similarity transform Y -> Y"
-                    hdr["VPP_DYZ"] = 0, "similarity transform Y -> Z"
-                fits.writeto(outname, rescaled_frame, header=hdr, overwrite=True)
-                self.logger.debug(f"saved rescaled data to {outname.absolute()}")
+                fits.writeto(
+                    outname, distcorr_frame, header=distcorr_hdr, overwrite=True
+                )
+                self.logger.debug(
+                    f"saved distortion-corrected data to {outname.absolute()}"
+                )
 
-            rescaled_files = working_files.copy()
+            distcorr_files = working_files.copy()
             for cam_num in (1, 2):
                 cam_files = filter(
-                    lambda f: fits.getval(f, "U_CAMERA") == cam_num, rescaled_files
+                    lambda f: fits.getval(f, "U_CAMERA") == cam_num, distcorr_files
                 )
                 # generate cube
                 outname = (
-                    outdir / f"{self.config['name']}_cam{cam_num}_scaled_cube.fits"
+                    outdir / f"{self.config['name']}_cam{cam_num}_distcorr_cube.fits"
                 )
-                rescale_cube_file = combine_frames_files(
+                distcorr_cube_file = combine_frames_files(
                     cam_files, output=outname, skip=False
                 )
                 self.logger.debug(
-                    f"saved rescaled cube to {rescale_cube_file.absolute()}"
+                    f"saved distortion-corrected cube to {distcorr_cube_file.absolute()}"
                 )
 
-            self.logger.info("Finished rescaling frames")
+            self.logger.info("Finished correcting frame distortion")
 
         ## Step 7: derotate
         if "derotate" in self.config:
@@ -655,11 +653,12 @@ class Pipeline:
             if skip_derot:
                 self.logger.debug("skipping derotating frames if files exist")
             tripwire = tripwire or not skip_derot
+            derot_files = working_files.copy()
             for i in tqdm.trange(len(working_files), desc="Derotating frames"):
                 filename = working_files[i]
                 self.logger.debug(f"derotating frame from {filename.absolute()}")
                 outname = outdir / f"{filename.stem}_derot{filename.suffix}"
-                working_files[i] = outname
+                derot_files[i] = outname
                 if skip_derot and outname.is_file():
                     continue
                 frame, header = fits.getdata(filename, header=True)
@@ -671,7 +670,7 @@ class Pipeline:
             # generate derotated cube
             for cam_num in (1, 2):
                 cam_files = filter(
-                    lambda f: fits.getval(f, "U_CAMERA") == cam_num, collapse_files
+                    lambda f: fits.getval(f, "U_CAMERA") == cam_num, derot_files
                 )
                 # generate cube
                 outname = outdir / f"{self.config['name']}_cam{cam_num}_derot_cube.fits"
@@ -686,8 +685,8 @@ class Pipeline:
 
         ## Step 8: PDI
         if "polarimetry" in self.config:
-            if "rescale" not in self.config:
-                raise ValueError("Cannot do PDI without rescaling data.")
+            if "collapsing" not in self.config:
+                raise ValueError("Cannot do PDI without collapsing data.")
             self.logger.info("Performing polarimetric calibration")
             outdir = output / self.config["polarimetry"].get("output_directory", "")
             if not outdir.is_dir():
@@ -702,7 +701,7 @@ class Pipeline:
             pol_method = self.config["polarimetry"].get("method", "triplediff")
             if pol_method == "triplediff":
                 # sort table
-                table = observation_table(rescaled_files).sort_values("DATE")
+                table = observation_table(working_files).sort_values("DATE")
                 inds = pol_inds(table["U_HWPANG"], 4)
                 table_filt = table.loc[inds]
                 self.logger.info(
