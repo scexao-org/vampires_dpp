@@ -13,6 +13,7 @@ from .constants import PUPIL_OFFSET
 from .image_processing import (
     frame_angles,
     frame_center,
+    frame_radii,
     derotate_cube,
     derotate_frame,
     weighted_collapse,
@@ -46,13 +47,20 @@ def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None, expected=0):
     if center is None:
         center = frame_center(I)
 
+    weights = np.sqrt(np.abs(I))
+    rs = frame_radii(weights)
+    weights[rs > r] = 0
+
     x = X / I
 
-    ap = CircularAperture((center[1], center[0]), r)
+    pX = np.nansum(x * weights) / np.nansum(weights)
+    return pX - expected
 
-    cX = aperture_photometry(x, ap)["aperture_sum"][0] / ap.area
+    # ap = CircularAperture((center[1], center[0]), r)
 
-    return cX - expected
+    # cX = aperture_photometry(x, ap)["aperture_sum"][0] / ap.area
+
+    # return cX - expected
 
 
 def measure_instpol_satellite_spots(
@@ -264,21 +272,21 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
             cube_dict[key] = cube
         ## stokes Q
         # (cam1 - cam2) - (cam1 - cam2)
-        pQ0 = cube_dict[(0.0, 1, 1)] - cube_dict[(0.0, 1, 2)]
-        mQ0 = cube_dict[(0.0, 2, 1)] - cube_dict[(0.0, 2, 2)]
+        pQ0 = _single_diff_helper(cube_dict[(0.0, 1, 1)], cube_dict[(0.0, 1, 2)])
+        mQ0 = _single_diff_helper(cube_dict[(0.0, 2, 1)], cube_dict[(0.0, 2, 2)])
         Q0 = 0.5 * (pQ0 - mQ0)
 
-        pQ1 = cube_dict[(45.0, 1, 1)] - cube_dict[(45.0, 1, 2)]
-        mQ1 = cube_dict[(45.0, 2, 1)] - cube_dict[(45.0, 2, 2)]
+        pQ1 = _single_diff_helper(cube_dict[(45.0, 1, 1)], cube_dict[(45.0, 1, 2)])
+        mQ1 = _single_diff_helper(cube_dict[(45.0, 2, 1)], cube_dict[(45.0, 2, 2)])
         Q1 = 0.5 * (pQ1 - mQ1)
 
         # (cam1 - cam2) - (cam1 - cam2)
-        pU0 = cube_dict[(22.5, 1, 1)] - cube_dict[(22.5, 1, 2)]
-        mU0 = cube_dict[(22.5, 2, 1)] - cube_dict[(22.5, 2, 2)]
+        pU0 = _single_diff_helper(cube_dict[(22.5, 1, 1)], cube_dict[(22.5, 1, 2)])
+        mU0 = _single_diff_helper(cube_dict[(22.5, 2, 1)], cube_dict[(22.5, 2, 2)])
         U0 = 0.5 * (pU0 - mU0)
 
-        pU1 = cube_dict[(67.5, 1, 1)] - cube_dict[(67.5, 1, 2)]
-        mU1 = cube_dict[(67.5, 2, 1)] - cube_dict[(67.5, 2, 2)]
+        pU1 = _single_diff_helper(cube_dict[(67.5, 1, 1)], cube_dict[(67.5, 1, 2)])
+        mU1 = _single_diff_helper(cube_dict[(67.5, 2, 1)], cube_dict[(67.5, 2, 2)])
         U1 = 0.5 * (pU1 - mU1)
 
         # factor of 2 because intensity is cut in half by beamsplitter
@@ -289,6 +297,13 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
         stokes_cube[2, i] = 0.5 * (U0 - U1)
 
     return stokes_cube, angles
+
+
+def _single_diff_helper(frame1, frame2):
+    diff = frame1 - frame2
+    summ = frame1 + frame2
+    partial = measure_instpol(summ, diff, 8)
+    return diff - partial * summ
 
 
 def triplediff_average_angles(filenames):
