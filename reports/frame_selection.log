@@ -17,32 +17,60 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-from vampires_dpp.satellite_spots import lamd_to_pixel
-from vampires_dpp.frame_selection import measure_satellite_spot_metrics
+from vampires_dpp.image_registration import psf_offsets
+from vampires_dpp.image_processing import shift_cube
 
-# radius of satellite spots
-radius = lamd_to_pixel(31.6, abaur20220224_hdr["U_FILTER"])
+kwargs = {
+    "center": (128, 128),
+    "window": 30,
+    "method": "dft",
+    "upsample_factor": 10,
+    "refidx": metrics[0].argmax(),
+}
 
-kwargs = {"radius": radius, "center": (130, 130), "window": 30}
+cutoffs = [0, 0.25, 0.5, 0.75]
 
-metric_satspot_max = measure_satellite_spot_metrics(
-    abaur20220224_cube, metric="max", **kwargs
-)
-metric_satspot_l2norm = measure_satellite_spot_metrics(
-    abaur20220224_cube, metric="l2norm", **kwargs
-)
-metric_satspot_normvar = measure_satellite_spot_metrics(
-    abaur20220224_cube, metric="normvar", **kwargs
-)
+offsets = psf_offsets(abaur20190320_cube, **kwargs)
+
+collapsed_frames = []
+for metric in metrics:
+    qs = np.quantile(metric, cutoffs)
+    masks = [metric > q for q in qs]
+    registered = [
+        shift_cube(abaur20190320_cube[mask], -offsets[mask]) for mask in masks
+    ]
+    collapsed_frames.append([np.median(r, 0, overwrite_input=True) for r in registered])
 ------------------
 
 [0;31m---------------------------------------------------------------------------[0m
-[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
-Cell [0;32mIn[11], line 1[0m
-[0;32m----> 1[0m [38;5;28;01mfrom[39;00m [38;5;21;01mvampires_dpp[39;00m[38;5;21;01m.[39;00m[38;5;21;01msatellite_spots[39;00m [38;5;28;01mimport[39;00m lamd_to_pixel
-[1;32m      2[0m [38;5;28;01mfrom[39;00m [38;5;21;01mvampires_dpp[39;00m[38;5;21;01m.[39;00m[38;5;21;01mframe_selection[39;00m [38;5;28;01mimport[39;00m measure_satellite_spot_metrics
-[1;32m      4[0m [38;5;66;03m# radius of satellite spots[39;00m
+[0;31mIndexError[0m                                Traceback (most recent call last)
+Cell [0;32mIn[7], line 20[0m
+[1;32m     18[0m qs [38;5;241m=[39m np[38;5;241m.[39mquantile(metric, cutoffs)
+[1;32m     19[0m masks [38;5;241m=[39m [metric [38;5;241m>[39m q [38;5;28;01mfor[39;00m q [38;5;129;01min[39;00m qs]
+[0;32m---> 20[0m registered [38;5;241m=[39m [
+[1;32m     21[0m     shift_cube(abaur20190320_cube[mask], [38;5;241m-[39moffsets[mask]) [38;5;28;01mfor[39;00m mask [38;5;129;01min[39;00m masks
+[1;32m     22[0m ]
+[1;32m     23[0m collapsed_frames[38;5;241m.[39mappend([np[38;5;241m.[39mmedian(r, [38;5;241m0[39m, overwrite_input[38;5;241m=[39m[38;5;28;01mTrue[39;00m) [38;5;28;01mfor[39;00m r [38;5;129;01min[39;00m registered])
 
-[0;31mModuleNotFoundError[0m: No module named 'vampires_dpp.satellite_spots'
-ModuleNotFoundError: No module named 'vampires_dpp.satellite_spots'
+Cell [0;32mIn[7], line 21[0m, in [0;36m<listcomp>[0;34m(.0)[0m
+[1;32m     18[0m qs [38;5;241m=[39m np[38;5;241m.[39mquantile(metric, cutoffs)
+[1;32m     19[0m masks [38;5;241m=[39m [metric [38;5;241m>[39m q [38;5;28;01mfor[39;00m q [38;5;129;01min[39;00m qs]
+[1;32m     20[0m registered [38;5;241m=[39m [
+[0;32m---> 21[0m     [43mshift_cube[49m[43m([49m[43mabaur20190320_cube[49m[43m[[49m[43mmask[49m[43m][49m[43m,[49m[43m [49m[38;5;241;43m-[39;49m[43moffsets[49m[43m[[49m[43mmask[49m[43m][49m[43m)[49m [38;5;28;01mfor[39;00m mask [38;5;129;01min[39;00m masks
+[1;32m     22[0m ]
+[1;32m     23[0m collapsed_frames[38;5;241m.[39mappend([np[38;5;241m.[39mmedian(r, [38;5;241m0[39m, overwrite_input[38;5;241m=[39m[38;5;28;01mTrue[39;00m) [38;5;28;01mfor[39;00m r [38;5;129;01min[39;00m registered])
+
+File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/image_processing.py:104[0m, in [0;36mshift_cube[0;34m(cube, shifts, **kwargs)[0m
+[1;32m    102[0m out [38;5;241m=[39m np[38;5;241m.[39mempty_like(cube)
+[1;32m    103[0m [38;5;28;01mfor[39;00m i [38;5;129;01min[39;00m [38;5;28mrange[39m(cube[38;5;241m.[39mshape[[38;5;241m0[39m]):
+[0;32m--> 104[0m     out[i] [38;5;241m=[39m [43mshift_frame[49m[43m([49m[43mcube[49m[43m[[49m[43mi[49m[43m][49m[43m,[49m[43m [49m[43mshifts[49m[43m[[49m[43mi[49m[43m][49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m    105[0m [38;5;28;01mreturn[39;00m out
+
+File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/image_processing.py:25[0m, in [0;36mshift_frame[0;34m(data, shift, **kwargs)[0m
+[1;32m     24[0m [38;5;28;01mdef[39;00m [38;5;21mshift_frame[39m(data: ArrayLike, shift, [38;5;241m*[39m[38;5;241m*[39mkwargs):
+[0;32m---> 25[0m     M [38;5;241m=[39m np[38;5;241m.[39mfloat32((([38;5;241m1[39m, [38;5;241m0[39m, [43mshift[49m[43m[[49m[38;5;241;43m1[39;49m[43m][49m), ([38;5;241m0[39m, [38;5;241m1[39m, shift[[38;5;241m0[39m])))
+[1;32m     26[0m     [38;5;28;01mreturn[39;00m distort_frame(data, M, [38;5;241m*[39m[38;5;241m*[39mkwargs)
+
+[0;31mIndexError[0m: index 1 is out of bounds for axis 0 with size 1
+IndexError: index 1 is out of bounds for axis 0 with size 1
 

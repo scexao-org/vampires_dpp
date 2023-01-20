@@ -385,25 +385,25 @@ title="Print to PDF"
 <h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Permalink to this headline">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from pathlib import Path
-import vampires_dpp.mueller_matrices as mm
-from astropy.io import fits
-from zenodo_get import zenodo_get
-import proplot as pro
-import numpy as np
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">vampires_dpp.mueller_matrices</span> <span class="k">as</span> <span class="nn">mm</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
+<span class="kn">from</span> <span class="nn">zenodo_get</span> <span class="kn">import</span> <span class="n">zenodo_get</span>
+<span class="kn">import</span> <span class="nn">proplot</span> <span class="k">as</span> <span class="nn">pro</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-datadir = Path(&quot;data/hip58234_20220225/&quot;)
-pro.rc[&quot;style&quot;] = &quot;ggplot&quot;
-pro.rc[&quot;image.origin&quot;] = &quot;lower&quot;
-pro.rc[&quot;image.cmap&quot;] = &quot;magma&quot;
+<span class="n">datadir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/hip58234_20220225/&quot;</span><span class="p">)</span>
+<span class="n">pro</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;ggplot&quot;</span>
+<span class="n">pro</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s2">&quot;image.origin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;lower&quot;</span>
+<span class="n">pro</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s2">&quot;image.cmap&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;magma&quot;</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell tag_remove-output docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># download example data
-zenodo_get([&quot;10.5281/zenodo.7359198&quot;, &quot;-o&quot;, datadir.parent.absolute()])
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># download example data</span>
+<span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
 </pre></div>
 </div>
 </div>
@@ -444,10 +444,10 @@ zenodo_get([&quot;10.5281/zenodo.7359198&quot;, &quot;-o&quot;, datadir.parent.a
 </div>
 </details><div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from vampires_dpp.pipeline import Pipeline
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vampires_dpp.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
 
-pipeline = Pipeline.from_file(datadir / &quot;hip58234_20220225_config.toml&quot;)
-pipeline.run()
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hip58234_20220225_config.toml&quot;</span><span class="p">)</span>
+<span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -459,17 +459,17 @@ pipeline.run()
 <span class="ne">----&gt; </span><span class="mi">3</span> <span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hip58234_20220225_config.toml&quot;</span><span class="p">)</span>
 <span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:119,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
-<span class="g g-Whitespace">    </span><span class="mi">100</span> <span class="nd">@classmethod</span>
-<span class="g g-Whitespace">    </span><span class="mi">101</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">102</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">103</span><span class="sd">     Load configuration from TOML file</span>
-<span class="g g-Whitespace">    </span><span class="mi">104</span><span class="sd"> </span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:130,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
+<span class="g g-Whitespace">    </span><span class="mi">111</span> <span class="nd">@classmethod</span>
+<span class="g g-Whitespace">    </span><span class="mi">112</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<span class="g g-Whitespace">    </span><span class="mi">113</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">114</span><span class="sd">     Load configuration from TOML file</span>
+<span class="g g-Whitespace">    </span><span class="mi">115</span><span class="sd"> </span>
 <span class="sd">   (...)</span>
-<span class="g g-Whitespace">    </span><span class="mi">117</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
-<span class="g g-Whitespace">    </span><span class="mi">118</span><span class="sd">     &quot;&quot;&quot;</span>
-<span class="ne">--&gt; </span><span class="mi">119</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">120</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">128</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
+<span class="g g-Whitespace">    </span><span class="mi">129</span><span class="sd">     &quot;&quot;&quot;</span>
+<span class="ne">--&gt; </span><span class="mi">130</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">131</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
 <span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/toml/decoder.py:133,</span> in <span class="ni">load</span><span class="nt">(f, _dict, decoder)</span>
 <span class="g g-Whitespace">    </span><span class="mi">114</span><span class="w"> </span><span class="sd">&quot;&quot;&quot;Parses named file or files as toml and returns a dictionary</span>
@@ -493,7 +493,7 @@ pipeline.run()
 <h2>Reviewing Outputs<a class="headerlink" href="#reviewing-outputs" title="Permalink to this headline">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>collapsed_frame = fits.getdata(datadir / &quot;processed&quot; / &quot;derotated&quot; / &quot;HIP58234_20220225_750-50_EmptySlot2_00_cam1_calib_cut_aligned_collapsed_derot.fits&quot;)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">collapsed_frame</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;processed&quot;</span> <span class="o">/</span> <span class="s2">&quot;derotated&quot;</span> <span class="o">/</span> <span class="s2">&quot;HIP58234_20220225_750-50_EmptySlot2_00_cam1_calib_cut_aligned_collapsed_derot.fits&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -511,9 +511,9 @@ pipeline.run()
 <p>For our models, we will use two-dimensional Moffat models which have shared shape parameters, since we expect the PSF to be invariant over the field (a good enough approximation).</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from astropy.modeling import models, fitting
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">astropy.modeling</span> <span class="kn">import</span> <span class="n">models</span><span class="p">,</span> <span class="n">fitting</span>
 
-star_a = models.Moffat2D(x_0=256.5, y_0=250, gamma=4, )
+<span class="n">star_a</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Moffat2D</span><span class="p">(</span><span class="n">x_0</span><span class="o">=</span><span class="mf">256.5</span><span class="p">,</span> <span class="n">y_0</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="p">)</span>
 </pre></div>
 </div>
 </div>

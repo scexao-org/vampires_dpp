@@ -17,47 +17,52 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-from vampires_dpp.image_registration import satellite_spot_offsets
-from vampires_dpp.satellite_spots import lamd_to_pixel
+fig, axes = pro.subplots(sharex=0, ncols=2)
 
-# radius of satellite spots
-radius = lamd_to_pixel(31.6, abaur20220224_hdr["U_FILTER"])
+labels = [
+    "Center of Mass",
+    "Peak",
+    "DFT (f=1)",
+    "DFT (f=10)",
+    "Moffat PSF",
+    "Gaussian PSF",
+    "AiryDisk PSF",
+]
+offsets = [
+    offsets_com,
+    offsets_peak,
+    offsets_dft,
+    offsets_dft_10,
+    offsets_moffat,
+    offsets_gaussian,
+    offsets_airydisk,
+]
 
-kwargs = {
-    "center": (130, 130),
-    "window": 30,
-    "radius": radius,
-    "refidx": frame_idx_coro,
-}
 
-
-offsets_coro_com = satellite_spot_offsets(abaur20220224_cube, method="com", **kwargs)
-offsets_coro_peak = satellite_spot_offsets(abaur20220224_cube, method="peak", **kwargs)
-offsets_coro_dft = satellite_spot_offsets(
-    abaur20220224_cube, method="dft", refmethod="com", upsample_factor=1, **kwargs
-)
-offsets_coro_dft_10 = satellite_spot_offsets(
-    abaur20220224_cube, method="dft", refmethod="com", upsample_factor=10, **kwargs
-)
-offsets_coro_moffat = satellite_spot_offsets(
-    abaur20220224_cube, method="moffat", **kwargs
-)
-offsets_coro_gaussian = satellite_spot_offsets(
-    abaur20220224_cube, method="gaussian", **kwargs
-)
-offsets_coro_airydisk = satellite_spot_offsets(
-    abaur20220224_cube, method="airydisk", **kwargs
-)
+for label, samples in zip(labels, offsets):
+    axes[0].hist(samples[:, 1], bins="auto", fill=False, lw=1, label=label)
+    axes[1].hist(samples[:, 0], bins="auto", fill=False, lw=1)
+axes[0].format(xlabel=r"$\Delta$x (mas)", ylabel="count")
+axes[1].format(xlabel=r"$\Delta$y (mas)")
+axes.dualx(lambda a: a / 6.24, label="(px)")
+fig.format(suptitle="AB Aurigae 2019/03/20 Non-coronagraphic")
+fig.legend(loc="bottom", ncols=4);
 ------------------
 
 [0;31m---------------------------------------------------------------------------[0m
-[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
-Cell [0;32mIn[11], line 2[0m
-[1;32m      1[0m [38;5;28;01mfrom[39;00m [38;5;21;01mvampires_dpp[39;00m[38;5;21;01m.[39;00m[38;5;21;01mimage_registration[39;00m [38;5;28;01mimport[39;00m satellite_spot_offsets
-[0;32m----> 2[0m [38;5;28;01mfrom[39;00m [38;5;21;01mvampires_dpp[39;00m[38;5;21;01m.[39;00m[38;5;21;01msatellite_spots[39;00m [38;5;28;01mimport[39;00m lamd_to_pixel
-[1;32m      4[0m [38;5;66;03m# radius of satellite spots[39;00m
-[1;32m      5[0m radius [38;5;241m=[39m lamd_to_pixel([38;5;241m31.6[39m, abaur20220224_hdr[[38;5;124m"[39m[38;5;124mU_FILTER[39m[38;5;124m"[39m])
+[0;31mIndexError[0m                                Traceback (most recent call last)
+Cell [0;32mIn[6], line 24[0m
+[1;32m     12[0m offsets [38;5;241m=[39m [
+[1;32m     13[0m     offsets_com,
+[1;32m     14[0m     offsets_peak,
+[0;32m   (...)[0m
+[1;32m     19[0m     offsets_airydisk,
+[1;32m     20[0m ]
+[1;32m     23[0m [38;5;28;01mfor[39;00m label, samples [38;5;129;01min[39;00m [38;5;28mzip[39m(labels, offsets):
+[0;32m---> 24[0m     axes[[38;5;241m0[39m][38;5;241m.[39mhist([43msamples[49m[43m[[49m[43m:[49m[43m,[49m[43m [49m[38;5;241;43m1[39;49m[43m][49m, bins[38;5;241m=[39m[38;5;124m"[39m[38;5;124mauto[39m[38;5;124m"[39m, fill[38;5;241m=[39m[38;5;28;01mFalse[39;00m, lw[38;5;241m=[39m[38;5;241m1[39m, label[38;5;241m=[39mlabel)
+[1;32m     25[0m     axes[[38;5;241m1[39m][38;5;241m.[39mhist(samples[:, [38;5;241m0[39m], bins[38;5;241m=[39m[38;5;124m"[39m[38;5;124mauto[39m[38;5;124m"[39m, fill[38;5;241m=[39m[38;5;28;01mFalse[39;00m, lw[38;5;241m=[39m[38;5;241m1[39m)
+[1;32m     26[0m axes[[38;5;241m0[39m][38;5;241m.[39mformat(xlabel[38;5;241m=[39m[38;5;124mr[39m[38;5;124m"[39m[38;5;124m$[39m[38;5;124m\[39m[38;5;124mDelta$x (mas)[39m[38;5;124m"[39m, ylabel[38;5;241m=[39m[38;5;124m"[39m[38;5;124mcount[39m[38;5;124m"[39m)
 
-[0;31mModuleNotFoundError[0m: No module named 'vampires_dpp.satellite_spots'
-ModuleNotFoundError: No module named 'vampires_dpp.satellite_spots'
+[0;31mIndexError[0m: index 1 is out of bounds for axis 1 with size 1
+IndexError: index 1 is out of bounds for axis 1 with size 1
 
