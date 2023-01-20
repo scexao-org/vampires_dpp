@@ -24,6 +24,7 @@ from .mueller_matrices import mueller_matrix_model, mueller_matrix_triplediff
 from .image_registration import offset_centroid
 from .headers import observation_table
 from .util import average_angle
+from .wcs import apply_wcs
 
 
 def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None, expected=0):
@@ -38,33 +39,31 @@ def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None, expected=0):
         Radius of circular aperture in pixels, by default 5
     center : Tuple, optional
         Center of circular aperture (y, x). If None, will use the frame center. By default None
+    expected : float, optional
+        The expected fractional polarization, by default 0
 
     Returns
     -------
-    Tuple
-        (cQ, cU) tuple of instrument polarization coefficients
+    float
+        The instrumental polarization coefficient
     """
     if center is None:
         center = frame_center(I)
 
-    weights = np.sqrt(np.abs(I))
-    rs = frame_radii(weights)
-    weights[rs > r] = 0
-
     x = X / I
+
+    rs = frame_radii(x)
+
+    weights = np.sqrt(np.abs(I))
+    # only keep values inside aperture
+    weights[rs > r] = 0
 
     pX = np.nansum(x * weights) / np.nansum(weights)
     return pX - expected
 
-    # ap = CircularAperture((center[1], center[0]), r)
-
-    # cX = aperture_photometry(x, ap)["aperture_sum"][0] / ap.area
-
-    # return cX - expected
-
 
 def measure_instpol_satellite_spots(
-    I: ArrayLike, X: ArrayLike, r=5, method="moffat", expected=0, **kwargs
+    I: ArrayLike, X: ArrayLike, r=5, expected=0, **kwargs
 ):
     """
     Use aperture photometry on satellite spots to estimate the instrument polarization.
@@ -79,25 +78,25 @@ def measure_instpol_satellite_spots(
         Center of satellite spots (y, x). If None, will use the frame center. By default None
     radius : float
         Radius of satellite spots in pixels
+    expected : float, optional
+        The expected fractional polarization, by default 0
 
     Returns
     -------
-    Tuple
-        (cQ, cU) tuple of instrument polarization coefficients
+    float
+        The instrumental polarization coefficient
     """
     x = X / I
 
     slices = window_slices(x, **kwargs)
     # refine satellite spot apertures onto centroids
+    aps_centers = [offset_centroid(I, sl) for sl in slices]
+
     # TODO may be biased by central halo?
-    aps_centers = [offset_centroid(X, sl) for sl in slices]
-
-    # do background-subtracted photometry
+    # measure IP from aperture photometry
     aps = CircularAperture(aps_centers, r)
-    anns = CircularAnnulus(aps_centers, 2 * r, 3 * r)
-
-    cX = np.mean(background_subtracted_photometry(x, aps, anns)) / aps.area
-    # cX = np.mean([np.median(x[sl[0], sl[1]]) for sl in slices])
+    fluxes = aperture_photometry(x, aps)["aperture_sum"]
+    cX = np.mean(fluxes) / aps.area
 
     return cX - expected
 
@@ -175,8 +174,8 @@ def radial_stokes(
 
 def optimize_Uphi(stokes_cube: ArrayLike, thetas: ArrayLike, r=8) -> float:
     cy, cx = frame_center(stokes_cube)
-    ys, xs = np.ogrid[0 : stokes_cube.shape[-2], 0 : stokes_cube.shape[-1]]
-    mask = np.hypot(ys - cy, xs - cx) <= r
+    rs = frame_radii(stokes_cube)
+    mask = rs <= r
     masked_stokes_cube = stokes_cube[..., mask]
     masked_thetas = thetas[..., mask]
 
@@ -189,29 +188,23 @@ def Uphi_loss(X: float, stokes_cube: ArrayLike, thetas: ArrayLike, r) -> float:
     cos2t = np.cos(2 * (thetas + X))
     sin2t = np.sin(2 * (thetas + X))
     Uphi = stokes_cube[1] * sin2t - stokes_cube[2] * cos2t
-    l2norm = np.sum(Uphi**2)
+    l2norm = np.nansum(Uphi**2)
     return l2norm
 
 
-# generally not needed because HWP tracks the pupil
-def rotate_stokes(stokes_cube, angles):
-    out = stokes_cube.copy()
-    thetas = np.deg2rad(angles)[None, :, None, None]
-    sin2ts = np.sin(2 * thetas)
-    cos2ts = np.cos(2 * thetas)
-    out[1] = stokes_cube[1] * cos2ts - stokes_cube[2] * sin2ts
-    out[2] = stokes_cube[1] * sin2ts + stokes_cube[2] * cos2ts
-    return out
-
-
-def collapse_stokes_cube(stokes_cube, pa):
+def collapse_stokes_cube(stokes_cube, pa, header=None):
     stokes_out = np.empty_like(
         stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:])
     )
     for s in range(stokes_cube.shape[0]):
         derot = derotate_cube(stokes_cube[s], pa)
-        stokes_out[s] = np.median(derot, axis=0)
-    return stokes_out
+        stokes_out[s] = np.nanmedian(derot, axis=0)
+
+    # now that cube is derotated we can apply WCS
+    if header is not None:
+        apply_wcs(header, pupil_offset=None)
+
+    return stokes_out, header
 
 
 def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArray:
@@ -255,7 +248,7 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
         )
 
     # now do triple-differential calibration
-
+    # only load 16 files at a time to avoid running out of memory on large datasets
     N_hwp_sets = len(filenames) // 16
     with fits.open(filenames.iloc[0]) as hdus:
         stokes_cube = np.zeros(
@@ -264,46 +257,36 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
     angles = triplediff_average_angles(filenames)
     iter = tqdm.trange(N_hwp_sets, desc="Triple-differential calibration")
     for i in iter:
+        # prepare input frames
         ix = i * 16  # offset index
-        cube_dict = {}
+        frame_dict = {}
         for file in filenames.iloc[ix : ix + 16]:
-            cube, hdr = fits.getdata(file, header=True)
+            frame, hdr = fits.getdata(file, header=True)
             key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
-            cube_dict[key] = cube
-        ## stokes Q
-        # (cam1 - cam2) - (cam1 - cam2)
-        pQ0 = _single_diff_helper(cube_dict[(0.0, 1, 1)], cube_dict[(0.0, 1, 2)])
-        mQ0 = _single_diff_helper(cube_dict[(0.0, 2, 1)], cube_dict[(0.0, 2, 2)])
-        Q0 = 0.5 * (pQ0 - mQ0)
-
-        pQ1 = _single_diff_helper(cube_dict[(45.0, 1, 1)], cube_dict[(45.0, 1, 2)])
-        mQ1 = _single_diff_helper(cube_dict[(45.0, 2, 1)], cube_dict[(45.0, 2, 2)])
-        Q1 = 0.5 * (pQ1 - mQ1)
-
-        # (cam1 - cam2) - (cam1 - cam2)
-        pU0 = _single_diff_helper(cube_dict[(22.5, 1, 1)], cube_dict[(22.5, 1, 2)])
-        mU0 = _single_diff_helper(cube_dict[(22.5, 2, 1)], cube_dict[(22.5, 2, 2)])
-        U0 = 0.5 * (pU0 - mU0)
-
-        pU1 = _single_diff_helper(cube_dict[(67.5, 1, 1)], cube_dict[(67.5, 1, 2)])
-        mU1 = _single_diff_helper(cube_dict[(67.5, 2, 1)], cube_dict[(67.5, 2, 2)])
-        U1 = 0.5 * (pU1 - mU1)
-
+            frame_dict[key] = frame
+        # make difference images
+        for hwp_ang in (0.0, 45.0, 22.5, 67.5):
+            # single diff: cam1 - cam2
+            pX = frame_dict[(hwp_ang, 1, 1)] - frame_dict[(hwp_ang, 1, 2)]
+            mX = frame_dict[(hwp_ang, 2, 1)] - frame_dict[(hwp_ang, 2, 2)]
+            # double diff: flc1 - flc2
+            X = 0.5 * (pX - mX)
+            # triple diff: hwp1 - hwp2
+            if hwp_ang == 0.0:  # Q
+                stokes_cube[1, i] += 0.5 * X
+            elif hwp_ang == 45.0:  # -Q
+                stokes_cube[1, i] -= 0.5 * X
+            elif hwp_ang == 22.5:  # U
+                stokes_cube[2, i] += 0.5 * X
+            elif hwp_ang == 67.5:  # -U
+                stokes_cube[2, i] -= 0.5 * X
         # factor of 2 because intensity is cut in half by beamsplitter
-        stokes_cube[0, i] = 2 * np.mean(list(cube_dict.values()), axis=0)
-        # Q = 0.5 * (Q+ - Q-)
-        stokes_cube[1, i] = 0.5 * (Q0 - Q1)
-        # U = 0.5 * (U+ - U-)
-        stokes_cube[2, i] = 0.5 * (U0 - U1)
+        stokes_cube[0, i] = 2 * np.mean(list(frame_dict.values()), axis=0)
 
-    return stokes_cube, angles
+    headers = [fits.getheader(f) for f in filenames]
+    stokes_hdr = combine_frames_headers(headers)
 
-
-def _single_diff_helper(frame1, frame2):
-    diff = frame1 - frame2
-    summ = frame1 + frame2
-    partial = measure_instpol(summ, diff, 8)
-    return diff - partial * summ
+    return stokes_cube, stokes_hdr, angles
 
 
 def triplediff_average_angles(filenames):
@@ -475,9 +458,7 @@ def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> 
     return stokes_cube
 
 
-def write_stokes_products(
-    stokes_cube, stokes_header=None, outname=None, skip=False, phi=None
-):
+def write_stokes_products(stokes_cube, header=None, outname=None, skip=False, phi=None):
     if outname is None:
         path = Path("stokes_cube.fits")
     else:
@@ -490,14 +471,17 @@ def write_stokes_products(
     aolp = np.arctan2(stokes_cube[2], stokes_cube[1])
     Qphi, Uphi = radial_stokes(stokes_cube, phi=phi)
 
-    if stokes_header is not None:
-        stokes_header["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP"
-        stokes_header["VPP_PHI"] = phi, "deg, angle of linear polarization offset"
+    if header is None:
+        header = fits.Header()
+
+    header["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP"
+    if phi is not None:
+        header["VPP_PHI"] = phi, "deg, angle of linear polarization offset"
 
     data = np.asarray(
         (stokes_cube[0], stokes_cube[1], stokes_cube[2], Qphi, Uphi, pi, aolp)
     )
 
-    fits.writeto(path, data, header=stokes_header, overwrite=True)
+    fits.writeto(path, data, header=header, overwrite=True)
 
     return path

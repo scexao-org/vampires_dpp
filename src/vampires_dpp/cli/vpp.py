@@ -27,7 +27,7 @@ def main():
         stream_handle.setFormatter(formatter)
         pipeline.logger.addHandler(stream_handle)
         log_filename = f"{path.stem}_debug.log"
-        log_files = path.parent / log_filename, pipeline.output_directory / log_filename
+        log_files = path.parent / log_filename, pipeline.output_dir / log_filename
         for log_file in log_files:
             file_handle = logging.FileHandler(log_file, mode="w")
             file_handle.setLevel(logging.DEBUG)

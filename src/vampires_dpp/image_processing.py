@@ -92,7 +92,7 @@ def collapse_file(filename, output=None, skip=False, **kwargs):
         return output
 
     cube, header = fits.getdata(filename, header=True)
-    frame = np.median(cube, 0, overwrite_input=True)
+    frame = np.nanmedian(cube, 0, overwrite_input=True)
 
     fits.writeto(output, frame, header=header, overwrite=True)
     return output
@@ -197,7 +197,7 @@ def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs
     method = method.strip().lower()
 
     if method == "median":
-        frame = np.median(cube, axis=0, **kwargs)
+        frame = np.nanmedian(cube, axis=0, **kwargs)
 
     if header is not None:
         header = collapse_cube_header(header, method=method)
@@ -223,21 +223,28 @@ def combine_frames_headers(headers, wcs=False):
     output_header = fits.Header()
     # let's make this easier with tables
     table = pd.DataFrame([dict_from_header(header) for header in headers])
-
+    # use a single header to get comments
+    test_header = headers[0]
     # which columns have only a single unique value?
     unique_values = table.apply(lambda col: col.unique())
     unique_mask = unique_values.apply(lambda values: len(values) == 1)
     unique_row = table.loc[0, unique_mask]
     for key, val in unique_row.items():
-        output_header[key] = val
+        output_header[key] = val, test_header.comments[key]
 
     # average position using average angle formula
     ras = Angle(table["RA"], unit=u.hourangle)
     ave_ra = np.arctan2(np.sin(ras.rad).mean(), np.cos(ras.rad).mean())
     decs = Angle(table["DEC"], unit=u.deg)
     ave_dec = np.arctan2(np.sin(decs.rad).mean(), np.cos(decs.rad).mean())
-    output_header["RA"] = Angle(ave_ra * u.rad).to_string(unit=u.hourangle, sep=":")
-    output_header["DEC"] = Angle(ave_dec * u.rad).to_string(unit=u.deg, sep=":")
+    output_header["RA"] = (
+        Angle(ave_ra * u.rad).to_string(unit=u.hourangle, sep=":"),
+        test_header.comments["RA"],
+    )
+    output_header["DEC"] = (
+        Angle(ave_dec * u.rad).to_string(unit=u.deg, sep=":"),
+        test_header.comments["DEC"],
+    )
     if wcs:
         # need to get average CRVALs and PCs
         output_header["CRVAL1"] = np.rad2deg(ave_ra)
@@ -264,7 +271,8 @@ def combine_frames_headers(headers, wcs=False):
             "PC2_1",
             "PC2_2",
         ):
-            del table[k]
+            if k in output_header:
+                del output_header[k]
 
     return output_header
 
@@ -303,6 +311,26 @@ def correct_distortion(
         header["VPP_SCAL"] = scale, "scaling ratio for distortion correction"
         header["VPP_ANGL"] = angle, "deg, offset angle for distortion correction"
     return corr_frame, header
+
+
+def correct_distortion_cube(
+    cube: ArrayLike,
+    angle: float = 0,
+    scale: float = 1,
+    header=None,
+    center=None,
+    **kwargs,
+):
+    if center is None:
+        center = frame_center(cube)
+    M = cv2.getRotationMatrix2D(center[::-1], angle, scale)
+    corr_cube = cube.copy()
+    for i in range(cube.shape[0]):
+        corr_cube[i] = distort_frame(cube[i], M, **kwargs)
+    if header is not None:
+        header["VPP_SCAL"] = scale, "scaling ratio for distortion correction"
+        header["VPP_ANGL"] = angle, "deg, offset angle for distortion correction"
+    return corr_cube, header
 
 
 # DEGREE_LOOKUP_TABLE = {

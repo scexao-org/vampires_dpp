@@ -21,10 +21,11 @@ def apply_wcs(header, pxscale=PIXEL_SCALE, pupil_offset=PUPIL_OFFSET):
     w.wcs.cunit = ["deg", "deg"]
     w.wcs.cdelt = [-pxscale / 3.6e6, pxscale / 3.6e6]
     w.wcs.ctype = ["RA", "DEC"]
-    ang = np.deg2rad(header["D_IMRPAD"] + pupil_offset)
-    cosang = np.cos(ang)
-    sinang = np.sin(ang)
-    w.wcs.pc = [[cosang, -sinang], [sinang, cosang]]
+    if pupil_offset is not None:
+        ang = np.deg2rad(header["D_IMRPAD"] + pupil_offset)
+        cosang = np.cos(ang)
+        sinang = np.sin(ang)
+        w.wcs.pc = [[cosang, -sinang], [sinang, cosang]]
     header.update(w.to_header())
     return header
 
