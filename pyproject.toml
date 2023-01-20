@@ -54,3 +54,6 @@ addopts = "--randomly-seed=4796"
 
 [tool.coverage.run]
 source = ["vampires_dpp"]
+
+[tool.black]
+line-length = 100

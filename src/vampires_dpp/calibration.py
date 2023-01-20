@@ -87,9 +87,7 @@ def calibrate_file(
         discard = 0
     else:
         discard = 2
-    processed = calibrate(
-        data, dark=dark, flat=flat, flip=flip, discard=discard, **kwargs
-    )
+    processed = calibrate(data, dark=dark, flat=flat, flip=flip, discard=discard, **kwargs)
     if deinterleave:
         set1 = processed[::2]
         hdr["U_FLCSTT"] = 1, "FLC state (1 or 2)"
@@ -123,9 +121,7 @@ def deinterleave_file(filename: str, hdu: int = 0, skip=False, **kwargs):
     return outname1, outname2
 
 
-def make_dark_file(
-    filename: str, output: Optional[str] = None, discard: int = 1, skip=False
-):
+def make_dark_file(filename: str, output: Optional[str] = None, discard: int = 1, skip=False):
     _path = Path(filename)
     if output is not None:
         outname = output

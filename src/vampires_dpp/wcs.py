@@ -67,9 +67,7 @@ def get_coord_header(header, time=None):
 def get_gaia_astrometry(target, catalog="I/355/gaiadr3"):
     # get precise RA and DEC
     # Try DR3
-    gaia_catalog_list = Vizier.query_object(
-        target, radius=1 * u.arcsec, catalog=catalog
-    )
+    gaia_catalog_list = Vizier.query_object(target, radius=1 * u.arcsec, catalog=catalog)
     gaia_info = gaia_catalog_list[0][0]  # first row of first table
     plx = np.abs(gaia_info["Plx"]) * u.mas
     coord = SkyCoord(

@@ -59,9 +59,7 @@ def cutout_slice(frame, window, center=None):
     half_width = np.asarray(window) / 2
     Ny, Nx = frame.shape[-2:]
     lower = np.maximum(0, np.round(center - half_width), dtype=int, casting="unsafe")
-    upper = np.minimum(
-        (Ny - 1, Nx - 1), np.round(center + half_width), dtype=int, casting="unsafe"
-    )
+    upper = np.minimum((Ny - 1, Nx - 1), np.round(center + half_width), dtype=int, casting="unsafe")
     return slice(lower[0], upper[0] + 1), slice(lower[1], upper[1] + 1)
 
 
@@ -119,8 +117,5 @@ def window_indices(frame, window=30, center=None, **kwargs):
     """
     slices = window_slices(frame, window=window, center=center, **kwargs)
     coords = (cart_coords(sl[0], sl[1]) for sl in slices)
-    inds = [
-        np.ravel_multi_index((coord[:, 0], coord[:, 1]), frame.shape)
-        for coord in coords
-    ]
+    inds = [np.ravel_multi_index((coord[:, 0], coord[:, 1]), frame.shape) for coord in coords]
     return inds

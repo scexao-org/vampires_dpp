@@ -234,9 +234,7 @@ def rotator(theta=0) -> NDArray:
     """
     cos2t = np.cos(2 * theta)
     sin2t = np.sin(2 * theta)
-    M = np.array(
-        ((1, 0, 0, 0), (0, cos2t, sin2t, 0), (0, -sin2t, cos2t, 0), (0, 0, 0, 1))
-    )
+    M = np.array(((1, 0, 0, 0), (0, cos2t, sin2t, 0), (0, -sin2t, cos2t, 0), (0, 0, 0, 1)))
     return M
 
 

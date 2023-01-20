@@ -38,10 +38,7 @@ def test_dict_from_header():
     assert summary["INSTRUME"] == "VAMPIRES"
     assert summary["TIMESYS"] == "UTC"
     assert summary["PROP-ID"] == "o22193"
-    assert (
-        summary["OBSERVER"]
-        == '"[Hilo] Bottom, Guyon, Lozi, Deo, Lucas [Summit] Barjot"'
-    )
+    assert summary["OBSERVER"] == '"[Hilo] Bottom, Guyon, Lozi, Deo, Lucas [Summit] Barjot"'
     assert summary["OBS-ALOC"] == "Observation"
     assert summary["OBS-MOD"] == "IMAG_POL"
     assert summary["RADESYS"] == "FK5"
@@ -165,10 +162,7 @@ def test_observation_table():
     assert summary["INSTRUME"] == "VAMPIRES"
     assert summary["TIMESYS"] == "UTC"
     assert summary["PROP-ID"] == "o22193"
-    assert (
-        summary["OBSERVER"]
-        == '"[Hilo] Bottom, Guyon, Lozi, Deo, Lucas [Summit] Barjot"'
-    )
+    assert summary["OBSERVER"] == '"[Hilo] Bottom, Guyon, Lozi, Deo, Lucas [Summit] Barjot"'
     assert summary["OBS-ALOC"] == "Observation"
     assert summary["OBS-MOD"] == "IMAG_POL"
     assert summary["RADESYS"] == "FK5"

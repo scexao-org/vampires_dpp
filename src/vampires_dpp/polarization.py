@@ -62,9 +62,7 @@ def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None, expected=0):
     return pX - expected
 
 
-def measure_instpol_satellite_spots(
-    I: ArrayLike, X: ArrayLike, r=5, expected=0, **kwargs
-):
+def measure_instpol_satellite_spots(I: ArrayLike, X: ArrayLike, r=5, expected=0, **kwargs):
     """
     Use aperture photometry on satellite spots to estimate the instrument polarization.
 
@@ -137,9 +135,7 @@ def background_subtracted_photometry(frame, aps, anns):
     return ap_sums - aps.area / anns.area * ann_sums
 
 
-def radial_stokes(
-    stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs
-) -> NDArray:
+def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs) -> NDArray:
     r"""
     Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)
 
@@ -193,9 +189,7 @@ def Uphi_loss(X: float, stokes_cube: ArrayLike, thetas: ArrayLike, r) -> float:
 
 
 def collapse_stokes_cube(stokes_cube, pa, header=None):
-    stokes_out = np.empty_like(
-        stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:])
-    )
+    stokes_out = np.empty_like(stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:]))
     for s in range(stokes_cube.shape[0]):
         derot = derotate_cube(stokes_cube[s], pa)
         stokes_out[s] = np.nanmedian(derot, axis=0)
@@ -251,9 +245,7 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
     # only load 16 files at a time to avoid running out of memory on large datasets
     N_hwp_sets = len(filenames) // 16
     with fits.open(filenames.iloc[0]) as hdus:
-        stokes_cube = np.zeros(
-            shape=(4, N_hwp_sets, *hdus[0].shape), dtype=hdus[0].data.dtype
-        )
+        stokes_cube = np.zeros(shape=(4, N_hwp_sets, *hdus[0].shape), dtype=hdus[0].data.dtype)
     angles = triplediff_average_angles(filenames)
     iter = tqdm.trange(N_hwp_sets, desc="Triple-differential calibration")
     for i in iter:
@@ -295,9 +287,7 @@ def triplediff_average_angles(filenames):
             "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
         )
     # make sure we get data in correct order using FITS headers
-    tbl = observation_table(filenames).sort_values(
-        ["DATE", "U_PLSTIT", "U_FLCSTT", "U_CAMERA"]
-    )
+    tbl = observation_table(filenames).sort_values(["DATE", "U_PLSTIT", "U_FLCSTT", "U_CAMERA"])
 
     # once more check again that we have proper HWP sets
     hwpangs = tbl["U_HWPANG"].values.reshape((-1, 4, 4)).mean(axis=(0, 2))
@@ -380,9 +370,7 @@ def mueller_mats_files(filenames, method="mueller", output=None, skip=False):
     elif method == "triplediff":
         mueller_mats = polarization_calibration_triplediff(filenames)
     else:
-        raise ValueError(
-            f'\'method\' must be either "model" or "triplediff" (got {method})'
-        )
+        raise ValueError(f'\'method\' must be either "model" or "triplediff" (got {method})')
 
     hdu = fits.PrimaryHDU(mueller_mats)
     hdu.header["METHOD"] = method
@@ -391,9 +379,7 @@ def mueller_mats_files(filenames, method="mueller", output=None, skip=False):
     return output
 
 
-def mueller_matrix_calibration_files(
-    filenames, mueller_matrix_file=None, output=None, skip=False
-):
+def mueller_matrix_calibration_files(filenames, mueller_matrix_file=None, output=None, skip=False):
     if output is None:
         indir = Path(filenames[0]).parent
         output = indir / f"stokes_cube.fits"
@@ -451,9 +437,7 @@ def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> 
     # go pixel-by-pixel
     for i in range(cube.shape[-2]):
         for j in range(cube.shape[-1]):
-            stokes_cube[:, i, j] = np.linalg.lstsq(
-                mueller_matrices, cube[:, i, j], rcond=None
-            )[0]
+            stokes_cube[:, i, j] = np.linalg.lstsq(mueller_matrices, cube[:, i, j], rcond=None)[0]
 
     return stokes_cube
 
@@ -478,9 +462,7 @@ def write_stokes_products(stokes_cube, header=None, outname=None, skip=False, ph
     if phi is not None:
         header["VPP_PHI"] = phi, "deg, angle of linear polarization offset"
 
-    data = np.asarray(
-        (stokes_cube[0], stokes_cube[1], stokes_cube[2], Qphi, Uphi, pi, aolp)
-    )
+    data = np.asarray((stokes_cube[0], stokes_cube[1], stokes_cube[2], Qphi, Uphi, pi, aolp))
 
     fits.writeto(path, data, header=header, overwrite=True)
 

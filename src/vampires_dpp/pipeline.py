@@ -229,9 +229,7 @@ class Pipeline:
 
         ## Step 1: Fix headers and calibrate
         self.logger.info("Starting data calibration")
-        outdir = self.output_dir / self.config["calibration"].get(
-            "output_directory", ""
-        )
+        outdir = self.output_dir / self.config["calibration"].get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
         self.logger.debug(f"Saving calibrated data to {outdir.absolute()}")
@@ -247,13 +245,9 @@ class Pipeline:
             tripwire = tripwire or not skip_darks
             for key in ("cam1", "cam2"):
                 if key in dark_config:
-                    dark_filenames = self.parse_filenames(
-                        self.root_dir, dark_config[key]
-                    )
+                    dark_filenames = self.parse_filenames(self.root_dir, dark_config[key])
                     dark_frames = []
-                    for filename in tqdm.tqdm(
-                        dark_filenames, desc="Making master darks"
-                    ):
+                    for filename in tqdm.tqdm(dark_filenames, desc="Making master darks"):
                         outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
                         dark_frames.append(
                             make_dark_file(filename, output=outname, skip=skip_darks)
@@ -261,13 +255,9 @@ class Pipeline:
                     self.master_darks[key] = (
                         outdir / f"{self.config['name']}_master_dark_{key}.fits"
                     )
-                    master_dark = np.mean(
-                        [fits.getdata(f) for f in dark_frames], axis=0
-                    )
+                    master_dark = np.mean([fits.getdata(f) for f in dark_frames], axis=0)
                     fits.writeto(self.master_darks[key], master_dark, overwrite=True)
-                    self.logger.debug(
-                        f"saved master dark to {self.master_darks[key].absolute()}"
-                    )
+                    self.logger.debug(f"saved master dark to {self.master_darks[key].absolute()}")
         ## Step 1b: create master flats
         self.master_flats = {"cam1": None, "cam2": None}
         if "flats" in self.config["calibration"]:
@@ -279,14 +269,10 @@ class Pipeline:
             tripwire = tripwire or not skip_flats
             for key in ("cam1", "cam2"):
                 if key in flat_config:
-                    flat_filenames = self.parse_filenames(
-                        self.root_dir, flat_config[key]
-                    )
+                    flat_filenames = self.parse_filenames(self.root_dir, flat_config[key])
                     dark_filename = self.master_darks[key]
                     flat_frames = []
-                    for filename in tqdm.tqdm(
-                        flat_filenames, desc="Making master darks"
-                    ):
+                    for filename in tqdm.tqdm(flat_filenames, desc="Making master darks"):
                         outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
                         flat_frames.append(
                             make_flat_file(
@@ -299,13 +285,9 @@ class Pipeline:
                     self.master_flats[key] = (
                         outdir / f"{self.config['name']}_master_flat_{key}.fits"
                     )
-                    master_flat = np.mean(
-                        [fits.getdata(f) for f in flat_frames], axis=0
-                    )
+                    master_flat = np.mean([fits.getdata(f) for f in flat_frames], axis=0)
                     fits.writeto(self.master_flats[key], master_flat, overwrite=True)
-                    self.logger.debug(
-                        f"saved master flat to {self.master_flats[key].absolute()}"
-                    )
+                    self.logger.debug(f"saved master flat to {self.master_flats[key].absolute()}")
 
         ## Step 1c: calibrate files and fix headers
         filenames = self.parse_filenames(self.root_dir, self.config["filenames"])
@@ -366,25 +348,19 @@ class Pipeline:
                 distort_file = distort_config["transform"]
                 distort_coeffs = pd.read_csv(distort_file, index_col=0)
                 params = distort_coeffs.loc[cam_key]
-                calib_cube, header = correct_distortion_cube(
-                    calib_cube, *params, header=header
-                )
+                calib_cube, header = correct_distortion_cube(calib_cube, *params, header=header)
 
             if self.config["calibration"].get("deinterleave", False):
                 sub_cube_flc1 = calib_cube[::2]
                 header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
                 fits.writeto(outname_flc1, sub_cube_flc1, header, overwrite=True)
-                self.logger.debug(
-                    f"saved FLC 1 calibrated data to {outname_flc1.absolute()}"
-                )
+                self.logger.debug(f"saved FLC 1 calibrated data to {outname_flc1.absolute()}")
                 working_files.append(outname_flc1)
 
                 sub_cube_flc2 = calib_cube[1::2]
                 header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
                 fits.writeto(outname_flc2, sub_cube_flc2, header, overwrite=True)
-                self.logger.debug(
-                    f"saved FLC 2 calibrated data to {outname_flc2.absolute()}"
-                )
+                self.logger.debug(f"saved FLC 2 calibrated data to {outname_flc2.absolute()}")
                 working_files.append(outname_flc2)
             else:
                 fits.writeto(outname, calib_cube, header, overwrite=True)
@@ -415,9 +391,7 @@ class Pipeline:
             tripwire = tripwire or not skip_select
             metric_files = []
             ## 2a: measure metrics
-            for i in tqdm.trange(
-                len(working_files), desc="Measuring frame selection metric"
-            ):
+            for i in tqdm.trange(len(working_files), desc="Measuring frame selection metric"):
                 filename = working_files[i]
                 self.logger.debug(f"Measuring metric for {filename.absolute()}")
                 header = fits.getheader(filename)
@@ -475,20 +449,14 @@ class Pipeline:
         ## 3: Image registration
         if "registration" in self.config:
             self.logger.info("Performing image registration")
-            outdir = self.output_dir / self.config["registration"].get(
-                "output_directory", ""
-            )
+            outdir = self.output_dir / self.config["registration"].get("output_directory", "")
             if not outdir.is_dir():
                 outdir.mkdir(parents=True, exist_ok=True)
             self.logger.debug(f"saving image registration data to {outdir.absolute()}")
             offset_files = []
-            skip_reg = not tripwire and not self.config["registration"].get(
-                "force", False
-            )
+            skip_reg = not tripwire and not self.config["registration"].get("force", False)
             if skip_reg:
-                self.logger.debug(
-                    "skipping offset files and aligned files if they exist"
-                )
+                self.logger.debug("skipping offset files and aligned files if they exist")
             tripwire = tripwire or not skip_reg
             kwargs = {
                 "window": self.config["registration"].get("window_size", 30),
@@ -519,9 +487,7 @@ class Pipeline:
                         center=self.frame_centers[cam_key],
                         coronagraphic=True,
                         radius=r,
-                        theta=self.config["coronagraph"]["satellite_spots"].get(
-                            "angle", -4
-                        ),
+                        theta=self.config["coronagraph"]["satellite_spots"].get("angle", -4),
                         output=outname,
                         **kwargs,
                     )
@@ -554,15 +520,11 @@ class Pipeline:
         ## Step 4: collapsing
         if "collapsing" in self.config:
             self.logger.info("Collapsing registered frames")
-            outdir = self.output_dir / self.config["collapsing"].get(
-                "output_directory", ""
-            )
+            outdir = self.output_dir / self.config["collapsing"].get("output_directory", "")
             if not outdir.is_dir():
                 outdir.mkdir(parents=True, exist_ok=True)
             self.logger.debug(f"saving collapsed data to {outdir.absolute()}")
-            skip_collapse = not tripwire and not self.config["collapsing"].get(
-                "force", False
-            )
+            skip_collapse = not tripwire and not self.config["collapsing"].get("force", False)
             if skip_collapse:
                 self.logger.debug("skipping collapsing cubes if files exist")
             tripwire = tripwire or not skip_collapse
@@ -579,26 +541,15 @@ class Pipeline:
                 self.logger.debug(f"saved collapsed data to {outname.absolute()}")
             collapse_files = working_files.copy()
             for cam_num in (1, 2):
-                cam_files = filter(
-                    lambda f: fits.getval(f, "U_CAMERA") == cam_num, collapse_files
-                )
+                cam_files = filter(lambda f: fits.getval(f, "U_CAMERA") == cam_num, collapse_files)
                 # generate cube
-                outname = (
-                    outdir / f"{self.config['name']}_cam{cam_num}_collapsed_cube.fits"
-                )
-                collapse_cube_file = combine_frames_files(
-                    cam_files, output=outname, skip=False
-                )
-                self.logger.debug(
-                    f"saved collapsed cube to {collapse_cube_file.absolute()}"
-                )
+                outname = outdir / f"{self.config['name']}_cam{cam_num}_collapsed_cube.fits"
+                collapse_cube_file = combine_frames_files(cam_files, output=outname, skip=False)
+                self.logger.debug(f"saved collapsed cube to {collapse_cube_file.absolute()}")
                 # derot angles
                 angs = [fits.getval(f, "D_IMRPAD") + pupil_offset for f in cam_files]
                 derot_angles = np.asarray(angs, "f4")
-                outname = (
-                    self.output_dir
-                    / f"{self.config['name']}_cam{cam_num}_derot_angles.fits"
-                )
+                outname = self.output_dir / f"{self.config['name']}_cam{cam_num}_derot_angles.fits"
                 fits.writeto(outname, derot_angles, overwrite=True)
                 self.logger.debug(f"saved derot angles to {outname.absolute()}")
             self.logger.info("Finished collapsing frames")
@@ -606,15 +557,11 @@ class Pipeline:
         ## Step 7: derotate
         if "derotate" in self.config:
             self.logger.info("Derotating frames")
-            outdir = self.output_dir / self.config["derotate"].get(
-                "output_directory", ""
-            )
+            outdir = self.output_dir / self.config["derotate"].get("output_directory", "")
             if not outdir.is_dir():
                 outdir.mkdir(parents=True, exist_ok=True)
             self.logger.debug(f"saving derotated data to {outdir.absolute()}")
-            skip_derot = not tripwire and not self.config["derotate"].get(
-                "force", False
-            )
+            skip_derot = not tripwire and not self.config["derotate"].get("force", False)
             if skip_derot:
                 self.logger.debug("skipping derotating frames if files exist")
             tripwire = tripwire or not skip_derot
@@ -634,17 +581,11 @@ class Pipeline:
 
             # generate derotated cube
             for cam_num in (1, 2):
-                cam_files = filter(
-                    lambda f: fits.getval(f, "U_CAMERA") == cam_num, derot_files
-                )
+                cam_files = filter(lambda f: fits.getval(f, "U_CAMERA") == cam_num, derot_files)
                 # generate cube
                 outname = outdir / f"{self.config['name']}_cam{cam_num}_derot_cube.fits"
-                derot_cube_file = combine_frames_files(
-                    cam_files, output=outname, skip=False
-                )
-                self.logger.debug(
-                    f"saved derotated cube to {derot_cube_file.absolute()}"
-                )
+                derot_cube_file = combine_frames_files(cam_files, output=outname, skip=False)
+                self.logger.debug(f"saved derotated cube to {derot_cube_file.absolute()}")
 
             self.logger.info("Finished derotating frames")
 
@@ -653,15 +594,11 @@ class Pipeline:
             if "collapsing" not in self.config:
                 raise ValueError("Cannot do PDI without collapsing data.")
             self.logger.info("Performing polarimetric calibration")
-            outdir = self.output_dir / self.config["polarimetry"].get(
-                "output_directory", ""
-            )
+            outdir = self.output_dir / self.config["polarimetry"].get("output_directory", "")
             if not outdir.is_dir():
                 outdir.mkdir(parents=True, exist_ok=True)
             self.logger.debug(f"saving Stokes data to {outdir.absolute()}")
-            skip_pdi = not tripwire and not self.config["polarimetry"].get(
-                "force", False
-            )
+            skip_pdi = not tripwire and not self.config["polarimetry"].get("force", False)
             if skip_pdi:
                 self.logger.debug("skipping PDI if files exist")
             tripwire = tripwire or not skip_pdi
@@ -693,16 +630,11 @@ class Pipeline:
 
                     if "ip" in self.config["polarimetry"]:
                         ip_config = self.config["polarimetry"]["ip"]
-                        stokes_cube_file = (
-                            outdir / f"{self.config['name']}_stokes_cube_ip.fits"
-                        )
+                        stokes_cube_file = outdir / f"{self.config['name']}_stokes_cube_ip.fits"
                         ip_method = ip_config.get("method", "photometry")
                         aper_rad = ip_config.get("r", 5)
                         for ix in range(stokes_cube.shape[1]):
-                            if (
-                                ip_method == "satspot_photometry"
-                                and "coronagraph" in self.config
-                            ):
+                            if ip_method == "satspot_photometry" and "coronagraph" in self.config:
                                 pQ = measure_instpol_satellite_spots(
                                     stokes_cube[0, ix],
                                     stokes_cube[1, ix],
@@ -727,18 +659,14 @@ class Pipeline:
                                     stokes_cube[2, ix],
                                     r=aper_rad,
                                 )
-                            stokes_cube[:, ix] = instpol_correct(
-                                stokes_cube[:, ix], pQ, pU
-                            )
+                            stokes_cube[:, ix] = instpol_correct(stokes_cube[:, ix], pQ, pU)
                         write_stokes_products(
                             stokes_cube,
                             outname=stokes_cube_file,
                             header=stokes_hdr,
                             skip=False,
                         )
-                        self.logger.debug(
-                            f"saved IP-corrected Stokes cube to {outname.absolute()}"
-                        )
+                        self.logger.debug(f"saved IP-corrected Stokes cube to {outname.absolute()}")
 
                     stokes_cube_collapsed, stokes_hdr = collapse_stokes_cube(
                         stokes_cube, stokes_angles, header=stokes_hdr
@@ -771,9 +699,7 @@ class Pipeline:
                     output=outname,
                     skip=skip_pdi,
                 )
-                self.logger.debug(
-                    f"saved Mueller matrices to {mueller_mat_file.absolute()}"
-                )
+                self.logger.debug(f"saved Mueller matrices to {mueller_mat_file.absolute()}")
 
                 # generate stokes cube
                 outname = outdir / f"{self.config['name']}_stokes_cube.fits"
@@ -784,9 +710,7 @@ class Pipeline:
                 write_stokes_products(
                     stokes_cube, stokes_header, outname=stokes_cube_file, skip=False
                 )
-                self.logger.debug(
-                    f"saved Stokes IP cube to {stokes_cube_file.absolute()}"
-                )
+                self.logger.debug(f"saved Stokes IP cube to {stokes_cube_file.absolute()}")
                 if "ip" in self.config["polarimetry"]:
                     ip_config = self.config["polarimetry"]["ip"]
                     # generate IP cube
@@ -798,9 +722,7 @@ class Pipeline:
                         f"{stokes_cube_file.stem}_collapsed{stokes_cube_file.suffix}"
                     )
                     if not skip_ip or not outname.is_file():
-                        stokes_cube, stokes_hdr = fits.getdata(
-                            stokes_cube_file, header=True
-                        )
+                        stokes_cube, stokes_hdr = fits.getdata(stokes_cube_file, header=True)
                         if "cQ" in ip_config:
                             cQ = ip_config["cQ"]
                         else:

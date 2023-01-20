@@ -29,12 +29,8 @@ class TestDeinterleave:
         deinterleave_file(path)
         assert path.with_name(f"cube_FLC1{path.suffix}").exists()
         assert path.with_name(f"cube_FLC2{path.suffix}").exists()
-        flc1, hdr1 = fits.getdata(
-            path.with_name(f"cube_FLC1{path.suffix}"), header=True
-        )
-        flc2, hdr2 = fits.getdata(
-            path.with_name(f"cube_FLC2{path.suffix}"), header=True
-        )
+        flc1, hdr1 = fits.getdata(path.with_name(f"cube_FLC1{path.suffix}"), header=True)
+        flc2, hdr2 = fits.getdata(path.with_name(f"cube_FLC2{path.suffix}"), header=True)
         assert np.allclose(flc1, 1)
         assert hdr1["U_FLCSTT"] == 1
         assert np.allclose(flc2, -1)
@@ -74,9 +70,7 @@ class TestCalibrationFrames:
 
     def test_make_flat_file(self, flat_cube):
         outpath = make_flat_file(flat_cube)
-        assert outpath == flat_cube.with_name(
-            f"{flat_cube.stem}_master_flat{flat_cube.suffix}"
-        )
+        assert outpath == flat_cube.with_name(f"{flat_cube.stem}_master_flat{flat_cube.suffix}")
         c, h = fits.getdata(
             outpath,
             header=True,
@@ -130,9 +124,7 @@ class TestCalibrate:
         # if flip didn't work, they won't add together
         assert np.allclose(np.median(calib1 + calib2, axis=(1, 2)), 4.3e4, rtol=1e-3)
 
-    def test_calibrate_files_dark(
-        self, tmp_path, data_cube_cam1, data_cube_cam2, dark_frame
-    ):
+    def test_calibrate_files_dark(self, tmp_path, data_cube_cam1, data_cube_cam2, dark_frame):
         # save data to disk
         dark_path = tmp_path / "master_dark_cam1.fits"
         fits.writeto(dark_path, dark_frame)
@@ -174,9 +166,7 @@ class TestCalibrate:
         fits.writeto(path2, data_cube_cam2)
 
         outpath1 = calibrate_file(path1, dark=dark_path, flat=flat_path, discard=2)
-        outpath2 = calibrate_file(
-            path2, dark=dark_path, flat=flat_path, suffix="_cal", discard=2
-        )
+        outpath2 = calibrate_file(path2, dark=dark_path, flat=flat_path, suffix="_cal", discard=2)
 
         assert outpath1 == path1.with_name(f"{path1.stem}_calib{path1.suffix}")
         assert outpath2 == path2.with_name(f"{path2.stem}_cal{path2.suffix}")

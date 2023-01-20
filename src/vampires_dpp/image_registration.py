@@ -129,9 +129,7 @@ def psf_offsets(
                 offsets[i] = refoffset
                 continue
             view = frame[inds[0], inds[1]]
-            dft_offset = phase_cross_correlation(
-                refview, view, return_error=False, **kwargs
-            )
+            dft_offset = phase_cross_correlation(refview, view, return_error=False, **kwargs)
             offsets[i, 0] = refoffset - dft_offset
     elif method == "peak":
         for i, frame in enumerate(cube):
@@ -181,9 +179,7 @@ def offset_modelfit(frame, inds, method, fitter=fitting.LevMarLSQFitter()):
             y_stddev=2,
         )
     elif method == "airydisk":
-        model = models.AiryDisk2D(
-            amplitude=peak, x_0=view_center[1], y_0=view_center[0], radius=2
-        )
+        model = models.AiryDisk2D(amplitude=peak, x_0=view_center[1], y_0=view_center[0], radius=2)
 
     model_fit = fitter(model, x, y, view)
 
