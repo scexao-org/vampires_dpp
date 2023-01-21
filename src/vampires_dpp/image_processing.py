@@ -3,7 +3,6 @@ import astropy.units as u
 import numpy as np
 from pathlib import Path
 import pandas as pd
-from scipy.ndimage import fourier_shift
 from numpy.typing import ArrayLike, NDArray
 from typing import Union
 import cv2
@@ -11,13 +10,6 @@ from astropy.coordinates import Angle
 
 from vampires_dpp.headers import dict_from_header
 from vampires_dpp.indexing import frame_center
-
-
-def shift_frame_fft(data: ArrayLike, shift):
-    data_freq = np.fft.fft2(data)
-    filt = fourier_shift(data_freq, shift)
-    shifted = np.real(np.fft.ifft2(filt))
-    return shifted
 
 
 def shift_frame(data: ArrayLike, shift, **kwargs):
@@ -131,6 +123,11 @@ def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs
 
     if method == "median":
         frame = np.nanmedian(cube, axis=0, **kwargs)
+    elif method == "mean":
+        frame = np.nanmean(cube, axis=0, **kwargs)
+    elif method == "varmean":
+        weights = 1 / np.nanvar(cube, axis=(1, 2), keepdims=True)
+        frame = np.nansum(cube * weights, axis=0, **kwargs) / np.nansum(weights)
 
     if header is not None:
         header = collapse_cube_header(header, method=method)
@@ -228,6 +225,28 @@ def combine_frames_files(filenames, output, skip=False, **kwargs):
     return path
 
 
+def collapse_frames(frames, headers=None, method="median", **kwargs):
+    cube, header = combine_frames(frames, headers=headers, **kwargs)
+    return collapse_cube(cube, method=method, header=header)
+
+
+def collapse_frames_files(filenames, output, skip=False, **kwargs):
+    path = Path(output)
+    if skip and path.is_file():
+        return path
+
+    frames = []
+    headers = []
+    for filename in filenames:
+        frame, header = fits.getdata(filename, header=True)
+        frames.append(frame)
+        headers.append(header)
+
+    frame, header = collapse_frames(frames, headers=headers, **kwargs)
+    fits.writeto(path, frame, header=header, overwrite=True)
+    return path
+
+
 def correct_distortion(
     frame: ArrayLike,
     angle: float = 0,
@@ -236,9 +255,30 @@ def correct_distortion(
     center=None,
     **kwargs,
 ):
+    """
+    Rotate and scale a single frame to match with a pinhole grid
+
+    Parameters
+    ----------
+    frame : ArrayLike
+        Input frame to transform
+    angle : float, optional
+        Clockwise angle to rotate frame by, by default 0
+    scale : float, optional
+        Amount of radial scaling, by default 1
+    header : Header, optional
+        FITS header to update, by default None
+    center : (y, x), optional
+        Frame center, if None will default to geometric frame center, by default None
+
+    Returns
+    -------
+    corrected_frame, header
+        The distortion-corrected frame and header. If `header` was not provided, this will be `None`.
+    """
     if center is None:
         center = frame_center(frame)
-    # if downsizing, use area resampling to reduce moire (allegedly)
+    # if downsizing, use area resampling to reduce moire effect
     if scale < 1:
         kwargs.update({"flags": cv2.INTER_NEAREST})
     # scale and retate frames with single transform
@@ -259,6 +299,27 @@ def correct_distortion_cube(
     center=None,
     **kwargs,
 ):
+    """
+    Rotate and scale a all frames in a cube to match with a pinhole grid
+
+    Parameters
+    ----------
+    cube : ArrayLike
+        Input cube to transform
+    angle : float, optional
+        Clockwise angle to rotate frames by, by default 0
+    scale : float, optional
+        Amount of radial scaling, by default 1
+    header : Header, optional
+        FITS header to update, by default None
+    center : (y, x), optional
+        Frame center, if None will default to geometric frame center, by default None
+
+    Returns
+    -------
+    corrected_cube, header
+        The distortion-corrected cube and header. If `header` was not provided, this will be `None`.
+    """
     if center is None:
         center = frame_center(cube)
     # if downsizing, avoid interpolation to reduce moire effect
