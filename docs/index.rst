@@ -31,7 +31,7 @@ Contents
    :maxdepth: 1
 
    installation
-   gettingstarted
+   introduction
    pipeline
    examples/index
    api/index

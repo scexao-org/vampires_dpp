@@ -14,6 +14,8 @@ optional arguments:
 
 or create a `Pipeline` object and call the `run` method.
 
+## Processing steps
+
 The pipeline will reduce the data in the following order
 1. Calibration
 2. Frame Selection
