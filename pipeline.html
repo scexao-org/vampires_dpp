@@ -977,7 +977,7 @@ tail config_debug.log
 <p>By default, if the IP-corrected Stokes cube already exists the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the IP measurement, correction, <em>and all subsequent operations</em> will be redone.</p>
 <section id="id5">
 <h4>Outputs<a class="headerlink" href="#id5" title="Permalink to this headline">#</a></h4>
-<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with filename <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube</span></code>. If instrumental polarization is corrected, an additional FITS file is saved with name <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube_ip</span></code>.</p>
+<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with filename <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube</span></code>. If instrumental polarization is corrected, an additional FITS file is saved with name <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube_ip</span></code>. A collapsed stokes cube will be created and saved at <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube[_ip]_collapsed</span></code>.</p>
 </section>
 </section>
 </section>
@@ -986,89 +986,89 @@ tail config_debug.log
 <p>Here are some simple examples of configuration files for various observing scenarios. These do not make use of all the features, and make some assumptions about how the data is laid out that you are encouraged to tweak to your liking.</p>
 <details>
 <summary>Non-coronagraphic Polarimetric Imaging</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span>version = &quot;0.3.0&quot; # vampires_dpp version
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.3.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
 
-name = &quot;abaur_example&quot;
-target = &quot;AB Aur&quot;
-directory = &quot;abaur_20190320&quot;
-output_directory = &quot;abaur_20190320/processed&quot;
-filenames = &quot;science/VMPA*.fits&quot;
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span>
+<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320/processed&quot;</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span>
 
-[calibration]
-output_directory = &quot;calibrated&quot;
+<span class="k">[calibration]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
 
-[calibration.darks]
-cam1 = &quot;cam1_darks/VMPA*.fits&quot;
-cam2 = &quot;cam2_darks/VMPA*.fits&quot;
+<span class="k">[calibration.darks]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;cam1_darks/VMPA*.fits&quot;</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;cam2_darks/VMPA*.fits&quot;</span>
 
-[frame_selection]
-metric = &quot;l2norm&quot;
-q = 0.7
-output_directory = &quot;selected&quot;
+<span class="k">[frame_selection]</span>
+<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span>
+<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
 
-[registration]
-method = &quot;peak&quot;
-output_directory = &quot;registered&quot;
+<span class="k">[registration]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 
-[collapsing]
-output_directory = &quot;collapsed&quot;
+<span class="k">[collapsing]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
 
-[polarimetry]
-metho = triplediff&quot;
-output_directory = &quot;stokes&quot;
+<span class="k">[polarimetry]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;triplediff&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span>
 
-[polarimetry.ip]
-radius = 5
+<span class="k">[polarimetry.ip]</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
 </pre></div>
 </div>
 </details>
 <details>
 <summary>Coronagraphic Polarimetric Imaging</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span>version = &quot;0.3.0&quot; # vampires_dpp version
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.3.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
 
-name = &quot;abaur_example&quot;
-target = &quot;AB Aur&quot;
-directory = &quot;abaur_20220224&quot;
-output_directory = &quot;abaur_20220224/processed&quot;
-filenames = &quot;science/VMPA*.fits&quot;
-frame_centers = {
-    cam1 = [128, 128],
-    cam2 = [128, 129]
-}
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span>
+<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224/processed&quot;</span>
+<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span>
+<span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span>
+<span class="w">    </span><span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]</span>
+<span class="p">}</span>
 
-[coronagraph]
-mask_size = 55 # mas
+<span class="k">[coronagraph]</span>
+<span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">55</span><span class="w"> </span><span class="c1"># mas</span>
 
-[coronagraph.satellite_spots]
-radius = 31.8 # lam/D
-angle = -6.5 # deg
+<span class="k">[coronagraph.satellite_spots]</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">31.8</span><span class="w"> </span><span class="c1"># lam/D</span>
+<span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-6</span><span class="mf">.5</span><span class="w"> </span><span class="c1"># deg</span>
 
-[calibration]
-output_directory = &quot;calibrated&quot;
+<span class="k">[calibration]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
 
-[calibration.darks]
-cam1 = &quot;cam1_darks/VMPA*.fits&quot;
-cam2 = &quot;cam2_darks/VMPA*.fits&quot;
+<span class="k">[calibration.darks]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;cam1_darks/VMPA*.fits&quot;</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;cam2_darks/VMPA*.fits&quot;</span>
 
-[frame_selection]
-metric = &quot;l2norm&quot;
-q = 0.3
-output_directory = &quot;selected&quot;
+<span class="k">[frame_selection]</span>
+<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span>
+<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.3</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
 
-[registration]
-method = &quot;com&quot;
-output_directory = &quot;registered&quot;
+<span class="k">[registration]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 
-[collapsing]
-output_directory = &quot;collapsed&quot;
+<span class="k">[collapsing]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
 
-[polarimetry]
-metho = triplediff&quot;
-output_directory = &quot;stokes&quot;
+<span class="k">[polarimetry]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;triplediff&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span>
 
-[polarimetry.ip]
-method = &quot;satspot_photometry&quot;
-radius = 7
+<span class="k">[polarimetry.ip]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;satspot_photometry&quot;</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span>
 </pre></div>
 </div>
 </details>

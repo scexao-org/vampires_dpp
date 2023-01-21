@@ -471,7 +471,7 @@ By default, if the IP-corrected Stokes cube already exists the operations be ski
 
 #### Outputs
 
-FITS files will be saved in `output_directory` with filename `config["name"]_stokes_cube`. If instrumental polarization is corrected, an additional FITS file is saved with name `config["name"]_stokes_cube_ip`.
+FITS files will be saved in `output_directory` with filename `config["name"]_stokes_cube`. If instrumental polarization is corrected, an additional FITS file is saved with name `config["name"]_stokes_cube_ip`. A collapsed stokes cube will be created and saved at `config["name"]_stokes_cube[_ip]_collapsed`.
 
 ## Examples
 
@@ -509,7 +509,7 @@ output_directory = "registered"
 output_directory = "collapsed"
 
 [polarimetry]
-metho = triplediff"
+method = "triplediff"
 output_directory = "stokes"
 
 [polarimetry.ip]
@@ -560,7 +560,7 @@ output_directory = "registered"
 output_directory = "collapsed"
 
 [polarimetry]
-metho = triplediff"
+method = "triplediff"
 output_directory = "stokes"
 
 [polarimetry.ip]
