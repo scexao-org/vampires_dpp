@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from .image_processing import frame_center
 from vampires_dpp.constants import PIXEL_SCALE, FILTER_ANGULAR_SIZE
 
 

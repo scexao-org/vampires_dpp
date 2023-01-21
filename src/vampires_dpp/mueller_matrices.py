@@ -36,7 +36,7 @@ def hwp(theta=0) -> NDArray:
            [ 0.,  0., -1.,  0.],
            [ 0.,  0.,  0., -1.]])
 
-    >>> hwp(np.radians(45))
+    >>> hwp(np.deg2rad(45))
     array([[ 1.,  0.,  0.,  0.],
            [ 0., -1.,  0.,  0.],
            [ 0.,  0.,  1.,  0.],
@@ -79,7 +79,7 @@ def qwp(theta=0) -> NDArray:
            [ 0.,  0.,  0.,  1.],
            [ 0.,  0., -1.,  0.]])
 
-    >>> qwp(np.radians(45))
+    >>> qwp(np.deg2rad(45))
     array([[ 1.,  0.,  0.,  0.],
            [ 0.,  0.,  0., -1.],
            [ 0.,  0.,  1.,  0.],
@@ -122,7 +122,7 @@ def waveplate(theta=0, delta=0) -> NDArray:
            [ 0.,  0., -1.,  0.],
            [ 0.,  0., -0., -1.]])
 
-    >>> waveplate(np.radians(45), np.pi/2) # QWP at 45°
+    >>> waveplate(np.deg2rad(45), np.pi/2) # QWP at 45°
     array([[ 1.,  0.,  0.,  0.],
            [ 0.,  0.,  0., -1.],
            [ 0.,  0.,  1.,  0.],
@@ -225,7 +225,7 @@ def rotator(theta=0) -> NDArray:
            [ 0., -0.,  1.,  0.],
            [ 0.,  0.,  0.,  1.]])
 
-    >>> rotator(np.radians(45))
+    >>> rotator(np.deg2rad(45))
     array([[ 1.,  0.,  0.,  0.],
            [ 0.,  0.,  1.,  0.],
            [ 0., -1.,  0.,  0.],
@@ -259,7 +259,7 @@ def linear_polarizer(theta=0) -> NDArray:
            [0. , 0. , 0. , 0. ],
            [0. , 0. , 0. , 0. ]])
 
-    >>> linear_polarizer(np.radians(45))
+    >>> linear_polarizer(np.deg2rad(45))
     array([[0.5, 0. , 0.5, 0. ],
            [0. , 0. , 0. , 0. ],
            [0.5, 0. , 0.5, 0. ],
@@ -350,9 +350,10 @@ def wollaston(ordinary: bool = True, eta=1) -> NDArray:
     return 0.5 * M
 
 
-def instrumental(pQ=0, pU=0, cV=0):
+def instrumental(pQ=0, pU=0, pV=0):
     M = np.eye(4)
-    M[1:, 0] = (pQ, pU, cV)
+    M[1:, 0] = (pQ, pU, pV)
+    M[0, 1:] = (pQ, pU, pV)
     return M
 
 

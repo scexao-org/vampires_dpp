@@ -10,6 +10,7 @@ import cv2
 from astropy.coordinates import Angle
 
 from vampires_dpp.headers import dict_from_header
+from vampires_dpp.indexing import frame_center
 
 
 def shift_frame_fft(data: ArrayLike, shift):
@@ -57,7 +58,7 @@ def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
 
 def distort_frame(data: ArrayLike, matrix, **kwargs):
     default_kwargs = {
-        "flags": cv2.INTER_CUBIC,
+        "flags": cv2.INTER_LANCZOS4,
         "borderMode": cv2.BORDER_CONSTANT,
         "borderValue": np.nan,
     }
@@ -237,8 +238,13 @@ def correct_distortion(
 ):
     if center is None:
         center = frame_center(frame)
-    M = cv2.getRotationMatrix2D(center[::-1], angle, scale)
+    # if downsizing, use area resampling to reduce moire (allegedly)
+    if scale < 1:
+        kwargs.update({"flags": cv2.INTER_NEAREST})
+    # scale and retate frames with single transform
+    M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
     corr_frame = distort_frame(frame, M, **kwargs)
+    # update header
     if header is not None:
         header["VPP_SCAL"] = scale, "scaling ratio for distortion correction"
         header["VPP_ANGL"] = angle, "deg, offset angle for distortion correction"
@@ -255,56 +261,16 @@ def correct_distortion_cube(
 ):
     if center is None:
         center = frame_center(cube)
-    M = cv2.getRotationMatrix2D(center[::-1], angle, scale)
-    corr_cube = cube.copy()
+    # if downsizing, avoid interpolation to reduce moire effect
+    if scale < 1:
+        kwargs.update({"flags": cv2.INTER_NEAREST})
+    # scale and retate frames with single transform
+    M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
+    corr_cube = np.empty_like(cube)
     for i in range(cube.shape[0]):
         corr_cube[i] = distort_frame(cube[i], M, **kwargs)
+    # update header
     if header is not None:
         header["VPP_SCAL"] = scale, "scaling ratio for distortion correction"
         header["VPP_ANGL"] = angle, "deg, offset angle for distortion correction"
     return corr_cube, header
-
-
-# DEGREE_LOOKUP_TABLE = {
-#     6: 2,
-#     10: 3,
-#     15: 4,
-#     21: 5,
-#     28: 6,
-#     36: 7,
-#     45: 8,
-#     55: 9
-# }
-
-# def correct_distortion(frame: ArrayLike, coeff_x: ArrayLike, coeff_y: ArrayLike, header=None):
-#     Ny, Nx = frame.shape[-2:]
-#     degree = DEGREE_LOOKUP_TABLE[len(coeff_x)]
-#     poly = Polynomial2D(
-#         degree=degree,
-#         x_domain=(0, Nx),
-#         y_domain=(0, Ny)
-#     )
-#     # get the coordinates to interpolate over
-#     Y, X = np.mgrid[:Ny, :Nx]
-#     # x coeffs
-#     poly.parameters = coeff_x
-#     x_new = X - poly(X, Y)
-#     # y coeffs
-#     poly.parameters = coeff_y
-#     y_new = Y - poly(X, Y)
-
-#     # need to mask out NaN values or interpolation will fail
-#     flat_values = frame.ravel()
-#     mask = np.isnan(flat_values)
-#     flat_values[mask] = 0
-#     new_coord = (y_new.ravel(), x_new.ravel())
-#     orig_coord = (Y.ravel(), X.ravel())
-#     corrected_values = griddata(new_coord, flat_values, orig_coord, method="linear")
-#     corrected_values[mask] = np.nan
-#     corrected_frame = corrected_values.reshape(frame.shape)
-
-#     # update header values
-#     if header is not None:
-#         pass # TODO
-
-#     return corrected_frame, header
