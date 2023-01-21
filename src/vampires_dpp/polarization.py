@@ -99,7 +99,7 @@ def measure_instpol_satellite_spots(I: ArrayLike, X: ArrayLike, r=5, expected=0,
     return cX - expected
 
 
-def instpol_correct(stokes_cube: ArrayLike, cQ=0, cU=0, cV=0):
+def instpol_correct(stokes_cube: ArrayLike, pQ=0, pU=0, cV=0):
     """
     Apply instrument polarization correction to stokes cube.
 
@@ -107,9 +107,9 @@ def instpol_correct(stokes_cube: ArrayLike, cQ=0, cU=0, cV=0):
     ----------
     stokes_cube : ArrayLike
         (4, ...) array of stokes values
-    cQ : float, optional
+    pQ : float, optional
         I -> Q contribution, by default 0
-    cU : float, optional
+    pU : float, optional
         I -> U contribution, by default 0
     cV : float, optional
         I -> V contribution, by default 0
@@ -122,8 +122,8 @@ def instpol_correct(stokes_cube: ArrayLike, cQ=0, cU=0, cV=0):
     return np.array(
         (
             stokes_cube[0],
-            stokes_cube[1] - cQ * stokes_cube[0],
-            stokes_cube[2] - cU * stokes_cube[0],
+            stokes_cube[1] - pQ * stokes_cube[0],
+            stokes_cube[2] - pU * stokes_cube[0],
             stokes_cube[3] - cV * stokes_cube[0],
         )
     )

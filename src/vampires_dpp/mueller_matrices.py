@@ -351,9 +351,9 @@ def wollaston(ordinary: bool = True, eta=1) -> NDArray:
     return 0.5 * M
 
 
-def instrumental(cQ=0, cU=0, cV=0):
+def instrumental(pQ=0, pU=0, cV=0):
     M = np.eye(4)
-    M[1:, 0] = (cQ, cU, cV)
+    M[1:, 0] = (pQ, pU, cV)
     return M
 
 

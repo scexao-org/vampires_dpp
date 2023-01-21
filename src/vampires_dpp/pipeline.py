@@ -723,29 +723,29 @@ class Pipeline:
                     )
                     if not skip_ip or not outname.is_file():
                         stokes_cube, stokes_hdr = fits.getdata(stokes_cube_file, header=True)
-                        if "cQ" in ip_config:
-                            cQ = ip_config["cQ"]
+                        if "pQ" in ip_config:
+                            pQ = ip_config["pQ"]
                         else:
-                            cQ = measure_instpol(
+                            pQ = measure_instpol(
                                 stokes_cube[0],
                                 stokes_cube[1],
                                 r=ip_config.get("radius", 5),
                             )
-                        if "cU" in ip_config:
-                            cU = ip_config["cU"]
+                        if "pU" in ip_config:
+                            pU = ip_config["pU"]
                         else:
-                            cU = measure_instpol(
+                            pU = measure_instpol(
                                 stokes_cube[0],
                                 stokes_cube[2],
                                 r=ip_config.get("radius", 5),
                             )
-                        stokes_ip_cube = instpol_correct(stokes_cube, cQ=cQ, cU=cU)
-                        stokes_hdr["cQ"] = (
-                            cQ,
+                        stokes_ip_cube = instpol_correct(stokes_cube, pQ=pQ, pU=pU)
+                        stokes_hdr["pQ"] = (
+                            pQ,
                             "VAMPIRES DPP I -> Q IP contribution (corrected)",
                         )
-                        stokes_hdr["cU"] = (
-                            cU,
+                        stokes_hdr["pU"] = (
+                            pU,
                             "VAMPIRES DPP I -> U IP contribution (corrected)",
                         )
                     stokes_cube_file = outname

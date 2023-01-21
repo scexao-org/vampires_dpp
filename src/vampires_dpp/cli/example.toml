@@ -1,4 +1,4 @@
-version = "0.2.0" # vampires_dpp version
+version = "0.3.0" # vampires_dpp version
 
 name = "example" # simple name for analysis, used for automatic naming of some files
 target = "" # SIMBAD compatible target name, optional
@@ -25,7 +25,7 @@ obstime = "" # optional
 mask_size = 55 # IWA of mask, mas
 
 [coronagraph.satellite_spots] # optional
-radius = 15.9 # radius of satellite spots in lam/D
+radius = 11 # radius of satellite spots in lam/D
 angle = -4 # angle offset of satellite spots in degrees, -4 is default
 
 [calibration]
@@ -42,6 +42,9 @@ force = false # if file already exists, should we force the calibration and over
 cam1 = [""] # list of filenames, the path to a textfile with names, or a python glob expression
 cam2 = [""] # list of filenames, the path to a textfile with names, or a python glob expression
 force = false # if file already exists, should we force the calibration and overwrite?
+
+[calibration.distortion]
+transform = "" # path to transformation parameters
 
 [frame_selection]
 metric = "l2norm" # frame selection metric, one of 'max', 'l2norm', 'normvar', by default "l2norm"
@@ -64,11 +67,6 @@ reference_method = "com" # how to measure the offset of the reference frame, by 
 output_directory = "" # output directory for intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
 
-[distortion]
-transform = "" # path to transformation parameters
-output_directory = "" # output directory for intermediate frames
-force = false # if files already exist, should we force the calculation and overwrite?
-
 [derotate]
 output_directory = "" # output directory for intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
@@ -76,10 +74,11 @@ force = false # if files already exist, should we force the calculation and over
 [polarimetry]
 output_directory = "" # output directory for intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
-method = "mueller" # calibration method, one of "mueller" or "triplediff"
+method = "triplediff" # calibration method, one of "mueller" or "triplediff"
 
 [polarimetry.ip]
-force = false # if files already exist, should we force the calculation and overwrite?
-cQ = 0 # I -> Q instrumental polarization term, if not provided will be measured
-cU = 0 # I -> U instrumental polarization term, if not provided will be measured
+pQ = 0 # I -> Q instrumental polarization term, if not provided will be measured
+pU = 0 # I -> U instrumental polarization term, if not provided will be measured
+method = "photometry"
 radius = 5 # radius of photometric aperture to measure IP from
+force = false # if files already exist, should we force the calculation and overwrite?

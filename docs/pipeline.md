@@ -3,13 +3,13 @@
 The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the `vpp` script
 
 ```
-usage: vpp [-h] config
+usage: vpp [-h] config [config ...]
 
 positional arguments:
-  config         path to configuration file
+  config      path to configuration file(s)
 
 optional arguments:
-  -h, --help     show this help message and exit
+   -h, --help  show this help message and exit
 ```
 
 or create a `Pipeline` object and call the `run` method.
@@ -22,9 +22,18 @@ The pipeline will reduce the data in the following order
 5. Derotation
 6. Polarimetric differential imaging
 
+```{admonition} Warning: Large data volume
+:class: warning
+The data volumes associated with typical VAMPIRES observations can easily balloon into the terabyte (TB) range when using this pipeline. It is strongly recommended to work with a large attached storage.
+
+As an example, a half-night of coronagraphic data can easily produce 200 GB of raw data. The calibration, frame selection, and image-registration steps will *each* make a copy, leading to a data volume three to four times larger (600 GB to 800 GB). After the individual frames are collapsed the data size reduces by about two orders of magnitude, making them negligible in comparison.
+
+An easy way to reclaim storage space is to delete the intermediate data products after you have finalized a reduction. You can always rerun the pipeline later to reproduce the files.
+```
+
 ```{admonition} Troubleshooting
 :class: tip
-If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with `_debug.log` appended to the file name.
+If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with `_debug.log` appended to the file name as well as in the output directory.
 
     vpp config.toml
     tail config_debug.log
@@ -42,7 +51,7 @@ There is a version of the configuration file with all possible options and brief
 ### Version
 
 ```toml
-version = "0.2.0" # vampires_dpp version
+version = "0.3.0" # vampires_dpp version
 ```
 
 The first required option is the `version` which should be set to the same value as your `vampires_dpp` version, which you can get from
@@ -85,25 +94,25 @@ The `filenames` option can either be a list of filenames, a path to a text file 
 
 
 ```toml
-frame_centers = [[128, 129], [130, 129]] # optional
+frame_centers = { # optional
+    cam1 = [128, 129], # cam1 (x, y)
+    cam2 = [130, 129]  # cam2 (x, y)
+}
+frame_centers = [250, 252] # both (x, y)
 ```
-A list of frame centers for cam1 and cam2 from visual inspection. This is useful in the case that the PSFs are not well-centered in the frame, which can make the windows used for frame selection or image registration poorly positioned.
-
-The frame centers must be given as a list of (x, y) lists, otherwise they will default to the geometric frame centers
-
-#### Outputs
-
-After calibration, a FITS file of the angles required to rotate each frame clockwise to North up East left will be saved in `{config["name"]}_derot_angles.fits`. A CSV with the header information scraped from all the calibrated data will be saved to `{config["name"]}_headers.csv`.
+A list of frame centers for cam1 and cam2 from visual inspection. This is useful in the case that the PSFs are not well-centered in the frame, which can make the windows used for frame selection or image registration poorly positioned. If only a single list is given it will be used as the center for both cameras. If not provided, they will default to the geometric frame centers.
 
 ### Astrometry Options
 
-The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the `vampires_dpp.constants`.
-
 ```toml
-[astrometry]
+[astrometry] # optional
+```
+```toml
 pixel_scale = 6.24 # mas/px, optional
 pupil_offset = 140.4 # deg, optional
 ```
+
+The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the `vampires_dpp.constants`.
 
 ```toml
 [astrometry.coord]
@@ -128,18 +137,15 @@ plx = 0 # mas, optional
 ```
 Optional parallax used to calculate distance
 
+```{admonition} Tip
+:class: margin
+If you are storing the coordinates retrieved from GAIA, make sure to set the frame to "ICRS" and the obstime to "J2016"
+```
 ```toml
 frame = "" # optional
 obstime = "" # optional
 ```
 The frame for the input RA and DEC coordinates. By default will scrape from the FITS headers.
-
-```{admonition} Tip
-:class: tip
-
-If you are storing the coordinates retrieved from GAIA, make sure to set the frame to "ICRS" and the obstime to "J2016"
-```
-
 
 ### Coronagraph Options
 
@@ -190,6 +196,7 @@ This section will enable standard image calibration of VAMPIRES data. The follow
 5. If dark files are provided, the cube will be dark subtracted
 6. If flat files are provided, the cube will be flat normalized
 7. Cam 1 data will be flipped along the y-axis
+8. (Advanced) Distortion correction will be applied
 8. (Advanced) Interleaved polarimetric data will be deinterleaved into two cubes
 
 ```toml
@@ -212,6 +219,7 @@ deinterleave = false # optional
 This is an advanced option for polarimetric data that is downloaded directly from the VAMPIRES computer (i.e., not from the STARS archive). If true, will deinterleave every-other frame into two cubes and will update the FITS header with the `U_FLCSTT` key.
 
 
+#### Darks
 
 ```toml
 [calibration.darks]
@@ -219,21 +227,20 @@ This is an advanced option for polarimetric data that is downloaded directly fro
 If this section is set, master dark frames will be created.
 
 ```toml
-filenames = [
-    "darks_5ms_em300_cam1.fits",
-    "darks_5ms_em300_cam2.fits"
-] # list of filenames
-filenames = "input_darks.txt" # the path to a text file
-filenames = "darks/VMPA*.fits" # python glob expression
+cam1 = ["darks_5ms_em300_cam1.fits"] # list of filenames
+cam2 = ["darks_5ms_em300_cam2.fits"]
+cam1 = "input_darks.txt" # the path to a text file
+cam2 = "darks/VMPA*.fits" # python glob expression relative to root
 ```
 
-The `filenames` option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
+The filenames need to be set individually for each camera you want to reduce. The filenames option can either be a list of FITS files (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
 
 ```toml
 force = false # optional
 ```
 By default, if the master dark already exists the calibration will be skipped to save time. If you set this to `true`, the master dark _and all subsequent operations_ will be redone.
 
+#### Flats
 
 ```toml
 [calibration.flats]
@@ -241,24 +248,39 @@ By default, if the master dark already exists the calibration will be skipped to
 If this section is set, master flat frames will be created. If `[calibration.darks]` is also set, these flat frames will be dark-subtracted.
 
 ```toml
-filenames = [
-    "flats_em300_cam1.fits",
-    "flats_em300_cam2.fits"
-] # list of filenames
-filenames = "input_flats.txt" # the path to a text file
-filenames = "flats/VMPA*.fits" # python glob expression
+cam1 = ["flats_em300_cam1.fits"] # list of filenames
+cam2 = ["flats_em300_cam2.fits"]
+cam1 = "input_flats.txt" # the path to a text file
+cam2 = "flats/VMPA*.fits" # python glob expression relative to root
 ```
 
-The `filenames` option can either be a list of filenames (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
+The filenames need to be set individually for each camera you want to reduce. The filenames option can either be a list of FITS files (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with [Python's glob](https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob).
 
 ```toml
 force = false # optional
 ```
 By default, if the master flat already exists the calibration will be skipped to save time. If you set this to `true`, the master flat _and all subsequent operations_ will be redone.
 
+#### Distortion
+
+```{tip}
+:class: margin
+This is an advanced option, consider reaching out to the SCExAO team to ensure you have the appropriate calibration data.
+```
+```toml
+[calibration.distortion]
+```
+If this section is set, a distortion correction will be applied after dark subtraction and flat correction. The distortion is corrected by rotating and scaling the images to match an astrometric solution calibrated from a pinhole grid.
+
+```toml
+transform = "fcs_1600_distortion_coeffs.csv"
+```
+The path to the distortion coefficients for both cameras. It is important to note that you need a separate distortion solution for each unique focus position, since VAMPIRES is not telecentric.
+
+
 #### Outputs
 
-FITS files will be saved to the `output_directory` with `_calib` appended to the name. If `deinterleave` is true, the files will also have either `_FLC1` or `_FLC2` appended.
+After calibration, FITS files will be saved to the `output_directory` with `_calib` appended to the name. If `deinterleave` is true, the files will also have either `_FLC1` or `_FLC2` appended. A FITS file of the angles required to rotate each frame from each camera clockwise to North up East left will be saved in `{config["name"]}_cam[12]_derot_angles.fits`. A CSV with the header information scraped from all the calibrated data will be saved to `{config["name"]}_headers.csv`.
 
 ### Frame Selection Options
 
@@ -363,7 +385,7 @@ By default, if the collapsed data frames already exist the operations be skipped
 
 #### Outputs
 
-FITS files will be saved in `output_directory` with `_collapsed` appended to the file name. In addition, a cube constructed from all the collapsed frames will be saved with filename `config["name"]_collapsed_cube`.
+FITS files will be saved in `output_directory` with `_collapsed` appended to the file name. In addition, a cube constructed from all the collapsed frames from each camera will be saved with filename `config["name"]_cam[12]_collapsed_cube`.
 
 ### Derotation Options
 
@@ -386,9 +408,15 @@ By default, if the derotated data frames already exist the operations be skipped
 
 #### Outputs
 
-FITS files will be saved in `output_directory` with `_derot` appended to the file name. In addition, a cube constructed from all the derotated frames will be saved with filename `config["name"]_derot_cube`.
+FITS files will be saved in `output_directory` with `_derot` appended to the file name. In addition, a cube constructed from all the derotated frames for each camera will be saved with filename `config["name"]_cam[12]_derot_cube`.
 
 ### Polarimetry Options
+
+```{admonition} Warning: Experimental
+:class: tip
+
+The polarimetric reduction in this pipeline is an active work-in-progress. Do not consider any outputs publication-ready without further vetting and consultation with the SCExAO team.
+```
 
 ```toml
 [polarimetry]
@@ -399,7 +427,8 @@ If this section is set, polarimetric differential imaging (PDI) will be carried 
 ```toml
 method = "mueller" # optional
 ```
-The PDI method, one of "mueller" or "triplediff". In both cases, we use Mueller calculus to construct the cubes, which allows us to utilize all of the frames, rather than only complete HWP cycles.
+
+The PDI method, one of `"mueller"` or `"triplediff"`.
 
 ```toml
 output_directory = "" # relative to root, optional
@@ -415,13 +444,22 @@ By default, if the Stokes cube already exists the operations be skipped to save 
 
 ```toml
 [polarimetry.ip]
-radius = 5 # px, optional
 ```
 If this section is set, instrumental polarization (IP) will be removed from the constructed Stokes cube. By default, it will measure the IP contributions inside a frame-centered circular aperture with radius `radius`.
 
 ```toml
-cQ = 0 # optional
-cU = 0 # optional
+method = "photometry" # optional
+```
+The method for IP correction, one of `"photometry"` or `"satspot_photometry"`. The photometric method uses a frame centered aperture to estimate the IP. The satspot method uses apertures centered on the satellite spots of an image, which requires setting the `[coronagraph.satellite_spots]` section of the configuration.
+
+```toml
+radius = 5 # px, optional
+```
+The aperture radius in pixels, by default 5.
+
+```toml
+pQ = 0 # optional
+pU = 0 # optional
 ```
 The I -> Q and I -> U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.
 
@@ -443,7 +481,7 @@ Here are some simple examples of configuration files for various observing scena
 <summary>Non-coronagraphic Polarimetric Imaging</summary>
 
 ```toml
-version = "0.2.0" # vampires_dpp version
+version = "0.3.0" # vampires_dpp version
 
 name = "abaur_example"
 target = "AB Aur"
@@ -455,7 +493,8 @@ filenames = "science/VMPA*.fits"
 output_directory = "calibrated"
 
 [calibration.darks]
-filenames = "darks/VMPA*.fits"
+cam1 = "cam1_darks/VMPA*.fits"
+cam2 = "cam2_darks/VMPA*.fits"
 
 [frame_selection]
 metric = "l2norm"
@@ -469,15 +508,12 @@ output_directory = "registered"
 [collapsing]
 output_directory = "collapsed"
 
-[derotate]
-output_directory = "derotated"
-
 [polarimetry]
-method="mueller"
+metho = triplediff"
 output_directory = "stokes"
 
 [polarimetry.ip]
-radius = 3
+radius = 5
 ```
 </details>
 
@@ -485,26 +521,31 @@ radius = 3
 <summary>Coronagraphic Polarimetric Imaging</summary>
 
 ```toml
-version = "0.2.0" # vampires_dpp version
+version = "0.3.0" # vampires_dpp version
 
 name = "abaur_example"
 target = "AB Aur"
 directory = "abaur_20220224"
 output_directory = "abaur_20220224/processed"
 filenames = "science/VMPA*.fits"
-frame_centers = [[128, 128], [128, 129]]
+frame_centers = {
+    cam1 = [128, 128],
+    cam2 = [128, 129]
+}
 
 [coronagraph]
-mask_size = 58 # mas
+mask_size = 55 # mas
 
 [coronagraph.satellite_spots]
 radius = 31.8 # lam/D
+angle = -6.5 # deg
 
 [calibration]
 output_directory = "calibrated"
 
 [calibration.darks]
-filenames = "darks/VMPA*.fits"
+cam1 = "cam1_darks/VMPA*.fits"
+cam2 = "cam2_darks/VMPA*.fits"
 
 [frame_selection]
 metric = "l2norm"
@@ -518,14 +559,12 @@ output_directory = "registered"
 [collapsing]
 output_directory = "collapsed"
 
-[derotate]
-output_directory = "derotated"
-
 [polarimetry]
-method="mueller"
+metho = triplediff"
 output_directory = "stokes"
 
 [polarimetry.ip]
+method = "satspot_photometry"
 radius = 7
 ```
 </details>
@@ -535,7 +574,7 @@ radius = 7
 <summary>Single Camera Speckle Imaging</summary>
 
 ```toml
-version = "0.2.0" # vampires_dpp version
+version = "0.3.0" # vampires_dpp version
 
 name = "single_cam_example"
 directory = "data"
@@ -546,7 +585,7 @@ filenames = "science/VMPA*.fits"
 output_directory = "calibrated"
 
 [calibration.darks]
-filenames = ["darks/VMPA013889.fits"]
+cam1 = ["darks/VMPA013889.fits"]
 
 [frame_selection]
 metric = "l2norm"
@@ -596,9 +635,7 @@ If you use VSCode you can create a custom task which will run the processing pip
 </details>
 
 ```{admonition} User-level settings
-:class: tip
-
 If you want to enable this task for all VSCode sessions, and not on a directory-by-directory basis, you can add it to your user-level settings. To do this, hit `Cmd/Ctrl+Shift+p` to bring up the command palette. Type "open user tasks" and choose the "Tasks: Open User Tasks" command. Then, paste the JSON from above into this file.
 ```
 
-To use the task, open a TOML file configured for use with the pipeline and hit `Terminal > Run Task` (or the same command from the command palette). Choose 
+To use the task, open a TOML file configured for use with the pipeline and hit `Terminal > Run Task` (or the same command from the command palette). Choose `vpp` and an integrated terminal should appear with the pipeline output.
