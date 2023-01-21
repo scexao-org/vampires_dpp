@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>VAMPIRES Data Processing Pipeline &#8212; VAMPIRES DPP</title>
+    <title>Introduction &#8212; VAMPIRES DPP</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -35,9 +35,12 @@
     <script src="_static/togglebutton.js"></script>
     <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="next" title="Pipeline" href="pipeline.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -72,7 +75,7 @@
 <div class="bd-sidebar noprint" id="site-navigation">
     <div class="bd-sidebar__content">
         <div class="bd-sidebar__top"><div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="#">
+    <a class="navbar-brand text-wrap" href="index.html">
       
         <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
         
@@ -89,14 +92,14 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item active">
-        <ul class="nav bd-sidenav">
+        <ul class="current nav bd-sidenav">
  <li class="toctree-l1">
   <a class="reference internal" href="installation.html">
    Installation
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="introduction.html">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
    Introduction
   </a>
  </li>
@@ -256,7 +259,7 @@ title="Source repository"
   <div class="menu-dropdown__content">
     <ul>
       <li>
-        <a href="_sources/index.rst.txt"
+        <a href="_sources/introduction.md.txt"
    class="headerbtn"
    data-toggle="tooltip"
 data-placement="left"
@@ -267,7 +270,7 @@ title="Download source file"
 <span class="headerbtn__icon-container">
   <i class="fas fa-file"></i>
   </span>
-<span class="headerbtn__text-container">.rst</span>
+<span class="headerbtn__text-container">.md</span>
 </a>
 
       </li>
@@ -316,28 +319,35 @@ title="Print to PDF"
     <nav id="bd-toc-nav" aria-label="Page">
         <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#contents">
-   Contents
+  <a class="reference internal nav-link" href="#vampires-observation-modes">
+   VAMPIRES Observation Modes
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#citing">
-   Citing
+  <a class="reference internal nav-link" href="#vampires-data-formats">
+   VAMPIRES Data Formats
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#conventions">
+     Conventions
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#formats-for-imaging-and-pdi-modes">
+     Formats for imaging and PDI modes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#processing-workflows">
+   Processing Workflows
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#license">
-   License
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#contributing-and-support">
-   Contributing and Support
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#indices-and-tables">
-   Indices and Tables
+  <a class="reference internal nav-link" href="#getting-help">
+   Getting Help
   </a>
  </li>
 </ul>
@@ -349,7 +359,7 @@ title="Print to PDF"
         <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>VAMPIRES Data Processing Pipeline</h1>
+                <h1>Introduction</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
@@ -360,28 +370,35 @@ title="Print to PDF"
                         <nav aria-label="Page">
                             <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#contents">
-   Contents
+  <a class="reference internal nav-link" href="#vampires-observation-modes">
+   VAMPIRES Observation Modes
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#citing">
-   Citing
+  <a class="reference internal nav-link" href="#vampires-data-formats">
+   VAMPIRES Data Formats
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#conventions">
+     Conventions
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#formats-for-imaging-and-pdi-modes">
+     Formats for imaging and PDI modes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#processing-workflows">
+   Processing Workflows
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#license">
-   License
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#contributing-and-support">
-   Contributing and Support
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#indices-and-tables">
-   Indices and Tables
+  <a class="reference internal nav-link" href="#getting-help">
+   Getting Help
   </a>
  </li>
 </ul>
@@ -394,52 +411,87 @@ title="Print to PDF"
                 
               <div>
                 
-  <section id="vampires-data-processing-pipeline">
-<h1>VAMPIRES Data Processing Pipeline<a class="headerlink" href="#vampires-data-processing-pipeline" title="Permalink to this headline">#</a></h1>
-<a class="reference external image-reference" href="https://github.com/scexao-org/vampires_dpp/actions/workflows/CI.yml"><img alt="https://github.com/scexao-org/vampires_dpp/actions/workflows/CI.yml/badge.svg?branch=main" src="https://github.com/scexao-org/vampires_dpp/actions/workflows/CI.yml/badge.svg?branch=main" /></a>
-<a class="reference external image-reference" href="https://codecov.io/gh/scexao-org/vampires_dpp"><img alt="https://codecov.io/gh/scexao-org/vampires_dpp/branch/main/graph/badge.svg" src="https://codecov.io/gh/scexao-org/vampires_dpp/branch/main/graph/badge.svg" /></a>
-<a class="reference external image-reference" href="https://github.com/scexao-org/vampires_dpp/blob/main/LICENSE"><img alt="https://img.shields.io/github/license/scexao-org/vampires_dpp?color=yellow" src="https://img.shields.io/github/license/scexao-org/vampires_dpp?color=yellow" /></a>
-<div class="warning admonition">
-<p class="admonition-title">Warning: Experimental</p>
-<p><code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> is still under development, and the API can change without notice. Use with your own caution (and please report any bugs you find).</p>
-</div>
-<p><strong>Primary maintainer:</strong> <a class="reference external" href="https://github.com/mileslucas">Miles Lucas</a></p>
-<p>VAMPIRES data processing tools. Get started by installing the package</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/scexao-org/vampires_dpp.git#egg<span class="o">=</span>vampires_dpp
-</pre></div>
-</div>
-<p>checking out the <a class="reference external" href="./pipeline">pipeline</a>, and heading over to the <a class="reference external" href="./tutorials">tutorials</a>.</p>
-<section id="contents">
-<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">#</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/index.html">API/Reference</a></li>
-</ul>
-</div>
+  <section class="tex2jax_ignore mathjax_ignore" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">#</a></h1>
+<section id="vampires-observation-modes">
+<h2>VAMPIRES Observation Modes<a class="headerlink" href="#vampires-observation-modes" title="Permalink to this headline">#</a></h2>
+<p>VAMPIRES is an incredibly diverse instrument in its usage with SCExAO. It can be used for studying evolved stellar physics, protoplanetary disks, polarimetry, H-ɑ emission, in addition to an interferometric mode via sparse aperture masking (SAM). VAMPIRES is also used for focal-plane wavefront sensing, for example using differential focus for <span class="xref myst">phase diversity</span>, as well as complementary data for infrared observations (i.e., telemetry). <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> provides tooling primarily for imaging modes, although the image-processing tools provide building blocks for a variety of applications of VAMPIRES data (and PRs are welcome for interferometric modes!). The following observation modes have well-defined tutorials and workflows, and represent the majority of open-use observations</p>
+<ol class="simple">
+<li><p>Speckle imaging / telemetry (TODO)</p></li>
+<li><p>Polarimetric differential imaging (TODO)</p></li>
+<li><p>Coronagraphic polarimetric differential imaging (TODO)</p></li>
+<li><p>H-ɑ differential imaging (TODO)</p></li>
+</ol>
 </section>
-<section id="citing">
-<h2>Citing<a class="headerlink" href="#citing" title="Permalink to this headline">#</a></h2>
-<p>If you use <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> in your research, please consider citing it as software with the following DOI: (<a class="reference external" href="https://github.com/scexao-org/vampires_dpp/blob/main/CITATIONS.bib">TODO</a>)</p>
-</section>
-<section id="license">
-<h2>License<a class="headerlink" href="#license" title="Permalink to this headline">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> is licensed under the MIT open-source license. See <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/blob/main/LICENSE">LICENSE</a> for more details.</p>
-</section>
-<section id="contributing-and-support">
-<h2>Contributing and Support<a class="headerlink" href="#contributing-and-support" title="Permalink to this headline">#</a></h2>
-<p>If you would like to contribute, feel free to open a <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/pulls">pull request</a>. If you want to discuss something before contributing, head over to <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/discussions">discussions</a> and join or open a new topic. If you’re having problems with something, please open an <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/issues">issue</a>.</p>
-</section>
-<section id="indices-and-tables">
-<h2>Indices and Tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">#</a></h2>
+<section id="vampires-data-formats">
+<h2>VAMPIRES Data Formats<a class="headerlink" href="#vampires-data-formats" title="Permalink to this headline">#</a></h2>
+<p>Depending on who you are, you may have to deal with a variety of VAMPIRES data formats. For open-use observers, this is the STARS gen-2 archive format, which is different from the format saved by VAMPIRES during acquisition, and is different from internal telemetry stream data. The <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> prioritizes the gen-2 format highest, but the API should be flexible enough to accommadate any user of VAMPIRES- observer or engineer.</p>
+<section id="conventions">
+<h3>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">#</a></h3>
+<p>The data follow these general specifications</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+<li><p>Parallactic angles are specified as degrees CCW from the North-celestial pole</p></li>
 </ul>
+<aside class="margin sidebar">
+<p class="sidebar-title">SAOImage DS9</p>
+<p>These coordinates are the transpose/reverse of DS9 and minus one.</p>
+</aside>
+<ul class="simple">
+<li><p>Image coordinates follow <em>python</em> conventions</p>
+<ul>
+<li><p>The bottom-left pixel center has coordinates <span class="math notranslate nohighlight">\((0, 0)\)</span></p></li>
+<li><p>The natural axes for images in numpy arrays are <span class="math notranslate nohighlight">\((y, x)\)</span></p></li>
+<li><p>The image center is therefore <span class="math notranslate nohighlight">\((N_y - 1)/2, (N_x - 1)/2\)</span></p></li>
+</ul>
+</li>
+<li><p>Camera 1 is flipped on its y-axis compared to sky</p>
+<ul>
+<li><p>The beam-splitter will naturally mirror the beam along this axis so camera 2 doesn’t need flipped</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="formats-for-imaging-and-pdi-modes">
+<h3>Formats for imaging and PDI modes<a class="headerlink" href="#formats-for-imaging-and-pdi-modes" title="Permalink to this headline">#</a></h3>
+<ul class="simple">
+<li><p>STARS archive format (<strong>default for open-use observers</strong>)</p>
+<ul>
+<li><p>Files are given frame id names, e.g. “VMPA0023445.fits”</p></li>
+<li><p>Each file corresponds to a single camera, FLC state, and HWP angle</p></li>
+<li><p>Rich FITS headers</p></li>
+</ul>
+</li>
+<li><p>VAMPIRES format</p>
+<ul>
+<li><p>Files have names as set by controller, e.g. “HD141569A_00_750-50_LyotStop_00_cam1.fits”</p></li>
+<li><p>Each file is a raw cube from the camera, which includes bad readout frame in the first frame</p></li>
+<li><p>FLC states interleaved in every other frame for PDI mode</p></li>
+<li><p>Rich FITS headers</p></li>
+</ul>
+</li>
+<li><p>Stream format</p>
+<ul>
+<li><p>Files are given stream names, e.g. “vcamim1_12:04:34.234412598.fits”</p></li>
+<li><p>Camera 1 and 2 may or may not be synced, depending on observer usage</p></li>
+<li><p>No meaningful metadata present in the FITS headers (e.g., gain, HWP, camera, etc.)</p></li>
+<li><p>Extremely precise frame-grabber timing</p></li>
+</ul>
+</li>
+</ul>
+<div class="danger admonition">
+<p class="admonition-title">Multiple HDU FITS files</p>
+<p>Some old VAMPIRES data (circa 2019 and earlier) had multiple FITS header data units (HDUs) to store header information. <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> is not built to support these data, but a conversion script could be written if requested.</p>
+</div>
+</section>
+</section>
+<section id="processing-workflows">
+<h2>Processing Workflows<a class="headerlink" href="#processing-workflows" title="Permalink to this headline">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> is built with multiple processing workflows in mind to support the large diversity of observing modes and usages of VAMPIRES. Typical VAMPIRES observations produce many gigabytes of data across hundreds of files, which means processing data must occur on a file-by-file basis, with the potential for multi-processing. A large portion of the <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> API is available in a command line interface (CLI) for quick processing of files and various other helpers. Despite the attractive ease of using the scripting interface, if you plan to publish or share the data you have reduced, please consider saving your commands in bash scripts or using the python interface and a python script so that your reductions can be shared with and reproduced by future investigators.</p>
+<p>As alluded to above, the most direct interface with the API is, well, the Python API itself! Any script you find will be composed of functions in the <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> python module, which gets installed when you <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> this code. If you are someone who likes working in Jupyter notebooks, or in interactive scripting environments like iPython, this will give you not only the most direct access to the API, but will allow you to customize your process however you please. The python methods even include the same progress bars and file-by-file processing of the command line tools!</p>
+</section>
+<section id="getting-help">
+<h2>Getting Help<a class="headerlink" href="#getting-help" title="Permalink to this headline">#</a></h2>
+<p>Hopefully the tutorials we provide give enough explanation for the common use-cases of VAMPIRES, but if you ran into issues or have suggestions please let us know in the <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/issue/new">issues</a>. If you have more complicated questions or data issues contact the SCExAO team directly (c.c. <a class="reference external" href="mailto:barnaby&#46;norris&#37;&#52;&#48;sydney&#46;edu&#46;au">Barnaby Norris</a> and <a class="reference external" href="mailto:mdlucas&#37;&#52;&#48;hawaii&#46;edu">Miles Lucas</a>).</p>
 </section>
 </section>
 
@@ -451,10 +503,17 @@ title="Print to PDF"
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='right-next' id="next-link" href="installation.html" title="next page">
+    <a class='left-prev' id="prev-link" href="installation.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Installation</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="pipeline.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Installation</p>
+        <p class="prev-next-title">Pipeline</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

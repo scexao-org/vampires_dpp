@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Examples" href="examples/index.html" />
-    <link rel="prev" title="Getting started" href="gettingstarted.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -75,6 +75,11 @@
         <div class="bd-sidebar__top"><div class="navbar-brand-box">
     <a class="navbar-brand text-wrap" href="index.html">
       
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="_static/SCExAO_logo3.svg" class="logo" alt="logo">
       
       
       <h1 class="site-logo" id="site-title">VAMPIRES DPP</h1>
@@ -92,8 +97,8 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="gettingstarted.html">
-   Getting started
+  <a class="reference internal" href="introduction.html">
+   Introduction
   </a>
  </li>
  <li class="toctree-l1 current active">
@@ -312,6 +317,11 @@ title="Print to PDF"
     <nav id="bd-toc-nav" aria-label="Page">
         <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#processing-steps">
+   Processing steps
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#configuration">
    Configuration
   </a>
@@ -454,6 +464,11 @@ title="Print to PDF"
                         </div>
                         <nav aria-label="Page">
                             <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#processing-steps">
+   Processing steps
+  </a>
+ </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#configuration">
    Configuration
@@ -601,6 +616,8 @@ title="Print to PDF"
 </pre></div>
 </div>
 <p>or create a <code class="docutils literal notranslate"><span class="pre">Pipeline</span></code> object and call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method.</p>
+<section id="processing-steps">
+<h2>Processing steps<a class="headerlink" href="#processing-steps" title="Permalink to this headline">#</a></h2>
 <p>The pipeline will reduce the data in the following order</p>
 <ol class="simple">
 <li><p>Calibration</p></li>
@@ -624,6 +641,7 @@ tail config_debug.log
 </pre></div>
 </div>
 </div>
+</section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">#</a></h2>
 <p>The configuration file uses the <a class="reference external" href="https://toml.io">TOML</a> format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., <code class="docutils literal notranslate"><span class="pre">[calibration]</span></code>, <code class="docutils literal notranslate"><span class="pre">[frame_selection]</span></code>) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.</p>
@@ -1148,11 +1166,11 @@ tail config_debug.log
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="gettingstarted.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="introduction.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Getting started</p>
+            <p class="prev-next-title">Introduction</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="examples/index.html" title="next page">
