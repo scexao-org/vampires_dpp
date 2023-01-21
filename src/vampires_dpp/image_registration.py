@@ -6,8 +6,9 @@ from pathlib import Path
 from skimage.registration import phase_cross_correlation
 from skimage.measure import centroid
 
-from vampires_dpp.image_processing import frame_center, shift_cube, shift_frame
+from vampires_dpp.image_processing import shift_cube, shift_frame
 from vampires_dpp.indexing import (
+    frame_center,
     cutout_slice,
     window_slices,
 )

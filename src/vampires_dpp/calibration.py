@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import Optional
 from numpy.typing import ArrayLike
 
-from vampires_dpp.headers import fix_header
-
 
 def calibrate(
     data: ArrayLike,

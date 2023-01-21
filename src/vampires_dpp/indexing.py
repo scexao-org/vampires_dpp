@@ -1,7 +1,74 @@
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from .image_processing import frame_center
 from vampires_dpp.constants import PIXEL_SCALE, FILTER_ANGULAR_SIZE
+
+
+def frame_center(image: ArrayLike):
+    """
+    Find the center of the frame or cube in pixel coordinates
+
+    Parameters
+    ----------
+    image : ArrayLike
+        N-D array with the final two dimensions as the (y, x) axes.
+
+    Returns
+    -------
+    (cy, cx)
+        A tuple of the image center in pixel coordinates
+    """
+    ny = image.shape[-2]
+    nx = image.shape[-1]
+    return (ny - 1) / 2, (nx - 1) / 2
+
+
+def frame_radii(frame: ArrayLike, center=None) -> NDArray:
+    """
+    Return the radii of pixels around ``center`` in the image
+
+    Parameters
+    ----------
+    frame : ArrayLike
+        Input frame
+    center : Tuple, optional
+        The center to calculate radii from. If None, will default to the frame center. By default None
+
+    Returns
+    -------
+    NDArray
+        Matrix with frame radii
+    """
+    if center is None:
+        center = frame_center(frame)
+    Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
+    radii = np.hypot(Ys - center[0], Xs - center[1])
+    return radii
+
+
+def frame_angles(frame: ArrayLike, center=None):
+    """
+    Return the angles of pixels around ``center`` in the image
+
+    Parameters
+    ----------
+    frame : ArrayLike
+        Input frame
+    center : Tuple, optional
+        The center to calculate radii from. If None, will default to the frame center. By default None
+
+    Returns
+    -------
+    NDArray
+        Matrix with frame angles
+    """
+    if center is None:
+        center = frame_center(frame)
+    Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
+    # y flip + x flip TODO
+    thetas = np.arctan2(Ys - center[0], Xs - center[1])
+    return thetas
 
 
 def lamd_to_pixel(ld, filter="Open", pxscale=PIXEL_SCALE):

@@ -27,16 +27,9 @@ from vampires_dpp.headers import observation_table, fix_header
 from vampires_dpp.image_processing import (
     derotate_frame,
     combine_frames_files,
-    collapse_file,
-    frame_center,
-    distort_frame,
     correct_distortion_cube,
 )
-from vampires_dpp.image_registration import (
-    measure_offsets,
-    register_file,
-    coregister_file,
-)
+from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.polarization import (
     mueller_mats_files,
     mueller_matrix_calibration_files,
@@ -46,9 +39,9 @@ from vampires_dpp.polarization import (
     polarization_calibration_triplediff_naive,
     write_stokes_products,
     collapse_stokes_cube,
+    pol_inds,
 )
 from vampires_dpp.indexing import lamd_to_pixel
-from vampires_dpp.util import pol_inds
 from vampires_dpp.wcs import (
     apply_wcs,
     derotate_wcs,
@@ -757,6 +750,9 @@ class Pipeline:
             self.logger.info("Finished PDI")
 
         self.logger.info("Finished running pipeline")
+
+    def get_coordinate(self):
+        pass
 
     def parse_filenames(self, root, filenames):
         if isinstance(filenames, str):

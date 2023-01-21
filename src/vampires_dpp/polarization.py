@@ -11,15 +11,10 @@ from astropy.wcs.utils import add_stokes_axis_to_wcs
 
 from .constants import PUPIL_OFFSET
 from .image_processing import (
-    frame_angles,
-    frame_center,
-    frame_radii,
     derotate_cube,
-    derotate_frame,
-    weighted_collapse,
     combine_frames_headers,
 )
-from .indexing import window_slices
+from .indexing import window_slices, frame_angles, frame_center, frame_radii
 from .mueller_matrices import mueller_matrix_model, mueller_matrix_triplediff
 from .image_registration import offset_centroid
 from .headers import observation_table
@@ -303,6 +298,39 @@ def triplediff_average_angles(filenames):
         pas[i] = average_angle(tbl["D_IMRPAD"].iloc[ix : ix + 16] + PUPIL_OFFSET)
 
     return pas
+
+
+def pol_inds(flc_states: ArrayLike, n=4):
+    """
+    Find consistent runs of FLC and HWP states.
+
+    A consistent FLC run will have either 2 or 4 files per HWP state, and will have exactly 4 HWP states per cycle. Sometimes when VAMPIRES is syncing with CHARIS a HWP state will get skipped, creating partial HWP cycles. This function will return the indices which create consistent HWP cycles from the given list of FLC states, which should already be sorted by time.
+
+    Parameters
+    ----------
+    hwp_polstt : ArrayLike
+        The HWP states to sort through
+    n : int, optional
+        The number of files per HWP state, either 2 or 4. By default 4
+
+    Returns
+    -------
+    inds :
+        The indices for which `flc_states` forms consistent HWP cycles
+    """
+    states = np.asarray(flc_states)
+    N_cycle = n * 4
+    ang_list = np.repeat([0, 45, 22.5, 67.5], n)
+    inds = []
+    idx = 0
+    while idx <= len(flc_states) - N_cycle:
+        if np.all(states[idx : idx + N_cycle] == ang_list):
+            inds.extend(range(idx, idx + N_cycle))
+            idx += N_cycle
+        else:
+            idx += 1
+
+    return inds
 
 
 def polarization_calibration_triplediff(filenames: Sequence[str]) -> NDArray:

@@ -4,12 +4,10 @@ import numpy as np
 from pathlib import Path
 import pandas as pd
 from scipy.ndimage import fourier_shift
-from scipy.interpolate import griddata
 from numpy.typing import ArrayLike, NDArray
 from typing import Union
 import cv2
 from astropy.coordinates import Angle
-from astropy.modeling.models import Polynomial2D
 
 from vampires_dpp.headers import dict_from_header
 
@@ -124,72 +122,6 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs):
     denom = np.nansum(1 / derotated_variance, axis=0)
     weighted_frame = numer / denom
     return weighted_frame
-
-
-def frame_center(image: ArrayLike):
-    """
-    Find the center of the frame or cube in pixel coordinates
-
-    Parameters
-    ----------
-    image : ArrayLike
-        N-D array with the final two dimensions as the (y, x) axes.
-
-    Returns
-    -------
-    (cy, cx)
-        A tuple of the image center in pixel coordinates
-    """
-    ny = image.shape[-2]
-    nx = image.shape[-1]
-    return (ny - 1) / 2, (nx - 1) / 2
-
-
-def frame_radii(frame: ArrayLike, center=None) -> NDArray:
-    """
-    Return the radii of pixels around ``center`` in the image
-
-    Parameters
-    ----------
-    frame : ArrayLike
-        Input frame
-    center : Tuple, optional
-        The center to calculate radii from. If None, will default to the frame center. By default None
-
-    Returns
-    -------
-    NDArray
-        Matrix with frame radii
-    """
-    if center is None:
-        center = frame_center(frame)
-    Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
-    radii = np.hypot(Ys - center[0], Xs - center[1])
-    return radii
-
-
-def frame_angles(frame: ArrayLike, center=None):
-    """
-    Return the angles of pixels around ``center`` in the image
-
-    Parameters
-    ----------
-    frame : ArrayLike
-        Input frame
-    center : Tuple, optional
-        The center to calculate radii from. If None, will default to the frame center. By default None
-
-    Returns
-    -------
-    NDArray
-        Matrix with frame angles
-    """
-    if center is None:
-        center = frame_center(frame)
-    Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
-    # y flip + x flip TODO
-    thetas = np.arctan2(Ys - center[0], Xs - center[1])
-    return thetas
 
 
 def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs):
