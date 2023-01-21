@@ -154,9 +154,9 @@ def make_flat_file(
     if dark is not None:
         header["VPP_DARK"] = (dark.name, "file used for dark subtraction")
         master_dark = fits.getdata(dark).astype("f4")
-        cube -= master_dark
-    master_flat = np.median(cube, axis=0, overwrite_input=True)
-    master_flat /= np.median(master_flat)
+        cube = cube - master_dark
+    master_flat = np.nanmedian(cube, axis=0, overwrite_input=True)
+    master_flat = master_flat / np.nanmedian(master_flat)
 
     fits.writeto(outname, master_flat, header=header, overwrite=True)
     return outname

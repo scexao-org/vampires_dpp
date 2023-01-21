@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 import logging
 from vampires_dpp.pipeline import Pipeline
-import tqdm.auto as tqdm
 
 # set up logging
 formatter = logging.Formatter(
@@ -16,7 +15,7 @@ parser.add_argument("config", nargs="+", help="path to configuration file(s)")
 
 def main():
     args = parser.parse_args()
-    for config in tqdm.tqdm(args.config, desc="config"):
+    for config in args.config:
         path = Path(config)
         pipeline = Pipeline.from_file(path)
         # set up logging - INFO in STDOUT, DEBUG in file

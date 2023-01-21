@@ -247,7 +247,7 @@ class Pipeline:
                 if key in dark_config:
                     dark_filenames = self.parse_filenames(self.root_dir, dark_config[key])
                     dark_frames = []
-                    for filename in tqdm.tqdm(dark_filenames, desc="Making master darks"):
+                    for filename in tqdm.tqdm(dark_filenames, desc=f"Making {key} master darks"):
                         outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
                         dark_frames.append(
                             make_dark_file(filename, output=outname, skip=skip_darks)
@@ -272,7 +272,7 @@ class Pipeline:
                     flat_filenames = self.parse_filenames(self.root_dir, flat_config[key])
                     dark_filename = self.master_darks[key]
                     flat_frames = []
-                    for filename in tqdm.tqdm(flat_filenames, desc="Making master darks"):
+                    for filename in tqdm.tqdm(flat_filenames, desc=f"Making {key} master flats"):
                         outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
                         flat_frames.append(
                             make_flat_file(
