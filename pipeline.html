@@ -907,6 +907,10 @@ tail config_debug.log
 </pre></div>
 </div>
 <p>By default, if the offsets or the aligned data cubes already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the offset measurements, alignment, <em>and all subsequent operations</em> will be redone.</p>
+<div class="admonition-tip admonition">
+<p class="admonition-title">Tip</p>
+<p>If you need to re-align the data but you don’t need to re-measure the offsets, for example if you re-calibrated with a new dark frame, then go into your output directory and delete the <code class="docutils literal notranslate"><span class="pre">*_aligned.fits</span></code> files while keeping the <code class="docutils literal notranslate"><span class="pre">*_offsets.csv</span></code> files and set <code class="docutils literal notranslate"><span class="pre">force=false</span></code>. This will re-align the data using the previously measured offsets.</p>
+</div>
 <section id="id2">
 <h4>Outputs<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h4>
 <p>CSV files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_offsets</span></code> appended to the file name with the PSF offsets (y, x) for each frame in the data cube. FITS files will be saved with <code class="docutils literal notranslate"><span class="pre">_aligned</span></code> appended to the file name.</p>
@@ -917,7 +921,11 @@ tail config_debug.log
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">collapsing</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
 </pre></div>
 </div>
-<p>If this section is set, the data cubes will be median-combined along the time axis.</p>
+<p>If this section is set, the data cubes will be combined along the time axis.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;median&quot;</span><span class="w"> </span><span class="c1"># optional</span>
+</pre></div>
+</div>
+<p>The method for collapsing the data, one of <code class="docutils literal notranslate"><span class="pre">&quot;median&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mean&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;varmean&quot;</span></code> (variance-weighted mean). In all cases. By default will use the median.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
 </pre></div>
 </div>

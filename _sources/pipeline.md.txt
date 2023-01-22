@@ -363,6 +363,10 @@ force = false # optional
 ```
 By default, if the offsets or the aligned data cubes already exist the operations be skipped to save time. If you set this to `true`, the offset measurements, alignment, _and all subsequent operations_ will be redone.
 
+```{admonition} Tip
+If you need to re-align the data but you don't need to re-measure the offsets, for example if you re-calibrated with a new dark frame, then go into your output directory and delete the `*_aligned.fits` files while keeping the `*_offsets.csv` files and set `force=false`. This will re-align the data using the previously measured offsets.
+```
+
 #### Outputs
 
 CSV files will be saved in `output_directory` with `_offsets` appended to the file name with the PSF offsets (y, x) for each frame in the data cube. FITS files will be saved with `_aligned` appended to the file name.
@@ -373,7 +377,12 @@ CSV files will be saved in `output_directory` with `_offsets` appended to the fi
 [collapsing] # optional
 ```
 
-If this section is set, the data cubes will be median-combined along the time axis.
+If this section is set, the data cubes will be combined along the time axis.
+
+```toml
+method = "median" # optional
+```
+The method for collapsing the data, one of `"median"`, `"mean"`, or `"varmean"` (variance-weighted mean). In all cases. By default will use the median.
 
 ```toml
 output_directory = "" # relative to root, optional

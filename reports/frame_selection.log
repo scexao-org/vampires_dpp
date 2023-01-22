@@ -60,16 +60,16 @@ Cell [0;32mIn[7], line 21[0m, in [0;36m<listcomp>[0;34m(.0)[0m
 [1;32m     22[0m ]
 [1;32m     23[0m collapsed_frames[38;5;241m.[39mappend([np[38;5;241m.[39mmedian(r, [38;5;241m0[39m, overwrite_input[38;5;241m=[39m[38;5;28;01mTrue[39;00m) [38;5;28;01mfor[39;00m r [38;5;129;01min[39;00m registered])
 
-File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/image_processing.py:104[0m, in [0;36mshift_cube[0;34m(cube, shifts, **kwargs)[0m
-[1;32m    102[0m out [38;5;241m=[39m np[38;5;241m.[39mempty_like(cube)
-[1;32m    103[0m [38;5;28;01mfor[39;00m i [38;5;129;01min[39;00m [38;5;28mrange[39m(cube[38;5;241m.[39mshape[[38;5;241m0[39m]):
-[0;32m--> 104[0m     out[i] [38;5;241m=[39m [43mshift_frame[49m[43m([49m[43mcube[49m[43m[[49m[43mi[49m[43m][49m[43m,[49m[43m [49m[43mshifts[49m[43m[[49m[43mi[49m[43m][49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
-[1;32m    105[0m [38;5;28;01mreturn[39;00m out
+File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/image_processing.py:95[0m, in [0;36mshift_cube[0;34m(cube, shifts, **kwargs)[0m
+[1;32m     93[0m out [38;5;241m=[39m np[38;5;241m.[39mempty_like(cube)
+[1;32m     94[0m [38;5;28;01mfor[39;00m i [38;5;129;01min[39;00m [38;5;28mrange[39m(cube[38;5;241m.[39mshape[[38;5;241m0[39m]):
+[0;32m---> 95[0m     out[i] [38;5;241m=[39m [43mshift_frame[49m[43m([49m[43mcube[49m[43m[[49m[43mi[49m[43m][49m[43m,[49m[43m [49m[43mshifts[49m[43m[[49m[43mi[49m[43m][49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m     96[0m [38;5;28;01mreturn[39;00m out
 
-File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/image_processing.py:25[0m, in [0;36mshift_frame[0;34m(data, shift, **kwargs)[0m
-[1;32m     24[0m [38;5;28;01mdef[39;00m [38;5;21mshift_frame[39m(data: ArrayLike, shift, [38;5;241m*[39m[38;5;241m*[39mkwargs):
-[0;32m---> 25[0m     M [38;5;241m=[39m np[38;5;241m.[39mfloat32((([38;5;241m1[39m, [38;5;241m0[39m, [43mshift[49m[43m[[49m[38;5;241;43m1[39;49m[43m][49m), ([38;5;241m0[39m, [38;5;241m1[39m, shift[[38;5;241m0[39m])))
-[1;32m     26[0m     [38;5;28;01mreturn[39;00m distort_frame(data, M, [38;5;241m*[39m[38;5;241m*[39mkwargs)
+File [0;32m/opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/image_processing.py:16[0m, in [0;36mshift_frame[0;34m(data, shift, **kwargs)[0m
+[1;32m     15[0m [38;5;28;01mdef[39;00m [38;5;21mshift_frame[39m(data: ArrayLike, shift, [38;5;241m*[39m[38;5;241m*[39mkwargs):
+[0;32m---> 16[0m     M [38;5;241m=[39m np[38;5;241m.[39mfloat32((([38;5;241m1[39m, [38;5;241m0[39m, [43mshift[49m[43m[[49m[38;5;241;43m1[39;49m[43m][49m), ([38;5;241m0[39m, [38;5;241m1[39m, shift[[38;5;241m0[39m])))
+[1;32m     17[0m     [38;5;28;01mreturn[39;00m distort_frame(data, M, [38;5;241m*[39m[38;5;241m*[39mkwargs)
 
 [0;31mIndexError[0m: index 1 is out of bounds for axis 0 with size 1
 IndexError: index 1 is out of bounds for axis 0 with size 1

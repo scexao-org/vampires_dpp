@@ -477,17 +477,17 @@ title="Print to PDF"
 <span class="ne">----&gt; </span><span class="mi">3</span> <span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;hd36819_20220128_config.toml&quot;</span><span class="p">)</span>
 <span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:130,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
-<span class="g g-Whitespace">    </span><span class="mi">111</span> <span class="nd">@classmethod</span>
-<span class="g g-Whitespace">    </span><span class="mi">112</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">113</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">114</span><span class="sd">     Load configuration from TOML file</span>
-<span class="g g-Whitespace">    </span><span class="mi">115</span><span class="sd"> </span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/vampires_dpp/pipeline.py:98,</span> in <span class="ni">Pipeline.from_file</span><span class="nt">(cls, filename)</span>
+<span class="g g-Whitespace">     </span><span class="mi">79</span> <span class="nd">@classmethod</span>
+<span class="g g-Whitespace">     </span><span class="mi">80</span> <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<span class="g g-Whitespace">     </span><span class="mi">81</span><span class="w">     </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">     </span><span class="mi">82</span><span class="sd">     Load configuration from TOML file</span>
+<span class="g g-Whitespace">     </span><span class="mi">83</span><span class="sd"> </span>
 <span class="sd">   (...)</span>
-<span class="g g-Whitespace">    </span><span class="mi">128</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
-<span class="g g-Whitespace">    </span><span class="mi">129</span><span class="sd">     &quot;&quot;&quot;</span>
-<span class="ne">--&gt; </span><span class="mi">130</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">131</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">96</span><span class="sd">     &gt;&gt;&gt; Pipeline.from_file(&quot;config.toml&quot;)</span>
+<span class="g g-Whitespace">     </span><span class="mi">97</span><span class="sd">     &quot;&quot;&quot;</span>
+<span class="ne">---&gt; </span><span class="mi">98</span>     <span class="n">config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">99</span>     <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
 <span class="nn">File /opt/hostedtoolcache/Python/3.9.16/x64/lib/python3.9/site-packages/toml/decoder.py:133,</span> in <span class="ni">load</span><span class="nt">(f, _dict, decoder)</span>
 <span class="g g-Whitespace">    </span><span class="mi">114</span><span class="w"> </span><span class="sd">&quot;&quot;&quot;Parses named file or files as toml and returns a dictionary</span>
