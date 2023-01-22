@@ -122,22 +122,29 @@ def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs
     method = method.strip().lower()
 
     if method == "median":
-        frame = np.nanmedian(cube, axis=0, **kwargs)
+        frame = np.median(cube, axis=0, overwrite_input=True)
     elif method == "mean":
-        frame = np.nanmean(cube, axis=0, **kwargs)
+        frame = np.mean(cube, axis=0)
     elif method == "varmean":
         weights = 1 / np.nanvar(cube, axis=(1, 2), keepdims=True)
-        frame = np.nansum(cube * weights, axis=0, **kwargs) / np.nansum(weights)
+        frame = np.sum(cube * weights, axis=0) / np.sum(weights)
 
     if header is not None:
-        header = collapse_cube_header(header, method=method)
+        header["VPP_COLL"] = method, "VAMPIRES DPP cube collapse method"
 
     return frame, header
 
 
-def collapse_cube_header(header, method="median"):
-    header["VPP_COLL"] = method, "VAMPIRES DPP cube collapse method"
-    return header
+def collapse_cube_file(filename, output, skip=False, **kwargs):
+    path = Path(output)
+    if skip and path.is_file():
+        return path
+
+    cube, header = fits.getdata(filename, header=True)
+    frame, header = collapse_cube(cube, header=header, **kwargs)
+
+    fits.writeto(path, frame, header=header, overwrite=True)
+    return path
 
 
 def combine_frames(frames, headers=None, **kwargs):

@@ -2,6 +2,7 @@ from astropy.io import fits
 import numpy as np
 from numpy.typing import ArrayLike
 from scipy.stats import circmean
+from packaging import version
 
 
 def average_angle(angles: ArrayLike):
@@ -33,3 +34,29 @@ def find_dark_settings(filelist):
             exp_set.add((texp, gain))
 
     return exp_set
+
+
+def check_version(config: str, vpp: str) -> bool:
+    """
+    Checks compatibility between versions following semantic versioning.
+
+    Parameters
+    ----------
+    config : str
+        Version string for the configuration
+    vpp : str
+        Version string for `vampires_dpp`
+
+    Returns
+    -------
+    bool
+    """
+    config_maj, config_min, config_pat = version.parse(config).release
+    vpp_maj, vpp_min, vpp_pat = version.parse(vpp).release
+    if vpp_maj == 0:
+        flag = config_maj == vpp_maj and config_min == vpp_min and vpp_pat >= config_pat
+    else:
+        flag = config_maj == vpp_maj and vpp_min >= config_min
+        if vpp_min == config_min:
+            flag = flag and vpp_pat >= config_pat
+    return flag

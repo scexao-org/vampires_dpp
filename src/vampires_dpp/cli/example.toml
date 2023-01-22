@@ -64,6 +64,7 @@ upsampling_factor = 1 # the sub-pixel precision of the upsampled DFT, by default
 reference_method = "com" # how to measure the offset of the reference frame, by default 'com'
 
 [collapsing]
+method = "median" # collapse method, one of 'median', 'mean', and 'varmean', by default 'median'
 output_directory = "" # output directory for intermediate frames
 force = false # if files already exist, should we force the calculation and overwrite?
 
@@ -77,8 +78,5 @@ force = false # if files already exist, should we force the calculation and over
 method = "triplediff" # calibration method, one of "mueller" or "triplediff"
 
 [polarimetry.ip]
-pQ = 0 # I -> Q instrumental polarization term, if not provided will be measured
-pU = 0 # I -> U instrumental polarization term, if not provided will be measured
 method = "photometry"
 radius = 5 # radius of photometric aperture to measure IP from
-force = false # if files already exist, should we force the calculation and overwrite?
