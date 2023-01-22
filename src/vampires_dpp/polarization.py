@@ -15,7 +15,7 @@ from .image_processing import (
     combine_frames_headers,
 )
 from .indexing import window_slices, frame_angles, frame_center, frame_radii
-from .mueller_matrices import mueller_matrix_model, mueller_matrix_triplediff
+from .mueller_matrices import mueller_matrix_model, mueller_matrix_triplediff, mirror, rotator
 from .image_registration import offset_centroid
 from .headers import observation_table
 from .util import average_angle
@@ -272,7 +272,10 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
 
-    return stokes_cube, stokes_hdr, angles
+    M = rotator(np.deg2rad(140.4)) @ mirror()
+    stokes_cube_corr = np.linalg.solve(M, stokes_cube.reshape(4, -1)).reshape(stokes_cube.shape)
+
+    return stokes_cube_corr, stokes_hdr, angles
 
 
 def triplediff_average_angles(filenames):
@@ -469,7 +472,7 @@ def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> 
     return stokes_cube
 
 
-def write_stokes_products(stokes_cube, header=None, outname=None, skip=False, phi=None):
+def write_stokes_products(stokes_cube, header=None, outname=None, skip=False, phi=0):
     if outname is None:
         path = Path("stokes_cube.fits")
     else:
