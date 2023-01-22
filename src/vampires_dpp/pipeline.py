@@ -638,7 +638,7 @@ class Pipeline:
             if "ip" in pol_config:
                 ip_config = pol_config["ip"]
                 stokes_cube_file = outdir / f"{self.config['name']}_stokes_cube_ip.fits"
-                if stokes_cube_file.is_file():
+                if skip and stokes_cube_file.is_file():
                     return
                 ip_method = ip_config.get("method", "photometry")
                 aper_rad = ip_config.get("r", 5)
@@ -687,7 +687,7 @@ class Pipeline:
                 self.logger.debug(f"saved IP-corrected Stokes cube to {outname.absolute()}")
 
             stokes_cube_collapsed, stokes_hdr = collapse_stokes_cube(
-                stokes_cube, stokes_angles, header=stokes_hdr, skip=skip
+                stokes_cube, stokes_angles, header=stokes_hdr
             )
             stokes_cube_file = stokes_cube_file.with_name(
                 f"{stokes_cube_file.stem}_collapsed{stokes_cube_file.suffix}"

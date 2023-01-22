@@ -164,7 +164,6 @@ def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs)
 
 
 def optimize_Uphi(stokes_cube: ArrayLike, thetas: ArrayLike, r=8) -> float:
-    cy, cx = frame_center(stokes_cube)
     rs = frame_radii(stokes_cube)
     mask = rs <= r
     masked_stokes_cube = stokes_cube[..., mask]
@@ -187,7 +186,7 @@ def collapse_stokes_cube(stokes_cube, pa, header=None):
     stokes_out = np.empty_like(stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:]))
     for s in range(stokes_cube.shape[0]):
         derot = derotate_cube(stokes_cube[s], pa)
-        stokes_out[s] = np.nanmedian(derot, axis=0)
+        stokes_out[s] = np.median(derot, axis=0)
 
     # now that cube is derotated we can apply WCS
     if header is not None:
