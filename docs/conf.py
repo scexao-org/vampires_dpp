@@ -4,7 +4,7 @@ import os
 
 # -- Project information -----------------------------------------------------
 try:
-    __version__ = get_distribution("exoplanet").version
+    __version__ = get_distribution("vampires_dpp").version
 except DistributionNotFound:
     __version__ = "unknown version"
 
