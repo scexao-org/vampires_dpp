@@ -1,6 +1,7 @@
-from astropy.io import fits
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+from astropy.io import fits
 
 from vampires_dpp.indexing import cutout_slice, window_slices
 

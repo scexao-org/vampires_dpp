@@ -1,6 +1,6 @@
 import astropy.units as u
-from astropy.coordinates import EarthLocation
 import numpy as np
+from astropy.coordinates import EarthLocation
 
 # important parameters
 PIXEL_SCALE = 6.24  # mas / px

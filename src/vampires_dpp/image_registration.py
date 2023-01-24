@@ -1,17 +1,14 @@
-from astropy.io import fits
-from astropy.modeling import models, fitting
-import numpy as np
-from numpy.typing import ArrayLike
 from pathlib import Path
-from skimage.registration import phase_cross_correlation
+
+import numpy as np
+from astropy.io import fits
+from astropy.modeling import fitting, models
+from numpy.typing import ArrayLike
 from skimage.measure import centroid
+from skimage.registration import phase_cross_correlation
 
 from vampires_dpp.image_processing import shift_cube, shift_frame
-from vampires_dpp.indexing import (
-    frame_center,
-    cutout_slice,
-    window_slices,
-)
+from vampires_dpp.indexing import cutout_slice, frame_center, window_slices
 
 
 def satellite_spot_offsets(

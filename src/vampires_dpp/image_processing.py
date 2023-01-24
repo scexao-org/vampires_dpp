@@ -1,12 +1,13 @@
-from astropy.io import fits
-import astropy.units as u
-import numpy as np
 from pathlib import Path
-import pandas as pd
-from numpy.typing import ArrayLike, NDArray
 from typing import Union
+
+import astropy.units as u
 import cv2
+import numpy as np
+import pandas as pd
 from astropy.coordinates import Angle
+from astropy.io import fits
+from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.headers import dict_from_header
 from vampires_dpp.indexing import frame_center
@@ -50,7 +51,7 @@ def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
 
 def distort_frame(data: ArrayLike, matrix, **kwargs):
     default_kwargs = {
-        "flags": cv2.INTER_LANCZOS4,
+        "flags": cv2.INTER_LINEAR,
         "borderMode": cv2.BORDER_CONSTANT,
         "borderValue": np.nan,
     }

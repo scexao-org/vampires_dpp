@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 import tqdm.auto as tqdm
 
 from vampires_dpp.util import find_dark_settings

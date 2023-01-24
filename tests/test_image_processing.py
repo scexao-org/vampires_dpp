@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from vampires_dpp.image_processing import shift_frame, derotate_frame, frame_center
+from vampires_dpp.image_processing import derotate_frame, frame_center, shift_frame
 
 
 def test_shift_frame():

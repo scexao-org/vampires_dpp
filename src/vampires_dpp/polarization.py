@@ -1,23 +1,26 @@
-from astropy.io import fits
-from scipy.optimize import minimize_scalar
-import numpy as np
-from numpy.typing import ArrayLike, NDArray
-from typing import Optional, Tuple, Sequence
 from pathlib import Path
-from photutils import CircularAperture, CircularAnnulus, aperture_photometry
+from typing import Optional, Sequence, Tuple
+
+import numpy as np
 import tqdm.auto as tqdm
+from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.wcs.utils import add_stokes_axis_to_wcs
+from numpy.typing import ArrayLike, NDArray
+from photutils import CircularAnnulus, CircularAperture, aperture_photometry
+from scipy.optimize import minimize_scalar
 
 from .constants import PUPIL_OFFSET
-from .image_processing import (
-    derotate_cube,
-    combine_frames_headers,
-)
-from .indexing import window_slices, frame_angles, frame_center, frame_radii
-from .mueller_matrices import mueller_matrix_model, mueller_matrix_triplediff, mirror, rotator
-from .image_registration import offset_centroid
 from .headers import observation_table
+from .image_processing import combine_frames_headers, derotate_cube
+from .image_registration import offset_centroid
+from .indexing import frame_angles, frame_center, frame_radii, window_slices
+from .mueller_matrices import (
+    mirror,
+    mueller_matrix_model,
+    mueller_matrix_triplediff,
+    rotator,
+)
 from .util import average_angle
 from .wcs import apply_wcs
 

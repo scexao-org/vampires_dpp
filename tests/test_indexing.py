@@ -1,9 +1,6 @@
 import numpy as np
 
-from vampires_dpp.indexing import (
-    window_centers,
-    cutout_slice,
-)
+from vampires_dpp.indexing import cutout_slice, window_centers
 
 
 def test_window_centers():

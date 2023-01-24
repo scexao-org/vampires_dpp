@@ -1,6 +1,7 @@
-import pytest
-from vampires_dpp.util import average_angle
 import numpy as np
+import pytest
+
+from vampires_dpp.util import average_angle
 
 
 def test_average_angle():

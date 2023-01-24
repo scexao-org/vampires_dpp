@@ -1,6 +1,7 @@
-from pkg_resources import DistributionNotFound, get_distribution
-from datetime import date
 import os
+from datetime import date
+
+from pkg_resources import DistributionNotFound, get_distribution
 
 # -- Project information -----------------------------------------------------
 try:

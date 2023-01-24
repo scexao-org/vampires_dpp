@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from vampires_dpp.constants import PIXEL_SCALE, FILTER_ANGULAR_SIZE
+from vampires_dpp.constants import FILTER_ANGULAR_SIZE, PIXEL_SCALE
 
 
 def frame_center(image: ArrayLike):

@@ -1,54 +1,55 @@
-from pathlib import Path
 import logging
-import toml
-import tqdm.auto as tqdm
-from astropy.io import fits
-import numpy as np
-import astropy.units as u
-import pandas as pd
-from astropy.time import Time
-from astropy.coordinates import SkyCoord
 import sys
 from os import PathLike
+from pathlib import Path
 from typing import Dict
+
+import astropy.units as u
+import numpy as np
+import pandas as pd
+import toml
+import tqdm.auto as tqdm
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.time import Time
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import (
-    make_dark_file,
-    make_flat_file,
     calibrate,
     filter_empty_frames,
+    make_dark_file,
+    make_flat_file,
 )
-from vampires_dpp.constants import PUPIL_OFFSET, PIXEL_SCALE, SUBARU_LOC
-from vampires_dpp.frame_selection import measure_metric_file, frame_select_file
-from vampires_dpp.headers import observation_table, fix_header
+from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
+from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
+from vampires_dpp.headers import fix_header, observation_table
 from vampires_dpp.image_processing import (
-    derotate_frame,
+    collapse_cube_file,
+    collapse_frames_files,
     combine_frames_files,
     correct_distortion_cube,
-    collapse_frames_files,
-    collapse_cube_file,
+    derotate_frame,
 )
 from vampires_dpp.image_registration import measure_offsets, register_file
+from vampires_dpp.indexing import lamd_to_pixel
 from vampires_dpp.polarization import (
-    mueller_mats_files,
-    mueller_matrix_calibration_files,
+    collapse_stokes_cube,
+    instpol_correct,
     measure_instpol,
     measure_instpol_satellite_spots,
-    instpol_correct,
+    mueller_matrix_calibration_files,
+    mueller_mats_files,
+    pol_inds,
     polarization_calibration_triplediff_naive,
     write_stokes_products,
-    collapse_stokes_cube,
-    pol_inds,
 )
-from vampires_dpp.indexing import lamd_to_pixel
+from vampires_dpp.util import check_version
 from vampires_dpp.wcs import (
     apply_wcs,
     derotate_wcs,
-    get_gaia_astrometry,
     get_coord_header,
+    get_gaia_astrometry,
 )
-from vampires_dpp.util import check_version
 
 
 class Pipeline:
@@ -250,7 +251,7 @@ class Pipeline:
                     collapse_frames_files(
                         dark_frames, method="mean", output=self.master_darks[key], skip=skip_darks
                     )
-                    self.logger.debug(f"saved master flat to {self.master_darks[key].absolute()}")
+                    self.logger.debug(f"saved master dark to {self.master_darks[key].absolute()}")
 
     def make_flats(self):
         self.master_flats = {"cam1": None, "cam2": None}
@@ -373,7 +374,7 @@ class Pipeline:
                 self.working_files.append(outname)
 
         # save header table
-        table = observation_table(self.working_files).sort_values("DATE")
+        table = observation_table(self.working_files).sort_values("MJD")
         self.working_files = [self.working_files[i] for i in table.index]
         table_name = self.output_dir / f"{self.config['name']}_headers.csv"
         if not table_name.is_file():
@@ -407,13 +408,13 @@ class Pipeline:
                     self.config["coronagraph"]["satellite_spots"]["radius"],
                     header["U_FILTER"],
                 )
-                self.config["coronagraph"]["satellite_spots"].get("angle", -4)
+                satspot_angle = self.config["coronagraph"]["satellite_spots"].get("angle", -4)
                 metric_file = measure_metric_file(
                     filename,
                     center=self.frame_centers[cam_key],
                     coronagraphic=True,
-                    radius=r,
-                    theta=ang,
+                    radius=satspot_radius,
+                    theta=satspot_angle,
                     window=window,
                     metric=select_config.get("metric", "l2norm"),
                     output=outname,
@@ -612,7 +613,7 @@ class Pipeline:
     def polarimetry_triplediff(self, outdir, skip=False):
         # sort table
         pol_config = self.config["polarimetry"]
-        table = observation_table(self.working_files).sort_values("DATE")
+        table = observation_table(self.working_files).sort_values("MJD")
         inds = pol_inds(table["U_HWPANG"], 4)
         table_filt = table.loc[inds]
         self.logger.info(
@@ -702,7 +703,7 @@ class Pipeline:
 
     def polarimetry_mueller(self, outdir, skip=False):
         # sort table
-        table = observation_table(self.working_files).sort_values("DATE")
+        table = observation_table(self.working_files).sort_values("MJD")
         inds = pol_inds(table["U_HWPANG"], 4)
         table_filt = table.loc[inds]
         self.logger.info(

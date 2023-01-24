@@ -1,5 +1,6 @@
-from vampires_dpp.util import pol_inds
 import numpy as np
+
+from vampires_dpp.util import pol_inds
 
 
 def test_pol_inds_good():

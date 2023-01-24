@@ -1,8 +1,8 @@
-from astropy.io import fits
 import numpy as np
+from astropy.io import fits
 from numpy.typing import ArrayLike
-from scipy.stats import circmean
 from packaging import version
+from scipy.stats import circmean
 
 
 def average_angle(angles: ArrayLike):

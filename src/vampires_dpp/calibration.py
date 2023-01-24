@@ -1,9 +1,10 @@
 # library functions for common calibration tasks like
 # dark subtraction, collapsing cubes
-from astropy.io import fits
-import numpy as np
 from pathlib import Path
 from typing import Optional
+
+import numpy as np
+from astropy.io import fits
 from numpy.typing import ArrayLike
 
 

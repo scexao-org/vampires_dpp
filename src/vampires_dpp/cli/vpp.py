@@ -1,6 +1,7 @@
+import logging
 from argparse import ArgumentParser
 from pathlib import Path
-import logging
+
 from vampires_dpp.pipeline import Pipeline
 
 # set up logging

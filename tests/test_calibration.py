@@ -1,14 +1,15 @@
+import numpy as np
+import pytest
+from astropy.io import fits
+
 from vampires_dpp.calibration import (
+    calibrate,
+    calibrate_file,
     deinterleave,
     deinterleave_file,
     make_dark_file,
     make_flat_file,
-    calibrate,
-    calibrate_file,
 )
-from astropy.io import fits
-import numpy as np
-import pytest
 
 
 class TestDeinterleave:

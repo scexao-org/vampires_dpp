@@ -1,5 +1,6 @@
-from astropy.io import fits
 from pathlib import Path
+
+from astropy.io import fits
 
 from vampires_dpp.headers import dict_from_header, observation_table
 

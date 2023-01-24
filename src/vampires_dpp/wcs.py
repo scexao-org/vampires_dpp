@@ -1,9 +1,9 @@
-from astropy import wcs
-from astroquery.vizier import Vizier
 import astropy.units as u
-from astropy.coordinates import Angle, SkyCoord
 import numpy as np
+from astropy import wcs
+from astropy.coordinates import Angle, SkyCoord
 from astropy.time import Time
+from astroquery.vizier import Vizier
 
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
 
