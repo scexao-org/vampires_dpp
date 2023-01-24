@@ -24,6 +24,10 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
+dev = [
+    "black==22.*",
+    "isort==5.10.*"
+]
 test = [
     "pytest==7.*",
     "pytest-cov==3.*",
