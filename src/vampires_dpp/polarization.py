@@ -24,6 +24,8 @@ from .mueller_matrices import (
 from .util import average_angle
 from .wcs import apply_wcs
 
+HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
+
 
 def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None, expected=0):
     """
@@ -52,7 +54,7 @@ def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None, expected=0):
 
     rs = frame_radii(x)
 
-    weights = np.sqrt(np.abs(I))
+    weights = np.ones_like(x)
     # only keep values inside aperture
     weights[rs > r] = 0
 
@@ -198,7 +200,7 @@ def collapse_stokes_cube(stokes_cube, pa, header=None):
     return stokes_out, header
 
 
-def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArray:
+def polarization_calibration_triplediff(filenames: Sequence[str], outname) -> NDArray:
     """
     Return a Stokes cube using the _bona fide_ triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
@@ -223,84 +225,68 @@ def polarization_calibration_triplediff_naive(filenames: Sequence[str]) -> NDArr
     NDArray
         (4, t, y, x) Stokes cube from all 16 frame sets.
     """
-    if len(filenames) % 16 != 0:
+    if len(filenames) % 8 != 0:
         raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
+            "Cannot do triple-differential calibration without exact sets of 8 frames for each HWP cycle"
         )
-
-    # make sure we get data in correct order using FITS headers
-    tbl = observation_table(filenames)
-
-    # once more check again that we have proper HWP sets
-    hwpangs = tbl["U_HWPANG"].values.reshape((-1, 4, 4)).mean(axis=(0, 2))
-    if hwpangs[0] != 0 or hwpangs[1] != 45 or hwpangs[2] != 22.5 or hwpangs[3] != 67.5:
-        raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
-        )
-
     # now do triple-differential calibration
-    # only load 16 files at a time to avoid running out of memory on large datasets
-    N_hwp_sets = len(filenames) // 16
+    # only load 8 files at a time to avoid running out of memory on large datasets
+    N_hwp_sets = len(filenames) // 8
     with fits.open(filenames.iloc[0]) as hdus:
-        stokes_cube = np.zeros(shape=(4, N_hwp_sets, *hdus[0].shape), dtype=hdus[0].data.dtype)
-    angles = triplediff_average_angles(filenames)
+        stokes_cube = np.zeros(shape=(4, N_hwp_sets, *hdus[0].shape[-2:]), dtype=hdus[0].data.dtype)
     iter = tqdm.trange(N_hwp_sets, desc="Triple-differential calibration")
     for i in iter:
         # prepare input frames
-        ix = i * 16  # offset index
-        frame_dict = {}
-        for file in filenames.iloc[ix : ix + 16]:
-            frame, hdr = fits.getdata(file, header=True)
-            key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
-            frame_dict[key] = frame
-        # make difference images
-        for hwp_ang in (0.0, 45.0, 22.5, 67.5):
-            # single diff: cam1 - cam2
-            pX = frame_dict[(hwp_ang, 1, 1)] - frame_dict[(hwp_ang, 1, 2)]
-            mX = frame_dict[(hwp_ang, 2, 1)] - frame_dict[(hwp_ang, 2, 2)]
-            # double diff: flc1 - flc2
-            X = 0.5 * (pX - mX)
-            # triple diff: hwp1 - hwp2
-            if hwp_ang == 0.0:  # Q
-                stokes_cube[1, i] += 0.5 * X
-            elif hwp_ang == 45.0:  # -Q
-                stokes_cube[1, i] -= 0.5 * X
-            elif hwp_ang == 22.5:  # U
-                stokes_cube[2, i] += 0.5 * X
-            elif hwp_ang == 67.5:  # -U
-                stokes_cube[2, i] -= 0.5 * X
-        # factor of 2 because intensity is cut in half by beamsplitter
-        stokes_cube[0, i] = 2 * np.mean(list(frame_dict.values()), axis=0)
+        ix = i * 8  # offset index
+        summ_dict = {}
+        diff_dict = {}
+        for file in filenames.iloc[ix : ix + 8]:
+            stack, hdr = fits.getdata(file, header=True)
+            key = hdr["U_HWPANG"], hdr["U_FLCSTT"]
+            summ_dict[key] = stack[0]
+            diff_dict[key] = stack[1]
+        ## make difference images
+        # double difference (FLC1 - FLC2)
+        pQ = 0.5 * (diff_dict[(0, 1)] - diff_dict[(0, 2)])
+        pIQ = 0.5 * (summ_dict[(0, 1)] + summ_dict[(0, 2)])
+
+        mQ = 0.5 * (diff_dict[(45, 1)] - diff_dict[(45, 2)])
+        mIQ = 0.5 * (summ_dict[(45, 1)] + summ_dict[(45, 2)])
+
+        pU = 0.5 * (diff_dict[(22.5, 1)] - diff_dict[(22.5, 2)])
+        pIU = 0.5 * (summ_dict[(22.5, 1)] + summ_dict[(22.5, 2)])
+
+        mU = 0.5 * (diff_dict[(67.5, 1)] - diff_dict[(67.5, 2)])
+        mIU = 0.5 * (summ_dict[(67.5, 1)] + summ_dict[(67.5, 2)])
+
+        # triple difference (HWP1 - HWP2)
+        Q = 0.5 * (pQ - mQ)
+        IQ = 0.5 * (pIQ + mIQ)
+        U = 0.5 * (pU - mU)
+        IU = 0.5 * (pIU + mIU)
+        I = 0.5 * (IQ + IU)
+
+        stokes_cube[:3, i] = I, Q, U
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
 
-    M = rotator(np.deg2rad(140.4)) @ mirror()
-    stokes_cube_corr = np.linalg.solve(M, stokes_cube.reshape(4, -1)).reshape(stokes_cube.shape)
-
-    return stokes_cube_corr, stokes_hdr, angles
+    return write_stokes_products(stokes_cube, stokes_hdr, outname=outname)
 
 
 def triplediff_average_angles(filenames):
-    if len(filenames) % 16 != 0:
+    if len(filenames) % 8 != 0:
         raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
+            "Cannot do triple-differential calibration without exact sets of 8 frames for each HWP cycle"
         )
     # make sure we get data in correct order using FITS headers
-    tbl = observation_table(filenames).sort_values(["DATE", "U_PLSTIT", "U_FLCSTT", "U_CAMERA"])
+    tbl = observation_table(filenames).sort_values("DATE")
 
-    # once more check again that we have proper HWP sets
-    hwpangs = tbl["U_HWPANG"].values.reshape((-1, 4, 4)).mean(axis=(0, 2))
-    if hwpangs[0] != 0 or hwpangs[1] != 45 or hwpangs[2] != 22.5 or hwpangs[3] != 67.5:
-        raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
-        )
-
-    N_hwp_sets = len(tbl) // 16
+    N_hwp_sets = len(tbl) // 8
     pas = np.zeros(N_hwp_sets, dtype="f4")
     for i in range(pas.shape[0]):
-        ix = i * 16
-        pas[i] = average_angle(tbl["D_IMRPAD"].iloc[ix : ix + 16] + PUPIL_OFFSET)
+        ix = i * 8
+        pas[i] = average_angle(tbl["D_IMRPAD"].iloc[ix : ix + 8] + PUPIL_OFFSET)
 
     return pas
 
@@ -336,26 +322,6 @@ def pol_inds(flc_states: ArrayLike, n=4):
             idx += 1
 
     return inds
-
-
-def polarization_calibration_triplediff(filenames: Sequence[str]) -> NDArray:
-    headers = [fits.getheader(f) for f in filenames]
-    mueller_mats = np.empty((len(headers), 4), dtype="f4")
-    for i in range(mueller_mats.shape[0]):
-        header = headers[i]
-        derot_angle = np.deg2rad(header["D_IMRPAD"] + PUPIL_OFFSET)
-        hwp_theta = np.deg2rad(header["U_HWPANG"])
-
-        M = mueller_matrix_triplediff(
-            camera=header["U_CAMERA"],
-            flc_state=header["U_FLCSTT"],
-            theta=derot_angle,
-            hwp_theta=hwp_theta,
-        )
-        # only keep the X -> I terms
-        mueller_mats[i] = M[0]
-
-    return mueller_mats
 
 
 def polarization_calibration_model(filenames):
@@ -452,17 +418,6 @@ def mueller_matrix_calibration_files(filenames, mueller_matrix_file=None, output
 
     fits.writeto(output, stokes_cube, header=header, overwrite=True)
     return output
-
-
-# def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:
-#     stokes_cube = np.empty((4, cube.shape[0], cube.shape[1], cube.shape[2]))
-#     # for each frame, compute stokes frames
-#     for i in range(cube.shape[0]):
-#         M = mueller_matrices[i]
-#         frame = cube[i].ravel()
-#         S = np.linalg.lstsq(np.atleast_2d(M), np.atleast_2d(frame), rcond=None)[0]
-#         stokes_cube[:, i] = S.reshape((4, cube.shape[1], cube.shape[2]))
-#     return stokes_cube
 
 
 def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:

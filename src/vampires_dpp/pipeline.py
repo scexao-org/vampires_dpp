@@ -1,5 +1,5 @@
 import logging
-import sys
+import re
 from os import PathLike
 from pathlib import Path
 from typing import Dict
@@ -33,14 +33,13 @@ from vampires_dpp.image_processing import (
 from vampires_dpp.image_registration import measure_offsets, register_file
 from vampires_dpp.indexing import lamd_to_pixel
 from vampires_dpp.polarization import (
+    HWP_POS_STOKES,
     collapse_stokes_cube,
-    instpol_correct,
     measure_instpol,
     measure_instpol_satellite_spots,
-    mueller_matrix_calibration_files,
-    mueller_mats_files,
     pol_inds,
-    polarization_calibration_triplediff_naive,
+    polarization_calibration_triplediff,
+    triplediff_average_angles,
     write_stokes_products,
 )
 from vampires_dpp.util import check_version
@@ -593,180 +592,156 @@ class Pipeline:
     def polarimetry(self):
         if "collapsing" not in self.config:
             raise ValueError("Cannot do PDI without collapsing data.")
+        pol_config = self.config["polarimetry"]
         self.logger.info("Performing polarimetric calibration")
-        outdir = self.output_dir / self.config["polarimetry"].get("output_directory", "")
+        outdir = self.output_dir / pol_config.get("output_directory", "")
         if not outdir.is_dir():
             outdir.mkdir(parents=True, exist_ok=True)
         self.logger.debug(f"saving Stokes data to {outdir.absolute()}")
-        skip_pdi = not self.tripwire and not self.config["polarimetry"].get("force", False)
+        skip_pdi = not self.tripwire and not pol_config.get("force", False)
         if skip_pdi:
             self.logger.debug("skipping PDI if files exist")
         self.tripwire = self.tripwire or not skip_pdi
-        pol_method = self.config["polarimetry"].get("method", "triplediff")
-        if pol_method == "triplediff":
-            self.polarimetry_triplediff(outdir, skip=skip_pdi)
-        elif pol_method == "mueller":
-            self.polarimetry_mueller(outdir, skip=skip_pdi)
+
+        # 1. Make diff images
+        self.make_diff_images(outdir, skip=skip_pdi)
+
+        # 2. Correct IP + crosstalk
+        if "ip" in pol_config:
+            self.polarimetry_ip_correct(outdir, skip=skip_pdi)
+        else:
+            self.diff_files_ip = self.diff_files.copy()
+        # 3. Do higher-order correction
+        self.polarimetry_triplediff(outdir, skip=skip_pdi)
 
         self.logger.info("Finished PDI")
 
+    def make_diff_images(self, outdir, skip=False):
+        self.logger.info("Making difference frames")
+        table = observation_table(self.working_files).sort_values("MJD")
+        groups = table.groupby("U_CAMERA")
+        cam1_files = groups.get_group(1)["path"]
+        cam2_files = groups.get_group(2)["path"]
+        self.diff_files = []
+        for cam1_file, cam2_file in tqdm.tqdm(
+            zip(cam1_files, cam2_files),
+            desc="making single diff and sum images",
+            total=len(cam1_files),
+        ):
+            stem = re.sub("_cam[12]", "", cam1_file.stem)
+            outname = outdir / f"{stem}_diff.fits"
+            self.diff_files.append(outname)
+            if skip and outname.is_file():
+                continue
+            self.logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
+            cam1_frame, header = fits.getdata(cam1_file, header=True)
+
+            self.logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
+            cam2_frame = fits.getdata(cam2_file)
+
+            diff = cam1_frame - cam2_frame
+            summ = cam1_frame + cam2_frame
+
+            stack = np.asarray((summ, diff))
+
+            # prepare header
+            del header["U_CAMERA"]
+            stokes = HWP_POS_STOKES[header["U_HWPANG"]]
+            header["CAXIS3"] = "STOKES"
+            header["STOKES"] = f"I,{stokes}"
+
+            fits.writeto(outname, stack, header=header, overwrite=True)
+            self.logger.debug(f"saved diff image to {outname.absolute()}")
+        self.logger.info("Done making difference frames")
+
+    def polarimetry_ip_correct(self, outdir, skip=False):
+        ip_method = self.config["polarimetry"]["ip"].get("method", "photometry")
+
+        self.logger.info(f"Correcting instrumental polarization using '{ip_method}'")
+
+        if ip_method == "photometry":
+            func = self.polarimetry_ip_correct_center
+        elif ip_method == "satspot_photometry":
+            func = self.polarimetry_ip_correct_satspot
+        elif ip_method == "mueller":
+            func = self.polarimetry_ip_correct_mueller
+
+        self.diff_files_ip = []
+        iter = tqdm.tqdm(self.diff_files, desc="Correcting IP")
+        for filename in iter:
+            outname = outdir / f"{filename.stem}_ip.fits"
+            self.diff_files_ip.append(outname)
+            if skip and outname.is_file():
+                continue
+            func(filename, outname)
+
+        self.logger.info(f"Done correcting instrumental polarization")
+
+    def polarimetry_ip_correct_center(self, filename, outname):
+        stack, header = fits.getdata(filename, header=True)
+        aper_rad = self.config["polarimetry"]["ip"].get("r", 5)
+        pX = measure_instpol(
+            stack[0],
+            stack[1],
+            r=aper_rad,
+        )
+        stack_corr = stack.copy()
+        stack_corr[1] -= pX * stack[0]
+
+        stokes = HWP_POS_STOKES[header["U_HWPANG"]]
+        header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
+        fits.writeto(outname, stack_corr, header=header, overwrite=True)
+
+    def polarimetry_ip_correct_satspot(self, filename, outname):
+        stack, header = fits.getdata(filename, header=True)
+        aper_rad = self.config["polarimetry"]["ip"].get("r", 5)
+        satspot_config = self.config["coronagraph"]["satellite_spots"]
+        satspot_radius = lamd_to_pixel(satspot_config["radius"], header["U_FILTER"])
+        satspot_angle = satspot_config.get("angle", -4)
+        pX = measure_instpol_satellite_spots(
+            stack[0],
+            stack[1],
+            r=aper_rad,
+            radius=satspot_radius,
+            angle=satspot_angle,
+        )
+        stack_corr = stack.copy()
+        stack_corr[1] -= pX * stack[0]
+
+        stokes = HWP_POS_STOKES[header["U_HWPANG"]]
+        header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
+        fits.writeto(outname, stack_corr, header=header, overwrite=True)
+
+    def polarimetry_ip_correct_mueller(self, filename, outname):
+        raise NotImplementedError("Need calibrated Mueller matrix model, first.")
+
     def polarimetry_triplediff(self, outdir, skip=False):
         # sort table
-        pol_config = self.config["polarimetry"]
-        table = observation_table(self.working_files).sort_values("MJD")
-        inds = pol_inds(table["U_HWPANG"], 4)
+        table = observation_table(self.diff_files_ip).sort_values("MJD")
+        inds = pol_inds(table["U_HWPANG"], 2)
         table_filt = table.loc[inds]
         self.logger.info(
             f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
         )
 
         outname = outdir / f"{self.config['name']}_stokes_cube.fits"
-        if not skip or not outname.is_file():
-            (
-                stokes_cube,
-                stokes_hdr,
-                stokes_angles,
-            ) = polarization_calibration_triplediff_naive(table_filt["path"])
-            stokes_cube_file = outname
-            write_stokes_products(
-                stokes_cube,
-                outname=stokes_cube_file,
-                header=stokes_hdr,
-                skip=skip,
-            )
+        outname_coll = outname.with_name(f"{outname.stem}_collapsed.fits")
+        if not skip or not outname.is_file() or not outname_coll.is_file():
+            polarization_calibration_triplediff(table_filt["path"], outname=outname)
             self.logger.debug(f"saved Stokes cube to {outname.absolute()}")
+            stokes_angles = triplediff_average_angles(table_filt["path"])
 
-            if "ip" in pol_config:
-                ip_config = pol_config["ip"]
-                stokes_cube_file = outdir / f"{self.config['name']}_stokes_cube_ip.fits"
-                if skip and stokes_cube_file.is_file():
-                    return
-                ip_method = ip_config.get("method", "photometry")
-                aper_rad = ip_config.get("r", 5)
-                for ix in range(stokes_cube.shape[1]):
-                    if ip_method == "satspot_photometry" and "coronagraph" in self.config:
-                        satspot_radius = lamd_to_pixel(
-                            self.config["coronagraph"]["satellite_spots"]["radius"],
-                            stokes_hdr["U_FILTER"],
-                        )
-                        satspot_angle = self.config["coronagraph"]["satellite_spots"].get(
-                            "angle", -4
-                        )
-                        pQ = measure_instpol_satellite_spots(
-                            stokes_cube[0, ix],
-                            stokes_cube[1, ix],
-                            r=aper_rad,
-                            radius=satspot_radius,
-                            angle=satspot_angle,
-                        )
-                        pU = measure_instpol_satellite_spots(
-                            stokes_cube[0, ix],
-                            stokes_cube[2, ix],
-                            r=aper_rad,
-                            radius=satspot_radius,
-                            angle=satspot_angle,
-                        )
-
-                    else:
-                        pQ = measure_instpol(
-                            stokes_cube[0, ix],
-                            stokes_cube[1, ix],
-                            r=aper_rad,
-                        )
-                        pU = measure_instpol(
-                            stokes_cube[0, ix],
-                            stokes_cube[2, ix],
-                            r=aper_rad,
-                        )
-                    stokes_cube[:, ix] = instpol_correct(stokes_cube[:, ix], pQ, pU)
-                write_stokes_products(
-                    stokes_cube,
-                    outname=stokes_cube_file,
-                    header=stokes_hdr,
-                    skip=skip,
-                )
-                self.logger.debug(f"saved IP-corrected Stokes cube to {outname.absolute()}")
-
-            stokes_cube_collapsed, stokes_hdr = collapse_stokes_cube(
-                stokes_cube, stokes_angles, header=stokes_hdr
-            )
-            stokes_cube_file = stokes_cube_file.with_name(
-                f"{stokes_cube_file.stem}_collapsed{stokes_cube_file.suffix}"
+            stokes_cube, header = fits.getdata(outname, header=True)
+            stokes_cube_collapsed, header = collapse_stokes_cube(
+                stokes_cube, stokes_angles, header=header
             )
             write_stokes_products(
                 stokes_cube_collapsed,
-                outname=stokes_cube_file,
-                header=stokes_hdr,
+                outname=outname_coll,
+                header=header,
                 skip=skip,
             )
-            self.logger.debug(f"saved collapsed Stokes cube to {stokes_cube_file.absolute()}")
-
-    def polarimetry_mueller(self, outdir, skip=False):
-        # sort table
-        table = observation_table(self.working_files).sort_values("MJD")
-        inds = pol_inds(table["U_HWPANG"], 4)
-        table_filt = table.loc[inds]
-        self.logger.info(
-            f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
-        )
-
-        outname = outdir / f"{self.config['name']}_mueller_mats.fits"
-        mueller_mat_file = mueller_mats_files(
-            self.working_files,
-            method="triplediff",
-            output=outname,
-            skip=skip,
-        )
-        self.logger.debug(f"saved Mueller matrices to {mueller_mat_file.absolute()}")
-
-        # generate stokes cube
-        outname = outdir / f"{self.config['name']}_stokes_cube.fits"
-        stokes_cube_file = mueller_matrix_calibration_files(
-            self.working_files, mueller_mat_file, output=outname, skip=skip
-        )
-        stokes_cube, stokes_header = fits.getdata(stokes_cube_file, header=True)
-        write_stokes_products(stokes_cube, stokes_header, outname=stokes_cube_file, skip=False)
-        self.logger.debug(f"saved Stokes IP cube to {stokes_cube_file.absolute()}")
-        if "ip" in self.config["polarimetry"]:
-            ip_config = self.config["polarimetry"]["ip"]
-            # generate IP cube
-            outname = stokes_cube_file.with_name(
-                f"{stokes_cube_file.stem}_collapsed{stokes_cube_file.suffix}"
-            )
-            stokes_cube, stokes_hdr = fits.getdata(stokes_cube_file, header=True)
-            ip_method = ip_config.get("method", "photometry")
-            aper_rad = ip_config.get("r", 5)
-            if ip_method == "satspot_photometry" and "coronagraph" in self.config:
-                pQ = measure_instpol_satellite_spots(
-                    stokes_cube[0],
-                    stokes_cube[1],
-                    r=aper_rad,
-                    radius=satspot_radius,
-                    angle=satspot_angle,
-                )
-                pU = measure_instpol_satellite_spots(
-                    stokes_cube[0],
-                    stokes_cube[2],
-                    r=aper_rad,
-                    radius=satspot_radius,
-                    angle=satspot_angle,
-                )
-
-            else:
-                pQ = measure_instpol(
-                    stokes_cube[0],
-                    stokes_cube[1],
-                    r=aper_rad,
-                )
-                pU = measure_instpol(
-                    stokes_cube[0],
-                    stokes_cube[2],
-                    r=aper_rad,
-                )
-            stokes_ip_cube = instpol_correct(stokes_cube, pQ=pQ, pU=pU)
-            stokes_cube_file = outname
-            write_stokes_products(stokes_ip_cube, stokes_hdr, outname=stokes_cube_file, skip=False)
-            self.logger.debug(f"saved Stokes IP cube to {outname.absolute()}")
+            self.logger.debug(f"saved collapsed Stokes cube to {outname_coll.absolute()}")
 
     def parse_filenames(self, root, filenames):
         if isinstance(filenames, str):
