@@ -163,7 +163,19 @@ def fix_header(header):
     for key in ("UT", "HST"):
         header[key] = fix_typical_time_iso(header, key)
     header["MJD"] = fix_typical_time_mjd(header)
-
+    # add RET-ANG1 and similar headers to be more consistent
+    header["DETECTOR"] = f"iXon Ultra 897 - VAMPIRES {header['U_CAMERA']}", "Name of the detector"
+    if "U_EMGAIN" in header:
+        header["DETGAIN"] = header["U_EMGAIN"], "Detector multiplication factor"
+    if "U_HWPANG" in header:
+        header["RET-ANG1"] = header["U_HWPANG"], "Position angle of first retarder plate (deg)"
+        header["RETPLAT1"] = "HWP(NIR)", "Identifier of first retarder plate"
+    if "U_FLCSTT" in header:
+        header["RET-ANG2"] = (
+            0 if header["U_FLCSTT"] == 1 else 45,
+            "Position angle of second retarder plate (deg)",
+        )
+        header["RETPLAT2"] = "FLC(VAMPIRES)", "Identifier of second retarder plate"
     return header
 
 
@@ -173,12 +185,12 @@ def fix_header_file(filename, output: Optional[str] = None, skip=False):
 
     Fixes
     -----
-    1. "backpack" header
+    1. "backpack" header (should be fixed as of 2020??)
         - Old data have second headers with instrument info
         - Will merge the second header into the first
-    2. Too many commas in timestamps
+    2. Too many colons in timestamps (should be fixed as of 2023/01/01)
         - Some STARS data have `UT` and `HST` timestamps like "10:03:34:342"
-        - In this case, the last colon is replaced with a comma, e.g. "10:03:34.342"
+        - In this case, the last colon is replaced with a period, e.g. "10:03:34.342"
     3. "typical" exposure values are file creation time instead of midpoint
         - For `UT`, `HST`, and `MJD` keys will recalculate the midpoint based on the `*-STR` and `*-END` values
 

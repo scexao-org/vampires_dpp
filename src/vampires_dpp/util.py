@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 from astropy.io import fits
 from numpy.typing import ArrayLike
@@ -60,3 +62,16 @@ def check_version(config: str, vpp: str) -> bool:
         if vpp_min == config_min:
             flag = flag and vpp_pat >= config_pat
     return flag
+
+
+def get_paths(filename, /, suffix=None, outname=None, output_directory=None, **kwargs):
+    path = Path(filename)
+    if output_directory is None:
+        output_directory = path.parent
+    else:
+        output_directory = Path(output_directory)
+        output_directory.mkdir(parents=True, exist_ok=True)
+    if outname is None:
+        outname = path.name.replace(".fit", f"_{suffix}.fit")
+    outpath = output_directory / outname
+    return path, outpath

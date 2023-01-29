@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from astropy.coordinates import Angle
 from astropy.io import fits
+from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.headers import dict_from_header
@@ -73,23 +74,6 @@ def derotate_cube(data: ArrayLike, angles: Union[ArrayLike, float], **kwargs):
     return rotated
 
 
-def collapse_file(filename, output=None, skip=False, **kwargs):
-    if output is None:
-        path = Path(filename)
-        output = path.with_name(f"{path.stem}_collapsed{path.suffix}")
-    else:
-        output = Path(output)
-
-    if skip and output.is_file():
-        return output
-
-    cube, header = fits.getdata(filename, header=True)
-    frame = np.nanmedian(cube, 0, overwrite_input=True)
-
-    fits.writeto(output, frame, header=header, overwrite=True)
-    return output
-
-
 def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs):
     out = np.empty_like(cube)
     for i in range(cube.shape[0]):
@@ -120,18 +104,19 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs):
 
 def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs):
     # clean inputs
-    method = method.strip().lower()
-
-    if method == "median":
-        frame = np.median(cube, axis=0, overwrite_input=True)
-    elif method == "mean":
-        frame = np.mean(cube, axis=0)
-    elif method == "varmean":
-        weights = 1 / np.nanvar(cube, axis=(1, 2), keepdims=True)
-        frame = np.sum(cube * weights, axis=0) / np.sum(weights)
+    match method.strip().lower():
+        case "median":
+            frame = np.median(cube, axis=0, overwrite_input=True)
+        case "mean":
+            frame = np.mean(cube, axis=0)
+        case "varmean":
+            weights = 1 / np.nanvar(cube, axis=(1, 2), keepdims=True)
+            frame = np.sum(cube * weights, axis=0) / np.sum(weights)
+        case "biweight":
+            frame = biweight_location(cube, axis=0, c=6)
 
     if header is not None:
-        header["VPP_COLL"] = method, "VAMPIRES DPP cube collapse method"
+        header["COL_METH"] = method, "DPP cube collapse method"
 
     return frame, header
 
@@ -215,9 +200,9 @@ def combine_frames_headers(headers, wcs=False):
     return output_header
 
 
-def combine_frames_files(filenames, output, skip=False, **kwargs):
+def combine_frames_files(filenames, output, force=False, **kwargs):
     path = Path(output)
-    if skip and path.is_file():
+    if not force and path.is_file():
         return path
 
     frames = []
@@ -238,9 +223,9 @@ def collapse_frames(frames, headers=None, method="median", **kwargs):
     return collapse_cube(cube, method=method, header=header)
 
 
-def collapse_frames_files(filenames, output, skip=False, **kwargs):
+def collapse_frames_files(filenames, output, force=False, **kwargs):
     path = Path(output)
-    if skip and path.is_file():
+    if not force and path.is_file():
         return path
 
     frames = []

@@ -4,163 +4,122 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 from astropy.io import fits
+from astropy.stats import biweight_location
 from numpy.typing import ArrayLike
 
-
-def calibrate(
-    data: ArrayLike,
-    discard: int = 0,
-    dark: Optional[ArrayLike] = None,
-    flat: Optional[ArrayLike] = None,
-    flip: bool = False,
-    header=None,
-):
-    """
-    Basic frame calibration.
-
-    Will optionally do dark subtraction, flat correction, discard leading frames, and flip the axes for mirrored data.
-
-    Parameters
-    ----------
-    data : ArrayLike
-        3-D cube (t, y, x) of data
-    discard : int, optional
-        The amount of leading frames to discard (for data which has destructive readout frames), by default 0.
-    dark : ArrayLike, optional
-        If provided, will dark-subtract all frames by the provided 2-D master dark (y, x), by default None
-    flat : ArrayLike, optional
-        If provided, will flat-correct (after dark-subtraction) all frames by the provided 2-D master flat (y, x), by default None
-    flip : bool, optional
-        If True, will flip the y-axis of the data, for de-mirroring cam1 data, by default False.
-
-    .. note:: Image flips are always done last, so that means the dark frames and flat frames should not be flipped ahead of time!
-
-    Returns
-    -------
-    ArrayLike
-        3-D calibrated data cube (t, y, x)
-    """
-    # discard frames
-    # need to copy so inplace operations don't allocate new arrays
-    output = data[discard:].copy()
-    if dark is not None:
-        output = output - dark
-    if flat is not None:
-        output = output - flat
-    if flip:
-        output = np.flip(output, axis=-2)
-    return output, header
+from vampires_dpp.headers import fix_header
+from vampires_dpp.image_processing import collapse_cube, correct_distortion_cube
+from vampires_dpp.util import get_paths
+from vampires_dpp.wcs import apply_wcs
 
 
 def calibrate_file(
     filename: str,
-    outname=None,
     hdu: int = 0,
-    dark: Optional[str] = None,
-    flat: Optional[str] = None,
-    skip=False,
-    deinterleave=False,
+    dark_filename: Optional[str] = None,
+    flat_filename: Optional[str] = None,
+    transform_filename: Optional[str] = None,
+    force: bool = False,
+    deinterleave: bool = False,
     **kwargs,
 ):
-    path = Path(filename)
-    if outname is None:
-        outname = path.with_name(f"{path.stem}_calib{path.suffix}")
-    else:
-        outname = Path(outname)
-    if skip and outname.is_file():
-        return outname
-
-    data, hdr = fits.getdata(path, hdu, header=True)
-    data = data.astype("f4")
-    if dark is not None:
-        dark = fits.getdata(dark).astype("f4")
-    if flat is not None:
-        flat = fits.getdata(flat).astype("f4")
-    if flip == "auto":  # flip camera 1 (vcamim1)
-        if "U_CAMERA" in hdr:
-            flip = hdr["U_CAMERA"] == 1
-        else:
-            flip = "cam1" in path.stem
-    if "U_FLCSTT" in hdr:
-        discard = 0
-    else:
-        discard = 2
-    processed = calibrate(data, dark=dark, flat=flat, flip=flip, discard=discard, **kwargs)
+    path, outpath = get_paths(filename, suffix="calib", **kwargs)
+    if not force and outpath.is_file():
+        return outpath
+    header = fits.getheader(path, hdu)
+    # deinterleaving is forbidden for Gen2 data
+    if "U_OGFNAM" in header:
+        deinterleave = False
+    # have to also check if deinterleaving
     if deinterleave:
-        set1 = processed[::2]
-        hdr["U_FLCSTT"] = 1, "FLC state (1 or 2)"
-        out1 = outname
-        fits.writeto(outname, processed, hdr, overwrite=True)
-        set2 = processed[1::2]
-        hdr["U_FLCSTT"] = 1, "FLC state (1 or 2)"
-        fits.writeto(outname, processed, hdr, overwrite=True)
+        outpath_FLC1 = outpath.with_stem(f"{outpath.stem}_FLC1")
+        outpath_FLC2 = outpath.with_stem(f"{outpath.stem}_FLC2")
+        if not force and outpath_FLC1.is_file() and outpath_FLC2.is_file():
+            return outpath_FLC1, outpath_FLC2
+
+    raw_cube = fits.getdata(path, hdu)
+    # fix header
+    header = apply_wcs(fix_header(header))
+    # Discard frames in OG VAMPIRES
+    if "U_OGFNAM" in header:
+        deinterleave = False
+        cube = raw_cube.astype("f4")
     else:
-        fits.writeto(outname, processed, hdr, overwrite=True)
-    return outname
+        cube = raw_cube[2:].astype("f4")
+    # remove empty and NaN frames
+    cube = filter_empty_frames(cube)
+    # dark correction
+    if dark_filename is not None:
+        dark = fits.getdata(dark_filename)
+        cube -= dark
+        header["MDARK"] = dark_filename, "DPP master dark filename"
+    # flat correction
+    if flat_filename is not None:
+        flat = fits.getdata(flat_filename)
+        cube /= flat
+        header["MFLAT"] = flat_filename, "DPP master flat filename"
+    # flip cam 1 data
+    if header["U_CAMERA"] == 1:
+        cube = np.flip(cube, axis=-2)
+    # distortion correction
+    if transform_filename is not None:
+        distort_coeffs = pd.read_csv(transform_filename, index_col=0)
+        header["MDIST"] = transform_filename, "DPP distortion transform filename"
+        params = distort_coeffs.loc[f"cam{header['U_CAMERA']}"]
+        cube, header = correct_distortion_cube(cube, *params, header=header)
+    # deinterleave
+    if deinterleave:
+        header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
+        header["RET-ANG2"] = 0, "Position angle of second retarder plate (deg)"
+        header["RETPLAT2"] = "FLC(VAMPIRES)", "Identifier of second retarder plate"
+        fits.writeto(outpath_FLC1, cube[::2], header, overwrite=True)
+
+        header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
+        header["RET-ANG2"] = 45, "Position angle of second retarder plate (deg)"
+        fits.writeto(outpath_FLC2, cube[1::2], header, overwrite=True)
+        return outpath_FLC1, outpath_FLC2
+
+    fits.writeto(outpath, cube, header, overwrite=True)
+    return outpath
 
 
-def deinterleave_file(filename: str, hdu: int = 0, skip=False, **kwargs):
-    path = Path(filename)
-
-    outname1 = path.with_name(f"{path.stem}_FLC1{path.suffix}")
-    outname2 = path.with_name(f"{path.stem}_FLC2{path.suffix}")
-    if skip and outname1.is_file() and outname2.is_file():
-        return outname1, outname2
-
-    data, hdr = fits.getdata(path, hdu, header=True)
-    set1, set2 = deinterleave(data, **kwargs)
-    hdr1 = hdr.copy()
-    hdr1["U_FLCSTT"] = (1, "FLC state (1 or 2)")
-    hdr2 = hdr.copy()
-    hdr2["U_FLCSTT"] = (2, "FLC state (1 or 2)")
-
-    fits.writeto(outname1, set1, hdr1, overwrite=True)
-    fits.writeto(outname2, set2, hdr2, overwrite=True)
-    return outname1, outname2
-
-
-def make_dark_file(filename: str, output: Optional[str] = None, discard: int = 1, skip=False):
-    _path = Path(filename)
-    if output is not None:
-        outname = output
+def make_dark_file(filename: str, force=False, **kwargs):
+    path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
+    if not force and outpath.is_file():
+        return outpath
+    raw_cube, header = fits.getdata(path, ext=0, header=True)
+    if "U_OGFNAM" in header:
+        cube = raw_cube.astype("f4")
     else:
-        outname = _path.with_name(f"{_path.stem}_master_dark{_path.suffix}")
-    if skip and outname.is_file():
-        return outname
-    cube, header = fits.getdata(_path, header=True)
-    master_dark = np.median(cube.astype("f4")[discard:], axis=0, overwrite_input=True)
-    fits.writeto(outname, master_dark, header=header, overwrite=True)
-    return outname
+        cube = raw_cube[1:].astype("f4")
+    master_dark, header = collapse_cube(cube, header=header, **kwargs)
+    fits.writeto(outpath, master_dark, header=header, overwrite=True)
+    return outpath
 
 
-def make_flat_file(
-    filename: str,
-    dark: Optional[str] = None,
-    output: Optional[str] = None,
-    discard: int = 1,
-    skip=False,
-):
-    _path = Path(filename)
-    if output is not None:
-        outname = output
+def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
+    path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
+    if not force and outpath.is_file():
+        return outpath
+    raw_cube, header = fits.getdata(path, ext=0, header=True)
+    if "U_OGFNAM" in header:
+        cube = raw_cube.astype("f4")
     else:
-        outname = _path.with_name(f"{_path.stem}_master_flat{_path.suffix}")
-    if skip and outname.is_file():
-        return outname
-    cube, header = fits.getdata(_path, header=True)
-    cube = cube.astype("f4")[discard:]
-    if dark is not None:
-        header["VPP_DARK"] = (dark.name, "file used for dark subtraction")
-        master_dark = fits.getdata(dark).astype("f4")
+        cube = raw_cube[1:].astype("f4")
+    if dark_filename is not None:
+        dark_path = Path(dark_filename)
+        header["MDARK"] = (dark_path.name, "file used for dark subtraction")
+        master_dark = fits.getdata(dark_path)
         cube = cube - master_dark
-    master_flat = np.nanmedian(cube, axis=0, overwrite_input=True)
-    master_flat = master_flat / np.nanmedian(master_flat)
+    master_flat, header = collapse_cube(cube, header=header, **kwargs)
+    master_flat = master_flat / biweight_location(master_flat, c=6, ignore_nan=True)
 
-    fits.writeto(outname, master_flat, header=header, overwrite=True)
-    return outname
+    fits.writeto(outpath, master_flat, header=header, overwrite=True)
+    return outpath
 
 
 def filter_empty_frames(cube):
-    output = np.array([frame for frame in cube if np.any(frame)])
-    return output
+    inds = np.any(np.isfinite(cube) & cube != 0, axis=(1, 2))
+    return cube[inds]
