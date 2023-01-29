@@ -1,6 +1,12 @@
 import numpy as np
 
-from vampires_dpp.indexing import cutout_slice, window_centers
+from vampires_dpp.indexing import (
+    cutout_slice,
+    frame_angles,
+    frame_center,
+    frame_radii,
+    window_centers,
+)
 
 
 def test_window_centers():
@@ -68,3 +74,22 @@ def test_cutout_slice_out_of_bounds():
     assert sy.stop == 101
     assert sx.start == 0
     assert sx.stop == 26
+
+
+def test_frame_center():
+    frame = np.empty((30, 45))
+    ctr = frame_center(frame)
+    expected = np.array((14.5, 22))
+    np.testing.assert_allclose(ctr, expected)
+
+
+def test_frame_center_nd():
+    cube = np.empty((100, 45, 30))
+    ctr = frame_center(cube)
+    expected = np.array((22, 14.5))
+    np.testing.assert_allclose(ctr, expected)
+
+    cube = np.empty((100, 13, 45, 30))
+    ctr = frame_center(cube)
+    expected = np.array((22, 14.5))
+    np.testing.assert_allclose(ctr, expected)

@@ -1,5 +1,6 @@
 import logging
 import re
+from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
 from typing import Dict
@@ -13,6 +14,7 @@ import tqdm.auto as tqdm
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.time import Time
+from serde import serde
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import (
@@ -52,6 +54,18 @@ from vampires_dpp.wcs import (
     get_coord_header,
     get_gaia_astrometry,
 )
+
+from .config import FileInput, OutputDirectory
+
+
+## Define the main config
+@serde
+@dataclass
+class Pipeline2(FileInput, OutputDirectory):
+    root_directory: PathLike
+    configs: List
+    name: str
+    target: Optional[str] = None
 
 
 class Pipeline:
