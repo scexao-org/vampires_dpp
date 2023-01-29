@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 
 import numpy as np
@@ -75,3 +77,33 @@ def get_paths(filename, /, suffix=None, outname=None, output_directory=None, **k
         outname = path.name.replace(".fit", f"_{suffix}.fit")
     outpath = output_directory / outname
     return path, outpath
+
+
+class FileType(Enum):
+    GEN2 = 0
+    OG = 1
+
+
+@dataclass(frozen=True)
+class FileInfo:
+    file_type: FileType
+    camera: int
+
+    def __post_init__(self):
+        if not (self.camera == 1 or self.camera == 2):
+            raise ValueError(f"Invalid camera number {self.camera}")
+
+    @classmethod
+    def from_hdr(cls, header):
+        if "U_OGFNAM" in header:
+            filetype = FileType.GEN2
+        else:
+            filetype = FileType.OG
+        camera = header["U_CAMERA"]
+        return cls(filetype, camera)
+
+    @classmethod
+    def from_file(cls, filename):
+        with fits.open(filename) as hdus:
+            hdu = hdus[0]
+            return cls.from_hdr(hdu.header)

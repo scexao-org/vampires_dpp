@@ -3,19 +3,19 @@ from enum import Enum
 from multiprocessing import Pool
 from os import PathLike
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from astropy.io import fits
-from serde import field, serde
+from serde import field, serialize
 from tqdm.auto import tqdm
 
 from vampires_dpp.calibration import make_dark_file, make_flat_file
 from vampires_dpp.image_processing import collapse_frames_files
+from vampires_dpp.util import FileInfo, FileType
+
 
 ## Some base classes for repeated functionality
-
-
-@serde
+@serialize
 @dataclass(kw_only=True)
 class OutputDirectory:
     output_directory: Optional[Path] = field(default=None, skip_if_default=True)
@@ -25,10 +25,11 @@ class OutputDirectory:
             self.output_directory = Path(self.output_directory)
 
 
+@serialize
 @dataclass
 class FileInput:
 
-    filenames: str | List[str]
+    filenames: str | List[Path]
 
     def process(self):
         if isinstance(self.filenames, str):
@@ -56,7 +57,7 @@ class FileInput:
         self.cam1_paths = []
         self.cam2_paths = []
         for path in self.paths:
-            file_info = FileInfo.read(path)
+            file_info = FileInfo.from_file(path)
             self.file_infos.append(file_info)
             if file_info.camera == 1:
                 self.cam1_paths.append(path)
@@ -64,46 +65,45 @@ class FileInput:
                 self.cam2_paths.append(path)
 
 
-@dataclass(kw_only=True)
-class MultiProcessing:
-    num_proc: Optional[int] = None
+## Define classes for each configuration block
+@serialize
+@dataclass
+class DistortionOptions:
+    transform_filename: Path
 
     def __post_init__(self):
-        if self.num_proc is not None:
-            # try and avoid over-saturating large systems
-            self.num_proc = min(self.num_proc, 8)
+        self.transform_filename = Path(self.transform_filename)
 
 
-class FileType(Enum):
-    GEN2 = 0
-    OG = 1
+def cam_dict_factory():
+    return dict(cam1=None, cam2=None)
 
 
-@dataclass(frozen=True)
-class FileInfo:
-    file_type: FileType
-    camera: int
+@serialize
+@dataclass
+class CalibrateOptions(FileInput, OutputDirectory):
+    darks: Optional[Dict[str, Path]] = field(default_factory=cam_dict_factory, skip_if_default=True)
+    flats: Optional[Dict[str, Path]] = field(default_factory=cam_dict_factory, skip_if_default=True)
+    distortion: Optional[DistortionOptions] = field(default=None, skip_if_default=True)
+    deinterleave: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
-        if not (self.camera == 1 or self.camera == 2):
-            raise ValueError(f"Invalid camera number {self.camera}")
+        super().__post_init__()
+        if self.darks is not None:
+            for k, v in self.darks.items():
+                if v is not None:
+                    self.darks[k] = Path(v)
 
-    @classmethod
-    def read(cls, filename):
-        with fits.open(filename) as hdus:
-            hdu = hdus[0]
-            if "U_OGFNAM" in hdu.header:
-                filetype = FileType.GEN2
-            else:
-                filetype = FileType.OG
-            camera = hdu.header["U_CAMERA"]
-        return cls(filetype, camera)
+        if self.flats is not None:
+            for k, v in self.flats.items():
+                if v is not None:
+                    self.flats[k] = Path(v)
 
 
 ## Define classes for each config block
-@serde
+@serialize
 @dataclass
-class MasterDark(FileInput, OutputDirectory, MultiProcessing):
+class MasterDark(FileInput, OutputDirectory):
     collapse: str = "median"
     force: bool = False
 
@@ -142,9 +142,9 @@ class MasterDark(FileInput, OutputDirectory, MultiProcessing):
             )
 
 
-@serde
+@serialize
 @dataclass
-class MasterFlat(FileInput, OutputDirectory, MultiProcessing):
+class MasterFlat(FileInput, OutputDirectory):
     cam1: PathLike | List[PathLike]
     cam2: Optional[PathLike | List[PathLike]]
     cam1_dark: Optional[PathLike]
@@ -191,33 +191,3 @@ class MasterFlat(FileInput, OutputDirectory, MultiProcessing):
             collapse_frames_files(
                 self.cam2_flats, method=self.collapse, output=self.master_flats[2], force=self.force
             )
-
-
-@dataclass
-class DistortionOptions:
-    transform: Path
-
-    def __post_init__(self):
-        self.transform = Path(self.transform)
-
-
-@serde
-@dataclass
-class CalibrateOptions(FileInput, OutputDirectory):
-    cam1_dark: Optional[Path] = None
-    cam2_dark: Optional[Path] = None
-    cam1_flat: Optional[Path] = None
-    cam2_flat: Optional[Path] = None
-    # distortion: Optional[DistortionCorrect] = field(default=None, skip_if_default=True)
-    deinterleave: bool = field(default=False, skip_if_default=True)
-
-    def __post_init__(self):
-        super().__post_init__()
-        if self.cam1_dark is not None:
-            self.cam1_dark = Path(self.cam1_dark)
-        if self.cam2_dark is not None:
-            self.cam2_dark = Path(self.cam2_dark)
-        if self.cam1_flat is not None:
-            self.cam1_flat = Path(self.cam1_flat)
-        if self.cam2_flat is not None:
-            self.cam2_flat = Path(self.cam2_flat)
