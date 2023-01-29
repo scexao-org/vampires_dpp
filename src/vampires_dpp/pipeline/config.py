@@ -64,11 +64,10 @@ class FileInput:
         for path in self.paths:
             file_info = FileInfo.read(path)
             self.file_infos.append(file_info)
-            match file_info.camera:
-                case 1:
-                    self.cam1_paths.append(path)
-                case 2:
-                    self.cam2_paths.append(path)
+            if file_info.camera == 1:
+                self.cam1_paths.append(path)
+            else:
+                self.cam2_paths.append(path)
 
 
 class FileType(Enum):
@@ -121,11 +120,10 @@ class MasterDark(FileInput, OutputDirectory):
             for job in tqdm(jobs, desc="Collapsing dark frames"):
                 filename = job.get()
                 file_info = FileInfo.read(filename)
-                match file_info.camera:
-                    case 1:
-                        self.cam1_darks.append(filename)
-                    case 2:
-                        self.cam2_darks.append(filename)
+                if file_info.camera == 1:
+                    self.cam1_darks.append(filename)
+                else:
+                    self.cam2_darks.append(filename)
 
         self.master_darks = {1: None, 2: None}
         if len(self.cam1_darks) > 0:
@@ -173,11 +171,10 @@ class MasterFlat(FileInput, OutputDirectory):
             for job in tqdm(jobs, desc="Collapsing dark frames"):
                 filename = job.get()
                 file_info = FileInfo.read(filename)
-                match file_info.camera:
-                    case 1:
-                        self.cam1_flats.append(filename)
-                    case 2:
-                        self.cam2_flats.append(filename)
+                if file_info.camera == 1:
+                    self.cam1_flats.append(filename)
+                else:
+                    self.cam2_flats.append(filename)
 
         self.master_flats = {1: None, 2: None}
         if len(self.cam1_flats) > 0:

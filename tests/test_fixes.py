@@ -21,6 +21,9 @@ def test_fix_header(tmp_path):
     for key in ("UT", "HST"):
         assert _test_timestamp_iso(hdr, key)
     assert _test_timestamp_mjd(hdr)
+    assert hdr["DETGAIN"] == hdr["U_EMGAIN"]
+    assert hdr["RET-ANG1"] == hdr["U_HWPANG"]
+    assert hdr["RETPLAT1"] == "HWP(NIR)"
 
 
 def test_fix_header_skip(tmp_path):

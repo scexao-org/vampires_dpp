@@ -52,21 +52,24 @@ def calibrate_file(
     cube = filter_empty_frames(cube)
     # dark correction
     if dark_filename is not None:
-        dark = fits.getdata(dark_filename)
+        dark_path = Path(dark_filename)
+        dark = fits.getdata(dark_path)
         cube -= dark
-        header["MDARK"] = dark_filename, "DPP master dark filename"
+        header["MDARK"] = dark_path.name, "DPP master dark filename"
     # flat correction
     if flat_filename is not None:
-        flat = fits.getdata(flat_filename)
+        flat_path = Path(flat_filename)
+        flat = fits.getdata(flat_path)
         cube /= flat
-        header["MFLAT"] = flat_filename, "DPP master flat filename"
+        header["MFLAT"] = flat_path.name, "DPP master flat filename"
     # flip cam 1 data
     if header["U_CAMERA"] == 1:
         cube = np.flip(cube, axis=-2)
     # distortion correction
     if transform_filename is not None:
-        distort_coeffs = pd.read_csv(transform_filename, index_col=0)
-        header["MDIST"] = transform_filename, "DPP distortion transform filename"
+        transform_path = Path(transform_filename)
+        distort_coeffs = pd.read_csv(transform_path, index_col=0)
+        header["MDIST"] = transform_path.name, "DPP distortion transform filename"
         params = distort_coeffs.loc[f"cam{header['U_CAMERA']}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
     # deinterleave
