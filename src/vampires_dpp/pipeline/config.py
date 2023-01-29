@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from astropy.io import fits
-from serde import SerdeSkip, default_serializer, field, serde
+from serde import field, serde
 from tqdm.auto import tqdm
 
 from vampires_dpp.calibration import make_dark_file, make_flat_file
@@ -15,16 +15,10 @@ from vampires_dpp.image_processing import collapse_frames_files
 ## Some base classes for repeated functionality
 
 
-def serializer(cls, o):
-    if o is None:
-        raise SerdeSkip()
-    return default_serializer(cls, o)
-
-
 @serde
 @dataclass(kw_only=True)
 class OutputDirectory:
-    output_directory: Optional[str] = None
+    output_directory: Optional[Path] = field(default=None, skip_if_default=True)
 
     def __post_init__(self):
         if self.output_directory is not None:
@@ -70,6 +64,16 @@ class FileInput:
                 self.cam2_paths.append(path)
 
 
+@dataclass(kw_only=True)
+class MultiProcessing:
+    num_proc: Optional[int] = None
+
+    def __post_init__(self):
+        if self.num_proc is not None:
+            # try and avoid over-saturating large systems
+            self.num_proc = min(self.num_proc, 8)
+
+
 class FileType(Enum):
     GEN2 = 0
     OG = 1
@@ -99,7 +103,7 @@ class FileInfo:
 ## Define classes for each config block
 @serde
 @dataclass
-class MasterDark(FileInput, OutputDirectory):
+class MasterDark(FileInput, OutputDirectory, MultiProcessing):
     collapse: str = "median"
     force: bool = False
 
@@ -107,7 +111,7 @@ class MasterDark(FileInput, OutputDirectory):
         super().process()
 
         # make darks for each camera
-        with Pool() as pool:
+        with Pool(self.num_proc) as pool:
             jobs = []
             for path in self.paths:
                 kwds = dict(
@@ -140,7 +144,7 @@ class MasterDark(FileInput, OutputDirectory):
 
 @serde
 @dataclass
-class MasterFlat(FileInput, OutputDirectory):
+class MasterFlat(FileInput, OutputDirectory, MultiProcessing):
     cam1: PathLike | List[PathLike]
     cam2: Optional[PathLike | List[PathLike]]
     cam1_dark: Optional[PathLike]
@@ -150,7 +154,7 @@ class MasterFlat(FileInput, OutputDirectory):
     def process(self):
         super().process()
         # make darks for each camera
-        with Pool() as pool:
+        with Pool(self.num_proc) as pool:
             jobs = []
             for file_info, path in zip(self.file_infos, self.paths):
                 if file_info.camera == 1:
@@ -197,7 +201,7 @@ class DistortionOptions:
         self.transform = Path(self.transform)
 
 
-@serde(serializer=serializer)
+@serde
 @dataclass
 class CalibrateOptions(FileInput, OutputDirectory):
     cam1_dark: Optional[Path] = None
