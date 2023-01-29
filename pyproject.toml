@@ -8,7 +8,7 @@ description = "VAMPIRES Data Processing Pipeline"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
-requires-python = ">=3.7,<3.10"
+requires-python = ">=3.10"
 dependencies = [
     "astropy>=4,<6",
     "astroquery>=0.4,<0.5",
@@ -16,9 +16,11 @@ dependencies = [
     "opencv-python>=4,<5",
     "pandas>=1.2,<2",
     "photutils>=1,<2",
+    "pyserde>=0.9,<0.10",
     "scikit-image>=0.18,<0.20",
     "scipy>=1.7,<2",
-    "toml>=0.10,<0.11",
+    "tomli>=2,<3",
+    "tomli-w>=1,<2",
     "tqdm==4.*",
 ]
 dynamic = ["version"]
@@ -61,6 +63,7 @@ source = ["vampires_dpp"]
 
 [tool.black]
 line-length = 100
+
 [tool.isort]
 profile = "black"
 multi_line_output = 3

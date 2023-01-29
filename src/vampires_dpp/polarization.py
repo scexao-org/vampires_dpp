@@ -15,12 +15,7 @@ from .headers import observation_table
 from .image_processing import combine_frames_headers, derotate_cube
 from .image_registration import offset_centroid
 from .indexing import frame_angles, frame_center, frame_radii, window_slices
-from .mueller_matrices import (
-    mirror,
-    mueller_matrix_model,
-    mueller_matrix_triplediff,
-    rotator,
-)
+from .mueller_matrices import mirror, mueller_matrix_model, rotator
 from .util import average_angle
 from .wcs import apply_wcs
 
@@ -240,33 +235,86 @@ def polarization_calibration_triplediff(filenames: Sequence[str], outname) -> ND
         ix = i * 8  # offset index
         summ_dict = {}
         diff_dict = {}
+        matrix_dict = {}
         for file in filenames.iloc[ix : ix + 8]:
             stack, hdr = fits.getdata(file, header=True)
             key = hdr["U_HWPANG"], hdr["U_FLCSTT"]
             summ_dict[key] = stack[0]
             diff_dict[key] = stack[1]
+
+            pa = np.deg2rad(hdr["D_IMRPAD"] + 180 - hdr["D_IMRPAP"])
+            altitude = np.deg2rad(hdr["ALTITUDE"])
+            hwp_theta = np.deg2rad(hdr["U_HWPANG"])
+            imr_theta = np.deg2rad(hdr["D_IMRANG"])
+            # qwp are oriented with 0 on vertical axis
+            qwp1 = np.deg2rad(hdr["U_QWP1"]) + np.pi / 2
+            qwp2 = np.deg2rad(hdr["U_QWP2"]) + np.pi / 2
+
+            # get matrix for camera 1
+            M1 = mueller_matrix_model(
+                camera=1,
+                filter=hdr["U_FILTER"],
+                flc_state=hdr["U_FLCSTT"],
+                qwp1=qwp1,
+                qwp2=qwp2,
+                imr_theta=imr_theta,
+                hwp_theta=hwp_theta,
+                pa=pa,
+                altitude=altitude,
+            )
+            # get matrix for camera 2
+            M2 = mueller_matrix_model(
+                camera=2,
+                filter=hdr["U_FILTER"],
+                flc_state=hdr["U_FLCSTT"],
+                qwp1=qwp1,
+                qwp2=qwp2,
+                imr_theta=imr_theta,
+                hwp_theta=hwp_theta,
+                pa=pa,
+                altitude=altitude,
+            )
+            matrix_dict[key] = M1 - M2
         ## make difference images
         # double difference (FLC1 - FLC2)
         pQ = 0.5 * (diff_dict[(0, 1)] - diff_dict[(0, 2)])
         pIQ = 0.5 * (summ_dict[(0, 1)] + summ_dict[(0, 2)])
+        M_pQ = 0.5 * (matrix_dict[(0, 1)] - matrix_dict[(0, 2)])
 
         mQ = 0.5 * (diff_dict[(45, 1)] - diff_dict[(45, 2)])
         mIQ = 0.5 * (summ_dict[(45, 1)] + summ_dict[(45, 2)])
+        M_mQ = 0.5 * (matrix_dict[(45, 1)] - matrix_dict[(45, 2)])
 
         pU = 0.5 * (diff_dict[(22.5, 1)] - diff_dict[(22.5, 2)])
         pIU = 0.5 * (summ_dict[(22.5, 1)] + summ_dict[(22.5, 2)])
+        M_pU = 0.5 * (matrix_dict[(22.5, 1)] - matrix_dict[(22.5, 2)])
 
         mU = 0.5 * (diff_dict[(67.5, 1)] - diff_dict[(67.5, 2)])
         mIU = 0.5 * (summ_dict[(67.5, 1)] + summ_dict[(67.5, 2)])
+        M_mU = 0.5 * (matrix_dict[(67.5, 1)] - matrix_dict[(67.5, 2)])
 
         # triple difference (HWP1 - HWP2)
         Q = 0.5 * (pQ - mQ)
         IQ = 0.5 * (pIQ + mIQ)
+        M_Q = 0.5 * (M_pQ - M_mQ)
         U = 0.5 * (pU - mU)
         IU = 0.5 * (pIU + mIU)
+        M_U = 0.5 * (M_pU - M_mU)
         I = 0.5 * (IQ + IU)
 
-        stokes_cube[:3, i] = I, Q, U
+        # IP corr
+        Q -= M_Q[1, 0] * I
+        U -= M_U[2, 0] * I
+
+        # crosstalk corr
+        QU_mat = np.asarray((Q.ravel(), U.ravel()))
+        M_QU = np.asarray((M_Q[0, 1:3], M_U[0, 1:3]))
+        QU_corr = np.linalg.lstsq(M_QU, QU_mat, rcond=None)[0]
+
+        Q_corr = QU_corr[0].reshape(Q.shape)
+        U_corr = QU_corr[1].reshape(U.shape)
+
+        stokes_cube[:3, i] = I, Q, U  # Q_corr, U_corr
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
@@ -324,39 +372,33 @@ def pol_inds(flc_states: ArrayLike, n=4):
     return inds
 
 
-def polarization_calibration_model(filenames):
-    headers = [fits.getheader(f) for f in filenames]
-    mueller_mats = np.empty((len(headers), 4), dtype="f4")
-    for i in range(mueller_mats.shape[0]):
-        header = headers[i]
-        pa = np.deg2rad(header["D_IMRPAD"] + header["LONPOLE"] - header["D_IMRPAP"])
-        altitude = np.deg2rad(header["ALTITUDE"])
-        hwp_theta = np.deg2rad(header["U_HWPANG"])
-        imr_theta = np.deg2rad(header["D_IMRANG"])
-        qwp1 = np.deg2rad(header["U_QWP1"])
-        qwp2 = np.deg2rad(header["U_QWP2"])
+def polarization_calibration_model(filename):
+    header = fits.getheader(filename)
+    pa = np.deg2rad(header["D_IMRPAD"] + 180 - header["D_IMRPAP"])
+    altitude = np.deg2rad(header["ALTITUDE"])
+    hwp_theta = np.deg2rad(header["U_HWPANG"])
+    imr_theta = np.deg2rad(header["D_IMRANG"])
+    # qwp are oriented with 0 on vertical axis
+    qwp1 = np.deg2rad(header["U_QWP1"]) + np.pi / 2
+    qwp2 = np.deg2rad(header["U_QWP2"]) + np.pi / 2
 
-        M = mueller_matrix_model(
-            camera=header["U_CAMERA"],
-            filter=header["U_FILTER"],
-            flc_state=header["U_FLCSTT"],
-            qwp1=qwp1,
-            qwp2=qwp2,
-            imr_theta=imr_theta,
-            hwp_theta=hwp_theta,
-            pa=pa,
-            altitude=altitude,
-            pupil_offset=np.deg2rad(PUPIL_OFFSET),
-        )
-        # only keep the X -> I terms
-        mueller_mats[i] = M[0]
-
-    return mueller_mats
+    M = mueller_matrix_model(
+        camera=header["U_CAMERA"],
+        filter=header["U_FILTER"],
+        flc_state=header["U_FLCSTT"],
+        qwp1=qwp1,
+        qwp2=qwp2,
+        imr_theta=imr_theta,
+        hwp_theta=hwp_theta,
+        pa=pa,
+        altitude=altitude,
+    )
+    return M
 
 
-def mueller_mats_files(filenames, method="mueller", output=None, skip=False):
+def mueller_mats_file(filename, output=None, skip=False):
     if output is None:
-        indir = Path(filenames[0]).parent
+        indir = Path(filename).parent
         output = indir / f"mueller_mats.fits"
     else:
         output = Path(output)
@@ -364,59 +406,12 @@ def mueller_mats_files(filenames, method="mueller", output=None, skip=False):
     if skip and output.is_file():
         return output
 
-    elif method == "mueller":
-        mueller_mats = polarization_calibration_model(filenames)
-    elif method == "triplediff":
-        mueller_mats = polarization_calibration_triplediff(filenames)
-    else:
-        raise ValueError(f'\'method\' must be either "model" or "triplediff" (got {method})')
+    mueller_mat = polarization_calibration_model(filename)
 
-    hdu = fits.PrimaryHDU(mueller_mats)
-    hdu.header["METHOD"] = method
+    hdu = fits.PrimaryHDU(mueller_mat)
+    hdu.header["INPUT"] = filename.absolute(), "FITS diff frame"
     hdu.writeto(output, overwrite=True)
 
-    return output
-
-
-def mueller_matrix_calibration_files(filenames, mueller_matrix_file=None, output=None, skip=False):
-    if output is None:
-        indir = Path(filenames[0]).parent
-        output = indir / f"stokes_cube.fits"
-    else:
-        output = Path(output)
-
-    if skip and output.is_file():
-        return output
-
-    if mueller_matrix_file is None:
-        mueller_matrix_file = mueller_mats_files(filenames)
-
-    mueller_mats, muller_mat_hdr = fits.getdata(mueller_matrix_file, header=True)
-
-    cubes = []
-    headers = []
-    for f in filenames:
-        with fits.open(f) as hdus:
-            cubes.append(hdus[0].data.copy())
-            headers.append(hdus[0].header)
-            # have to manually close mmap file descriptor
-            # https://docs.astropy.org/en/stable/io/fits/index.html#working-with-large-files
-            del hdus[0].data
-    cube = np.asarray(cubes)
-    stokes_cube = mueller_matrix_calibration(mueller_mats, cube)
-    header = combine_frames_headers(headers, wcs=True)
-
-    # add in stokes WCS information
-    wcs = WCS(header)
-    wcs = add_stokes_axis_to_wcs(wcs, 2)
-
-    header.update(wcs.to_header())
-    header["VPP_PDI"] = (
-        muller_mat_hdr["METHOD"],
-        "VAMPIRES DPP polarization calibration method",
-    )
-
-    fits.writeto(output, stokes_cube, header=header, overwrite=True)
     return output
 
 

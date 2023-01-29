@@ -7,7 +7,8 @@ from typing import Dict
 import astropy.units as u
 import numpy as np
 import pandas as pd
-import toml
+import tomli
+import tomli_w
 import tqdm.auto as tqdm
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
@@ -37,7 +38,9 @@ from vampires_dpp.polarization import (
     collapse_stokes_cube,
     measure_instpol,
     measure_instpol_satellite_spots,
+    mueller_matrix_model,
     pol_inds,
+    polarization_calibration_model,
     polarization_calibration_triplediff,
     triplediff_average_angles,
     write_stokes_products,
@@ -95,7 +98,8 @@ class Pipeline:
         --------
         >>> Pipeline.from_file("config.toml")
         """
-        config = toml.load(filename)
+        with open(filename, "rb") as fh:
+            config = tomli.load(fh)
         return cls(config)
 
     @classmethod
@@ -113,7 +117,7 @@ class Pipeline:
         ValueError
             If the configuration `version` is not compatible with the current `vampires_dpp` version.
         """
-        config = toml.loads(toml_str)
+        config = tomli.loads(toml_str)
         return cls(config)
 
     def to_toml(self, filename: PathLike):
@@ -125,8 +129,8 @@ class Pipeline:
         filename : PathLike
             Output filename
         """
-        with open(filename, "w") as fh:
-            toml.dump(self.config, fh)
+        with open(filename, "wb") as fh:
+            tomli_w.dump(self.config, fh)
 
     def run(self):
         """
@@ -146,23 +150,27 @@ class Pipeline:
         ## Step 1: Fix headers and calibrate
         self.tripwire = False
         ## Step 1a: create master dark
-        self.make_darks()
+        # self.make_darks()
         ## Step 1b: create master flats
-        self.make_flats()
-        self.working_files = []
-        self.calibrate()
+        # self.make_flats()
+        # self.working_files = []
+        self.working_files = Path("/Volumes/mlucas SSD1/abaur_vampires_20230101/collapsed").glob(
+            "ABAur*_collapsed.fits"
+        )
+        self.output_dir = Path("/Volumes/mlucas SSD1/abaur_vampires_20230101")
+        # self.calibrate()
         ## Step 2: Frame selection
-        if "frame_selection" in self.config:
-            self.frame_select()
-        ## 3: Image registration
-        if "registration" in self.config:
-            self.register()
-        ## Step 4: collapsing
-        if "collapsing" in self.config:
-            self.collapse()
-        ## Step 7: derotate
-        if "derotate" in self.config:
-            self.derotate()
+        # if "frame_selection" in self.config:
+        #     self.frame_select()
+        # ## 3: Image registration
+        # if "registration" in self.config:
+        #     self.register()
+        # ## Step 4: collapsing
+        # if "collapsing" in self.config:
+        #     self.collapse()
+        # ## Step 7: derotate
+        # if "derotate" in self.config:
+        #     self.derotate()
         ## Step 8: PDI
         if "polarimetry" in self.config:
             self.polarimetry()
@@ -664,7 +672,8 @@ class Pipeline:
         elif ip_method == "satspot_photometry":
             func = self.polarimetry_ip_correct_satspot
         elif ip_method == "mueller":
-            func = self.polarimetry_ip_correct_mueller
+            func = lambda f, x: f
+            # func = self.polarimetry_ip_correct_mueller
 
         self.diff_files_ip = []
         iter = tqdm.tqdm(self.diff_files, desc="Correcting IP")
@@ -712,8 +721,55 @@ class Pipeline:
         header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
         fits.writeto(outname, stack_corr, header=header, overwrite=True)
 
-    def polarimetry_ip_correct_mueller(self, filename, outname):
-        raise NotImplementedError("Need calibrated Mueller matrix model, first.")
+    # def polarimetry_ip_correct_mueller(self, filename, outname):
+    # self.logger.warning("Mueller matrix calibration is extremely experimental.")
+    # stack, header = fits.getdata(filename, header=True)
+    # # info needed for Mueller matrices
+    # pa = np.deg2rad(header["D_IMRPAD"] + 180 - header["D_IMRPAP"])
+    # altitude = np.deg2rad(header["ALTITUDE"])
+    # hwp_theta = np.deg2rad(header["U_HWPANG"])
+    # imr_theta = np.deg2rad(header["D_IMRANG"])
+    # # qwp are oriented with 0 on vertical axis
+    # qwp1 = np.deg2rad(header["U_QWP1"]) + np.pi/2
+    # qwp2 = np.deg2rad(header["U_QWP2"]) + np.pi/2
+
+    # # get matrix for camera 1
+    # M1 = mueller_matrix_model(
+    #     camera=1,
+    #     filter=header["U_FILTER"],
+    #     flc_state=header["U_FLCSTT"],
+    #     qwp1=qwp1,
+    #     qwp2=qwp2,
+    #     imr_theta=imr_theta,
+    #     hwp_theta=hwp_theta,
+    #     pa=pa,
+    #     altitude=altitude,
+    # )
+    # # get matrix for camera 2
+    # M2 = mueller_matrix_model(
+    #     camera=2,
+    #     filter=header["U_FILTER"],
+    #     flc_state=header["U_FLCSTT"],
+    #     qwp1=qwp1,
+    #     qwp2=qwp2,
+    #     imr_theta=imr_theta,
+    #     hwp_theta=hwp_theta,
+    #     pa=pa,
+    #     altitude=altitude,
+    # )
+
+    # diff_M = M1 - M2
+    # # IP correct
+    # stokes = HWP_POS_STOKES[header["U_HWPANG"]]
+    # if stokes.endswith("Q"):
+    #     pX = diff_M[0, 1]
+    # elif stokes.endswith("U"):
+    #     pX = diff_M[0, 2]
+
+    # stack[1] -= pX * stack[0]
+
+    # header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
+    # fits.writeto(outname, stack, header=header, overwrite=True)
 
     def polarimetry_triplediff(self, outdir, skip=False):
         # sort table
@@ -732,6 +788,7 @@ class Pipeline:
             stokes_angles = triplediff_average_angles(table_filt["path"])
 
             stokes_cube, header = fits.getdata(outname, header=True)
+
             stokes_cube_collapsed, header = collapse_stokes_cube(
                 stokes_cube, stokes_angles, header=header
             )
@@ -761,11 +818,10 @@ class Pipeline:
 
         # cause ruckus if no files are found
         if len(paths) == 0:
-            self.logger.critical(
-                "No files found; double check your configuration file. See debug information for more details"
-            )
             self.logger.debug(f"Root directory: {root.absolute()}")
             self.logger.debug(f"'filenames': {filenames}")
-            sys.exit(1)
+            self.logger.error(
+                "No files found; double check your configuration file. See debug information for more details"
+            )
 
         return paths

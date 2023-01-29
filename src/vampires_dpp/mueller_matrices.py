@@ -357,20 +357,6 @@ def instrumental(pQ=0, pU=0, pV=0):
     return M
 
 
-def mueller_matrix_triplediff(camera, flc_state, theta, hwp_theta):
-    flc_theta = 0 if flc_state == 1 else np.pi / 4
-    M = np.linalg.multi_dot(
-        (
-            wollaston(camera == 1),  # Polarizing beamsplitter
-            hwp(theta=flc_theta),  # FLC
-            hwp(theta=hwp_theta),  # HWP angle
-        )
-    )
-    if camera == 1:
-        M *= 0.65
-    return M
-
-
 # filter: hwp_phi, imr_phi, flc1_phi, flc2_phi, flc1_theta, flc2_theta, dp
 CAL_DICT = {
     "775-50": {
@@ -421,7 +407,6 @@ def mueller_matrix_model(
     hwp_theta,
     pa,
     altitude,
-    pupil_offset=PUPIL_OFFSET,
 ):
     cam_idx = 0 if camera == 1 else 1
     flc_ang = 0 if flc_state == 1 else np.pi / 4
@@ -430,19 +415,13 @@ def mueller_matrix_model(
         (
             wollaston(camera == 1),  # Polarizing beamsplitter
             hwp(theta=flc_ang),  # FLC
-            hwp(theta=pupil_offset),
-            # mirror(),
-            rotator(theta=-pupil_offset),
-            # mirror(),
-            qwp(theta=qwp2),  # QWP 2
-            qwp(theta=qwp1),  # QWP 1
-            waveplate(theta=-imr_theta, delta=cals["imr_delta"]),  # AO 188 K-mirror
+            qwp(theta=-qwp2),  # QWP 2
+            qwp(theta=-qwp1),  # QWP 1
+            waveplate(theta=imr_theta, delta=cals["imr_delta"]),  # AO 188 K-mirror
             waveplate(theta=hwp_theta, delta=cals["hwp_delta"]),  # AO 188 HWP,
-            rotator(theta=altitude),
+            rotator(theta=-altitude),
             mirror(),
             rotator(theta=pa),
         )
     )
-    if camera == 1:
-        M *= 0.65
     return M

@@ -2,7 +2,7 @@ import logging
 from argparse import ArgumentParser
 from pathlib import Path
 
-from vampires_dpp.pipeline import Pipeline
+from vampires_dpp.pipeline.pipeline import Pipeline
 
 # set up logging
 formatter = logging.Formatter(
