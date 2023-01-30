@@ -114,6 +114,14 @@ class CalibrateOptions(OutputDirectory):
             self.distortion = DistortionOptions(**self.distortion)
 
 
+@serialize
+@dataclass(frozen=True)
+class CoronagraphOptions:
+    iwa: float
+    satspot_radius: float = field(default=15.9)
+    satspot_angle: float = field(default=-4)
+
+
 ## Define classes for each config block
 @serialize
 @dataclass

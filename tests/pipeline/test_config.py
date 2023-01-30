@@ -8,6 +8,7 @@ from serde.toml import to_toml
 from vampires_dpp.pipeline.config import (
     CalibrateOptions,
     CamFileInput,
+    CoronagraphOptions,
     DistortionOptions,
     FileInput,
     OutputDirectory,
@@ -99,4 +100,26 @@ class TestCalibrateOptions:
             distortion=dict(transform_filename="/tmp/transforms.csv"),
         )
         toml_conf = CalibrateOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+
+class TestCoronagraphOptions:
+    def test_error_creation(self):
+        with pytest.raises(TypeError):
+            conf = CoronagraphOptions()
+
+    def test_default_creation(self):
+        conf = CoronagraphOptions(iwa=55)
+        assert conf.iwa == 55
+        assert conf.satspot_radius == 15.9
+        assert conf.satspot_angle == -4
+        toml_conf = CoronagraphOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    def test_creation(self):
+        conf = CoronagraphOptions(iwa=55, satspot_radius=11.2, satspot_angle=-6.5)
+        assert conf.iwa == 55
+        assert conf.satspot_radius == 11.2
+        assert conf.satspot_angle == -6.5
+        toml_conf = CoronagraphOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
