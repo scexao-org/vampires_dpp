@@ -17,12 +17,7 @@ from astropy.time import Time
 from serde import serde
 
 import vampires_dpp as vpp
-from vampires_dpp.calibration import (
-    calibrate,
-    filter_empty_frames,
-    make_dark_file,
-    make_flat_file,
-)
+from vampires_dpp.calibration import filter_empty_frames, make_dark_file, make_flat_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
 from vampires_dpp.headers import fix_header, observation_table
@@ -56,16 +51,6 @@ from vampires_dpp.wcs import (
 )
 
 from .config import FileInput, OutputDirectory
-
-
-## Define the main config
-@serde
-@dataclass
-class Pipeline2(FileInput, OutputDirectory):
-    root_directory: PathLike
-    configs: List
-    name: str
-    target: Optional[str] = None
 
 
 class Pipeline:

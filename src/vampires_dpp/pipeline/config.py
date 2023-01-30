@@ -126,6 +126,7 @@ class CoronagraphOptions:
 class SatspotOptions:
     radius: float = field(default=15.9)
     angle: float = field(default=-4)
+    amp: float = field(default=50)
 
 
 @serialize
@@ -186,7 +187,7 @@ class CamCtrOption:
 class PipelineOptions(FileInput, OutputDirectory):
     name: str
     target: Optional[str] = field(default=None, skip_if_default=True)
-    frame_centers: Optional[List | CamCtrOption] = field(default=None, skip_if_default=True)
+    frame_centers: Optional[CamCtrOption] = field(default=None, skip_if_default=True)
     coronagraph: Optional[CoronagraphOptions] = field(default=None, skip_if_default=True)
     satspot: Optional[SatspotOptions] = field(default=None, skip_if_default=True)
     calibrate: Optional[CalibrateOptions] = field(default=None, skip_if_default=True)
@@ -202,6 +203,8 @@ class PipelineOptions(FileInput, OutputDirectory):
             self.coronagraph = CoronagraphOptions(**self.coronagraph)
         if self.satspot is not None and isinstance(self.satspot, dict):
             self.satspot = SatspotOptions(**self.satspot)
+        if self.frame_centers is not None and isinstance(self.frame_centers, dict):
+            self.frame_centers = CamCtrOption(**self.frame_centers)
         if self.calibrate is not None and isinstance(self.calibrate, dict):
             self.calibrate = CalibrateOptions(**self.calibrate)
         if self.frame_select is not None and isinstance(self.frame_select, dict):
