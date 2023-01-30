@@ -33,7 +33,7 @@ class TestFileInput:
 
     def test_creation(self):
         conf = FileInput(filenames="/tmp/VMPA*.fits")
-        assert conf.filenames == "/tmp/VMPA*.fits"
+        assert conf.filenames == Path("/tmp/VMPA*.fits")
 
     def test_serialize(self):
         conf = FileInput(filenames="/tmp/VMPA*.fits")

@@ -29,22 +29,25 @@ class OutputDirectory:
 @dataclass
 class FileInput:
 
-    filenames: str | List[Path]
+    filenames: Path | List[Path]
+
+    def __post_init__(self):
+        if isinstance(self.filenames, list):
+            self.filenames = map(Path, self.filenames)
+        else:
+            self.filenames = Path(self.filenames)
 
     def process(self):
-        if isinstance(self.filenames, str):
-            path = Path(self.filenames)
-            if path.is_file():
+        if isinstance(self.filenames, Path):
+            if self.filenames.is_file():
                 # is a file with a list of filenames
-                with path.open("r") as fh:
-                    paths = (Path(f.strip()) for f in fh.readlines())
+                with self.filenames.open("r") as fh:
+                    self.filenames = (Path(f.strip()) for f in fh.readlines())
             else:
                 # is a globbing expression
-                path = Path(self.filenames)
-                paths = path.parent.glob(pattern=path.name)
+                paths = self.filenames.parent.glob(pattern=self.filenames.name)
         else:
-            # is a list of filenames
-            paths = map(Path, self.filenames)
+            paths = self.filenames
         # only accept FITS files as inputs
         self.paths = list(filter(lambda p: ".fit" in p.name, paths))
         if len(self.paths) == 0:
