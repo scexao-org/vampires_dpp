@@ -1,4 +1,3 @@
-from inspect import cleandoc
 from pathlib import Path
 
 import pytest
@@ -104,17 +103,23 @@ class TestCoronagraphOptions:
     def test_default_creation(self):
         conf = CoronagraphOptions(iwa=55)
         assert conf.iwa == 55
-        assert conf.satspot_radius == 15.9
-        assert conf.satspot_angle == -4
         toml_conf = CoronagraphOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
+
+class TestSatspotOptions:
+    def test_default_creation(self):
+        conf = SatspotOptions()
+        assert conf.radius == 15.9
+        assert conf.angle == -4
+        toml_conf = SatspotOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
     def test_creation(self):
-        conf = CoronagraphOptions(iwa=55, satspot_radius=11.2, satspot_angle=-6.5)
-        assert conf.iwa == 55
-        assert conf.satspot_radius == 11.2
-        assert conf.satspot_angle == -6.5
-        toml_conf = CoronagraphOptions(**tomli.loads(to_toml(conf)))
+        conf = SatspotOptions(radius=11.2, angle=-6.5)
+        assert conf.radius == 11.2
+        assert conf.angle == -6.5
+        toml_conf = SatspotOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
 
@@ -224,7 +229,8 @@ class TestPipelineOptions:
             filenames="/tmp/VMPA*.fits",
             name="test",
             target="AB Aur",
-            coronagraph=dict(iwa=55, satspot_radius=11.2),
+            coronagraph=dict(iwa=55),
+            satspot=dict(radius=11.2),
             calibrate=dict(
                 output_directory="calibrated", master_darks=dict(cam1="/tmp/master_dark_cam1.fits")
             ),
@@ -236,7 +242,8 @@ class TestPipelineOptions:
         assert conf.name == "test"
         assert conf.frame_centers is None
         assert conf.target == "AB Aur"
-        assert conf.coronagraph == CoronagraphOptions(55, satspot_radius=11.2)
+        assert conf.coronagraph == CoronagraphOptions(55)
+        assert conf.satspot == SatspotOptions(radius=11.2)
         assert conf.calibrate == CalibrateOptions(
             output_directory="calibrated", master_darks=dict(cam1="/tmp/master_dark_cam1.fits")
         )

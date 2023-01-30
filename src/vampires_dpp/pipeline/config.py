@@ -119,8 +119,13 @@ class CalibrateOptions(OutputDirectory):
 @dataclass(frozen=True)
 class CoronagraphOptions:
     iwa: float
-    satspot_radius: float = field(default=15.9)
-    satspot_angle: float = field(default=-4)
+
+
+@serialize
+@dataclass(frozen=True)
+class SatspotOptions:
+    radius: float = field(default=15.9)
+    angle: float = field(default=-4)
 
 
 @serialize
@@ -183,6 +188,7 @@ class PipelineOptions(FileInput, OutputDirectory):
     target: Optional[str] = field(default=None, skip_if_default=True)
     frame_centers: Optional[List | CamCtrOption] = field(default=None, skip_if_default=True)
     coronagraph: Optional[CoronagraphOptions] = field(default=None, skip_if_default=True)
+    satspot: Optional[SatspotOptions] = field(default=None, skip_if_default=True)
     calibrate: Optional[CalibrateOptions] = field(default=None, skip_if_default=True)
     frame_select: Optional[FrameSelectOptions] = field(default=None, skip_if_default=True)
     coregister: Optional[CoregisterOptions] = field(default=None, skip_if_default=True)
@@ -194,6 +200,8 @@ class PipelineOptions(FileInput, OutputDirectory):
 
         if self.coronagraph is not None and isinstance(self.coronagraph, dict):
             self.coronagraph = CoronagraphOptions(**self.coronagraph)
+        if self.satspot is not None and isinstance(self.satspot, dict):
+            self.satspot = SatspotOptions(**self.satspot)
         if self.calibrate is not None and isinstance(self.calibrate, dict):
             self.calibrate = CalibrateOptions(**self.calibrate)
         if self.frame_select is not None and isinstance(self.frame_select, dict):
