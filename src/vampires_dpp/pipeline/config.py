@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from astropy.io import fits
-from serde import field, serialize
+from serde import SerdeSkip, field, serialize
 from tqdm.auto import tqdm
 
 from vampires_dpp.calibration import make_dark_file, make_flat_file
@@ -68,6 +68,20 @@ class FileInput:
                 self.cam2_paths.append(path)
 
 
+@serialize
+@dataclass
+class CamFileInput:
+    cam1: Optional[Path] = field(default=None, skip_if_default=True)
+    cam2: Optional[Path] = field(default=None, skip_if_default=True)
+
+    def __post_init__(self):
+        if self.cam1 is not None:
+            self.cam1 = Path(self.cam1)
+
+        if self.cam2 is not None:
+            self.cam2 = Path(self.cam2)
+
+
 ## Define classes for each configuration block
 @serialize
 @dataclass
@@ -79,28 +93,25 @@ class DistortionOptions:
 
 
 def cam_dict_factory():
-    return dict(cam1=None, cam2=None)
+    return
 
 
 @serialize
 @dataclass
-class CalibrateOptions(FileInput, OutputDirectory):
-    darks: Optional[Dict[str, Path]] = field(default_factory=cam_dict_factory, skip_if_default=True)
-    flats: Optional[Dict[str, Path]] = field(default_factory=cam_dict_factory, skip_if_default=True)
+class CalibrateOptions(OutputDirectory):
+    darks: Optional[CamFileInput] = field(default=CamFileInput())
+    flats: Optional[CamFileInput] = field(default=CamFileInput())
     distortion: Optional[DistortionOptions] = field(default=None, skip_if_default=True)
     deinterleave: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
-        if self.darks is not None:
-            for k, v in self.darks.items():
-                if v is not None:
-                    self.darks[k] = Path(v)
-
-        if self.flats is not None:
-            for k, v in self.flats.items():
-                if v is not None:
-                    self.flats[k] = Path(v)
+        if self.darks is not None and isinstance(self.darks, dict):
+            self.darks = CamFileInput(**self.darks)
+        if self.flats is not None and isinstance(self.flats, dict):
+            self.flats = CamFileInput(**self.flats)
+        if self.distortion is not None and isinstance(self.distortion, dict):
+            self.distortion = DistortionOptions(**self.distortion)
 
 
 ## Define classes for each config block
