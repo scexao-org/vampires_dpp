@@ -157,6 +157,11 @@ class CoregisterOptions(OutputDirectory):
 class CollapseOptions(OutputDirectory):
     method: str = field(default="median", skip_if_default=True)
 
+    def __post_init__(self):
+        super().__post_init__()
+        if self.method not in ("median", "mean", "varmean", "biweight"):
+            raise ValueError(f"Registration method not recognized: {self.method}")
+
 
 ## Define classes for each config block
 @serialize

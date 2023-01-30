@@ -164,3 +164,21 @@ class TestCoregisterOptions:
         assert conf.output_directory == Path("/tmp")
         toml_conf = CoregisterOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
+
+
+class TestCollapseOptions:
+    def test_default_creation(self):
+        conf = CollapseOptions()
+        assert conf.method == "median"
+        assert not conf.force
+        assert conf.output_directory is None
+        toml_conf = CollapseOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    def test_creation(self):
+        conf = CollapseOptions(method="varmean", force=True, output_directory="/tmp")
+        assert conf.method == "varmean"
+        assert conf.force
+        assert conf.output_directory == Path("/tmp")
+        toml_conf = CollapseOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
