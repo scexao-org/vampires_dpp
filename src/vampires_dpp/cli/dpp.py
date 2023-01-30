@@ -41,7 +41,7 @@ def sort_file(filename, outdir, copy=False):
         obj = header["OBJECT"]
 
     match datayp:
-        case "OBJECT":
+        case "ACQUISITION" | "OBJECT":
             foldname = outdir / obj.replace(" ", "_") / "raw"
         case "DARK":
             foldname = outdir / "darks" / "raw"
@@ -70,10 +70,14 @@ def create(args):
             t = VAMPIRES_PDI
         case "halpha":
             t = VAMPIRES_HALPHA
+        case "all":
+            t = VAMPIRES_MAXIMAL
+        case _:
+            t = VAMPIRES_MINIMAL
 
     t.name = args.name
-    if args.coronagraph:
-        t.coronagraph = CoronagraphOptions(args.coronagraph)
+    if args.iwa:
+        t.coronagraph = CoronagraphOptions(args.iwa)
         t.satspot = SatspotOptions()
         t.coregister.method = "com"
 
@@ -115,10 +119,10 @@ parser.add_argument(
     "--num-proc",
     type=int,
     default=min(mp.cpu_count(), 8),
-    help="number of processers to use for multiprocessing",
+    help="number of processers to use for multiprocessing (default is %(default)d)",
 )
-subp = parser.add_subparsers()
-sort_parser = subp.add_parser("sort", help="sort raw VAMPIRES data")
+subp = parser.add_subparsers(help="command to run")
+sort_parser = subp.add_parser("sort", aliases="s", help="sort raw VAMPIRES data")
 sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
 sort_parser.add_argument(
     "-o", "--output", help="output directory, if not specified will use current working directory"
@@ -128,19 +132,23 @@ sort_parser.add_argument(
 )
 sort_parser.set_defaults(func=sort)
 
-create_parser = subp.add_parser("create", help="generate configuration files")
+create_parser = subp.add_parser("create", aliases="c", help="generate configuration files")
 create_parser.add_argument("config", help="path to configuration file")
 create_parser.add_argument(
-    "-t", "--template", choices=("singlecam", "pdi"), help="template configuration to make"
+    "-t",
+    "--template",
+    required=True,
+    choices=("singlecam", "pdi", "all"),
+    help="template configuration to make",
 )
 create_parser.add_argument("-n", "--name", default="", help="name of configuration")
 create_parser.add_argument(
-    "-c", "--coronagraph", type=float, help="if coronagraphic, specify IWA (mas)"
+    "-c", "--coronagraph", dest="iwa", type=float, help="if coronagraphic, specify IWA (mas)"
 )
 create_parser.add_argument("-p", "--preview", action="store_true", help="display generated TOML")
 create_parser.set_defaults(func=create)
 
-run_parser = subp.add_parser("run", help="run the data processing pipeline")
+run_parser = subp.add_parser("run", aliases="r", help="run the data processing pipeline")
 run_parser.add_argument("config", help="path to configuration file")
 run_parser.set_defaults(func=run)
 
