@@ -1,8 +1,12 @@
 import logging
+import multiprocessing as mp
+import shutil
 from argparse import ArgumentParser
 from pathlib import Path
 
+from astropy.io import fits
 from serde.toml import to_toml
+from tqdm.auto import tqdm
 
 from vampires_dpp.pipeline.config import CoronagraphOptions, SatspotOptions
 from vampires_dpp.pipeline.pipeline import Pipeline
@@ -14,6 +18,49 @@ formatter = logging.Formatter(
 )
 
 # set up commands for parser to dispatch to
+def sort(args):
+    if args.output:
+        outdir = Path(args.output)
+    else:
+        outdir = Path.cwd()
+    jobs = []
+    with mp.Pool(args.num_proc) as pool:
+        for filename in args.filenames:
+            kwds = dict(outdir=outdir, copy=args.copy)
+            jobs.append(pool.apply_async(sort_file, args=(filename,), kwds=kwds))
+
+        for job in tqdm(jobs, desc="Sorting files"):
+            job.get()
+
+
+def sort_file(filename, outdir, copy=False):
+    path = Path(filename)
+    with fits.open(path) as hdus:
+        header = hdus[0].header
+        datayp = header["DATA-TYP"]
+        obj = header["OBJECT"]
+
+    match datayp:
+        case "OBJECT":
+            foldname = outdir / obj.replace(" ", "_") / "raw"
+        case "DARK":
+            foldname = outdir / "darks" / "raw"
+        case "SKY":
+            foldname = outdir / "skies" / "raw"
+        case "FLAT":
+            foldname = outdir / "flats" / "raw"
+        case "COMPARISON":
+            foldname = outdir / "pinholes" / "raw"
+        case _:
+            foldname = outdir
+    foldname.mkdir(parents=True, exist_ok=True)
+    newname = foldname / path.name
+    if copy:
+        shutil.copy(path, newname)
+    else:
+        path.replace(newname)
+
+
 def create(args):
     path = Path(args.config)
     match args.template:
@@ -63,7 +110,24 @@ def run(args):
 
 # set up command line arguments
 parser = ArgumentParser()
+parser.add_argument(
+    "-j",
+    "--num-proc",
+    type=int,
+    default=min(mp.cpu_count(), 8),
+    help="number of processers to use for multiprocessing",
+)
 subp = parser.add_subparsers()
+sort_parser = subp.add_parser("sort", help="sort raw VAMPIRES data")
+sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
+sort_parser.add_argument(
+    "-o", "--output", help="output directory, if not specified will use current working directory"
+)
+sort_parser.add_argument(
+    "-c", "--copy", action="store_true", help="copy files instead of moving them"
+)
+sort_parser.set_defaults(func=sort)
+
 create_parser = subp.add_parser("create", help="generate configuration files")
 create_parser.add_argument("config", help="path to configuration file")
 create_parser.add_argument(
@@ -76,7 +140,7 @@ create_parser.add_argument(
 create_parser.add_argument("-p", "--preview", action="store_true", help="display generated TOML")
 create_parser.set_defaults(func=create)
 
-run_parser = subp.add_parser("run", help="generate configuration files")
+run_parser = subp.add_parser("run", help="run the data processing pipeline")
 run_parser.add_argument("config", help="path to configuration file")
 run_parser.set_defaults(func=run)
 

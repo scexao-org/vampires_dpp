@@ -150,6 +150,7 @@ class FrameSelectOptions(OutputDirectory):
 @dataclass
 class CoregisterOptions(OutputDirectory):
     method: str = field(default="com", skip_if_default=True)
+    unshapr: bool = field(default=False, skip_if_default=True)
     window_size: int = field(default=30, skip_if_default=True)
 
     def __post_init__(self):
