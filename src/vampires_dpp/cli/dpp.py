@@ -8,6 +8,7 @@ from astropy.io import fits
 from serde.toml import to_toml
 from tqdm.auto import tqdm
 
+import vampires_dpp as vpp
 from vampires_dpp.pipeline.config import CoronagraphOptions, SatspotOptions
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import *
@@ -33,28 +34,50 @@ def sort(args):
             job.get()
 
 
-def sort_file(filename, outdir, copy=False):
-    path = Path(filename)
-    with fits.open(path) as hdus:
-        header = hdus[0].header
-        datayp = header["DATA-TYP"]
-        obj = header["OBJECT"]
-
-    match datayp:
-        case "ACQUISITION" | "OBJECT":
-            foldname = outdir / obj.replace(" ", "_") / "raw"
+def foldername_new(outdir, header):
+    match header["DATA-TYP"]:
+        case "OBJECT":
+            foldname = outdir / header["OBJECT"].replace(" ", "_") / "raw"
         case "DARK":
             foldname = outdir / "darks" / "raw"
-        case "SKY":
+        case "SKYFLAT":
             foldname = outdir / "skies" / "raw"
-        case "FLAT":
+        case "FLAT" | "DOMEFLAT":
             foldname = outdir / "flats" / "raw"
         case "COMPARISON":
             foldname = outdir / "pinholes" / "raw"
         case _:
             foldname = outdir
-    foldname.mkdir(parents=True, exist_ok=True)
+
+    return foldname
+
+
+def foldername_old(outdir, path, header):
+    name = header.get("U_OGFNAM", path.name)
+    if "dark" in name:
+        foldname = outdir / "darks" / "raw"
+    elif "skies" in name or "sky" in name:
+        foldname = outdir / "skies" / "raw"
+    elif "flat" in name:
+        foldname = outdir / "flats" / "raw"
+    elif "pinhole" in name:
+        foldname = outdir / "pinholes" / "raw"
+
+    return foldname
+
+
+def sort_file(filename, outdir, copy=False):
+    path = Path(filename)
+    with fits.open(path) as hdus:
+        header = hdus[0].header
+
+    if header["DATA-TYP"] == "ACQUISITION":
+        foldname = foldername_old(outdir, path, header)
+    else:
+        foldname = foldername_new(outdir, header)
+
     newname = foldname / path.name
+    foldname.mkdir(parents=True, exist_ok=True)
     if copy:
         shutil.copy(path, newname)
     else:
@@ -121,6 +144,7 @@ parser.add_argument(
     default=min(mp.cpu_count(), 8),
     help="number of processers to use for multiprocessing (default is %(default)d)",
 )
+parser.add_argument("-v", "--version", action="store_true", help="print version information")
 subp = parser.add_subparsers(help="command to run")
 sort_parser = subp.add_parser("sort", aliases="s", help="sort raw VAMPIRES data")
 sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
@@ -155,6 +179,8 @@ run_parser.set_defaults(func=run)
 
 def main():
     args = parser.parse_args()
+    if args.version:
+        return vpp.__version__
     args.func(args)
 
 
