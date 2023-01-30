@@ -99,17 +99,17 @@ def cam_dict_factory():
 @serialize
 @dataclass
 class CalibrateOptions(OutputDirectory):
-    darks: Optional[CamFileInput] = field(default=CamFileInput())
-    flats: Optional[CamFileInput] = field(default=CamFileInput())
+    master_darks: Optional[CamFileInput] = field(default=CamFileInput())
+    master_flats: Optional[CamFileInput] = field(default=CamFileInput())
     distortion: Optional[DistortionOptions] = field(default=None, skip_if_default=True)
     deinterleave: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
-        if self.darks is not None and isinstance(self.darks, dict):
-            self.darks = CamFileInput(**self.darks)
-        if self.flats is not None and isinstance(self.flats, dict):
-            self.flats = CamFileInput(**self.flats)
+        if self.master_darks is not None and isinstance(self.master_darks, dict):
+            self.master_darks = CamFileInput(**self.master_darks)
+        if self.master_flats is not None and isinstance(self.master_flats, dict):
+            self.master_flats = CamFileInput(**self.master_flats)
         if self.distortion is not None and isinstance(self.distortion, dict):
             self.distortion = DistortionOptions(**self.distortion)
 
