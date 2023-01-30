@@ -2,7 +2,8 @@ import logging
 from argparse import ArgumentParser
 from pathlib import Path
 
-from vampires_dpp.pipeline.pipeline import Pipeline
+from vampires_dpp.pipeline.config import CoronagraphOptions, SatelliteSpotOptions
+from vampires_dpp.pipeline.templates import *
 
 # set up logging
 formatter = logging.Formatter(
@@ -11,7 +12,29 @@ formatter = logging.Formatter(
 
 # set up command line arguments
 parser = ArgumentParser()
-parser.add_argument("config", nargs="+", help="path to configuration file(s)")
+grp = parser.add_argument_group("create")
+grp.add_argument("config", help="path to configuration file")
+grp.add_argument(
+    "-t", "--template", choices=("singlecam", "pdi"), help="template configuration to make"
+)
+grp.add_argument("-n", "--name", default="", help="name of configuration")
+grp.add_argument("-c", "--coronagraph", type=float, help="if coronagraphic, specify IWA (mas)")
+
+grp = parser.add_argument_group("run")
+grp.add_argument("config", help="path to configuration file")
+
+
+def create(args):
+    match args.template:
+        case "singlecam":
+            t = VAMPIRES_SINGLECAM
+        case "pdi":
+            t = VAMPIRES_PDI
+
+    t.name = args.name
+    if args.coronagraph:
+        t.coronagraph = CoronagraphOptions(args.coronagraph)
+        t.satspot = SatelliteSpotOptions()
 
 
 def main():
