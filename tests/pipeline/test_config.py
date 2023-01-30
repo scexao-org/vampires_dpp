@@ -182,3 +182,67 @@ class TestCollapseOptions:
         assert conf.output_directory == Path("/tmp")
         toml_conf = CollapseOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
+
+
+class TestPolarimetryOptions:
+    def test_default_creation(self):
+        conf = PolarimetryOptions()
+        assert not conf.force
+        assert conf.output_directory is None
+        toml_conf = PolarimetryOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    def test_creation(self):
+        conf = PolarimetryOptions(force=True, output_directory="/tmp")
+        assert conf.force
+        assert conf.output_directory == Path("/tmp")
+        toml_conf = PolarimetryOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+
+class TestPipelineOptions:
+    def test_error_creation(self):
+        with pytest.raises(TypeError):
+            conf = PipelineOptions()
+
+    def test_default_creation(self):
+        conf = PipelineOptions(filenames="/tmp/VMPA*.fits", name="test")
+        assert conf.name == "test"
+        assert conf.frame_centers is None
+        assert conf.target is None
+        assert conf.coronagraph is None
+        assert conf.calibrate is None
+        assert conf.frame_select is None
+        assert conf.coregister is None
+        assert conf.collapse is None
+        assert conf.polarimetry is None
+        toml_conf = PipelineOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    def test_creation(self):
+        conf = PipelineOptions(
+            filenames="/tmp/VMPA*.fits",
+            name="test",
+            target="AB Aur",
+            coronagraph=dict(iwa=55, satspot_radius=11.2),
+            calibrate=dict(
+                output_directory="calibrated", master_darks=dict(cam1="/tmp/master_dark_cam1.fits")
+            ),
+            frame_select=dict(cutoff=0.3, output_directory="selected"),
+            coregister=dict(method="com", output_directory="aligned"),
+            collapse=dict(output_directory="collapsed"),
+            polarimetry=dict(output_directory="pdi"),
+        )
+        assert conf.name == "test"
+        assert conf.frame_centers is None
+        assert conf.target == "AB Aur"
+        assert conf.coronagraph == CoronagraphOptions(55, satspot_radius=11.2)
+        assert conf.calibrate == CalibrateOptions(
+            output_directory="calibrated", master_darks=dict(cam1="/tmp/master_dark_cam1.fits")
+        )
+        assert conf.frame_select == FrameSelectOptions(cutoff=0.3, output_directory="selected")
+        assert conf.coregister == CoregisterOptions(method="com", output_directory="aligned")
+        assert conf.collapse == CollapseOptions(output_directory="collapsed")
+        assert conf.polarimetry == PolarimetryOptions(output_directory="pdi")
+        toml_conf = PipelineOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf

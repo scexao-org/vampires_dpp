@@ -163,6 +163,49 @@ class CollapseOptions(OutputDirectory):
             raise ValueError(f"Registration method not recognized: {self.method}")
 
 
+@serialize
+@dataclass
+class PolarimetryOptions(OutputDirectory):
+    pass
+
+
+@serialize
+class CamCtrOption:
+    cam1: Optional[List[float]] = None
+    cam2: Optional[List[float]] = None
+
+
+## Define classes for entire pipelines now
+@serialize
+@dataclass
+class PipelineOptions(FileInput, OutputDirectory):
+    name: str
+    target: Optional[str] = field(default=None, skip_if_default=True)
+    frame_centers: Optional[List | CamCtrOption] = field(default=None, skip_if_default=True)
+    coronagraph: Optional[CoronagraphOptions] = field(default=None, skip_if_default=True)
+    calibrate: Optional[CalibrateOptions] = field(default=None, skip_if_default=True)
+    frame_select: Optional[FrameSelectOptions] = field(default=None, skip_if_default=True)
+    coregister: Optional[CoregisterOptions] = field(default=None, skip_if_default=True)
+    collapse: Optional[CollapseOptions] = field(default=None, skip_if_default=True)
+    polarimetry: Optional[PolarimetryOptions] = field(default=None, skip_if_default=True)
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        if self.coronagraph is not None and isinstance(self.coronagraph, dict):
+            self.coronagraph = CoronagraphOptions(**self.coronagraph)
+        if self.calibrate is not None and isinstance(self.calibrate, dict):
+            self.calibrate = CalibrateOptions(**self.calibrate)
+        if self.frame_select is not None and isinstance(self.frame_select, dict):
+            self.frame_select = FrameSelectOptions(**self.frame_select)
+        if self.coregister is not None and isinstance(self.coregister, dict):
+            self.coregister = CoregisterOptions(**self.coregister)
+        if self.collapse is not None and isinstance(self.collapse, dict):
+            self.collapse = CollapseOptions(**self.collapse)
+        if self.polarimetry is not None and isinstance(self.polarimetry, dict):
+            self.polarimetry = PolarimetryOptions(**self.polarimetry)
+
+
 ## Define classes for each config block
 @serialize
 @dataclass
