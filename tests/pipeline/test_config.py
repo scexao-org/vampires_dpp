@@ -5,14 +5,7 @@ import pytest
 import tomli
 from serde.toml import to_toml
 
-from vampires_dpp.pipeline.config import (
-    CalibrateOptions,
-    CamFileInput,
-    CoronagraphOptions,
-    DistortionOptions,
-    FileInput,
-    OutputDirectory,
-)
+from vampires_dpp.pipeline.config import *
 
 
 class TestOutputDirectory:
@@ -122,4 +115,52 @@ class TestCoronagraphOptions:
         assert conf.satspot_radius == 11.2
         assert conf.satspot_angle == -6.5
         toml_conf = CoronagraphOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+
+class TestFrameSelectOptions:
+    def test_error_creation(self):
+        with pytest.raises(TypeError):
+            conf = FrameSelectOptions()
+
+    def test_default_creation(self):
+        conf = FrameSelectOptions(cutoff=0.2)
+        assert conf.cutoff == 0.2
+        assert conf.metric == "normvar"
+        assert conf.window_size == 30
+        assert not conf.force
+        assert conf.output_directory is None
+        toml_conf = FrameSelectOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    def test_creation(self):
+        conf = FrameSelectOptions(
+            cutoff=0.2, metric="l2norm", window_size=20, force=True, output_directory="/tmp"
+        )
+        assert conf.cutoff == 0.2
+        assert conf.metric == "l2norm"
+        assert conf.window_size == 20
+        assert conf.force
+        assert conf.output_directory == Path("/tmp")
+        toml_conf = FrameSelectOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+
+class TestCoregisterOptions:
+    def test_default_creation(self):
+        conf = CoregisterOptions()
+        assert conf.method == "com"
+        assert conf.window_size == 30
+        assert not conf.force
+        assert conf.output_directory is None
+        toml_conf = CoregisterOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    def test_creation(self):
+        conf = CoregisterOptions(method="peak", window_size=20, force=True, output_directory="/tmp")
+        assert conf.method == "peak"
+        assert conf.window_size == 20
+        assert conf.force
+        assert conf.output_directory == Path("/tmp")
+        toml_conf = CoregisterOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf

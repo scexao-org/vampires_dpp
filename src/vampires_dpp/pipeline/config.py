@@ -122,6 +122,37 @@ class CoronagraphOptions:
     satspot_angle: float = field(default=-4)
 
 
+@serialize
+@dataclass
+class FrameSelectOptions(OutputDirectory):
+    cutoff: float
+    metric: str = field(default="normvar", skip_if_default=True)
+    window_size: int = field(default=30, skip_if_default=True)
+    force: bool = field(default=False, skip_if_default=True)
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.metric not in ("peak", "l2norm", "normvar"):
+            raise ValueError(f"Frame selection metric not recognized: {self.metric}")
+        if self.cutoff < 0 or self.cutoff > 1:
+            raise ValueError(
+                f"Must use a value between 0 and 1 for frame selection quantile (got {self.cutoff})"
+            )
+
+
+@serialize
+@dataclass
+class CoregisterOptions(OutputDirectory):
+    method: str = field(default="com", skip_if_default=True)
+    window_size: int = field(default=30, skip_if_default=True)
+    force: bool = field(default=False, skip_if_default=True)
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.method not in ("com", "peak", "dft", "airydisk", "moffat", "gaussian"):
+            raise ValueError(f"Registration method not recognized: {self.method}")
+
+
 ## Define classes for each config block
 @serialize
 @dataclass
