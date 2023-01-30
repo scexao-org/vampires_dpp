@@ -19,6 +19,7 @@ from vampires_dpp.util import FileInfo, FileType
 @dataclass(kw_only=True)
 class OutputDirectory:
     output_directory: Optional[Path] = field(default=None, skip_if_default=True)
+    force: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         if self.output_directory is not None:
@@ -128,7 +129,6 @@ class FrameSelectOptions(OutputDirectory):
     cutoff: float
     metric: str = field(default="normvar", skip_if_default=True)
     window_size: int = field(default=30, skip_if_default=True)
-    force: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
@@ -145,7 +145,6 @@ class FrameSelectOptions(OutputDirectory):
 class CoregisterOptions(OutputDirectory):
     method: str = field(default="com", skip_if_default=True)
     window_size: int = field(default=30, skip_if_default=True)
-    force: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
@@ -153,12 +152,17 @@ class CoregisterOptions(OutputDirectory):
             raise ValueError(f"Registration method not recognized: {self.method}")
 
 
+@serialize
+@dataclass
+class CollapseOptions(OutputDirectory):
+    method: str = field(default="median", skip_if_default=True)
+
+
 ## Define classes for each config block
 @serialize
 @dataclass
 class MasterDark(FileInput, OutputDirectory):
     collapse: str = "median"
-    force: bool = False
 
     def process(self):
         super().process()
