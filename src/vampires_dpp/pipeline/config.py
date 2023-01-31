@@ -6,9 +6,10 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from astropy.io import fits
-from serde import SerdeSkip, field, serialize
+from serde import field, serialize
 from tqdm.auto import tqdm
 
+import vampires_dpp as vpp
 from vampires_dpp.calibration import make_dark_file, make_flat_file
 from vampires_dpp.image_processing import collapse_frames_files
 from vampires_dpp.util import FileInfo, FileType
@@ -29,7 +30,6 @@ class OutputDirectory:
 @serialize
 @dataclass
 class FileInput:
-
     filenames: Path | List[Path]
 
     def __post_init__(self):
@@ -55,7 +55,6 @@ class FileInput:
             raise FileNotFoundError(
                 f"Could not find any FITS files from the following expression '{self.filenames}'"
             )
-
         # split into cam1 and cam2
         self.file_infos = []
         self.cam1_paths = []
@@ -133,7 +132,7 @@ class SatspotOptions:
 @dataclass
 class FrameSelectOptions(OutputDirectory):
     cutoff: float
-    metric: str = field(default="normvar", skip_if_default=True)
+    metric: str = field(default="normvar")
     window_size: int = field(default=30, skip_if_default=True)
 
     def __post_init__(self):
@@ -149,7 +148,7 @@ class FrameSelectOptions(OutputDirectory):
 @serialize
 @dataclass
 class CoregisterOptions(OutputDirectory):
-    method: str = field(default="com", skip_if_default=True)
+    method: str = field(default="com")
     unshapr: bool = field(default=False, skip_if_default=True)
     window_size: int = field(default=30, skip_if_default=True)
 
@@ -167,19 +166,70 @@ class CollapseOptions(OutputDirectory):
     def __post_init__(self):
         super().__post_init__()
         if self.method not in ("median", "mean", "varmean", "biweight"):
-            raise ValueError(f"Registration method not recognized: {self.method}")
+            raise ValueError(f"Collapse method not recognized: {self.method}")
+
+
+@serialize
+@dataclass
+class IPOptions:
+    method: str = "photometry"
+    aper_rad: float = 6
+
+    def __post_init__(self):
+        if self.method not in ("photometry", "satspots", "mueller"):
+            raise ValueError(f"Polarization calibration method not recognized: {self.method}")
 
 
 @serialize
 @dataclass
 class PolarimetryOptions(OutputDirectory):
-    pass
+    ip: Optional[IPOptions] = field(default=None, skip_if_default=True)
 
 
 @serialize
 class CamCtrOption:
-    cam1: Optional[List[float]] = None
-    cam2: Optional[List[float]] = None
+    cam1: Optional[List[float]] = field(default=None, skip_if_default=True)
+    cam2: Optional[List[float]] = field(default=None, skip_if_default=True)
+
+
+@serialize
+@dataclass
+class MasterDarkOptions(FileInput, OutputDirectory):
+    collapse: str = field(default="median", skip_if_default=True)
+    cam1: Optional[Path] = field(default=None, skip_if_default=True)
+    cam2: Optional[Path] = field(default=None, skip_if_default=True)
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.collapse not in ("median", "mean", "varmean", "biweight"):
+            raise ValueError(f"Collapse method not recognized: {self.collapse}")
+        if self.cam1 is not None:
+            self.cam1 = Path(self.cam1)
+        if self.cam2 is not None:
+            self.cam2 = Path(self.cam2)
+
+
+@serialize
+@dataclass
+class MasterFlatOptions(FileInput, OutputDirectory):
+    collapse: str = field(default="median", skip_if_default=True)
+    cam1: Optional[Path] = field(default=None, skip_if_default=True)
+    cam2: Optional[Path] = field(default=None, skip_if_default=True)
+    cam1_dark: Optional[Path] = field(default=None, skip_if_default=True)
+    cam2_dark: Optional[Path] = field(default=None, skip_if_default=True)
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.collapse not in ("median", "mean", "varmean", "biweight"):
+            raise ValueError(f"Collapse method not recognized: {self.collapse}")
+        if self.cam1 is not None:
+            self.cam1 = Path(self.cam1)
+        if self.cam2 is not None:
+            self.cam2 = Path(self.cam2)
+        if self.cam1_dark is not None:
+            self.cam1_dark = Path(self.cam1_dark)
+        if self.cam2_dark is not None:
+            self.cam2_dark = Path(self.cam2_dark)
 
 
 ## Define classes for entire pipelines now
@@ -190,22 +240,29 @@ class PipelineOptions(FileInput, OutputDirectory):
     target: Optional[str] = field(default=None, skip_if_default=True)
     frame_centers: Optional[CamCtrOption] = field(default=None, skip_if_default=True)
     coronagraph: Optional[CoronagraphOptions] = field(default=None, skip_if_default=True)
-    satspot: Optional[SatspotOptions] = field(default=None, skip_if_default=True)
+    satspots: Optional[SatspotOptions] = field(default=None, skip_if_default=True)
+    master_dark: Optional[MasterDarkOptions] = field(default=None, skip_if_default=True)
+    master_flat: Optional[MasterFlatOptions] = field(default=None, skip_if_default=True)
     calibrate: Optional[CalibrateOptions] = field(default=None, skip_if_default=True)
     frame_select: Optional[FrameSelectOptions] = field(default=None, skip_if_default=True)
     coregister: Optional[CoregisterOptions] = field(default=None, skip_if_default=True)
     collapse: Optional[CollapseOptions] = field(default=None, skip_if_default=True)
     polarimetry: Optional[PolarimetryOptions] = field(default=None, skip_if_default=True)
+    version: str = vpp.__version__
 
     def __post_init__(self):
         super().__post_init__()
 
         if self.coronagraph is not None and isinstance(self.coronagraph, dict):
             self.coronagraph = CoronagraphOptions(**self.coronagraph)
-        if self.satspot is not None and isinstance(self.satspot, dict):
-            self.satspot = SatspotOptions(**self.satspot)
+        if self.satspots is not None and isinstance(self.satspots, dict):
+            self.satspots = SatspotOptions(**self.satspots)
         if self.frame_centers is not None and isinstance(self.frame_centers, dict):
             self.frame_centers = CamCtrOption(**self.frame_centers)
+        if self.master_dark is not None and isinstance(self.master_dark, dict):
+            self.master_dark = MasterDarkOptions(**self.master_dark)
+        if self.master_flat is not None and isinstance(self.master_flat, dict):
+            self.master_flat = MasterFlatOptions(**self.master_flat)
         if self.calibrate is not None and isinstance(self.calibrate, dict):
             self.calibrate = CalibrateOptions(**self.calibrate)
         if self.frame_select is not None and isinstance(self.frame_select, dict):
@@ -219,44 +276,40 @@ class PipelineOptions(FileInput, OutputDirectory):
 
 
 ## Define classes for each config block
-@serialize
-@dataclass
-class MasterDark(FileInput, OutputDirectory):
-    collapse: str = "median"
 
-    def process(self):
-        super().process()
+# def process(self):
+#     super().process()
 
-        # make darks for each camera
-        with Pool(self.num_proc) as pool:
-            jobs = []
-            for path in self.paths:
-                kwds = dict(
-                    output_directory=self.output_directory, force=self.force, method=self.collapse
-                )
-                jobs.append(pool.apply_async(make_dark_file, args=(path,), kwds=kwds))
+#     # make darks for each camera
+#     with Pool(self.num_proc) as pool:
+#         jobs = []
+#         for path in self.paths:
+#             kwds = dict(
+#                 output_directory=self.output_directory, force=self.force, method=self.collapse
+#             )
+#             jobs.append(pool.apply_async(make_dark_file, args=(path,), kwds=kwds))
 
-            self.cam1_darks = []
-            self.cam2_darks = []
-            for job in tqdm(jobs, desc="Collapsing dark frames"):
-                filename = job.get()
-                file_info = FileInfo.read(filename)
-                if file_info.camera == 1:
-                    self.cam1_darks.append(filename)
-                else:
-                    self.cam2_darks.append(filename)
+#         self.cam1_darks = []
+#         self.cam2_darks = []
+#         for job in tqdm(jobs, desc="Collapsing dark frames"):
+#             filename = job.get()
+#             file_info = FileInfo.read(filename)
+#             if file_info.camera == 1:
+#                 self.cam1_darks.append(filename)
+#             else:
+#                 self.cam2_darks.append(filename)
 
-        self.master_darks = {1: None, 2: None}
-        if len(self.cam1_darks) > 0:
-            self.master_darks[1] = self.output_directory / f"master_dark_cam1.fits"
-            collapse_frames_files(
-                self.cam1_darks, method=self.collapse, output=self.master_darks[1], force=self.force
-            )
-        if len(self.cam2_darks) > 0:
-            self.master_darks[2] = self.output_directory / f"master_dark_cam2.fits"
-            collapse_frames_files(
-                self.cam2_darks, method=self.collapse, output=self.master_darks[2], force=self.force
-            )
+#     self.master_darks = {1: None, 2: None}
+#     if len(self.cam1_darks) > 0:
+#         self.master_darks[1] = self.output_directory / f"master_dark_cam1.fits"
+#         collapse_frames_files(
+#             self.cam1_darks, method=self.collapse, output=self.master_darks[1], force=self.force
+#         )
+#     if len(self.cam2_darks) > 0:
+#         self.master_darks[2] = self.output_directory / f"master_dark_cam2.fits"
+#         collapse_frames_files(
+#             self.cam2_darks, method=self.collapse, output=self.master_darks[2], force=self.force
+#         )
 
 
 @serialize

@@ -39,13 +39,13 @@ def foldername_new(outdir, header):
         case "OBJECT":
             foldname = outdir / header["OBJECT"].replace(" ", "_") / "raw"
         case "DARK":
-            foldname = outdir / "darks" / "raw"
+            foldname = outdir / "darks"
         case "SKYFLAT":
-            foldname = outdir / "skies" / "raw"
+            foldname = outdir / "skies"
         case "FLAT" | "DOMEFLAT":
-            foldname = outdir / "flats" / "raw"
+            foldname = outdir / "flats"
         case "COMPARISON":
-            foldname = outdir / "pinholes" / "raw"
+            foldname = outdir / "pinholes"
         case _:
             foldname = outdir
 
@@ -55,13 +55,15 @@ def foldername_new(outdir, header):
 def foldername_old(outdir, path, header):
     name = header.get("U_OGFNAM", path.name)
     if "dark" in name:
-        foldname = outdir / "darks" / "raw"
+        foldname = outdir / "darks"
     elif "skies" in name or "sky" in name:
-        foldname = outdir / "skies" / "raw"
+        foldname = outdir / "skies"
     elif "flat" in name:
-        foldname = outdir / "flats" / "raw"
+        foldname = outdir / "flats"
     elif "pinhole" in name:
-        foldname = outdir / "pinholes" / "raw"
+        foldname = outdir / "pinholes"
+    else:
+        foldname = outdir / header["OBJECT"].replace(" ", "_") / "raw"
 
     return foldname
 
@@ -84,7 +86,7 @@ def sort_file(filename, outdir, copy=False):
         path.replace(newname)
 
 
-def create(args):
+def new_config(args):
     path = Path(args.config)
     match args.template:
         case "singlecam":
@@ -96,16 +98,16 @@ def create(args):
         case "all":
             t = VAMPIRES_MAXIMAL
         case _:
-            t = VAMPIRES_MINIMAL
+            raise ValueError(f"template not recognized {args.template}")
 
     t.name = args.name
     if args.iwa:
         t.coronagraph = CoronagraphOptions(args.iwa)
-        t.satspot = SatspotOptions()
+        t.satspots = SatspotOptions()
         t.coregister.method = "com"
 
     toml_str = to_toml(t)
-    if args.preview:
+    if args.show:
         print(toml_str)
     with path.open("w") as fh:
         fh.write(toml_str)
@@ -144,7 +146,7 @@ parser.add_argument(
     default=min(mp.cpu_count(), 8),
     help="number of processers to use for multiprocessing (default is %(default)d)",
 )
-parser.add_argument("-v", "--version", action="store_true", help="print version information")
+parser.add_argument("--version", action="store_true", help="print version information")
 subp = parser.add_subparsers(help="command to run")
 sort_parser = subp.add_parser("sort", aliases="s", help="sort raw VAMPIRES data")
 sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
@@ -156,21 +158,21 @@ sort_parser.add_argument(
 )
 sort_parser.set_defaults(func=sort)
 
-create_parser = subp.add_parser("create", aliases="c", help="generate configuration files")
-create_parser.add_argument("config", help="path to configuration file")
-create_parser.add_argument(
+new_parser = subp.add_parser("new", aliases="n", help="generate configuration files")
+new_parser.add_argument("config", help="path to configuration file")
+new_parser.add_argument(
     "-t",
     "--template",
     required=True,
     choices=("singlecam", "pdi", "all"),
     help="template configuration to make",
 )
-create_parser.add_argument("-n", "--name", default="", help="name of configuration")
-create_parser.add_argument(
+new_parser.add_argument("-n", "--name", default="", help="name of configuration")
+new_parser.add_argument(
     "-c", "--coronagraph", dest="iwa", type=float, help="if coronagraphic, specify IWA (mas)"
 )
-create_parser.add_argument("-p", "--preview", action="store_true", help="display generated TOML")
-create_parser.set_defaults(func=create)
+new_parser.add_argument("-s", "--show", action="store_true", help="display generated TOML")
+new_parser.set_defaults(func=new_config)
 
 run_parser = subp.add_parser("run", aliases="r", help="run the data processing pipeline")
 run_parser.add_argument("config", help="path to configuration file")

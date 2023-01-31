@@ -12,17 +12,17 @@ class TestOutputDirectory:
         conf = OutputDirectory()
         assert conf.output_directory is None
 
-    def test_creation(self):
-        conf = OutputDirectory(output_directory="/tmp")
-        assert conf.output_directory == Path("/tmp")
+    def test_creation(self, tmp_path):
+        conf = OutputDirectory(output_directory=tmp_path)
+        assert conf.output_directory == tmp_path
 
     def test_default_serialize(self):
         conf = OutputDirectory()
         s = to_toml(conf)
         assert s == ""
 
-    def test_serialize(self):
-        conf = OutputDirectory(output_directory="/tmp")
+    def test_serialize(self, tmp_path):
+        conf = OutputDirectory(output_directory=tmp_path)
         toml_conf = OutputDirectory(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
@@ -32,12 +32,13 @@ class TestFileInput:
         with pytest.raises(TypeError):
             conf = FileInput()
 
-    def test_creation(self):
-        conf = FileInput(filenames="/tmp/VMPA*.fits")
-        assert conf.filenames == Path("/tmp/VMPA*.fits")
+    def test_creation(self, tmp_path):
+        filenames = tmp_path / "VMPA*.fits"
+        conf = FileInput(filenames=filenames)
+        assert conf.filenames == filenames
 
-    def test_serialize(self):
-        conf = FileInput(filenames="/tmp/VMPA*.fits")
+    def test_serialize(self, tmp_path):
+        conf = FileInput(filenames=tmp_path / "VMPA*.fits")
         toml_conf = FileInput(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
@@ -47,12 +48,13 @@ class TestDistortionOptions:
         with pytest.raises(TypeError):
             conf = DistortionOptions()
 
-    def test_creation(self):
-        conf = DistortionOptions(transform_filename="/tmp/transforms.csv")
-        assert conf.transform_filename == Path("/tmp/transforms.csv")
+    def test_creation(self, tmp_path):
+        filename = tmp_path / "transforms.csv"
+        conf = DistortionOptions(transform_filename=filename)
+        assert conf.transform_filename == filename
 
-    def test_serialize(self):
-        conf = DistortionOptions(transform_filename="/tmp/transforms.csv")
+    def test_serialize(self, tmp_path):
+        conf = DistortionOptions(transform_filename=tmp_path / "transforms.csv")
         toml_conf = DistortionOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
@@ -65,31 +67,33 @@ class TestCalibrateOptions:
         assert conf.distortion is None
         assert not conf.deinterleave
 
-    def test_creation(self):
+    def test_creation(self, tmp_path):
         conf = CalibrateOptions(
-            output_directory="/tmp/output",
+            output_directory=tmp_path / "output",
             master_darks=dict(
-                cam1="/tmp/darks/master_dark_cam1.fits", cam2="/tmp/darks/master_dark_cam2.fits"
+                cam1=tmp_path / "darks" / "master_dark_cam1.fits",
+                cam2=tmp_path / "darks" / "master_dark_cam2.fits",
             ),
-            master_flats=dict(cam1="/tmp/flats/master_flat_cam1.fits", cam2=None),
-            distortion=dict(transform_filename="/tmp/transforms.csv"),
+            master_flats=dict(cam1=tmp_path / "flats" / "master_flat_cam1.fits", cam2=None),
+            distortion=dict(transform_filename=tmp_path / "transforms.csv"),
         )
         assert conf.master_darks == CamFileInput(
-            cam1="/tmp/darks/master_dark_cam1.fits",
-            cam2="/tmp/darks/master_dark_cam2.fits",
+            cam1=tmp_path / "darks" / "master_dark_cam1.fits",
+            cam2=tmp_path / "darks" / "master_dark_cam2.fits",
         )
-        assert conf.master_flats == CamFileInput(cam1="/tmp/flats/master_flat_cam1.fits")
-        assert conf.distortion == DistortionOptions(transform_filename="/tmp/transforms.csv")
+        assert conf.master_flats == CamFileInput(cam1=tmp_path / "flats" / "master_flat_cam1.fits")
+        assert conf.distortion == DistortionOptions(transform_filename=tmp_path / "transforms.csv")
         assert not conf.deinterleave
 
-    def test_serialize(self):
+    def test_serialize(self, tmp_path):
         conf = CalibrateOptions(
-            output_directory="/tmp/output",
+            output_directory=tmp_path / "output",
             master_darks=dict(
-                cam1="/tmp/darks/master_dark_cam1.fits", cam2="/tmp/darks/master_dark_cam2.fits"
+                cam1=tmp_path / "darks" / "master_dark_cam1.fits",
+                cam2=tmp_path / "darks" / "master_dark_cam2.fits",
             ),
-            master_flats=dict(cam1="/tmp/flats/master_flat_cam1.fits", cam2=None),
-            distortion=dict(transform_filename="/tmp/transforms.csv"),
+            master_flats=dict(cam1=tmp_path / "flats" / "master_flat_cam1.fits", cam2=None),
+            distortion=dict(transform_filename=tmp_path / "transforms.csv"),
         )
         toml_conf = CalibrateOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
@@ -140,15 +144,16 @@ class TestFrameSelectOptions:
         toml_conf = FrameSelectOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
-    def test_creation(self):
+    @pytest.mark.parametrize("metric", ["peak", "l2norm", "normvar"])
+    def test_creation(self, metric, tmp_path):
         conf = FrameSelectOptions(
-            cutoff=0.2, metric="l2norm", window_size=20, force=True, output_directory="/tmp"
+            cutoff=0.2, metric=metric, window_size=20, force=True, output_directory=tmp_path
         )
         assert conf.cutoff == 0.2
-        assert conf.metric == "l2norm"
+        assert conf.metric == metric
         assert conf.window_size == 20
         assert conf.force
-        assert conf.output_directory == Path("/tmp")
+        assert conf.output_directory == tmp_path
         toml_conf = FrameSelectOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
@@ -163,12 +168,15 @@ class TestCoregisterOptions:
         toml_conf = CoregisterOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
-    def test_creation(self):
-        conf = CoregisterOptions(method="peak", window_size=20, force=True, output_directory="/tmp")
-        assert conf.method == "peak"
+    @pytest.mark.parametrize("method", ["peak", "com", "dft", "airydisk", "moffat", "gaussian"])
+    def test_creation(self, method, tmp_path):
+        conf = CoregisterOptions(
+            method=method, window_size=20, force=True, output_directory=tmp_path
+        )
+        assert conf.method == method
         assert conf.window_size == 20
         assert conf.force
-        assert conf.output_directory == Path("/tmp")
+        assert conf.output_directory == tmp_path
         toml_conf = CoregisterOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
@@ -182,11 +190,12 @@ class TestCollapseOptions:
         toml_conf = CollapseOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
-    def test_creation(self):
-        conf = CollapseOptions(method="varmean", force=True, output_directory="/tmp")
-        assert conf.method == "varmean"
+    @pytest.mark.parametrize("method", ["median", "mean", "varmean", "biweight"])
+    def test_creation(self, method, tmp_path):
+        conf = CollapseOptions(method=method, force=True, output_directory=tmp_path)
+        assert conf.method == method
         assert conf.force
-        assert conf.output_directory == Path("/tmp")
+        assert conf.output_directory == Path(tmp_path)
         toml_conf = CollapseOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
@@ -199,11 +208,93 @@ class TestPolarimetryOptions:
         toml_conf = PolarimetryOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
-    def test_creation(self):
-        conf = PolarimetryOptions(force=True, output_directory="/tmp")
+    def test_creation(self, tmp_path):
+        conf = PolarimetryOptions(force=True, output_directory=tmp_path)
         assert conf.force
-        assert conf.output_directory == Path("/tmp")
+        assert conf.output_directory == Path(tmp_path)
         toml_conf = PolarimetryOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+
+class TestIPOptions:
+    def test_default_creation(self):
+        conf = IPOptions()
+        assert conf.method == "photometry"
+        assert conf.aper_rad == 6
+        toml_conf = IPOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    @pytest.mark.parametrize("method", ["photometry", "satspots", "mueller"])
+    def test_creation(self, method):
+        conf = IPOptions(method=method, aper_rad=8)
+        assert conf.method == method
+        assert conf.aper_rad == 8
+        toml_conf = IPOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+
+class TestMasterDarkOptions:
+    def test_default_creation(self, tmp_path):
+        filenames = tmp_path / "darks" / "VMPA*.fits"
+        conf = MasterDarkOptions(filenames=filenames)
+        assert conf.filenames == filenames
+        assert conf.collapse == "median"
+        assert conf.cam1 is None
+        assert conf.cam2 is None
+        assert not conf.force
+        assert conf.output_directory is None
+        toml_conf = MasterDarkOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    def test_creation(self, tmp_path):
+        filenames = tmp_path / "darks" / "VMPA*.fits"
+        conf = MasterDarkOptions(
+            filenames=filenames, collapse="mean", cam1="dark_cam1.fits", cam2="dark_cam2.fits"
+        )
+        assert conf.filenames == filenames
+        assert conf.collapse == "mean"
+        assert conf.cam1 == Path("dark_cam1.fits")
+        assert conf.cam2 == Path("dark_cam2.fits")
+        assert not conf.force
+        assert conf.output_directory is None
+        toml_conf = MasterDarkOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+
+class TestMasterFlatOptions:
+    def test_default_creation(self, tmp_path):
+        filenames = tmp_path / "flats" / "VMPA*.fits"
+        conf = MasterFlatOptions(filenames=filenames)
+        assert conf.filenames == filenames
+        assert conf.collapse == "median"
+        assert conf.cam1 is None
+        assert conf.cam2 is None
+        assert conf.cam1_dark is None
+        assert conf.cam2_dark is None
+        assert not conf.force
+        assert conf.output_directory is None
+        toml_conf = MasterFlatOptions(**tomli.loads(to_toml(conf)))
+        assert conf == toml_conf
+
+    def test_creation(self, tmp_path):
+        filenames = tmp_path / "flats" / "VMPA*.fits"
+        conf = MasterFlatOptions(
+            filenames=filenames,
+            collapse="mean",
+            cam1="flat_cam1.fits",
+            cam2="flat_cam2.fits",
+            cam1_dark="dark_cam1.fits",
+            cam2_dark="dark_cam2.fits",
+        )
+        assert conf.filenames == filenames
+        assert conf.collapse == "mean"
+        assert conf.cam1 == Path("flat_cam1.fits")
+        assert conf.cam2 == Path("flat_cam2.fits")
+        assert conf.cam1_dark == Path("dark_cam1.fits")
+        assert conf.cam2_dark == Path("dark_cam2.fits")
+        assert not conf.force
+        assert conf.output_directory is None
+        toml_conf = MasterFlatOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
 
@@ -212,8 +303,8 @@ class TestPipelineOptions:
         with pytest.raises(TypeError):
             conf = PipelineOptions()
 
-    def test_default_creation(self):
-        conf = PipelineOptions(filenames="/tmp/VMPA*.fits", name="test")
+    def test_default_creation(self, tmp_path):
+        conf = PipelineOptions(filenames=tmp_path / "VMPA*.fits", name="test")
         assert conf.name == "test"
         assert conf.frame_centers is None
         assert conf.target is None
@@ -226,15 +317,16 @@ class TestPipelineOptions:
         toml_conf = PipelineOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
-    def test_creation(self):
+    def test_creation(self, tmp_path):
         conf = PipelineOptions(
-            filenames="/tmp/VMPA*.fits",
+            filenames=tmp_path / "VMPA*.fits",
             name="test",
             target="AB Aur",
             coronagraph=dict(iwa=55),
-            satspot=dict(radius=11.2),
+            satspots=dict(radius=11.2),
             calibrate=dict(
-                output_directory="calibrated", master_darks=dict(cam1="/tmp/master_dark_cam1.fits")
+                output_directory="calibrated",
+                master_darks=dict(cam1=tmp_path / "darks" / "master_dark_cam1.fits"),
             ),
             frame_select=dict(cutoff=0.3, output_directory="selected"),
             coregister=dict(method="com", output_directory="aligned"),
@@ -245,9 +337,10 @@ class TestPipelineOptions:
         assert conf.frame_centers is None
         assert conf.target == "AB Aur"
         assert conf.coronagraph == CoronagraphOptions(55)
-        assert conf.satspot == SatspotOptions(radius=11.2)
+        assert conf.satspots == SatspotOptions(radius=11.2)
         assert conf.calibrate == CalibrateOptions(
-            output_directory="calibrated", master_darks=dict(cam1="/tmp/master_dark_cam1.fits")
+            output_directory="calibrated",
+            master_darks=dict(cam1=tmp_path / "darks" / "master_dark_cam1.fits"),
         )
         assert conf.frame_select == FrameSelectOptions(cutoff=0.3, output_directory="selected")
         assert conf.coregister == CoregisterOptions(method="com", output_directory="aligned")
