@@ -22,9 +22,9 @@ VAMPIRES_SINGLECAM = PipelineOptions(
     filenames="raw/VMPA*.fits",
     output_directory=DEFAULT_DIRS[PipelineOptions],
     frame_centers=CamCtrOption(cam1=[]),
-    master_dark=MasterDarkOptions(filenames="../darks/VMPA*.fits", cam1=DARK_CAM1),
+    master_dark=MasterDarkOptions(filenames="../darks/raw/VMPA*.fits", cam1=DARK_CAM1),
     master_flat=MasterFlatOptions(
-        filenames="../flats/VMPA*.fits", cam1=FLAT_CAM1, cam1_dark=DARK_CAM1
+        filenames="../flats/raw/VMPA*.fits", cam1=FLAT_CAM1, cam1_dark=DARK_CAM1
     ),
     calibrate=CalibrateOptions(
         master_darks=CamFileInput(cam1=DARK_CAM1),
@@ -42,9 +42,11 @@ VAMPIRES_PDI = PipelineOptions(
     filenames="raw/VMPA*.fits",
     output_directory=DEFAULT_DIRS[PipelineOptions],
     frame_centers=CamCtrOption(cam1=[], cam2=[]),
-    master_dark=MasterDarkOptions(filenames="../darks/VMPA*.fits", cam1=DARK_CAM1, cam2=DARK_CAM2),
+    master_dark=MasterDarkOptions(
+        filenames="../darks/raw/VMPA*.fits", cam1=DARK_CAM1, cam2=DARK_CAM2
+    ),
     master_flat=MasterFlatOptions(
-        filenames="../flats/VMPA*.fits",
+        filenames="../flats/raw/VMPA*.fits",
         cam1=FLAT_CAM1,
         cam2=FLAT_CAM2,
         cam1_dark=DARK_CAM1,
@@ -69,9 +71,11 @@ VAMPIRES_HALPHA = PipelineOptions(
     filenames="raw/VMPA*.fits",
     output_directory=DEFAULT_DIRS[PipelineOptions],
     frame_centers=dict(cam1=[], cam2=[]),
-    master_dark=MasterDarkOptions(filenames="../darks/VMPA*.fits", cam1=DARK_CAM1, cam2=DARK_CAM2),
+    master_dark=MasterDarkOptions(
+        filenames="../darks/raw/VMPA*.fits", cam1=DARK_CAM1, cam2=DARK_CAM2
+    ),
     master_flat=MasterFlatOptions(
-        filenames="../flats/VMPA*.fits",
+        filenames="../flats/raw/VMPA*.fits",
         cam1=FLAT_CAM1,
         cam2=FLAT_CAM2,
         cam1_dark=DARK_CAM1,
@@ -92,9 +96,11 @@ VAMPIRES_MAXIMAL = PipelineOptions(
     filenames="raw/VMPA*.fits",
     output_directory=DEFAULT_DIRS[PipelineOptions],
     frame_centers=dict(cam1=[], cam2=[]),
-    master_dark=MasterDarkOptions(filenames="../darks/VMPA*.fits", cam1=DARK_CAM1, cam2=DARK_CAM2),
+    master_dark=MasterDarkOptions(
+        filenames="../darks/raw/VMPA*.fits", cam1=DARK_CAM1, cam2=DARK_CAM2
+    ),
     master_flat=MasterFlatOptions(
-        filenames="../flats/VMPA*.fits",
+        filenames="../flats/raw/VMPA*.fits",
         cam1=FLAT_CAM1,
         cam2=FLAT_CAM2,
         cam1_dark=DARK_CAM1,

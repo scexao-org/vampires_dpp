@@ -1,6 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
+from multiprocessing import Pool
 from os import PathLike
 from pathlib import Path
 from typing import Dict
@@ -10,11 +11,11 @@ import numpy as np
 import pandas as pd
 import tomli
 import tomli_w
-import tqdm.auto as tqdm
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.time import Time
-from serde import serde
+from serde.toml import to_toml
+from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import filter_empty_frames, make_dark_file, make_flat_file
@@ -50,33 +51,22 @@ from vampires_dpp.wcs import (
     get_gaia_astrometry,
 )
 
-from .config import FileInput, OutputDirectory
+from .config import PipelineOptions
+
+logger = logging.getLogger("DPP")
 
 
-class Pipeline:
-    def __init__(self, config: Dict):
-        """
-        Initialize a pipeline object from a configuration dictionary.
-
-        Parameters
-        ----------
-        config : Dict
-            Dictionary with the configuration settings.
-
-        Raises
-        ------
-        ValueError
-            If the configuration `version` is not compatible with the current `vampires_dpp` version.
-        """
-        self.config = config
-        self.root_dir = Path(self.config["directory"])
-        self.output_dir = Path(self.config.get("output_directory", self.root_dir))
-        self.logger = logging.getLogger("VPP")
+class Pipeline(PipelineOptions):
+    def __post_init__(self):
+        super().__post_init__()
         # make sure versions match within SemVar
-        if not check_version(self.config["version"], vpp.__version__):
+        if not check_version(self.version, vpp.__version__):
             raise ValueError(
-                f"Input pipeline version ({self.config['version']}) is not compatible with installed version of `vampires_dpp` ({vpp.__version__})."
+                f"Input pipeline version ({self.version}) is not compatible with installed version of `vampires_dpp` ({vpp.__version__})."
             )
+        if self.output_directory is None:
+            self.output_directory = Path.cwd()
+        self.output_directory = Path(self.output_directory)
 
     @classmethod
     def from_file(cls, filename: PathLike):
@@ -99,7 +89,7 @@ class Pipeline:
         """
         with open(filename, "rb") as fh:
             config = tomli.load(fh)
-        return cls(config)
+        return cls(**config)
 
     @classmethod
     def from_str(cls, toml_str: str):
@@ -117,7 +107,7 @@ class Pipeline:
             If the configuration `version` is not compatible with the current `vampires_dpp` version.
         """
         config = tomli.loads(toml_str)
-        return cls(config)
+        return cls(**config)
 
     def to_toml(self, filename: PathLike):
         """
@@ -131,50 +121,136 @@ class Pipeline:
         with open(filename, "wb") as fh:
             tomli_w.dump(self.config, fh)
 
-    def run(self):
+    def make_master_dark(self):
+        # prepare input filenames
+        config = self.master_dark
+        config.process()
+        # make darks for each camera
+        if config.output_directory is not None:
+            outdir = config.output_directory
+        else:
+            outdir = self.output_directory
+
+        with Pool(self.num_proc) as pool:
+            jobs = []
+            for file_info, path in zip(config.file_infos, config.paths):
+                kwds = dict(
+                    output_directory=outdir,
+                    force=config.force,
+                    method=config.collapse,
+                )
+                job = pool.apply_async(make_dark_file, args=(path,), kwds=kwds)
+                jobs.append((file_info.camera, job))
+
+            cam1_darks = []
+            cam2_darks = []
+            for cam, job in tqdm(jobs, desc="Collapsing dark frames"):
+                filename = job.get()
+                if cam == 1:
+                    cam1_darks.append(filename)
+                else:
+                    cam2_darks.append(filename)
+
+        self.master_darks = {1: None, 2: None}
+        if len(cam1_darks) > 0:
+            self.master_darks[1] = outdir / f"master_dark_cam1.fits"
+            collapse_frames_files(
+                cam1_darks, method=config.collapse, output=self.master_darks[1], force=config.force
+            )
+        if len(cam2_darks) > 0:
+            self.master_darks[2] = outdir / f"master_dark_cam2.fits"
+            collapse_frames_files(
+                cam2_darks, method=config.collapse, output=self.master_darks[2], force=config.force
+            )
+
+    def make_master_flat(self):
+        # prepare input filenames
+        config = self.master_flat
+        config.process()
+        # make darks for each camera
+        with Pool(self.num_proc) as pool:
+            jobs = []
+            for file_info, path in zip(config.file_infos, config.paths):
+                dark = self.master_darks[file_info.camera]
+                kwds = dict(
+                    output_directory=config.output_directory,
+                    dark_filename=dark,
+                    force=config.force,
+                    method=config.collapse,
+                )
+                job = pool.apply_async(make_flat_file, args=(path,), kwds=kwds)
+                jobs.append((file_info.camera, job))
+
+            cam1_flats = []
+            cam2_flats = []
+            for cam, job in tqdm(jobs, desc="Collapsing flat frames"):
+                filename = job.get()
+                if cam == 1:
+                    cam1_flats.append(filename)
+                else:
+                    cam2_flats.append(filename)
+
+        self.master_flats = {1: None, 2: None}
+        if len(cam1_flats) > 0:
+            self.master_flats[1] = config.output_directory / f"master_flat_cam1.fits"
+            collapse_frames_files(
+                cam1_flats, method=config.collapse, output=self.master_flats[1], force=config.force
+            )
+        if len(cam2_flats) > 0:
+            self.master_flats[2] = self.output_directory / f"master_flat_cam2.fits"
+            collapse_frames_files(
+                cam2_flats, method=config.collapse, output=self.master_flats[2], force=config.force
+            )
+
+    def run(self, num_proc=None):
         """
         Run the pipeline
         """
+        self.num_proc = num_proc
+        # prepare filenames
+        self.process()
 
-        # set up paths
-        if not self.output_dir.is_dir():
-            self.output_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Output directory is {self.output_directory}")
 
-        self.logger.debug(f"Root directory is {self.root_dir}")
-        self.logger.debug(f"Output directory is {self.output_dir}")
+        ## Create calibration files
+        if self.master_dark is not None:
+            self.make_master_dark()
 
-        ## configure astrometry
-        self.get_frame_centers()
-        self.get_coordinate()
-        ## Step 1: Fix headers and calibrate
-        self.tripwire = False
-        ## Step 1a: create master dark
-        # self.make_darks()
-        ## Step 1b: create master flats
-        # self.make_flats()
-        # self.working_files = []
-        self.working_files = Path("/Volumes/mlucas SSD1/abaur_vampires_20230101/collapsed").glob(
-            "ABAur*_collapsed.fits"
-        )
-        self.output_dir = Path("/Volumes/mlucas SSD1/abaur_vampires_20230101")
-        # self.calibrate()
-        ## Step 2: Frame selection
-        # if "frame_selection" in self.config:
-        #     self.frame_select()
-        # ## 3: Image registration
-        # if "registration" in self.config:
-        #     self.register()
-        # ## Step 4: collapsing
-        # if "collapsing" in self.config:
-        #     self.collapse()
-        # ## Step 7: derotate
-        # if "derotate" in self.config:
-        #     self.derotate()
-        ## Step 8: PDI
-        if "polarimetry" in self.config:
-            self.polarimetry()
+        if self.master_flat is not None:
+            self.make_master_flat()
 
-        self.logger.info("Finished running pipeline")
+        # ## configure astrometry
+        # self.get_frame_centers()
+        # self.get_coordinate()
+        # ## Step 1: Fix headers and calibrate
+        # self.tripwire = False
+        # ## Step 1a: create master dark
+        # # self.make_darks()
+        # ## Step 1b: create master flats
+        # # self.make_flats()
+        # # self.working_files = []
+        # self.working_files = Path("/Volumes/mlucas SSD1/abaur_vampires_20230101/collapsed").glob(
+        #     "ABAur*_collapsed.fits"
+        # )
+        # self.output_dir = Path("/Volumes/mlucas SSD1/abaur_vampires_20230101")
+        # # self.calibrate()
+        # ## Step 2: Frame selection
+        # # if "frame_selection" in self.config:
+        # #     self.frame_select()
+        # # ## 3: Image registration
+        # # if "registration" in self.config:
+        # #     self.register()
+        # # ## Step 4: collapsing
+        # # if "collapsing" in self.config:
+        # #     self.collapse()
+        # # ## Step 7: derotate
+        # # if "derotate" in self.config:
+        # #     self.derotate()
+        # ## Step 8: PDI
+        # if "polarimetry" in self.config:
+        #     self.polarimetry()
+
+        logger.info("Finished running pipeline")
 
     def get_frame_centers(self):
         self.frame_centers = {"cam1": None, "cam2": None}
@@ -187,8 +263,8 @@ class Pipeline:
                 _ctr = np.array(centers_config)[::-1]
                 for k in self.frame_centers.keys():
                     self.frame_centers[k] = _ctr
-        self.logger.debug(f"Cam 1 frame center is {self.frame_centers['cam1']} (y, x)")
-        self.logger.debug(f"Cam 2 frame center is {self.frame_centers['cam2']} (y, x)")
+        logger.debug(f"Cam 1 frame center is {self.frame_centers['cam1']} (y, x)")
+        logger.debug(f"Cam 2 frame center is {self.frame_centers['cam2']} (y, x)")
 
     def get_coordinate(self):
         self.pxscale = PIXEL_SCALE
@@ -240,7 +316,7 @@ class Pipeline:
 
             skip_darks = not dark_config.get("force", False)
             if skip_darks:
-                self.logger.debug("skipping darks if files exist")
+                logger.debug("skipping darks if files exist")
             self.tripwire |= not skip_darks
             for key in ("cam1", "cam2"):
                 if key in dark_config:

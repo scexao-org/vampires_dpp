@@ -39,13 +39,13 @@ def foldername_new(outdir, header):
         case "OBJECT":
             foldname = outdir / header["OBJECT"].replace(" ", "_") / "raw"
         case "DARK":
-            foldname = outdir / "darks"
+            foldname = outdir / "darks" / "raw"
         case "SKYFLAT":
-            foldname = outdir / "skies"
+            foldname = outdir / "skies" / "raw"
         case "FLAT" | "DOMEFLAT":
-            foldname = outdir / "flats"
+            foldname = outdir / "flats" / "raw"
         case "COMPARISON":
-            foldname = outdir / "pinholes"
+            foldname = outdir / "pinholes" / "raw"
         case _:
             foldname = outdir
 
@@ -55,13 +55,13 @@ def foldername_new(outdir, header):
 def foldername_old(outdir, path, header):
     name = header.get("U_OGFNAM", path.name)
     if "dark" in name:
-        foldname = outdir / "darks"
+        foldname = outdir / "darks" / "raw"
     elif "skies" in name or "sky" in name:
-        foldname = outdir / "skies"
+        foldname = outdir / "skies" / "raw"
     elif "flat" in name:
-        foldname = outdir / "flats"
+        foldname = outdir / "flats" / "raw"
     elif "pinhole" in name:
-        foldname = outdir / "pinholes"
+        foldname = outdir / "pinholes" / "raw"
     else:
         foldname = outdir / header["OBJECT"].replace(" ", "_") / "raw"
 
@@ -116,11 +116,9 @@ def new_config(args):
 
 
 def run(args):
-    pass
-    # path = Path(args.config)
-    # pipeline = Pipeline.from_file(path)
-    # # set up logging - INFO in STDOUT, DEBUG in file
-    # # log file in local directory and output directory
+    path = Path(args.config)
+    pipeline = Pipeline.from_file(path)
+    # log file in local directory and output directory
     # pipeline.logger.setLevel(logging.DEBUG)
     # stream_handle = logging.StreamHandler()
     # stream_handle.setLevel(logging.INFO)
@@ -133,8 +131,8 @@ def run(args):
     #     file_handle.setLevel(logging.DEBUG)
     #     file_handle.setFormatter(formatter)
     #     pipeline.logger.addHandler(file_handle)
-    # # run pipeline
-    # pipeline.run()
+    # run pipeline
+    pipeline.run()
 
 
 # set up command line arguments
