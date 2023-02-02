@@ -12,6 +12,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.headers import dict_from_header
 from vampires_dpp.indexing import frame_center
+from vampires_dpp.util import get_paths
 
 
 def shift_frame(data: ArrayLike, shift, **kwargs):
@@ -52,7 +53,7 @@ def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
 
 def distort_frame(data: ArrayLike, matrix, **kwargs):
     default_kwargs = {
-        "flags": cv2.INTER_LINEAR,
+        "flags": cv2.INTER_CUBIC,
         "borderMode": cv2.BORDER_CONSTANT,
         "borderValue": np.nan,
     }
@@ -121,16 +122,16 @@ def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs
     return frame, header
 
 
-def collapse_cube_file(filename, output, skip=False, **kwargs):
-    path = Path(output)
-    if skip and path.is_file():
-        return path
+def collapse_cube_file(filename, force=False, **kwargs):
+    path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
+    if not force and outpath.is_file():
+        return outpath
 
-    cube, header = fits.getdata(filename, header=True)
+    cube, header = fits.getdata(path, header=True)
     frame, header = collapse_cube(cube, header=header, **kwargs)
 
-    fits.writeto(path, frame, header=header, overwrite=True)
-    return path
+    fits.writeto(outpath, frame, header=header, overwrite=True)
+    return outpath
 
 
 def combine_frames(frames, headers=None, **kwargs):
@@ -273,7 +274,7 @@ def correct_distortion(
         center = frame_center(frame)
     # if downsizing, use area resampling to reduce moire effect
     if scale < 1:
-        kwargs.update({"flags": cv2.INTER_NEAREST})
+        frame = cv2.GaussianBlur(frame, sigmaX=0.5 / scale)
     # scale and retate frames with single transform
     M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
     corr_frame = distort_frame(frame, M, **kwargs)

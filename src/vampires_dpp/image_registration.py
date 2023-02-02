@@ -9,6 +9,7 @@ from skimage.registration import phase_cross_correlation
 
 from vampires_dpp.image_processing import shift_cube, shift_frame
 from vampires_dpp.indexing import cutout_slice, frame_center, window_slices
+from vampires_dpp.util import get_paths
 
 
 def satellite_spot_offsets(
@@ -193,19 +194,11 @@ def offset_modelfit(frame, inds, method, fitter=fitting.LevMarLSQFitter()):
     return offset
 
 
-def measure_offsets(
-    filename, method="peak", coronagraphic=False, skip=False, output=None, **kwargs
-):
-    if output is None:
-        path = Path(filename)
-        output = path.with_name(f"{path.stem}_offsets.csv")
-    else:
-        output = Path(output)
-
-    if skip and output.is_file():
-        return output
-
-    cube, header = fits.getdata(filename, header=True)
+def measure_offsets_file(filename, method="peak", coronagraphic=False, force=False, **kwargs):
+    path, outpath = get_paths(filename, suffix="offsets", filetype=".csv", **kwargs)
+    if not force and outpath.is_file():
+        return outpath
+    cube, header = fits.getdata(path, header=True)
     if "VPP_REF" in header:
         refidx = header["VPP_REF"]
     else:
@@ -219,21 +212,17 @@ def measure_offsets(
     # this puts them in (y1, x1, y2, x2, y3, x3, ...) order
     offsets_flat = offsets.reshape(len(offsets), -1)
 
-    np.savetxt(output, offsets_flat, delimiter=",")
-    return output
+    np.savetxt(outpath, offsets_flat, delimiter=",")
+    return outpath
 
 
-def register_file(filename, offset_file, output=None, skip=False, **kwargs):
-    if output is None:
-        path = Path(filename)
-        output = path.with_name(f"{path.stem}_registered{path.suffix}")
-    else:
-        output = Path(output)
+def register_file(filename, offset_file, force=False, **kwargs):
+    path, outpath = get_paths(filename, suffix="aligned", **kwargs)
 
-    if skip and output.is_file():
-        return output
+    if not force and outpath.is_file():
+        return outpath
 
-    cube, header = fits.getdata(filename, header=True)
+    cube, header = fits.getdata(path, header=True)
     offsets_flat = np.loadtxt(offset_file, delimiter=",")
 
     # reshape offsets into a single average
@@ -241,11 +230,12 @@ def register_file(filename, offset_file, output=None, skip=False, **kwargs):
 
     shifted = shift_cube(cube, -offsets)
 
-    fits.writeto(output, shifted, header=header, overwrite=True)
-    return output
+    fits.writeto(outpath, shifted, header=header, overwrite=True)
+    return outpath
 
 
 def coregister_file(filename, offset, output=None, skip=False, **kwargs):
+
     if output is None:
         path = Path(filename)
         output = path.with_name(f"{path.stem}_coreg{path.suffix}")

@@ -66,7 +66,9 @@ def check_version(config: str, vpp: str) -> bool:
     return flag
 
 
-def get_paths(filename, /, suffix=None, outname=None, output_directory=None, **kwargs):
+def get_paths(
+    filename, /, suffix=None, outname=None, output_directory=None, filetype=".fits", **kwargs
+):
     path = Path(filename)
     if output_directory is None:
         output_directory = path.parent
@@ -74,7 +76,7 @@ def get_paths(filename, /, suffix=None, outname=None, output_directory=None, **k
         output_directory = Path(output_directory)
         output_directory.mkdir(parents=True, exist_ok=True)
     if outname is None:
-        outname = path.name.replace(".fit", f"_{suffix}.fit")
+        outname = path.name.replace(".fits", f"_{suffix}{filetype}")
     outpath = output_directory / outname
     return path, outpath
 

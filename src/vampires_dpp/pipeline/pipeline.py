@@ -29,7 +29,7 @@ from vampires_dpp.image_processing import (
     correct_distortion_cube,
     derotate_frame,
 )
-from vampires_dpp.image_registration import measure_offsets, register_file
+from vampires_dpp.image_registration import measure_offsets_file, register_file
 from vampires_dpp.indexing import lamd_to_pixel
 from vampires_dpp.polarization import (
     HWP_POS_STOKES,
@@ -211,20 +211,27 @@ class Pipeline(PipelineOptions):
         # fix headers and calibrate
         if self.calibrate is not None:
             cur_file, tripwire = self._calibrate(path, file_info, tripwire)
-            # if isinstance(cut_file
-        # ## Step 2: Frame selection
-        # # if "frame_selection" in self.config:
-        # #     self.frame_select()
-        # # ## 3: Image registration
-        # # if "registration" in self.config:
-        # #     self.register()
-        # # ## Step 4: collapsing
-        # # if "collapsing" in self.config:
-        # #     self.collapse()
-        # # ## Step 7: derotate
-        # # if "derotate" in self.config:
-        # #     self.derotate()
-        # ## Step 8: PDI
+            if not isinstance(cur_file, str):
+                file_flc1, file_flc2 = cur_file
+                self.process_post_calib(file_flc1, file_info, tripwire)
+                self.process_post_calib(file_flc2, file_info, tripwire)
+            else:
+                self.process_post_calib(cur_file, file_info, tripwire)
+
+    def process_post_calib(self, path, file_info, tripwire=False):
+        ## Step 2: Frame selection
+        # if "frame_selection" in self.config:
+        #     self.frame_select()
+        ## 3: Image registration
+        if self.coregister is not None:
+            path, tripwire = self._coregister(path, file_info, tripwire)
+        ## Step 4: collapsing
+        if self.collapse is not None:
+            path, tripwire = self._collapse(path, file_info, tripwire)
+        # ## Step 7: derotate
+        # if "derotate" in self.config:
+        #     self.derotate()
+        ## Step 8: PDI
         # if "polarimetry" in self.config:
         #     self.polarimetry()
 
@@ -339,32 +346,61 @@ class Pipeline(PipelineOptions):
         return calib_file, tripwire
 
     def _coregister(self, path, file_info, tripwire=False):
-        pass
-        # logger.info("Starting data calibration")
-        # config = self.calibrate
-        # if config.output_directory is not None:
-        #     outdir = config.output_directory
-        # else:
-        #     outdir = self.output_directory
-        # outdir.mkdir(parents=True, exist_ok=True)
-        # logger.debug(f"Saving calibrated data to {outdir.absolute()}")
-        # if config.distortion is not None:
-        #     transform_filename = config.distortion.transform_filename
-        # else:
-        #     transform_filename = None
-        # tripwire |= config.force
-        # calib_file = calibrate_file(
-        #     path,
-        #     dark_filename=self.master_darks[file_info.camera],
-        #     flat_filename=self.master_flats[file_info.camera],
-        #     transform_filename=transform_filename,
-        #     deinterleave=config.deinterleave,
-        #     coord=self.coord,
-        #     output_directory=outdir,
-        #     force=tripwire
-        # )
-        # logger.info("Data calibration completed")
-        # return calib_file, tripwire
+        logger.info("Performing image registration")
+        config = self.coregister
+        if config.output_directory is not None:
+            outdir = config.output_directory
+        else:
+            outdir = self.output_directory
+        outdir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Saving coregistered data to {outdir.absolute()}")
+        tripwire |= config.force
+        if self.coronagraph is not None:
+            offsets_file = measure_offsets_file(
+                path,
+                method=config.method,
+                output_directory=outdir,
+                force=tripwire,
+                coronagraphic=True,
+                radius=self.satspots.radius,
+                theta=self.satspots.angle,
+            )
+        else:
+            offsets_file = measure_offsets_file(
+                path,
+                method=config.method,
+                window=config.window,
+                output_directory=outdir,
+                force=tripwire,
+            )
+
+        reg_file = register_file(
+            path,
+            offsets_file,
+            output_directory=outdir,
+            force=tripwire,
+        )
+        logger.info("Data calibration completed")
+        return reg_file, tripwire
+
+    def _collapse(self, path, file_info, tripwire=False):
+        logger.info("Starting data calibration")
+        config = self.collapse
+        if config.output_directory is not None:
+            outdir = config.output_directory
+        else:
+            outdir = self.output_directory
+        outdir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Saving collapsed data to {outdir.absolute()}")
+        tripwire |= config.force
+        calib_file = collapse_cube_file(
+            path,
+            method=config.method,
+            output_directory=outdir,
+            force=tripwire,
+        )
+        logger.info("Data calibration completed")
+        return calib_file, tripwire
 
     def frame_select(self):
         self.logger.info("Performing frame selection")
