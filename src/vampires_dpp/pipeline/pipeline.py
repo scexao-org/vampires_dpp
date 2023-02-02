@@ -167,13 +167,16 @@ class Pipeline(PipelineOptions):
         # prepare input filenames
         config = self.master_flat
         config.process()
-        # make darks for each camera
+        if config.output_directory is not None:
+            outdir = config.output_directory
+        else:
+            outdir = self.output_directory
         with Pool(self.num_proc) as pool:
             jobs = []
             for file_info, path in zip(config.file_infos, config.paths):
                 dark = self.master_darks[file_info.camera]
                 kwds = dict(
-                    output_directory=config.output_directory,
+                    output_directory=outdir,
                     dark_filename=dark,
                     force=config.force,
                     method=config.collapse,
@@ -192,15 +195,18 @@ class Pipeline(PipelineOptions):
 
         self.master_flats = {1: None, 2: None}
         if len(cam1_flats) > 0:
-            self.master_flats[1] = config.output_directory / f"master_flat_cam1.fits"
+            self.master_flats[1] = outdir / f"master_flat_cam1.fits"
             collapse_frames_files(
                 cam1_flats, method=config.collapse, output=self.master_flats[1], force=config.force
             )
         if len(cam2_flats) > 0:
-            self.master_flats[2] = self.output_directory / f"master_flat_cam2.fits"
+            self.master_flats[2] = outdir / f"master_flat_cam2.fits"
             collapse_frames_files(
                 cam2_flats, method=config.collapse, output=self.master_flats[2], force=config.force
             )
+
+    def process_one(self, path, file_info):
+        return path
 
     def run(self, num_proc=None):
         """
@@ -219,9 +225,18 @@ class Pipeline(PipelineOptions):
         if self.master_flat is not None:
             self.make_master_flat()
 
-        # ## configure astrometry
-        # self.get_frame_centers()
-        # self.get_coordinate()
+        ## configure astrometry
+        self.get_frame_centers()
+        self.get_coordinate()
+
+        ## For each file do
+        with Pool(self.num_proc) as pool:
+            jobs = []
+            for path, file_info in zip(self.paths, self.file_infos):
+                jobs.append(pool.apply_async(self.process_one, args=(path, file_info)))
+
+            for job in tqdm(jobs, desc="Running pipeline"):
+                job.get()
         # ## Step 1: Fix headers and calibrate
         # self.tripwire = False
         # ## Step 1a: create master dark
@@ -253,123 +268,55 @@ class Pipeline(PipelineOptions):
         logger.info("Finished running pipeline")
 
     def get_frame_centers(self):
-        self.frame_centers = {"cam1": None, "cam2": None}
-        if "frame_centers" in self.config:
-            centers_config = self.config["frame_centers"]
-            if isinstance(centers_config, dict):
-                for k in self.frame_centers.keys():
-                    self.frame_centers[k] = np.array(centers_config[k])[::-1]
-            else:
-                _ctr = np.array(centers_config)[::-1]
-                for k in self.frame_centers.keys():
-                    self.frame_centers[k] = _ctr
-        logger.debug(f"Cam 1 frame center is {self.frame_centers['cam1']} (y, x)")
-        logger.debug(f"Cam 2 frame center is {self.frame_centers['cam2']} (y, x)")
+        self.centers = {1: None, 2: None}
+        if self.frame_centers is not None:
+            if self.frame_centers.cam1 is not None:
+                self.centers[1] = np.array(self.frame_centers.cam1)[::-1]
+            if self.frame_centers.cam2 is not None:
+                self.centers[2] = np.array(self.frame_centers.cam2)[::-1]
+        logger.debug(f"Cam 1 frame center is {self.centers[1]} (y, x)")
+        logger.debug(f"Cam 2 frame center is {self.centers[2]} (y, x)")
 
     def get_coordinate(self):
         self.pxscale = PIXEL_SCALE
         self.pupil_offset = PUPIL_OFFSET
         self.coord = None
-        if "astrometry" in self.config:
-            astrom_config = self.config["astrometry"]
-            self.pxscale = astrom_config.get("pixel_scale", PIXEL_SCALE)  # mas/px
-            self.pupil_offset = astrom_config.get("pupil_offset", PUPIL_OFFSET)  # deg
-            # if custom coord
-            if "coord" in astrom_config:
-                coord_dict = astrom_config["coord"]
-                plx = coord_dict.get("plx", None)
-                if plx is not None:
-                    distance = (plx * u.mas).to(u.parsec, equivalencies=u.parallax())
-                else:
-                    distance = None
-                if "pm_ra" in coord_dict:
-                    pm_ra = coord_dict["pm_ra"] * u.mas / u.year
-                else:
-                    pm_ra = None
-                if "pm_dec" in coord_dict:
-                    pm_dec = coord_dict["pm_ra"] * u.mas / u.year
-                else:
-                    pm_dec = None
-                self.coord = SkyCoord(
-                    ra=coord_dict["ra"] * u.deg,
-                    dec=coord_dict["dec"] * u.deg,
-                    pm_ra_cosdec=pm_ra,
-                    pm_dec=pm_dec,
-                    distance=distance,
-                    frame=coord_dict.get("frame", "ICRS"),
-                    obstime=coord_dict.get("obstime", "J2016"),
-                )
-            elif "target" in self.config:
-                self.coord = get_gaia_astrometry(self.config["target"])
-        elif "target" in self.config:
-            # query from GAIA DR3
-            self.coord = get_gaia_astrometry(self.config["target"])
-
-    def make_darks(self):
-        self.master_darks = {"cam1": None, "cam2": None}
-        if "darks" in self.config["calibration"]:
-            dark_config = self.config["calibration"]["darks"]
-            if "output_directory" in dark_config:
-                outdir = self.output_dir / dark_config["output_directory"]
-            else:
-                outdir = self.output_dir / self.config["calibration"].get("output_directory", "")
-
-            skip_darks = not dark_config.get("force", False)
-            if skip_darks:
-                logger.debug("skipping darks if files exist")
-            self.tripwire |= not skip_darks
-            for key in ("cam1", "cam2"):
-                if key in dark_config:
-                    dark_filenames = self.parse_filenames(self.root_dir, dark_config[key])
-                    dark_frames = []
-                    for filename in tqdm.tqdm(dark_filenames, desc=f"Making {key} master darks"):
-                        outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
-                        dark_frames.append(
-                            make_dark_file(filename, output=outname, skip=skip_darks)
-                        )
-                    self.master_darks[key] = (
-                        outdir / f"{self.config['name']}_master_dark_{key}.fits"
-                    )
-                    collapse_frames_files(
-                        dark_frames, method="mean", output=self.master_darks[key], skip=skip_darks
-                    )
-                    self.logger.debug(f"saved master dark to {self.master_darks[key].absolute()}")
-
-    def make_flats(self):
-        self.master_flats = {"cam1": None, "cam2": None}
-        if "flats" in self.config["calibration"]:
-            flat_config = self.config["calibration"]["flats"]
-            if "output_directory" in flat_config:
-                outdir = self.output_dir / flat_config["output_directory"]
-            else:
-                outdir = self.output_dir / self.config["calibration"].get("output_directory", "")
-            # if darks were remade, need to remake flats
-            skip_flats = not tripwire and not flat_config.get("force", False)
-            if skip_flats:
-                self.logger.debug("skipping flats if files exist")
-            tripwire = tripwire or not skip_flats
-            for key in ("cam1", "cam2"):
-                if key in flat_config:
-                    flat_filenames = self.parse_filenames(self.root_dir, flat_config[key])
-                    dark_filename = self.master_darks[key]
-                    flat_frames = []
-                    for filename in tqdm.tqdm(flat_filenames, desc=f"Making {key} master flats"):
-                        outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
-                        flat_frames.append(
-                            make_flat_file(
-                                filename,
-                                dark=dark_filename,
-                                output=outname,
-                                skip=skip_flats,
-                            )
-                        )
-                    self.master_flats[key] = (
-                        outdir / f"{self.config['name']}_master_flat_{key}.fits"
-                    )
-                    collapse_frames_files(
-                        flat_frames, method="mean", output=self.master_flats[key], skip=skip_flats
-                    )
-                    self.logger.debug(f"saved master flat to {self.master_flats[key].absolute()}")
+        if self.target is not None and self.target.strip() != "":
+            self.coord = get_gaia_astrometry(self.target)
+        # if "astrometry" in self.config:
+        #     astrom_config = self.config["astrometry"]
+        #     self.pxscale = astrom_config.get("pixel_scale", PIXEL_SCALE)  # mas/px
+        #     self.pupil_offset = astrom_config.get("pupil_offset", PUPIL_OFFSET)  # deg
+        #     # if custom coord
+        #     if "coord" in astrom_config:
+        #         coord_dict = astrom_config["coord"]
+        #         plx = coord_dict.get("plx", None)
+        #         if plx is not None:
+        #             distance = (plx * u.mas).to(u.parsec, equivalencies=u.parallax())
+        #         else:
+        #             distance = None
+        #         if "pm_ra" in coord_dict:
+        #             pm_ra = coord_dict["pm_ra"] * u.mas / u.year
+        #         else:
+        #             pm_ra = None
+        #         if "pm_dec" in coord_dict:
+        #             pm_dec = coord_dict["pm_ra"] * u.mas / u.year
+        #         else:
+        #             pm_dec = None
+        #         self.coord = SkyCoord(
+        #             ra=coord_dict["ra"] * u.deg,
+        #             dec=coord_dict["dec"] * u.deg,
+        #             pm_ra_cosdec=pm_ra,
+        #             pm_dec=pm_dec,
+        #             distance=distance,
+        #             frame=coord_dict.get("frame", "ICRS"),
+        #             obstime=coord_dict.get("obstime", "J2016"),
+        #         )
+        #     elif "target" in self.config:
+        #         self.coord = get_gaia_astrometry(self.config["target"])
+        # elif "target" in self.config:
+        #     # query from GAIA DR3
+        #     self.coord = get_gaia_astrometry(self.config["target"])
 
     def calibrate(self):
         self.logger.info("Starting data calibration")
