@@ -95,7 +95,7 @@ class FileInfo:
 
     @classmethod
     def from_hdr(cls, header):
-        if "U_OGFNAM" in header:
+        if "U_FLCSTT" in header:
             filetype = FileType.GEN2
         else:
             filetype = FileType.OG

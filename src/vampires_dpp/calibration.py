@@ -3,16 +3,20 @@
 from pathlib import Path
 from typing import Optional
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.stats import biweight_location
+from astropy.time import Time
 from numpy.typing import ArrayLike
 
+from vampires_dpp.constants import SUBARU_LOC
 from vampires_dpp.headers import fix_header
 from vampires_dpp.image_processing import collapse_cube, correct_distortion_cube
 from vampires_dpp.util import get_paths
-from vampires_dpp.wcs import apply_wcs
+from vampires_dpp.wcs import apply_wcs, get_coord_header
 
 
 def calibrate_file(
@@ -23,15 +27,13 @@ def calibrate_file(
     transform_filename: Optional[str] = None,
     force: bool = False,
     deinterleave: bool = False,
+    coord: Optional[SkyCoord] = None,
     **kwargs,
 ):
     path, outpath = get_paths(filename, suffix="calib", **kwargs)
     if not force and outpath.is_file():
         return outpath
     header = fits.getheader(path, hdu)
-    # deinterleaving is forbidden for Gen2 data
-    if "U_OGFNAM" in header:
-        deinterleave = False
     # have to also check if deinterleaving
     if deinterleave:
         outpath_FLC1 = outpath.with_stem(f"{outpath.stem}_FLC1")
@@ -42,8 +44,16 @@ def calibrate_file(
     raw_cube = fits.getdata(path, hdu)
     # fix header
     header = apply_wcs(fix_header(header))
+    time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
+    if coord is None:
+        coord_now = get_coord_header(header, time)
+    else:
+        coord_now = coord.apply_space_motion(time)
+
+    header["RA"] = coord_now.ra.to_string(unit=u.hourangle, sep=":")
+    header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
     # Discard frames in OG VAMPIRES
-    if "U_OGFNAM" in header:
+    if "U_FLCSTT" in header:
         deinterleave = False
         cube = raw_cube.astype("f4")
     else:
@@ -93,7 +103,7 @@ def make_dark_file(filename: str, force=False, **kwargs):
     if not force and outpath.is_file():
         return outpath
     raw_cube, header = fits.getdata(path, ext=0, header=True)
-    if "U_OGFNAM" in header:
+    if "U_FLCSTT" in header:
         cube = raw_cube.astype("f4")
     else:
         cube = raw_cube[1:].astype("f4")
@@ -107,7 +117,7 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     if not force and outpath.is_file():
         return outpath
     raw_cube, header = fits.getdata(path, ext=0, header=True)
-    if "U_OGFNAM" in header:
+    if "U_FLCSTT" in header:
         cube = raw_cube.astype("f4")
     else:
         cube = raw_cube[1:].astype("f4")
@@ -124,5 +134,8 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
 
 
 def filter_empty_frames(cube):
-    inds = np.any(np.isfinite(cube) & cube != 0, axis=(1, 2))
+    finite_mask = np.isfinite(cube)
+    nonzero_mask = cube != 0
+    combined = finite_mask & nonzero_mask
+    inds = np.any(combined, axis=(1, 2))
     return cube[inds]

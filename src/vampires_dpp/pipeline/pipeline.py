@@ -18,7 +18,7 @@ from serde.toml import to_toml
 from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
-from vampires_dpp.calibration import filter_empty_frames, make_dark_file, make_flat_file
+from vampires_dpp.calibration import calibrate_file, make_dark_file, make_flat_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
 from vampires_dpp.headers import fix_header, observation_table
@@ -67,6 +67,8 @@ class Pipeline(PipelineOptions):
         if self.output_directory is None:
             self.output_directory = Path.cwd()
         self.output_directory = Path(self.output_directory)
+        self.master_darks = {1: None, 2: None}
+        self.master_flats = {1: None, 2: None}
 
     @classmethod
     def from_file(cls, filename: PathLike):
@@ -130,7 +132,7 @@ class Pipeline(PipelineOptions):
             outdir = config.output_directory
         else:
             outdir = self.output_directory
-
+        outdir.mkdir(parents=True, exist_ok=True)
         with Pool(self.num_proc) as pool:
             jobs = []
             for file_info, path in zip(config.file_infos, config.paths):
@@ -151,7 +153,6 @@ class Pipeline(PipelineOptions):
                 else:
                     cam2_darks.append(filename)
 
-        self.master_darks = {1: None, 2: None}
         if len(cam1_darks) > 0:
             self.master_darks[1] = outdir / f"master_dark_cam1.fits"
             collapse_frames_files(
@@ -171,6 +172,7 @@ class Pipeline(PipelineOptions):
             outdir = config.output_directory
         else:
             outdir = self.output_directory
+        outdir.mkdir(parents=True, exist_ok=True)
         with Pool(self.num_proc) as pool:
             jobs = []
             for file_info, path in zip(config.file_infos, config.paths):
@@ -193,7 +195,6 @@ class Pipeline(PipelineOptions):
                 else:
                     cam2_flats.append(filename)
 
-        self.master_flats = {1: None, 2: None}
         if len(cam1_flats) > 0:
             self.master_flats[1] = outdir / f"master_flat_cam1.fits"
             collapse_frames_files(
@@ -206,7 +207,26 @@ class Pipeline(PipelineOptions):
             )
 
     def process_one(self, path, file_info):
-        return path
+        tripwire = False
+        # fix headers and calibrate
+        if self.calibrate is not None:
+            cur_file, tripwire = self._calibrate(path, file_info, tripwire)
+            # if isinstance(cut_file
+        # ## Step 2: Frame selection
+        # # if "frame_selection" in self.config:
+        # #     self.frame_select()
+        # # ## 3: Image registration
+        # # if "registration" in self.config:
+        # #     self.register()
+        # # ## Step 4: collapsing
+        # # if "collapsing" in self.config:
+        # #     self.collapse()
+        # # ## Step 7: derotate
+        # # if "derotate" in self.config:
+        # #     self.derotate()
+        # ## Step 8: PDI
+        # if "polarimetry" in self.config:
+        #     self.polarimetry()
 
     def run(self, num_proc=None):
         """
@@ -237,33 +257,6 @@ class Pipeline(PipelineOptions):
 
             for job in tqdm(jobs, desc="Running pipeline"):
                 job.get()
-        # ## Step 1: Fix headers and calibrate
-        # self.tripwire = False
-        # ## Step 1a: create master dark
-        # # self.make_darks()
-        # ## Step 1b: create master flats
-        # # self.make_flats()
-        # # self.working_files = []
-        # self.working_files = Path("/Volumes/mlucas SSD1/abaur_vampires_20230101/collapsed").glob(
-        #     "ABAur*_collapsed.fits"
-        # )
-        # self.output_dir = Path("/Volumes/mlucas SSD1/abaur_vampires_20230101")
-        # # self.calibrate()
-        # ## Step 2: Frame selection
-        # # if "frame_selection" in self.config:
-        # #     self.frame_select()
-        # # ## 3: Image registration
-        # # if "registration" in self.config:
-        # #     self.register()
-        # # ## Step 4: collapsing
-        # # if "collapsing" in self.config:
-        # #     self.collapse()
-        # # ## Step 7: derotate
-        # # if "derotate" in self.config:
-        # #     self.derotate()
-        # ## Step 8: PDI
-        # if "polarimetry" in self.config:
-        #     self.polarimetry()
 
         logger.info("Finished running pipeline")
 
@@ -318,99 +311,60 @@ class Pipeline(PipelineOptions):
         #     # query from GAIA DR3
         #     self.coord = get_gaia_astrometry(self.config["target"])
 
-    def calibrate(self):
-        self.logger.info("Starting data calibration")
-        outdir = self.output_dir / self.config["calibration"].get("output_directory", "")
-        if not outdir.is_dir():
-            outdir.mkdir(parents=True, exist_ok=True)
-        self.logger.debug(f"Saving calibrated data to {outdir.absolute()}")
+    def _calibrate(self, path, file_info, tripwire=False):
+        logger.info("Starting data calibration")
+        config = self.calibrate
+        if config.output_directory is not None:
+            outdir = config.output_directory
+        else:
+            outdir = self.output_directory
+        outdir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Saving calibrated data to {outdir.absolute()}")
+        if config.distortion is not None:
+            transform_filename = config.distortion.transform_filename
+        else:
+            transform_filename = None
+        tripwire |= config.force
+        calib_file = calibrate_file(
+            path,
+            dark_filename=self.master_darks[file_info.camera],
+            flat_filename=self.master_flats[file_info.camera],
+            transform_filename=transform_filename,
+            deinterleave=config.deinterleave,
+            coord=self.coord,
+            output_directory=outdir,
+            force=tripwire,
+        )
+        logger.info("Data calibration completed")
+        return calib_file, tripwire
 
-        ## Step 1c: calibrate files and fix headers
-        filenames = self.parse_filenames(self.root_dir, self.config["filenames"])
-        skip_calib = not self.tripwire and not self.config["calibration"].get("force", False)
-        if skip_calib:
-            self.logger.debug("skipping calibration if files exist")
-        self.tripwire |= not skip_calib
-
-        for filename in tqdm.tqdm(filenames, desc="Calibrating files"):
-            self.logger.debug(f"calibrating {filename.absolute()}")
-            outname = outdir / f"{filename.stem}_calib{filename.suffix}"
-            if self.config["calibration"].get("deinterleave", False):
-                outname_flc1 = outname.with_name(f"{outname.stem}_FLC1{outname.suffix}")
-                outname_flc2 = outname.with_name(f"{outname.stem}_FLC2{outname.suffix}")
-                if skip_calib and outname_flc1.is_file() and outname_flc2.is_file():
-                    self.working_files.extend((outname_flc1, outname_flc2))
-                    continue
-            else:
-                if skip_calib and outname.is_file():
-                    self.working_files.append(outname)
-                    continue
-            raw_cube, header = fits.getdata(filename, header=True)
-            cube = filter_empty_frames(raw_cube)
-            if cube.shape[0] < raw_cube.shape[0] / 2 or cube.shape[0] < 3:
-                self.logger.warning(
-                    f"{filename} will be discarded since it is majority empty frames"
-                )
-                continue
-            header = fix_header(header)
-            time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
-            if self.coord is None:
-                coord_now = get_coord_header(header, time)
-            else:
-                coord_now = self.coord.apply_space_motion(time)
-            header["RA"] = coord_now.ra.to_string(unit=u.hourangle, sep=":")
-            header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
-            header = apply_wcs(header, pxscale=self.pxscale, pupil_offset=self.pupil_offset)
-            cam_key = "cam1" if header["U_CAMERA"] == 1 else "cam2"
-            if self.master_darks[cam_key] is not None:
-                dark_frame = fits.getdata(self.master_darks[cam_key])
-            else:
-                dark_frame = None
-            if self.master_flats[cam_key] is not None:
-                flat_frame = fits.getdata(self.master_flats[cam_key])
-            else:
-                flat_frame = None
-            calib_cube, _ = calibrate(
-                cube,
-                discard=2,
-                dark=dark_frame,
-                flat=flat_frame,
-                flip=(cam_key == "cam1"),  # only flip cam1 data
-            )
-            if "distortion" in self.config["calibration"]:
-                self.logger.debug("Correcting frame distortion")
-                distort_config = self.config["calibration"]["distortion"]
-                distort_file = distort_config["transform"]
-                distort_coeffs = pd.read_csv(distort_file, index_col=0)
-                params = distort_coeffs.loc[cam_key]
-                calib_cube, header = correct_distortion_cube(calib_cube, *params, header=header)
-
-            if self.config["calibration"].get("deinterleave", False):
-                sub_cube_flc1 = calib_cube[::2]
-                header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
-                fits.writeto(outname_flc1, sub_cube_flc1, header, overwrite=True)
-                self.logger.debug(f"saved FLC 1 calibrated data to {outname_flc1.absolute()}")
-                self.working_files.append(outname_flc1)
-
-                sub_cube_flc2 = calib_cube[1::2]
-                header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
-                fits.writeto(outname_flc2, sub_cube_flc2, header, overwrite=True)
-                self.logger.debug(f"saved FLC 2 calibrated data to {outname_flc2.absolute()}")
-                self.working_files.append(outname_flc2)
-            else:
-                fits.writeto(outname, calib_cube, header, overwrite=True)
-                self.logger.debug(f"saved calibrated file at {outname.absolute()}")
-                self.working_files.append(outname)
-
-        # save header table
-        table = observation_table(self.working_files).sort_values("MJD")
-        self.working_files = [self.working_files[i] for i in table.index]
-        table_name = self.output_dir / f"{self.config['name']}_headers.csv"
-        if not table_name.is_file():
-            table.to_csv(table_name)
-        self.logger.debug(f"Saved table of headers to {table_name.absolute()}")
-
-        self.logger.info("Data calibration completed")
+    def _coregister(self, path, file_info, tripwire=False):
+        pass
+        # logger.info("Starting data calibration")
+        # config = self.calibrate
+        # if config.output_directory is not None:
+        #     outdir = config.output_directory
+        # else:
+        #     outdir = self.output_directory
+        # outdir.mkdir(parents=True, exist_ok=True)
+        # logger.debug(f"Saving calibrated data to {outdir.absolute()}")
+        # if config.distortion is not None:
+        #     transform_filename = config.distortion.transform_filename
+        # else:
+        #     transform_filename = None
+        # tripwire |= config.force
+        # calib_file = calibrate_file(
+        #     path,
+        #     dark_filename=self.master_darks[file_info.camera],
+        #     flat_filename=self.master_flats[file_info.camera],
+        #     transform_filename=transform_filename,
+        #     deinterleave=config.deinterleave,
+        #     coord=self.coord,
+        #     output_directory=outdir,
+        #     force=tripwire
+        # )
+        # logger.info("Data calibration completed")
+        # return calib_file, tripwire
 
     def frame_select(self):
         self.logger.info("Performing frame selection")

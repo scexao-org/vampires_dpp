@@ -275,43 +275,6 @@ class PipelineOptions(FileInput, OutputDirectory):
             self.polarimetry = PolarimetryOptions(**self.polarimetry)
 
 
-## Define classes for each config block
-
-# def process(self):
-#     super().process()
-
-#     # make darks for each camera
-#     with Pool(self.num_proc) as pool:
-#         jobs = []
-#         for path in self.paths:
-#             kwds = dict(
-#                 output_directory=self.output_directory, force=self.force, method=self.collapse
-#             )
-#             jobs.append(pool.apply_async(make_dark_file, args=(path,), kwds=kwds))
-
-#         self.cam1_darks = []
-#         self.cam2_darks = []
-#         for job in tqdm(jobs, desc="Collapsing dark frames"):
-#             filename = job.get()
-#             file_info = FileInfo.read(filename)
-#             if file_info.camera == 1:
-#                 self.cam1_darks.append(filename)
-#             else:
-#                 self.cam2_darks.append(filename)
-
-#     self.master_darks = {1: None, 2: None}
-#     if len(self.cam1_darks) > 0:
-#         self.master_darks[1] = self.output_directory / f"master_dark_cam1.fits"
-#         collapse_frames_files(
-#             self.cam1_darks, method=self.collapse, output=self.master_darks[1], force=self.force
-#         )
-#     if len(self.cam2_darks) > 0:
-#         self.master_darks[2] = self.output_directory / f"master_dark_cam2.fits"
-#         collapse_frames_files(
-#             self.cam2_darks, method=self.collapse, output=self.master_darks[2], force=self.force
-#         )
-
-
 @serialize
 @dataclass
 class MasterFlat(FileInput, OutputDirectory):
