@@ -192,7 +192,7 @@ def make_master_dark(
             jobs = []
             for path in filelist:
                 kwds = dict(
-                    output_directory=path.parent / "collapsed",
+                    output_directory=path.parent.parent / "collapsed",
                     force=force,
                     method=collapse,
                 )
@@ -216,8 +216,11 @@ def make_master_flat(
 ) -> List[Path]:
     # prepare input filenames
     file_inputs = sort_calib_files(filenames)
-    master_dark_inputs = sort_calib_files(master_darks)
-    # make darks for each camera
+    master_dark_inputs = {key: None for key in file_inputs.keys()}
+    if master_darks is not None:
+        inputs = sort_calib_files(master_darks)
+        for key in file_inputs.keys():
+            master_dark_inputs[key] = inputs.get(key, None)
     if output_directory is not None:
         outdir = Path(output_directory)
         outdir.mkdir(parents=True, exist_ok=True)
@@ -230,7 +233,7 @@ def make_master_flat(
     with mp.Pool(num_proc) as pool:
         for key, filelist in file_inputs.items():
             cam, gain, exptime = key
-            outname = outdir / f"{name}_em{gain:.0f}_{exptime:06.0f}_cam{cam:.0f}.fits"
+            outname = outdir / f"{name}_em{gain:.0f}_{exptime:09.0f}us_cam{cam:.0f}.fits"
             outnames.append(outname)
             if not force and outname.is_file():
                 continue
@@ -238,14 +241,14 @@ def make_master_flat(
             jobs = []
             for path in filelist:
                 kwds = dict(
-                    output_directory=path.parent / "collapsed",
+                    output_directory=path.parent.parent / "collapsed",
                     dark_filename=master_dark_inputs[key],
                     force=force,
                     method=collapse,
                 )
                 jobs.append(pool.apply_async(make_flat_file, args=(path,), kwds=kwds))
-            iter = jobs if quiet else tqdm(jobs, desc="Collapsing dark frames")
+            iter = jobs if quiet else tqdm(jobs, desc="Collapsing flat frames")
             frames = [job.get() for job in iter]
-            collapse_frames_files(frames, method=collapse, outname=outname, force=force)
+            collapse_frames_files(frames, method=collapse, output=outname, force=force)
 
     return outnames
