@@ -21,6 +21,58 @@ parser = ArgumentParser()
 parser.add_argument("--version", action="store_true", help="print version information")
 subparser = parser.add_subparsers(help="command to run")
 
+# limit default nproc since many operations are
+# throttled by file I/O
+DEFAULT_NPROC = min(mp.cpu_count(), 8)
+
+########## sort ##########
+
+
+def sort(args):
+    outdir = args.output if args.output else Path.cwd()
+    try:
+        ext = int(args.ext)
+    except ValueError:
+        ext = args.ext
+    sort_files(
+        args.filenames,
+        copy=args.copy,
+        ext=ext,
+        output_directory=outdir,
+        num_proc=args.num_proc,
+        quiet=args.quiet,
+    )
+
+
+sort_parser = subparser.add_parser(
+    "sort",
+    aliases="s",
+    help="sort raw VAMPIRES data",
+    description="Sorts raw data based on the data type. This will either use the `DATA-TYP` header value or the `U_OGFNAM` header, depending on when your data was taken.",
+)
+sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
+sort_parser.add_argument(
+    "-o", "--output", help="output directory, if not specified will use current working directory"
+)
+sort_parser.add_argument(
+    "-c", "--copy", action="store_true", help="copy files instead of moving them"
+)
+sort_parser.add_argument("-e", "--ext", default=0, help="FITS extension/HDU to use")
+sort_parser.add_argument(
+    "-j",
+    "--num-proc",
+    type=int,
+    default=DEFAULT_NPROC,
+    help="number of processors to use for multiprocessing (default is %(default)d)",
+)
+sort_parser.add_argument(
+    "-q",
+    "--quiet",
+    action="store_true",
+    help="silence the progress bar",
+)
+sort_parser.set_defaults(func=sort)
+
 ########## new ##########
 
 
@@ -69,43 +121,25 @@ new_parser.add_argument(
 new_parser.add_argument("-s", "--show", action="store_true", help="display generated TOML")
 new_parser.set_defaults(func=new_config)
 
-########## sort ##########
+########## run ##########
 
 
-def sort(args):
-    outdir = args.outdir if args.outdir else Path.cwd()
-    sort_files(
-        args.filenames,
-        copy=args.copy,
-        ext=args.ext,
-        output_directory=outdir,
-        num_proc=args.num_proc,
-        quiet=args.quiet,
-    )
+def run(args):
+    path = Path(args.config)
+    pipeline = Pipeline.from_file(path)
+    pipeline.run(num_proc=args.num_proc)
 
 
-sort_parser = subparser.add_parser("sort", aliases="s", help="sort raw VAMPIRES data")
-sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
-sort_parser.add_argument(
-    "-o", "--output", help="output directory, if not specified will use current working directory"
-)
-sort_parser.add_argument(
-    "-c", "--copy", action="store_true", help="copy files instead of moving them"
-)
-sort_parser.add_argument(
+run_parser = subparser.add_parser("run", aliases="r", help="run the data processing pipeline")
+run_parser.add_argument("config", help="path to configuration file")
+run_parser.add_argument(
     "-j",
     "--num-proc",
     type=int,
-    default=min(mp.cpu_count(), 8),
-    help="number of processers to use for multiprocessing (default is %(default)d)",
+    default=DEFAULT_NPROC,
+    help="number of processors to use for multiprocessing (default is %(default)d)",
 )
-sort_parser.add_argument(
-    "-q",
-    "--quiet",
-    action="store_true",
-    help="silence the progress bar",
-)
-sort_parser.set_defaults(func=sort)
+run_parser.set_defaults(func=run)
 
 ########## table ##########
 
@@ -127,7 +161,10 @@ def table(args):
 
 
 table_parser = subparser.add_parser(
-    description="Go through each file and combine the header information into a single CSV."
+    "table",
+    aliases="t",
+    help="create CSV from headers",
+    description="Go through each file and combine the header information into a single CSV.",
 )
 table_parser.add_argument("filenames", nargs="+", help="FITS files to parse headers from")
 table_parser.add_argument(
@@ -136,11 +173,11 @@ table_parser.add_argument(
     default="header_table.csv",
     help="Output CSV filename (default is '%(default)s')",
 )
-table_parser.add_argument("-e", "--ext", help="FITS extension/HDU to use")
+table_parser.add_argument("-e", "--ext", default=0, help="FITS extension/HDU to use")
 table_parser.add_argument(
     "-j",
     "--num-proc",
-    default=min(8, mp.cpu_count()),
+    default=DEFAULT_NPROC,
     type=int,
     help="Number of processes to use for multi-processing (default is %(default)d)",
 )
@@ -150,34 +187,7 @@ table_parser.add_argument(
     action="store_true",
     help="silence the progress bar",
 )
-table_parser.set_default(func=table)
-
-########## run ##########
-
-# default "main" run function
-def run(args):
-    path = Path(args.config)
-    pipeline = Pipeline.from_file(path)
-    # log file in local directory and output directory
-    # pipeline.logger.setLevel(logging.DEBUG)
-    # stream_handle = logging.StreamHandler()
-    # stream_handle.setLevel(logging.INFO)
-    # stream_handle.setFormatter(formatter)
-    # pipeline.logger.addHandler(stream_handle)
-    # log_filename = f"{path.stem}_debug.log"
-    # log_files = path.parent / log_filename, pipeline.output_dir / log_filename
-    # for log_file in log_files:
-    #     file_handle = logging.FileHandler(log_file, mode="w")
-    #     file_handle.setLevel(logging.DEBUG)
-    #     file_handle.setFormatter(formatter)
-    #     pipeline.logger.addHandler(file_handle)
-    # run pipeline
-    pipeline.run()
-
-
-run_parser = subparser.add_parser("run", aliases="r", help="run the data processing pipeline")
-run_parser.add_argument("config", help="path to configuration file")
-run_parser.set_defaults(func=run)
+table_parser.set_defaults(func=table)
 
 ########## main ##########
 
@@ -186,7 +196,10 @@ def main():
     args = parser.parse_args()
     if args.version:
         return vpp.__version__
-    args.func(args)
+    if hasattr(args, "func"):
+        return args.func(args)
+    # no inputs, print help
+    parser.print_help()
 
 
 if __name__ == "__main__":
