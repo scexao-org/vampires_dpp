@@ -6,6 +6,8 @@ from pathlib import Path
 from serde.toml import to_toml
 
 import vampires_dpp as vpp
+from vampires_dpp.calibration import make_master_dark, make_master_flat
+from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import CoronagraphOptions, SatspotOptions
 from vampires_dpp.pipeline.pipeline import Pipeline
@@ -20,10 +22,6 @@ formatter = logging.Formatter(
 parser = ArgumentParser()
 parser.add_argument("--version", action="store_true", help="print version information")
 subparser = parser.add_subparsers(help="command to run")
-
-# limit default nproc since many operations are
-# throttled by file I/O
-DEFAULT_NPROC = min(mp.cpu_count(), 8)
 
 ########## sort ##########
 
@@ -72,6 +70,65 @@ sort_parser.add_argument(
     help="silence the progress bar",
 )
 sort_parser.set_defaults(func=sort)
+
+########## calib ##########
+
+
+def calib(args):
+    outdir = args.output if args.output else Path.cwd()
+
+    master_darks = master_flats = None
+    if len(args.darks) > 0:
+        master_darks = make_master_dark(
+            args.darks,
+            collapse=args.collapse,
+            force=args.force,
+            output_directory=outdir,
+            quiet=args.quiet,
+            num_proc=args.num_proc,
+            name=args.name,
+        )
+    if len(args.flats) > 0:
+        master_flats = make_master_flat(
+            args.flats,
+            collapse=args.collapse,
+            master_darks=master_darks,
+            force=args.force,
+            output_directory=outdir,
+            quiet=args.quiet,
+            num_proc=args.num_proc,
+            name=args.name,
+        )
+
+
+calib_parser = subparser.add_parser(
+    "calib",
+    aliases="c",
+    help="create calibration files",
+    description="Create calibration files from darks and flats.",
+)
+calib_parser.add_argument("--darks", nargs="*", help="FITS files to use as dark frames")
+calib_parser.add_argument("--flats", nargs="*", help="FITS files to use as flat frames")
+calib_parser.add_argument(
+    "-c", "--collapse", default="median", choices=("median", "mean", "varmean", "biweight")
+)
+calib_parser.add_argument(
+    "-o", "--output", help="output directory, if not specified will use current working directory"
+)
+calib_parser.add_argument(
+    "-j",
+    "--num-proc",
+    type=int,
+    default=DEFAULT_NPROC,
+    help="number of processors to use for multiprocessing (default is %(default)d)",
+)
+calib_parser.add_argument(
+    "-q",
+    "--quiet",
+    action="store_true",
+    help="silence the progress bar",
+)
+calib_parser.set_defaults(func=calib)
 
 ########## new ##########
 

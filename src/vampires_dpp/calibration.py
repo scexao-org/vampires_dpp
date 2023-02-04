@@ -1,7 +1,9 @@
 # library functions for common calibration tasks like
 # dark subtraction, collapsing cubes
+import multiprocessing as mp
+from os import PathLike
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 import astropy.units as u
 import numpy as np
@@ -10,13 +12,25 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.stats import biweight_location
 from astropy.time import Time
-from numpy.typing import ArrayLike
+from tqdm.auto import tqdm
 
-from vampires_dpp.constants import SUBARU_LOC
+from vampires_dpp.constants import DEFAULT_NPROC, SUBARU_LOC
 from vampires_dpp.headers import fix_header
-from vampires_dpp.image_processing import collapse_cube, correct_distortion_cube
+from vampires_dpp.image_processing import (
+    collapse_cube,
+    collapse_frames_files,
+    correct_distortion_cube,
+)
 from vampires_dpp.util import get_paths
 from vampires_dpp.wcs import apply_wcs, get_coord_header
+
+
+def filter_empty_frames(cube):
+    finite_mask = np.isfinite(cube)
+    nonzero_mask = cube != 0
+    combined = finite_mask & nonzero_mask
+    inds = np.any(combined, axis=(1, 2))
+    return cube[inds]
 
 
 def calibrate_file(
@@ -133,9 +147,105 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     return outpath
 
 
-def filter_empty_frames(cube):
-    finite_mask = np.isfinite(cube)
-    nonzero_mask = cube != 0
-    combined = finite_mask & nonzero_mask
-    inds = np.any(combined, axis=(1, 2))
-    return cube[inds]
+def sort_calib_files(filenames: List[PathLike]) -> Dict[Tuple, Path]:
+    darks_dict = {}
+    for filename in filenames:
+        path = Path(filename)
+        header = fits.getheader(path)
+        key = (header["U_CAMERA"], header["U_EMGAIN"], header["EXPTIME"])
+        if key in darks_dict:
+            darks_dict[key].append(path)
+        else:
+            darks_dict[key] = [path]
+    return darks_dict
+
+
+def make_master_dark(
+    filenames: List[PathLike],
+    collapse: str = "median",
+    name: str = "master_dark",
+    force: bool = False,
+    output_directory: Optional[PathLike] = None,
+    num_proc: int = DEFAULT_NPROC,
+    quiet: bool = False,
+) -> List[Path]:
+    # prepare input filenames
+    file_inputs = sort_calib_files(filenames)
+    # make darks for each camera
+    if output_directory is not None:
+        outdir = Path(output_directory)
+        outdir.mkdir(parents=True, exist_ok=True)
+    else:
+        outdir = Path.cwd()
+
+    # get names for master darks and remove
+    # files from queue if they exist
+    outnames = []
+    with mp.Pool(num_proc) as pool:
+        for key, filelist in file_inputs.items():
+            cam, gain, exptime = key
+            outname = outdir / f"{name}_em{gain:.0f}_{exptime:06.0f}_cam{cam:d}.fits"
+            outnames.append(outname)
+            if not force and outname.is_file():
+                continue
+            # collapse the files required for each dark
+            jobs = []
+            for path in filelist:
+                kwds = dict(
+                    output_directory=outdir,
+                    force=force,
+                    method=collapse,
+                )
+                jobs.append(pool.apply_async(make_dark_file, args=(path,), kwds=kwds))
+            iter = jobs if quiet else tqdm(jobs, desc="Collapsing dark frames")
+            frames = [job.get() for job in iter]
+            collapse_frames_files(frames, method=collapse, outname=outname, force=force)
+
+    return outnames
+
+
+def make_master_flat(
+    filenames: List[PathLike],
+    master_darks: Optional[List[PathLike]] = None,
+    collapse: str = "median",
+    name: str = "master_flat",
+    force: bool = False,
+    output_directory: Optional[PathLike] = None,
+    num_proc: int = DEFAULT_NPROC,
+    quiet: bool = False,
+) -> List[Path]:
+    # prepare input filenames
+    file_inputs = sort_calib_files(filenames)
+    master_dark_inputs = sort_calib_files(master_darks)
+    # make darks for each camera
+    if output_directory is not None:
+        outdir = Path(output_directory)
+        outdir.mkdir(parents=True, exist_ok=True)
+    else:
+        outdir = Path.cwd()
+
+    # get names for master darks and remove
+    # files from queue if they exist
+    outnames = []
+    with mp.Pool(num_proc) as pool:
+        for key, filelist in file_inputs.items():
+            cam, gain, exptime = key
+            outname = outdir / f"{name}_em{gain:.0f}_{exptime:06.0f}_cam{cam:d}.fits"
+            outnames.append(outname)
+            if not force and outname.is_file():
+                continue
+            # collapse the files required for each dark
+            jobs = []
+            for path in filelist:
+                kwds = dict(
+                    output_directory=outdir,
+                    dark_filename=master_dark_inputs[key],
+                    force=force,
+                    method=collapse,
+                )
+                jobs.append(pool.apply_async(make_flat_file, args=(path,), kwds=kwds))
+            iter = jobs if quiet else tqdm(jobs, desc="Collapsing dark frames")
+            frames = [job.get() for job in iter]
+            collapse_frames_files(frames, method=collapse, outname=outname, force=force)
+
+    return outnames

@@ -1,3 +1,5 @@
+from multiprocessing import cpu_count
+
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import EarthLocation
@@ -16,3 +18,7 @@ FILTER_ANGULAR_SIZE = {
     "750-50": np.rad2deg(750e-9 / 7.79) * 3.6e6,
     "775-50": np.rad2deg(775e-9 / 7.79) * 3.6e6,
 }
+
+# limit default nproc since many operations are
+# throttled by file I/O
+DEFAULT_NPROC = min(cpu_count(), 8)
