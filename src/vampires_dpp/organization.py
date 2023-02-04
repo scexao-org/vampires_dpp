@@ -10,7 +10,7 @@ from astropy.io import fits
 from tqdm.auto import tqdm
 
 
-def dict_from_header_file(filename: PathLike, **kwargs):
+def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     """
     Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
@@ -33,7 +33,7 @@ def dict_from_header_file(filename: PathLike, **kwargs):
     return summary
 
 
-def dict_from_header(header: fits.Header):
+def dict_from_header(header: fits.Header) -> OrderedDict:
     """
     Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
