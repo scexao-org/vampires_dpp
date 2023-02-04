@@ -152,7 +152,7 @@ def sort_calib_files(filenames: List[PathLike]) -> Dict[Tuple, Path]:
     for filename in filenames:
         path = Path(filename)
         header = fits.getheader(path)
-        key = (header["U_CAMERA"], header["U_EMGAIN"], header["EXPTIME"])
+        key = (header["U_CAMERA"], header["U_EMGAIN"], header["U_AQTINT"])
         if key in darks_dict:
             darks_dict[key].append(path)
         else:
@@ -184,7 +184,7 @@ def make_master_dark(
     with mp.Pool(num_proc) as pool:
         for key, filelist in file_inputs.items():
             cam, gain, exptime = key
-            outname = outdir / f"{name}_em{gain:.0f}_{exptime:06.0f}_cam{cam:d}.fits"
+            outname = outdir / f"{name}_em{gain:.0f}_{exptime:09.0f}us_cam{cam:.0f}.fits"
             outnames.append(outname)
             if not force and outname.is_file():
                 continue
@@ -192,14 +192,14 @@ def make_master_dark(
             jobs = []
             for path in filelist:
                 kwds = dict(
-                    output_directory=outdir,
+                    output_directory=path.parent / "collapsed",
                     force=force,
                     method=collapse,
                 )
                 jobs.append(pool.apply_async(make_dark_file, args=(path,), kwds=kwds))
             iter = jobs if quiet else tqdm(jobs, desc="Collapsing dark frames")
             frames = [job.get() for job in iter]
-            collapse_frames_files(frames, method=collapse, outname=outname, force=force)
+            collapse_frames_files(frames, method=collapse, output=outname, force=force)
 
     return outnames
 
@@ -230,7 +230,7 @@ def make_master_flat(
     with mp.Pool(num_proc) as pool:
         for key, filelist in file_inputs.items():
             cam, gain, exptime = key
-            outname = outdir / f"{name}_em{gain:.0f}_{exptime:06.0f}_cam{cam:d}.fits"
+            outname = outdir / f"{name}_em{gain:.0f}_{exptime:06.0f}_cam{cam:.0f}.fits"
             outnames.append(outname)
             if not force and outname.is_file():
                 continue
@@ -238,7 +238,7 @@ def make_master_flat(
             jobs = []
             for path in filelist:
                 kwds = dict(
-                    output_directory=outdir,
+                    output_directory=path.parent / "collapsed",
                     dark_filename=master_dark_inputs[key],
                     force=force,
                     method=collapse,

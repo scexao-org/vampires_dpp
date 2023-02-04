@@ -78,7 +78,7 @@ def calib(args):
     outdir = args.output if args.output else Path.cwd()
 
     master_darks = master_flats = None
-    if len(args.darks) > 0:
+    if args.darks is not None:
         master_darks = make_master_dark(
             args.darks,
             collapse=args.collapse,
@@ -86,9 +86,8 @@ def calib(args):
             output_directory=outdir,
             quiet=args.quiet,
             num_proc=args.num_proc,
-            name=args.name,
         )
-    if len(args.flats) > 0:
+    if args.flats is not None:
         master_flats = make_master_flat(
             args.flats,
             collapse=args.collapse,
@@ -97,7 +96,6 @@ def calib(args):
             output_directory=outdir,
             quiet=args.quiet,
             num_proc=args.num_proc,
-            name=args.name,
         )
 
 
@@ -114,6 +112,9 @@ calib_parser.add_argument(
 )
 calib_parser.add_argument(
     "-o", "--output", help="output directory, if not specified will use current working directory"
+)
+calib_parser.add_argument(
+    "-f", "--force", action="store_true", help="Force recomputation and overwrite existing files."
 )
 calib_parser.add_argument(
     "-j",
