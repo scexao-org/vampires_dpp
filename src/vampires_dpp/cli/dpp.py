@@ -1,14 +1,12 @@
 import logging
 import multiprocessing as mp
-import shutil
 from argparse import ArgumentParser
 from pathlib import Path
 
-from astropy.io import fits
 from serde.toml import to_toml
 
 import vampires_dpp as vpp
-from vampires_dpp.organization import header_table
+from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import CoronagraphOptions, SatspotOptions
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import *
@@ -18,35 +16,12 @@ formatter = logging.Formatter(
     "%(asctime)s|%(name)s|%(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-# default "main" run function
-def run(args):
-    path = Path(args.config)
-    pipeline = Pipeline.from_file(path)
-    # log file in local directory and output directory
-    # pipeline.logger.setLevel(logging.DEBUG)
-    # stream_handle = logging.StreamHandler()
-    # stream_handle.setLevel(logging.INFO)
-    # stream_handle.setFormatter(formatter)
-    # pipeline.logger.addHandler(stream_handle)
-    # log_filename = f"{path.stem}_debug.log"
-    # log_files = path.parent / log_filename, pipeline.output_dir / log_filename
-    # for log_file in log_files:
-    #     file_handle = logging.FileHandler(log_file, mode="w")
-    #     file_handle.setLevel(logging.DEBUG)
-    #     file_handle.setFormatter(formatter)
-    #     pipeline.logger.addHandler(file_handle)
-    # run pipeline
-    pipeline.run()
-
-
 # set up command line arguments
 parser = ArgumentParser()
 parser.add_argument("--version", action="store_true", help="print version information")
 subparser = parser.add_subparsers(help="command to run")
 
-run_parser = subparser.add_parser("run", aliases="r", help="run the data processing pipeline")
-run_parser.add_argument("config", help="path to configuration file")
-run_parser.set_defaults(func=run)
+########## new ##########
 
 
 def new_config(args):
@@ -94,6 +69,21 @@ new_parser.add_argument(
 new_parser.add_argument("-s", "--show", action="store_true", help="display generated TOML")
 new_parser.set_defaults(func=new_config)
 
+########## sort ##########
+
+
+def sort(args):
+    outdir = args.outdir if args.outdir else Path.cwd()
+    sort_files(
+        args.filenames,
+        copy=args.copy,
+        ext=args.ext,
+        output_directory=outdir,
+        num_proc=args.num_proc,
+        quiet=args.quiet,
+    )
+
+
 sort_parser = subparser.add_parser("sort", aliases="s", help="sort raw VAMPIRES data")
 sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
 sort_parser.add_argument(
@@ -102,7 +92,6 @@ sort_parser.add_argument(
 sort_parser.add_argument(
     "-c", "--copy", action="store_true", help="copy files instead of moving them"
 )
-sort_parser.set_defaults(func=sort)
 sort_parser.add_argument(
     "-j",
     "--num-proc",
@@ -110,6 +99,15 @@ sort_parser.add_argument(
     default=min(mp.cpu_count(), 8),
     help="number of processers to use for multiprocessing (default is %(default)d)",
 )
+sort_parser.add_argument(
+    "-q",
+    "--quiet",
+    action="store_true",
+    help="silence the progress bar",
+)
+sort_parser.set_defaults(func=sort)
+
+########## table ##########
 
 
 def table(args):
@@ -153,6 +151,35 @@ table_parser.add_argument(
     help="silence the progress bar",
 )
 table_parser.set_default(func=table)
+
+########## run ##########
+
+# default "main" run function
+def run(args):
+    path = Path(args.config)
+    pipeline = Pipeline.from_file(path)
+    # log file in local directory and output directory
+    # pipeline.logger.setLevel(logging.DEBUG)
+    # stream_handle = logging.StreamHandler()
+    # stream_handle.setLevel(logging.INFO)
+    # stream_handle.setFormatter(formatter)
+    # pipeline.logger.addHandler(stream_handle)
+    # log_filename = f"{path.stem}_debug.log"
+    # log_files = path.parent / log_filename, pipeline.output_dir / log_filename
+    # for log_file in log_files:
+    #     file_handle = logging.FileHandler(log_file, mode="w")
+    #     file_handle.setLevel(logging.DEBUG)
+    #     file_handle.setFormatter(formatter)
+    #     pipeline.logger.addHandler(file_handle)
+    # run pipeline
+    pipeline.run()
+
+
+run_parser = subparser.add_parser("run", aliases="r", help="run the data processing pipeline")
+run_parser.add_argument("config", help="path to configuration file")
+run_parser.set_defaults(func=run)
+
+########## main ##########
 
 
 def main():

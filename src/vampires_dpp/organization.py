@@ -97,13 +97,14 @@ def header_table(
 
 
 # set up commands for parser to dispatch to
-def sort(
+def sort_files(
     filenames: List[PathLike],
     copy: bool = False,
-    ext: int | str = 0,
     output_directory: Optional[PathLike] = None,
-    num_proc=min(8, mp.cpu_count()),
-):
+    num_proc: int = min(8, mp.cpu_count()),
+    quiet: bool = False,
+    **kwargs
+) -> List[Path]:
     if output_directory is not None:
         outdir = Path(output_directory)
     else:
@@ -111,15 +112,16 @@ def sort(
     jobs = []
     with mp.Pool(num_proc) as pool:
         for filename in filenames:
-            kwds = dict(outdir=outdir, copy=copy)
+            kwds = dict(outdir=outdir, copy=copy, **kwargs)
             jobs.append(pool.apply_async(sort_file, args=(filename,), kwds=kwds))
 
-        results = [job.get() for job in tqdm(jobs, desc="Sorting files")]
+        iter = jobs if quiet else tqdm(jobs, desc="Sorting files")
+        results = [job.get() for job in iter]
 
     return results
 
 
-def sort_file(filename, outdir, copy=False, **kwargs):
+def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs) -> Path:
     path = Path(filename)
     header = fits.getheader(path, **kwargs)
 
@@ -136,9 +138,10 @@ def sort_file(filename, outdir, copy=False, **kwargs):
         shutil.copy(path, newname)
     else:
         path.replace(newname)
+    return newname
 
 
-def foldername_new(outdir, header, subdir="raw"):
+def foldername_new(outdir: PathLike, header: fits.Header, subdir: PathLike = "raw"):
     match header["DATA-TYP"]:
         case "OBJECT":
             foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
@@ -158,7 +161,7 @@ def foldername_new(outdir, header, subdir="raw"):
     return foldname
 
 
-def foldername_old(outdir, path, header, subdir="raw"):
+def foldername_old(outdir: PathLike, path: Path, header: fits.Header, subdir: PathLike = "raw"):
     name = header.get("U_OGFNAM", path.name)
     if "dark" in name:
         foldname = outdir / "darks" / subdir
