@@ -1,5 +1,5 @@
 # Organization
 
 ```{eval-rst}
-.. autofunction:: vampires_dpp.headers.observation_table
+.. autofunction:: vampires_dpp.organization.header_table
 ```

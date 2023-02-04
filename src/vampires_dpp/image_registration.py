@@ -202,7 +202,7 @@ def measure_offsets_file(filename, method="peak", coronagraphic=False, force=Fal
     if "VPP_REF" in header:
         refidx = header["VPP_REF"]
     else:
-        refidx = cube.max((-2, -1)).argmax()
+        refidx = np.nanargmax(np.nanmax(cube, axis=(-2, -1)))
     if coronagraphic:
         offsets = satellite_spot_offsets(cube, method=method, refidx=refidx, **kwargs)
     else:

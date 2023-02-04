@@ -2,10 +2,13 @@ from pathlib import Path
 
 from astropy.io import fits
 
-from vampires_dpp.headers import dict_from_header, observation_table
+from vampires_dpp.organization import dict_from_header, header_table
 
 TEST_DIR = Path(__file__).parent
 TEST_FILE = Path(TEST_DIR, "data", "VMPA00021059.fits")
+
+## TODO I don't need to use real data for this. Mock it up.
+## consider putting tests in software-main and then porting here
 
 
 def test_dict_from_header():
@@ -130,8 +133,8 @@ def test_dict_from_header():
     )
 
 
-def test_observation_table():
-    table = observation_table([TEST_FILE, TEST_FILE])
+def test_header_table():
+    table = header_table([TEST_FILE, TEST_FILE])
     assert len(table) == 2
     summary = table.iloc[0]
     assert summary["path"] == Path(TEST_FILE).resolve()

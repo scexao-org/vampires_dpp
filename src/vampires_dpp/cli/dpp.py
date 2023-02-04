@@ -6,9 +6,9 @@ from pathlib import Path
 
 from astropy.io import fits
 from serde.toml import to_toml
-from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
+from vampires_dpp.organization import header_table
 from vampires_dpp.pipeline.config import CoronagraphOptions, SatspotOptions
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import *
@@ -18,72 +18,35 @@ formatter = logging.Formatter(
     "%(asctime)s|%(name)s|%(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-# set up commands for parser to dispatch to
-def sort(args):
-    if args.output:
-        outdir = Path(args.output)
-    else:
-        outdir = Path.cwd()
-    jobs = []
-    with mp.Pool(args.num_proc) as pool:
-        for filename in args.filenames:
-            kwds = dict(outdir=outdir, copy=args.copy)
-            jobs.append(pool.apply_async(sort_file, args=(filename,), kwds=kwds))
-
-        for job in tqdm(jobs, desc="Sorting files"):
-            job.get()
-
-
-def foldername_new(outdir, header):
-    match header["DATA-TYP"]:
-        case "OBJECT":
-            foldname = outdir / header["OBJECT"].replace(" ", "_") / "raw"
-        case "DARK":
-            foldname = outdir / "darks" / "raw"
-        case "SKYFLAT":
-            foldname = outdir / "skies" / "raw"
-        case "FLAT" | "DOMEFLAT":
-            foldname = outdir / "flats" / "raw"
-        case "COMPARISON":
-            foldname = outdir / "pinholes" / "raw"
-        case _:
-            foldname = outdir
-
-    return foldname
+# default "main" run function
+def run(args):
+    path = Path(args.config)
+    pipeline = Pipeline.from_file(path)
+    # log file in local directory and output directory
+    # pipeline.logger.setLevel(logging.DEBUG)
+    # stream_handle = logging.StreamHandler()
+    # stream_handle.setLevel(logging.INFO)
+    # stream_handle.setFormatter(formatter)
+    # pipeline.logger.addHandler(stream_handle)
+    # log_filename = f"{path.stem}_debug.log"
+    # log_files = path.parent / log_filename, pipeline.output_dir / log_filename
+    # for log_file in log_files:
+    #     file_handle = logging.FileHandler(log_file, mode="w")
+    #     file_handle.setLevel(logging.DEBUG)
+    #     file_handle.setFormatter(formatter)
+    #     pipeline.logger.addHandler(file_handle)
+    # run pipeline
+    pipeline.run()
 
 
-def foldername_old(outdir, path, header):
-    name = header.get("U_OGFNAM", path.name)
-    if "dark" in name:
-        foldname = outdir / "darks" / "raw"
-    elif "skies" in name or "sky" in name:
-        foldname = outdir / "skies" / "raw"
-    elif "flat" in name:
-        foldname = outdir / "flats" / "raw"
-    elif "pinhole" in name:
-        foldname = outdir / "pinholes" / "raw"
-    else:
-        foldname = outdir / header["OBJECT"].replace(" ", "_") / "raw"
+# set up command line arguments
+parser = ArgumentParser()
+parser.add_argument("--version", action="store_true", help="print version information")
+subparser = parser.add_subparsers(help="command to run")
 
-    return foldname
-
-
-def sort_file(filename, outdir, copy=False):
-    path = Path(filename)
-    with fits.open(path) as hdus:
-        header = hdus[0].header
-
-    if header["DATA-TYP"] == "ACQUISITION":
-        foldname = foldername_old(outdir, path, header)
-    else:
-        foldname = foldername_new(outdir, header)
-
-    newname = foldname / path.name
-    foldname.mkdir(parents=True, exist_ok=True)
-    if copy:
-        shutil.copy(path, newname)
-    else:
-        path.replace(newname)
+run_parser = subparser.add_parser("run", aliases="r", help="run the data processing pipeline")
+run_parser.add_argument("config", help="path to configuration file")
+run_parser.set_defaults(func=run)
 
 
 def new_config(args):
@@ -115,48 +78,7 @@ def new_config(args):
     return path
 
 
-def run(args):
-    path = Path(args.config)
-    pipeline = Pipeline.from_file(path)
-    # log file in local directory and output directory
-    # pipeline.logger.setLevel(logging.DEBUG)
-    # stream_handle = logging.StreamHandler()
-    # stream_handle.setLevel(logging.INFO)
-    # stream_handle.setFormatter(formatter)
-    # pipeline.logger.addHandler(stream_handle)
-    # log_filename = f"{path.stem}_debug.log"
-    # log_files = path.parent / log_filename, pipeline.output_dir / log_filename
-    # for log_file in log_files:
-    #     file_handle = logging.FileHandler(log_file, mode="w")
-    #     file_handle.setLevel(logging.DEBUG)
-    #     file_handle.setFormatter(formatter)
-    #     pipeline.logger.addHandler(file_handle)
-    # run pipeline
-    pipeline.run()
-
-
-# set up command line arguments
-parser = ArgumentParser()
-parser.add_argument(
-    "-j",
-    "--num-proc",
-    type=int,
-    default=min(mp.cpu_count(), 8),
-    help="number of processers to use for multiprocessing (default is %(default)d)",
-)
-parser.add_argument("--version", action="store_true", help="print version information")
-subp = parser.add_subparsers(help="command to run")
-sort_parser = subp.add_parser("sort", aliases="s", help="sort raw VAMPIRES data")
-sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
-sort_parser.add_argument(
-    "-o", "--output", help="output directory, if not specified will use current working directory"
-)
-sort_parser.add_argument(
-    "-c", "--copy", action="store_true", help="copy files instead of moving them"
-)
-sort_parser.set_defaults(func=sort)
-
-new_parser = subp.add_parser("new", aliases="n", help="generate configuration files")
+new_parser = subparser.add_parser("new", aliases="n", help="generate configuration files")
 new_parser.add_argument("config", help="path to configuration file")
 new_parser.add_argument(
     "-t",
@@ -172,9 +94,65 @@ new_parser.add_argument(
 new_parser.add_argument("-s", "--show", action="store_true", help="display generated TOML")
 new_parser.set_defaults(func=new_config)
 
-run_parser = subp.add_parser("run", aliases="r", help="run the data processing pipeline")
-run_parser.add_argument("config", help="path to configuration file")
-run_parser.set_defaults(func=run)
+sort_parser = subparser.add_parser("sort", aliases="s", help="sort raw VAMPIRES data")
+sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
+sort_parser.add_argument(
+    "-o", "--output", help="output directory, if not specified will use current working directory"
+)
+sort_parser.add_argument(
+    "-c", "--copy", action="store_true", help="copy files instead of moving them"
+)
+sort_parser.set_defaults(func=sort)
+sort_parser.add_argument(
+    "-j",
+    "--num-proc",
+    type=int,
+    default=min(mp.cpu_count(), 8),
+    help="number of processers to use for multiprocessing (default is %(default)d)",
+)
+
+
+def table(args):
+    # handle name clashes
+    outpath = Path(args.output).resolve()
+    if outpath.is_file():
+        resp = input(f"{outpath.name} already exists in the output directory. Overwrite? [y/N]: ")
+        if resp.strip().lower() != "y":
+            return
+    # tryparse ext as int
+    try:
+        ext = int(args.ext)
+    except ValueError:
+        ext = args.ext
+    df = header_table(args.filenames, ext=ext, num_proc=args.num_proc, quiet=args.quiet)
+    df.to_csv(outpath)
+
+
+table_parser = subparser.add_parser(
+    description="Go through each file and combine the header information into a single CSV."
+)
+table_parser.add_argument("filenames", nargs="+", help="FITS files to parse headers from")
+table_parser.add_argument(
+    "-o",
+    "--output",
+    default="header_table.csv",
+    help="Output CSV filename (default is '%(default)s')",
+)
+table_parser.add_argument("-e", "--ext", help="FITS extension/HDU to use")
+table_parser.add_argument(
+    "-j",
+    "--num-proc",
+    default=min(8, mp.cpu_count()),
+    type=int,
+    help="Number of processes to use for multi-processing (default is %(default)d)",
+)
+table_parser.add_argument(
+    "-q",
+    "--quiet",
+    action="store_true",
+    help="silence the progress bar",
+)
+table_parser.set_default(func=table)
 
 
 def main():

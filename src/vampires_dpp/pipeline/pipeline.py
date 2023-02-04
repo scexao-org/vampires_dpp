@@ -21,7 +21,7 @@ import vampires_dpp as vpp
 from vampires_dpp.calibration import calibrate_file, make_dark_file, make_flat_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
-from vampires_dpp.headers import fix_header, observation_table
+from vampires_dpp.headers import fix_header
 from vampires_dpp.image_processing import (
     collapse_cube_file,
     collapse_frames_files,
@@ -31,6 +31,7 @@ from vampires_dpp.image_processing import (
 )
 from vampires_dpp.image_registration import measure_offsets_file, register_file
 from vampires_dpp.indexing import lamd_to_pixel
+from vampires_dpp.organization import header_table
 from vampires_dpp.polarization import (
     HWP_POS_STOKES,
     collapse_stokes_cube,
@@ -123,89 +124,6 @@ class Pipeline(PipelineOptions):
         with open(filename, "wb") as fh:
             tomli_w.dump(self.config, fh)
 
-    def make_master_dark(self):
-        # prepare input filenames
-        config = self.master_dark
-        config.process()
-        # make darks for each camera
-        if config.output_directory is not None:
-            outdir = config.output_directory
-        else:
-            outdir = self.output_directory
-        outdir.mkdir(parents=True, exist_ok=True)
-        with Pool(self.num_proc) as pool:
-            jobs = []
-            for file_info, path in zip(config.file_infos, config.paths):
-                kwds = dict(
-                    output_directory=outdir,
-                    force=config.force,
-                    method=config.collapse,
-                )
-                job = pool.apply_async(make_dark_file, args=(path,), kwds=kwds)
-                jobs.append((file_info.camera, job))
-
-            cam1_darks = []
-            cam2_darks = []
-            for cam, job in tqdm(jobs, desc="Collapsing dark frames"):
-                filename = job.get()
-                if cam == 1:
-                    cam1_darks.append(filename)
-                else:
-                    cam2_darks.append(filename)
-
-        if len(cam1_darks) > 0:
-            self.master_darks[1] = outdir / f"master_dark_cam1.fits"
-            collapse_frames_files(
-                cam1_darks, method=config.collapse, output=self.master_darks[1], force=config.force
-            )
-        if len(cam2_darks) > 0:
-            self.master_darks[2] = outdir / f"master_dark_cam2.fits"
-            collapse_frames_files(
-                cam2_darks, method=config.collapse, output=self.master_darks[2], force=config.force
-            )
-
-    def make_master_flat(self):
-        # prepare input filenames
-        config = self.master_flat
-        config.process()
-        if config.output_directory is not None:
-            outdir = config.output_directory
-        else:
-            outdir = self.output_directory
-        outdir.mkdir(parents=True, exist_ok=True)
-        with Pool(self.num_proc) as pool:
-            jobs = []
-            for file_info, path in zip(config.file_infos, config.paths):
-                dark = self.master_darks[file_info.camera]
-                kwds = dict(
-                    output_directory=outdir,
-                    dark_filename=dark,
-                    force=config.force,
-                    method=config.collapse,
-                )
-                job = pool.apply_async(make_flat_file, args=(path,), kwds=kwds)
-                jobs.append((file_info.camera, job))
-
-            cam1_flats = []
-            cam2_flats = []
-            for cam, job in tqdm(jobs, desc="Collapsing flat frames"):
-                filename = job.get()
-                if cam == 1:
-                    cam1_flats.append(filename)
-                else:
-                    cam2_flats.append(filename)
-
-        if len(cam1_flats) > 0:
-            self.master_flats[1] = outdir / f"master_flat_cam1.fits"
-            collapse_frames_files(
-                cam1_flats, method=config.collapse, output=self.master_flats[1], force=config.force
-            )
-        if len(cam2_flats) > 0:
-            self.master_flats[2] = outdir / f"master_flat_cam2.fits"
-            collapse_frames_files(
-                cam2_flats, method=config.collapse, output=self.master_flats[2], force=config.force
-            )
-
     def process_one(self, path, file_info):
         tripwire = False
         # fix headers and calibrate
@@ -220,20 +138,14 @@ class Pipeline(PipelineOptions):
 
     def process_post_calib(self, path, file_info, tripwire=False):
         ## Step 2: Frame selection
-        # if "frame_selection" in self.config:
-        #     self.frame_select()
+        if self.frame_select is not None:
+            path, tripwire = self._frame_select(path, file_info, tripwire)
         ## 3: Image registration
         if self.coregister is not None:
             path, tripwire = self._coregister(path, file_info, tripwire)
         ## Step 4: collapsing
         if self.collapse is not None:
             path, tripwire = self._collapse(path, file_info, tripwire)
-        # ## Step 7: derotate
-        # if "derotate" in self.config:
-        #     self.derotate()
-        ## Step 8: PDI
-        # if "polarimetry" in self.config:
-        #     self.polarimetry()
 
     def run(self, num_proc=None):
         """
@@ -345,6 +257,43 @@ class Pipeline(PipelineOptions):
         logger.info("Data calibration completed")
         return calib_file, tripwire
 
+    def _frame_select(self, path, file_info, tripwire=False):
+        logger.info("Performing frame selection")
+        config = self.frame_select
+        if config.output_directory is not None:
+            outdir = config.output_directory
+        else:
+            outdir = self.output_directory
+        tripwire |= config.force
+        outdir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Saving selected data to {outdir.absolute()}")
+        if file_info.camera == 1:
+            ctr = self.frame_centers.cam1
+        else:
+            ctr = self.frame_centers.cam2
+        if self.coronagraph is not None:
+            metric_file = measure_metric_file(
+                path,
+                center=ctr,
+                coronagraphic=True,
+                radius=self.satspots.radius,
+                theta=self.satspots.angle,
+                metric=config.metric,
+                output_directory=outdir,
+                force=tripwire,
+            )
+        else:
+            metric_file = measure_metric_file(
+                path, center=ctr, metric=config.metric, output_directory=outdir, force=tripwire
+            )
+
+        selected_file = frame_select_file(
+            path, metric_file, q=config.cutoff, output_directory=outdir, force=tripwire
+        )
+
+        logger.info("Data calibration completed")
+        return selected_file, tripwire
+
     def _coregister(self, path, file_info, tripwire=False):
         logger.info("Performing image registration")
         config = self.coregister
@@ -355,12 +304,17 @@ class Pipeline(PipelineOptions):
         outdir.mkdir(parents=True, exist_ok=True)
         logger.debug(f"Saving coregistered data to {outdir.absolute()}")
         tripwire |= config.force
+        if file_info.camera == 1:
+            ctr = self.frame_centers.cam1
+        else:
+            ctr = self.frame_centers.cam2
         if self.coronagraph is not None:
             offsets_file = measure_offsets_file(
                 path,
                 method=config.method,
                 output_directory=outdir,
                 force=tripwire,
+                center=ctr,
                 coronagraphic=True,
                 radius=self.satspots.radius,
                 theta=self.satspots.angle,
@@ -372,6 +326,7 @@ class Pipeline(PipelineOptions):
                 window=config.window,
                 output_directory=outdir,
                 force=tripwire,
+                center=ctr,
             )
 
         reg_file = register_file(
@@ -402,213 +357,6 @@ class Pipeline(PipelineOptions):
         logger.info("Data calibration completed")
         return calib_file, tripwire
 
-    def frame_select(self):
-        self.logger.info("Performing frame selection")
-        select_config = self.config["frame_selection"]
-        outdir = self.output_dir / select_config.get("output_directory", "")
-        if not outdir.is_dir():
-            outdir.mkdir(parents=True, exist_ok=True)
-        self.logger.debug(f"Saving frame selection data to {outdir.absolute()}")
-        skip_select = not self.tripwire and not select_config.get("force", False)
-        if skip_select:
-            self.logger.debug("skipping frame selection if files exist")
-        self.tripwire = self.tripwire or not skip_select
-        self.metric_files = []
-        ## 2a: measure metrics
-        for i in tqdm.trange(len(self.working_files), desc="Measuring frame selection metric"):
-            filename = self.working_files[i]
-            self.logger.debug(f"Measuring metric for {filename.absolute()}")
-            header = fits.getheader(filename)
-            cam_key = "cam1" if header["U_CAMERA"] == 1 else "cam2"
-            outname = outdir / f"{filename.stem}_metrics.csv"
-            window = select_config.get("window_size", 30)
-            if "coronagraph" in self.config:
-                satspot_radius = lamd_to_pixel(
-                    self.config["coronagraph"]["satellite_spots"]["radius"],
-                    header["U_FILTER"],
-                )
-                satspot_angle = self.config["coronagraph"]["satellite_spots"].get("angle", -4)
-                metric_file = measure_metric_file(
-                    filename,
-                    center=self.frame_centers[cam_key],
-                    coronagraphic=True,
-                    radius=satspot_radius,
-                    theta=satspot_angle,
-                    window=window,
-                    metric=select_config.get("metric", "l2norm"),
-                    output=outname,
-                    skip=skip_select,
-                )
-            else:
-                metric_file = measure_metric_file(
-                    filename,
-                    center=self.frame_centers[cam_key],
-                    window=window,
-                    metric=select_config.get("metric", "l2norm"),
-                    output=outname,
-                    skip=skip_select,
-                )
-            self.logger.debug(f"saving metrics to file {metric_file.absolute()}")
-            self.metric_files.append(metric_file)
-
-        ## 2b: perform frame selection
-        quantile = select_config.get("q", 0)
-        if quantile > 0:
-            for i in tqdm.trange(len(self.working_files), desc="Discarding frames"):
-                filename = self.working_files[i]
-                self.logger.debug(f"discarding frames from {filename.absolute()}")
-                metric_file = self.metric_files[i]
-                outname = outdir / f"{filename.stem}_cut{filename.suffix}"
-                self.working_files[i] = frame_select_file(
-                    filename,
-                    metric_file,
-                    q=quantile,
-                    output=outname,
-                    skip=skip_select,
-                )
-                self.logger.debug(f"saving data to {outname.absolute()}")
-
-        self.logger.info("Frame selection complete")
-
-    def register(self):
-        self.logger.info("Performing image registration")
-        outdir = self.output_dir / self.config["registration"].get("output_directory", "")
-        if not outdir.is_dir():
-            outdir.mkdir(parents=True, exist_ok=True)
-        self.logger.debug(f"saving image registration data to {outdir.absolute()}")
-        self.offset_files = []
-        skip_reg = not self.tripwire and not self.config["registration"].get("force", False)
-        if skip_reg:
-            self.logger.debug("skipping offset files and aligned files if they exist")
-        self.tripwire = self.tripwire or not skip_reg
-        kwargs = {
-            "window": self.config["registration"].get("window_size", 30),
-            "skip": skip_reg,
-        }
-        if "dft" in self.config["registration"]:
-            kwargs["upsample_factor"] = self.config["registration"]["dft"].get("upsample_factor", 1)
-            kwargs["refmethod"] = self.config["registration"]["dft"].get("reference_method", "com")
-        ## 3a: measure offsets
-        for i in tqdm.trange(len(self.working_files), desc="Measuring frame offsets"):
-            filename = self.working_files[i]
-            self.logger.debug(f"measuring offsets for {filename.absolute()}")
-            header = fits.getheader(filename)
-            cam_key = "cam1" if header["U_CAMERA"] == 1 else "cam2"
-            outname = outdir / f"{filename.stem}_offsets.csv"
-            if "coronagraph" in self.config:
-                satspot_radius = lamd_to_pixel(
-                    self.config["coronagraph"]["satellite_spots"]["radius"],
-                    header["U_FILTER"],
-                )
-                satspot_angle = self.config["coronagraph"]["satellite_spots"].get("angle", -4)
-                offset_file = measure_offsets(
-                    filename,
-                    method=self.config["registration"].get("method", "com"),
-                    center=self.frame_centers[cam_key],
-                    coronagraphic=True,
-                    radius=satspot_radius,
-                    theta=satspot_angle,
-                    output=outname,
-                    **kwargs,
-                )
-            else:
-                offset_file = measure_offsets(
-                    filename,
-                    method=self.config["registration"].get("method", "peak"),
-                    center=self.frame_centers[cam_key],
-                    output=outname,
-                    **kwargs,
-                )
-            self.logger.debug(f"saving offsets to {offset_file.absolute()}")
-            self.offset_files.append(offset_file)
-        ## 3b: registration
-        for i in tqdm.trange(len(self.working_files), desc="Aligning frames"):
-            filename = self.working_files[i]
-            offset_file = self.offset_files[i]
-            self.logger.debug(f"aligning {filename.absolute()}")
-            self.logger.debug(f"using offsets {offset_file.absolute()}")
-            outname = outdir / f"{filename.stem}_aligned{filename.suffix}"
-            self.working_files[i] = register_file(
-                filename,
-                offset_file,
-                output=outname,
-                skip=skip_reg,
-            )
-            self.logger.debug(f"aligned data saved to {outname.absolute()}")
-        self.logger.info("Finished registering frames")
-
-    def collapse(self):
-        self.logger.info("Collapsing registered frames")
-        coll_config = self.config["collapsing"]
-        outdir = self.output_dir / coll_config.get("output_directory", "")
-        if not outdir.is_dir():
-            outdir.mkdir(parents=True, exist_ok=True)
-        self.logger.debug(f"saving collapsed data to {outdir.absolute()}")
-        skip_collapse = not self.tripwire and not coll_config.get("force", False)
-        if skip_collapse:
-            self.logger.debug("skipping collapsing cubes if files exist")
-        self.tripwire = self.tripwire or not skip_collapse
-        for i in tqdm.trange(len(self.working_files), desc="Collapsing frames"):
-            filename = self.working_files[i]
-            self.logger.debug(f"collapsing cube from {filename.absolute()}")
-            outname = outdir / f"{filename.stem}_collapsed{filename.suffix}"
-            self.working_files[i] = collapse_cube_file(
-                filename,
-                method=coll_config.get("method", "median"),
-                output=outname,
-                skip=skip_collapse,
-            )
-            self.logger.debug(f"saved collapsed data to {outname.absolute()}")
-        # save cam1 and cam2 cubes
-        self.collapse_files = self.working_files.copy()
-        for cam_num in (1, 2):
-            cam_files = filter(lambda f: fits.getval(f, "U_CAMERA") == cam_num, self.collapse_files)
-            # generate cube
-            outname = outdir / f"{self.config['name']}_cam{cam_num}_collapsed_cube.fits"
-            collapsed_file = combine_frames_files(cam_files, output=outname, skip=False)
-            self.logger.debug(f"saved collapsed cube to {collapsed_file.absolute()}")
-            # derot angles
-            angs = [fits.getval(f, "D_IMRPAD") + self.pupil_offset for f in cam_files]
-            derot_angles = np.asarray(angs, "f4")
-            outname = outdir / f"{self.config['name']}_cam{cam_num}_derot_angles.fits"
-            fits.writeto(outname, derot_angles, overwrite=True)
-            self.logger.debug(f"saved derot angles to {outname.absolute()}")
-        self.logger.info("Finished collapsing frames")
-
-    def derotate(self):
-        self.logger.info("Derotating frames")
-        outdir = self.output_dir / self.config["derotate"].get("output_directory", "")
-        if not outdir.is_dir():
-            outdir.mkdir(parents=True, exist_ok=True)
-        self.logger.debug(f"saving derotated data to {outdir.absolute()}")
-        skip_derot = not tripwire and not self.config["derotate"].get("force", False)
-        if skip_derot:
-            self.logger.debug("skipping derotating frames if files exist")
-        tripwire = tripwire or not skip_derot
-        self.derot_files = self.working_files.copy()
-        for i in tqdm.trange(len(self.working_files), desc="Derotating frames"):
-            filename = self.working_files[i]
-            self.logger.debug(f"derotating frame from {filename.absolute()}")
-            outname = outdir / f"{filename.stem}_derot{filename.suffix}"
-            self.derot_files[i] = outname
-            if skip_derot and outname.is_file():
-                continue
-            frame, header = fits.getdata(filename, header=True)
-            derot_frame = derotate_frame(frame, header["D_IMRPAD"] + self.pupil_offset)
-            derot_header = derotate_wcs(header, header["D_IMRPAD"] + self.pupil_offset)
-            fits.writeto(outname, derot_frame, header=derot_header, overwrite=True)
-            self.logger.debug(f"saved derotated data to {outname.absolute()}")
-
-        # generate derotated cube
-        for cam_num in (1, 2):
-            cam_files = filter(lambda f: fits.getval(f, "U_CAMERA") == cam_num, self.derot_files)
-            # generate cube
-            outname = outdir / f"{self.config['name']}_cam{cam_num}_derot_cube.fits"
-            derot_cube_file = combine_frames_files(cam_files, output=outname, skip=False)
-            self.logger.debug(f"saved derotated cube to {derot_cube_file.absolute()}")
-
-        self.logger.info("Finished derotating frames")
-
     def polarimetry(self):
         if "collapsing" not in self.config:
             raise ValueError("Cannot do PDI without collapsing data.")
@@ -638,7 +386,7 @@ class Pipeline(PipelineOptions):
 
     def make_diff_images(self, outdir, skip=False):
         self.logger.info("Making difference frames")
-        table = observation_table(self.working_files).sort_values("MJD")
+        table = header_table(self.working_files)
         groups = table.groupby("U_CAMERA")
         cam1_files = groups.get_group(1)["path"]
         cam2_files = groups.get_group(2)["path"]
@@ -785,7 +533,7 @@ class Pipeline(PipelineOptions):
 
     def polarimetry_triplediff(self, outdir, skip=False):
         # sort table
-        table = observation_table(self.diff_files_ip).sort_values("MJD")
+        table = header_table(self.diff_files_ip)
         inds = pol_inds(table["U_HWPANG"], 2)
         table_filt = table.loc[inds]
         self.logger.info(

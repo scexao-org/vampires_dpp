@@ -11,11 +11,11 @@ from photutils import CircularAnnulus, CircularAperture, aperture_photometry
 from scipy.optimize import minimize_scalar
 
 from .constants import PUPIL_OFFSET
-from .headers import observation_table
 from .image_processing import combine_frames_headers, derotate_cube
 from .image_registration import offset_centroid
 from .indexing import frame_angles, frame_center, frame_radii, window_slices
 from .mueller_matrices import mirror, mueller_matrix_model, rotator
+from .organization import header_table
 from .util import average_angle
 from .wcs import apply_wcs
 
@@ -328,7 +328,7 @@ def triplediff_average_angles(filenames):
             "Cannot do triple-differential calibration without exact sets of 8 frames for each HWP cycle"
         )
     # make sure we get data in correct order using FITS headers
-    tbl = observation_table(filenames).sort_values("DATE")
+    tbl = header_table(filenames)
 
     N_hwp_sets = len(tbl) // 8
     pas = np.zeros(N_hwp_sets, dtype="f4")

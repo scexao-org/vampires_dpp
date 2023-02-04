@@ -4,6 +4,7 @@ import numpy as np
 from astropy.io import fits
 
 from vampires_dpp.indexing import cutout_slice, window_slices
+from vampires_dpp.util import get_paths
 
 
 def measure_metric(cube, metric="l2norm", center=None, window=None):
@@ -44,47 +45,37 @@ def measure_metric_file(
     filename,
     metric="l2norm",
     coronagraphic=False,
-    skip=False,
-    output=None,
+    force=False,
     **kwargs,
 ):
-    if output is None:
-        path = Path(filename)
-        output = path.with_name(f"{path.stem}_metric.csv")
-    else:
-        output = Path(output)
+    path, outpath = get_paths(filename, suffix="metric", filetype=".csv", **kwargs)
 
-    if skip and output.is_file():
-        return output
+    if not force and outpath.is_file():
+        return outpath
 
-    cube, header = fits.getdata(filename, header=True)
+    cube, header = fits.getdata(path, header=True)
     if coronagraphic:
         metrics = measure_satellite_spot_metrics(cube, metric=metric, **kwargs)
     else:
         metrics = measure_metric(cube, metric=metric, **kwargs)
 
-    np.savetxt(output, metrics, delimiter=",")
-    return output
+    np.savetxt(outpath, metrics, delimiter=",")
+    return outpath
 
 
 def frame_select_file(
     filename,
     metricfile,
     q=0,
-    skip=False,
-    output=None,
+    force=False,
     **kwargs,
 ):
-    if output is None:
-        path = Path(filename)
-        output = path.with_name(f"{path.stem}_selected{path.suffix}")
-    else:
-        output = Path(output)
+    path, outpath = get_paths(filename, suffix="selected", **kwargs)
 
-    if skip and output.is_file():
-        return output
+    if not force and outpath.is_file():
+        return outpath
 
-    cube, header = fits.getdata(filename, header=True)
+    cube, header = fits.getdata(path, header=True)
     metrics = np.loadtxt(metricfile, delimiter=",")
 
     mask = metrics >= np.quantile(metrics, q)
@@ -92,5 +83,5 @@ def frame_select_file(
 
     header["VPP_REF"] = metrics[mask].argmax() + 1, "Index of frame with highest metric"
 
-    fits.writeto(output, selected, header=header, overwrite=True)
-    return output
+    fits.writeto(outpath, selected, header=header, overwrite=True)
+    return outpath
