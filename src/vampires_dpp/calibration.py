@@ -180,16 +180,16 @@ def make_master_dark(
 
     # get names for master darks and remove
     # files from queue if they exist
-    outnames = []
+    outnames = {}
     with mp.Pool(num_proc) as pool:
+        jobs = []
         for key, filelist in file_inputs.items():
             cam, gain, exptime = key
             outname = outdir / f"{name}_em{gain:.0f}_{exptime:09.0f}us_cam{cam:.0f}.fits"
-            outnames.append(outname)
+            outnames[key] = outname
             if not force and outname.is_file():
                 continue
             # collapse the files required for each dark
-            jobs = []
             for path in filelist:
                 kwds = dict(
                     output_directory=path.parent.parent / "collapsed",
@@ -197,11 +197,22 @@ def make_master_dark(
                     method=collapse,
                 )
                 jobs.append(pool.apply_async(make_dark_file, args=(path,), kwds=kwds))
-            iter = jobs if quiet else tqdm(jobs, desc="Collapsing dark frames")
-            frames = [job.get() for job in iter]
-            collapse_frames_files(frames, method=collapse, output=outname, force=force)
+        iter = jobs if quiet else tqdm(jobs, desc="Collapsing dark frames")
+        frames = [job.get() for job in iter]
+        # create master frames from collapsed files
+        collapsed_inputs = sort_calib_files(frames)
+        jobs = []
+        for key, filelist in collapsed_inputs.items():
+            kwds = dict(
+                output=outnames[key],
+                method=collapse,
+                force=force,
+            )
+            jobs.append(pool.apply_async(collapse_frames_files, args=(filelist,), kwds=kwds))
+        iter = jobs if quiet else tqdm(jobs, desc="Making master darks")
+        [job.get() for job in iter]
 
-    return outnames
+    return list(outnames.values())
 
 
 def make_master_flat(
@@ -229,16 +240,16 @@ def make_master_flat(
 
     # get names for master darks and remove
     # files from queue if they exist
-    outnames = []
+    outnames = {}
     with mp.Pool(num_proc) as pool:
+        jobs = []
         for key, filelist in file_inputs.items():
             cam, gain, exptime = key
             outname = outdir / f"{name}_em{gain:.0f}_{exptime:09.0f}us_cam{cam:.0f}.fits"
-            outnames.append(outname)
+            outnames[key] = outname
             if not force and outname.is_file():
                 continue
-            # collapse the files required for each dark
-            jobs = []
+            # collapse the files required for each flat
             for path in filelist:
                 kwds = dict(
                     output_directory=path.parent.parent / "collapsed",
@@ -247,8 +258,19 @@ def make_master_flat(
                     method=collapse,
                 )
                 jobs.append(pool.apply_async(make_flat_file, args=(path,), kwds=kwds))
-            iter = jobs if quiet else tqdm(jobs, desc="Collapsing flat frames")
-            frames = [job.get() for job in iter]
-            collapse_frames_files(frames, method=collapse, output=outname, force=force)
+        iter = jobs if quiet else tqdm(jobs, desc="Collapsing flat frames")
+        frames = [job.get() for job in iter]
+        # create master frames from collapsed files
+        collapsed_inputs = sort_calib_files(frames)
+        jobs = []
+        for key, filelist in collapsed_inputs.items():
+            kwds = dict(
+                output=outnames[key],
+                method=collapse,
+                force=force,
+            )
+            jobs.append(pool.apply_async(collapse_frames_files, args=(filelist,), kwds=kwds))
+        iter = jobs if quiet else tqdm(jobs, desc="Making master flats")
+        [job.get() for job in iter]
 
     return outnames
