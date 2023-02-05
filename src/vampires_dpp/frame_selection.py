@@ -83,5 +83,5 @@ def frame_select_file(
 
     header["VPP_REF"] = metrics[mask].argmax() + 1, "Index of frame with highest metric"
 
-    fits.writeto(outpath, selected, header=header, overwrite=True)
+    fits.writeto(outpath, selected, header=header, overwrite=True, checksum=True)
     return outpath

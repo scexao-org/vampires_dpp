@@ -27,13 +27,17 @@ The prescribed folder structure for this sorting is
 ```
 .
 ├── ABAUR
-│   └── raw
+│   └── 750-50_em300_00100ms
 ├── HD31233
 │   └── raw
 ├── darks
+│   └── raw
 ├── flats
+│   └── raw
 ├── pinholes
+│   └── raw
 └── skies
+│   └── raw
 ```
 after sorting this folders can be changed or rearranged as much as you'd like. The configuration for the pipeline is flexible, so you don't have to sort your files at all if you prefer a different method.
 
@@ -41,7 +45,10 @@ after sorting this folders can be changed or rearranged as much as you'd like. T
 
 ```
 dpp sort --help
-usage: dpp sort [-h] [-o OUTPUT] [-c] filenames [filenames ...]
+usage: dpp sort [-h] [-o OUTPUT] [-c] [-e EXT] [-j NUM_PROC] [-q] filenames [filenames ...]
+
+Sorts raw data based on the data type. This will either use the `DATA-TYP` header value or the `U_OGFNAM` header, depending on when
+your data was taken.
 
 positional arguments:
   filenames             FITS files to sort
@@ -49,9 +56,47 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
-                        output directory, if not specified will use current
-                        working directory
+                        output directory, if not specified will use current working directory
   -c, --copy            copy files instead of moving them
+  -e EXT, --ext EXT     FITS extension/HDU to use
+  -j NUM_PROC, --num-proc NUM_PROC
+                        number of processors to use for multiprocessing (default is 8)
+  -q, --quiet           silence the progress bar
+```
+
+## Create master calibration files
+
+Next, you'll want to create your master darks and flats. This can be accomplished in one command using `dpp calib`.
+
+```{admonition} Matching calibration settings
+Since VAMPIRES uses EM-CCDs, the camera gain and exposure settings change the noise properties. Therefore, we automatically sort all calibration files by camera, EM gain, and exposure time. We will automatically try and match darks to flats, but if the settings are not equal the flat will not be dark-subtracted.
+```
+
+If you use the prescribed folder structure above, creating your files can be done like so
+```
+dpp calib --darks=darks/raw/*.fits --flats=flats/raw/*.fits -o master_cals
+```
+
+### Reference
+
+```
+dpp calib -h
+usage: dpp calib [-h] [--darks [DARKS ...]] [--flats [FLATS ...]] [-c {median,mean,varmean,biweight}] [-o OUTPUT] [-f] [-j NUM_PROC]
+                 [-q]
+
+Create calibration files from darks and flats.
+
+options:
+  -h, --help            show this help message and exit
+  --darks [DARKS ...]   FITS files to use as dark frames
+  --flats [FLATS ...]   FITS files to use as flat frames
+  -c {median,mean,varmean,biweight}, --collapse {median,mean,varmean,biweight}
+  -o OUTPUT, --output OUTPUT
+                        output directory, if not specified will use current working directory
+  -f, --force           Force recomputation and overwrite existing files.
+  -j NUM_PROC, --num-proc NUM_PROC
+                        number of processors to use for multiprocessing (default is 8)
+  -q, --quiet           silence the progress bar
 ```
 
 ## Set up configuration files

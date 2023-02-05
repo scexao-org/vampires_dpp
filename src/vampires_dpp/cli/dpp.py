@@ -147,8 +147,8 @@ def new_config(args):
             t = VAMPIRES_MAXIMAL
         case _:
             raise ValueError(f"template not recognized {args.template}")
-
-    t.name = args.name
+    t.target = args.object
+    t.name = t.target
     if args.iwa:
         t.coronagraph = CoronagraphOptions(args.iwa)
         t.satspots = SatspotOptions()
@@ -169,10 +169,10 @@ new_parser.add_argument(
     "-t",
     "--template",
     required=True,
-    choices=("singlecam", "pdi", "all"),
+    choices=("singlecam", "pdi", "halpha", "all"),
     help="template configuration to make",
 )
-new_parser.add_argument("-n", "--name", default="", help="name of configuration")
+new_parser.add_argument("-o", "--object", default="", help="SIMBAD-compatible target name")
 new_parser.add_argument(
     "-c", "--coronagraph", dest="iwa", type=float, help="if coronagraphic, specify IWA (mas)"
 )

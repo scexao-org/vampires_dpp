@@ -103,7 +103,7 @@ def sort_files(
     output_directory: Optional[PathLike] = None,
     num_proc: int = min(8, mp.cpu_count()),
     quiet: bool = False,
-    **kwargs
+    **kwargs,
 ) -> List[Path]:
     if output_directory is not None:
         outdir = Path(output_directory)
@@ -144,6 +144,11 @@ def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs
 def foldername_new(outdir: PathLike, header: fits.Header, subdir: PathLike = "raw"):
     match header["DATA-TYP"]:
         case "OBJECT":
+            # subsort based on filter, EM gain, and exposure time
+            filt = header["U_FILTER"]
+            gain = header["U_EMGAIN"]
+            exptime = header["U_AQTINT"] / 1e3  # ms
+            subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms"
             foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
         case "DARK":
             foldname = outdir / "darks" / subdir
@@ -172,6 +177,11 @@ def foldername_old(outdir: PathLike, path: Path, header: fits.Header, subdir: Pa
     elif "pinhole" in name:
         foldname = outdir / "pinholes" / subdir
     else:
+        # subsort based on filter, EM gain, and exposure time
+        filt = header["U_FILTER"]
+        gain = header["U_EMGAIN"]
+        exptime = header["U_AQTINT"] / 1e3  # ms
+        subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms"
         foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
 
     return foldname

@@ -149,8 +149,8 @@ class FrameSelectOptions(OutputDirectory):
 @dataclass
 class CoregisterOptions(OutputDirectory):
     method: str = field(default="com")
-    unshapr: bool = field(default=False, skip_if_default=True)
     window_size: int = field(default=30, skip_if_default=True)
+    dft_factor: int = field(default=1, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
@@ -192,46 +192,6 @@ class CamCtrOption:
     cam2: Optional[List[float]] = field(default=None, skip_if_default=True)
 
 
-@serialize
-@dataclass
-class MasterDarkOptions(FileInput, OutputDirectory):
-    collapse: str = field(default="median", skip_if_default=True)
-    cam1: Optional[Path] = field(default=None, skip_if_default=True)
-    cam2: Optional[Path] = field(default=None, skip_if_default=True)
-
-    def __post_init__(self):
-        super().__post_init__()
-        if self.collapse not in ("median", "mean", "varmean", "biweight"):
-            raise ValueError(f"Collapse method not recognized: {self.collapse}")
-        if self.cam1 is not None:
-            self.cam1 = Path(self.cam1)
-        if self.cam2 is not None:
-            self.cam2 = Path(self.cam2)
-
-
-@serialize
-@dataclass
-class MasterFlatOptions(FileInput, OutputDirectory):
-    collapse: str = field(default="median", skip_if_default=True)
-    cam1: Optional[Path] = field(default=None, skip_if_default=True)
-    cam2: Optional[Path] = field(default=None, skip_if_default=True)
-    cam1_dark: Optional[Path] = field(default=None, skip_if_default=True)
-    cam2_dark: Optional[Path] = field(default=None, skip_if_default=True)
-
-    def __post_init__(self):
-        super().__post_init__()
-        if self.collapse not in ("median", "mean", "varmean", "biweight"):
-            raise ValueError(f"Collapse method not recognized: {self.collapse}")
-        if self.cam1 is not None:
-            self.cam1 = Path(self.cam1)
-        if self.cam2 is not None:
-            self.cam2 = Path(self.cam2)
-        if self.cam1_dark is not None:
-            self.cam1_dark = Path(self.cam1_dark)
-        if self.cam2_dark is not None:
-            self.cam2_dark = Path(self.cam2_dark)
-
-
 ## Define classes for entire pipelines now
 @serialize
 @dataclass
@@ -241,8 +201,6 @@ class PipelineOptions(FileInput, OutputDirectory):
     frame_centers: Optional[CamCtrOption] = field(default=None, skip_if_default=True)
     coronagraph: Optional[CoronagraphOptions] = field(default=None, skip_if_default=True)
     satspots: Optional[SatspotOptions] = field(default=None, skip_if_default=True)
-    master_dark: Optional[MasterDarkOptions] = field(default=None, skip_if_default=True)
-    master_flat: Optional[MasterFlatOptions] = field(default=None, skip_if_default=True)
     calibrate: Optional[CalibrateOptions] = field(default=None, skip_if_default=True)
     frame_select: Optional[FrameSelectOptions] = field(default=None, skip_if_default=True)
     coregister: Optional[CoregisterOptions] = field(default=None, skip_if_default=True)
@@ -259,10 +217,6 @@ class PipelineOptions(FileInput, OutputDirectory):
             self.satspots = SatspotOptions(**self.satspots)
         if self.frame_centers is not None and isinstance(self.frame_centers, dict):
             self.frame_centers = CamCtrOption(**self.frame_centers)
-        if self.master_dark is not None and isinstance(self.master_dark, dict):
-            self.master_dark = MasterDarkOptions(**self.master_dark)
-        if self.master_flat is not None and isinstance(self.master_flat, dict):
-            self.master_flat = MasterFlatOptions(**self.master_flat)
         if self.calibrate is not None and isinstance(self.calibrate, dict):
             self.calibrate = CalibrateOptions(**self.calibrate)
         if self.frame_select is not None and isinstance(self.frame_select, dict):
@@ -273,13 +227,3 @@ class PipelineOptions(FileInput, OutputDirectory):
             self.collapse = CollapseOptions(**self.collapse)
         if self.polarimetry is not None and isinstance(self.polarimetry, dict):
             self.polarimetry = PolarimetryOptions(**self.polarimetry)
-
-
-@serialize
-@dataclass
-class MasterFlat(FileInput, OutputDirectory):
-    cam1: PathLike | List[PathLike]
-    cam2: Optional[PathLike | List[PathLike]]
-    cam1_dark: Optional[PathLike]
-    cam2_dark: Optional[PathLike]
-    collapse: str = "median"

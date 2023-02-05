@@ -130,7 +130,7 @@ def collapse_cube_file(filename, force=False, **kwargs):
     cube, header = fits.getdata(path, header=True)
     frame, header = collapse_cube(cube, header=header, **kwargs)
 
-    fits.writeto(outpath, frame, header=header, overwrite=True)
+    fits.writeto(outpath, frame, header=header, overwrite=True, checksum=True)
     return outpath
 
 
@@ -215,7 +215,7 @@ def combine_frames_files(filenames, output, force=False, **kwargs):
 
     cube, header = combine_frames(frames, headers, **kwargs)
 
-    fits.writeto(path, cube, header=header, overwrite=True)
+    fits.writeto(path, cube, header=header, overwrite=True, checksum=True)
     return path
 
 
@@ -237,7 +237,7 @@ def collapse_frames_files(filenames, output, force=False, **kwargs):
         headers.append(header)
 
     frame, header = collapse_frames(frames, headers=headers, **kwargs)
-    fits.writeto(path, frame, header=header, overwrite=True)
+    fits.writeto(path, frame, header=header, overwrite=True, checksum=True)
     return path
 
 

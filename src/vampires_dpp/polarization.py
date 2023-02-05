@@ -10,14 +10,14 @@ from numpy.typing import ArrayLike, NDArray
 from photutils import CircularAnnulus, CircularAperture, aperture_photometry
 from scipy.optimize import minimize_scalar
 
-from .constants import PUPIL_OFFSET
-from .image_processing import combine_frames_headers, derotate_cube
-from .image_registration import offset_centroid
-from .indexing import frame_angles, frame_center, frame_radii, window_slices
-from .mueller_matrices import mirror, mueller_matrix_model, rotator
-from .organization import header_table
-from .util import average_angle
-from .wcs import apply_wcs
+from vampires_dpp.constants import PUPIL_OFFSET
+from vampires_dpp.image_processing import combine_frames_headers, derotate_cube
+from vampires_dpp.image_registration import offset_centroid
+from vampires_dpp.indexing import frame_angles, frame_center, frame_radii, window_slices
+from vampires_dpp.mueller_matrices import mirror, mueller_matrix_model, rotator
+from vampires_dpp.organization import header_table
+from vampires_dpp.util import average_angle
+from vampires_dpp.wcs import apply_wcs
 
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
@@ -447,6 +447,6 @@ def write_stokes_products(stokes_cube, header=None, outname=None, skip=False, ph
 
     data = np.asarray((stokes_cube[0], stokes_cube[1], stokes_cube[2], Qphi, Uphi, pi, aolp))
 
-    fits.writeto(path, data, header=header, overwrite=True)
+    fits.writeto(path, data, header=header, overwrite=True, checksum=True)
 
     return path

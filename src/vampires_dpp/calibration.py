@@ -101,14 +101,14 @@ def calibrate_file(
         header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
         header["RET-ANG2"] = 0, "Position angle of second retarder plate (deg)"
         header["RETPLAT2"] = "FLC(VAMPIRES)", "Identifier of second retarder plate"
-        fits.writeto(outpath_FLC1, cube[::2], header, overwrite=True)
+        fits.writeto(outpath_FLC1, cube[::2], header=header, overwrite=True, checksum=True)
 
         header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
         header["RET-ANG2"] = 45, "Position angle of second retarder plate (deg)"
-        fits.writeto(outpath_FLC2, cube[1::2], header, overwrite=True)
+        fits.writeto(outpath_FLC2, cube[1::2], header=header, overwrite=True, checksum=True)
         return outpath_FLC1, outpath_FLC2
 
-    fits.writeto(outpath, cube, header, overwrite=True)
+    fits.writeto(outpath, cube, header=header, overwrite=True, checksum=True)
     return outpath
 
 
@@ -122,7 +122,7 @@ def make_dark_file(filename: str, force=False, **kwargs):
     else:
         cube = raw_cube[1:].astype("f4")
     master_dark, header = collapse_cube(cube, header=header, **kwargs)
-    fits.writeto(outpath, master_dark, header=header, overwrite=True)
+    fits.writeto(outpath, master_dark, header=header, overwrite=True, checksum=True)
     return outpath
 
 
@@ -143,7 +143,7 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
     master_flat = master_flat / biweight_location(master_flat, c=6, ignore_nan=True)
 
-    fits.writeto(outpath, master_flat, header=header, overwrite=True)
+    fits.writeto(outpath, master_flat, header=header, overwrite=True, checksum=True)
     return outpath
 
 
@@ -185,7 +185,7 @@ def make_master_dark(
         jobs = []
         for key, filelist in file_inputs.items():
             cam, gain, exptime = key
-            outname = outdir / f"{name}_em{gain:.0f}_{exptime:09.0f}us_cam{cam:.0f}.fits"
+            outname = outdir / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_cam{cam:.0f}.fits"
             outnames[key] = outname
             if not force and outname.is_file():
                 continue
@@ -245,7 +245,7 @@ def make_master_flat(
         jobs = []
         for key, filelist in file_inputs.items():
             cam, gain, exptime = key
-            outname = outdir / f"{name}_em{gain:.0f}_{exptime:09.0f}us_cam{cam:.0f}.fits"
+            outname = outdir / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_cam{cam:.0f}.fits"
             outnames[key] = outname
             if not force and outname.is_file():
                 continue

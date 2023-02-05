@@ -129,7 +129,7 @@ class Pipeline(PipelineOptions):
         # fix headers and calibrate
         if self.calibrate is not None:
             cur_file, tripwire = self._calibrate(path, file_info, tripwire)
-            if not isinstance(cur_file, str):
+            if not isinstance(cur_file, Path):
                 file_flc1, file_flc2 = cur_file
                 self.process_post_calib(file_flc1, file_info, tripwire)
                 self.process_post_calib(file_flc2, file_info, tripwire)
@@ -156,13 +156,6 @@ class Pipeline(PipelineOptions):
         self.process()
 
         logger.debug(f"Output directory is {self.output_directory}")
-
-        ## Create calibration files
-        if self.master_dark is not None:
-            self.make_master_dark()
-
-        if self.master_flat is not None:
-            self.make_master_flat()
 
         ## configure astrometry
         self.get_frame_centers()
@@ -276,6 +269,7 @@ class Pipeline(PipelineOptions):
                 path,
                 center=ctr,
                 coronagraphic=True,
+                window=config.window_size,
                 radius=self.satspots.radius,
                 theta=self.satspots.angle,
                 metric=config.metric,
@@ -284,7 +278,12 @@ class Pipeline(PipelineOptions):
             )
         else:
             metric_file = measure_metric_file(
-                path, center=ctr, metric=config.metric, output_directory=outdir, force=tripwire
+                path,
+                center=ctr,
+                window=config.window_size,
+                metric=config.metric,
+                output_directory=outdir,
+                force=tripwire,
             )
 
         selected_file = frame_select_file(
@@ -312,10 +311,12 @@ class Pipeline(PipelineOptions):
             offsets_file = measure_offsets_file(
                 path,
                 method=config.method,
+                window=config.window_size,
                 output_directory=outdir,
                 force=tripwire,
                 center=ctr,
                 coronagraphic=True,
+                upample_factor=config.dft_factor,
                 radius=self.satspots.radius,
                 theta=self.satspots.angle,
             )
@@ -323,10 +324,11 @@ class Pipeline(PipelineOptions):
             offsets_file = measure_offsets_file(
                 path,
                 method=config.method,
-                window=config.window,
+                window=config.window_size,
                 output_directory=outdir,
                 force=tripwire,
                 center=ctr,
+                upample_factor=config.dft_factor,
             )
 
         reg_file = register_file(
@@ -418,7 +420,7 @@ class Pipeline(PipelineOptions):
             header["CAXIS3"] = "STOKES"
             header["STOKES"] = f"I,{stokes}"
 
-            fits.writeto(outname, stack, header=header, overwrite=True)
+            fits.writeto(outname, stack, header=header, overwrite=True, checksum=True)
             self.logger.debug(f"saved diff image to {outname.absolute()}")
         self.logger.info("Done making difference frames")
 
@@ -459,7 +461,7 @@ class Pipeline(PipelineOptions):
 
         stokes = HWP_POS_STOKES[header["U_HWPANG"]]
         header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-        fits.writeto(outname, stack_corr, header=header, overwrite=True)
+        fits.writeto(outname, stack_corr, header=header, overwrite=True, checksum=True)
 
     def polarimetry_ip_correct_satspot(self, filename, outname):
         stack, header = fits.getdata(filename, header=True)
@@ -479,7 +481,7 @@ class Pipeline(PipelineOptions):
 
         stokes = HWP_POS_STOKES[header["U_HWPANG"]]
         header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-        fits.writeto(outname, stack_corr, header=header, overwrite=True)
+        fits.writeto(outname, stack_corr, header=header, overwrite=True, checksum=True)
 
     # def polarimetry_ip_correct_mueller(self, filename, outname):
     # self.logger.warning("Mueller matrix calibration is extremely experimental.")
@@ -529,7 +531,7 @@ class Pipeline(PipelineOptions):
     # stack[1] -= pX * stack[0]
 
     # header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-    # fits.writeto(outname, stack, header=header, overwrite=True)
+    # fits.writeto(outname, stack, header=header, overwrite=True, checksum=True)
 
     def polarimetry_triplediff(self, outdir, skip=False):
         # sort table

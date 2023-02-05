@@ -230,7 +230,7 @@ def register_file(filename, offset_file, force=False, **kwargs):
 
     shifted = shift_cube(cube, -offsets)
 
-    fits.writeto(outpath, shifted, header=header, overwrite=True)
+    fits.writeto(outpath, shifted, header=header, overwrite=True, checksum=True)
     return outpath
 
 
@@ -247,5 +247,5 @@ def coregister_file(filename, offset, output=None, skip=False, **kwargs):
 
     frame, header = fits.getdata(filename, header=True)
     shifted = shift_frame(frame, -offset)
-    fits.writeto(output, shifted, header=header, overwrite=True)
+    fits.writeto(output, shifted, header=header, overwrite=True, checksum=True)
     return output
