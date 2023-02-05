@@ -185,6 +185,11 @@ class IPOptions:
 class PolarimetryOptions(OutputDirectory):
     ip: Optional[IPOptions] = field(default=None, skip_if_default=True)
 
+    def __post_init__(self):
+        super().__post_init__()
+        if self.ip is not None and isinstance(self.ip, dict):
+            self.ip = IPOptions(**self.ip)
+
 
 @serialize
 class CamCtrOption:

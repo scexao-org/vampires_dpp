@@ -1,10 +1,9 @@
 import logging
+import multiprocessing as mp
 import re
-from dataclasses import dataclass
-from multiprocessing import Pool
 from os import PathLike
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional, Tuple
 
 import astropy.units as u
 import numpy as np
@@ -35,22 +34,16 @@ from vampires_dpp.organization import header_table
 from vampires_dpp.polarization import (
     HWP_POS_STOKES,
     collapse_stokes_cube,
+    make_diff_image,
     measure_instpol,
     measure_instpol_satellite_spots,
-    mueller_matrix_model,
     pol_inds,
-    polarization_calibration_model,
     polarization_calibration_triplediff,
     triplediff_average_angles,
     write_stokes_products,
 )
 from vampires_dpp.util import check_version
-from vampires_dpp.wcs import (
-    apply_wcs,
-    derotate_wcs,
-    get_coord_header,
-    get_gaia_astrometry,
-)
+from vampires_dpp.wcs import get_gaia_astrometry
 
 from .config import PipelineOptions
 
@@ -121,8 +114,9 @@ class Pipeline(PipelineOptions):
         filename : PathLike
             Output filename
         """
-        with open(filename, "wb") as fh:
-            tomli_w.dump(self.config, fh)
+        # use serde.to_toml to serialize self
+        path = Path(filename)
+        path.write_text(to_toml(self))
 
     def process_one(self, path, file_info):
         tripwire = False
@@ -131,10 +125,12 @@ class Pipeline(PipelineOptions):
             cur_file, tripwire = self._calibrate(path, file_info, tripwire)
             if not isinstance(cur_file, Path):
                 file_flc1, file_flc2 = cur_file
-                self.process_post_calib(file_flc1, file_info, tripwire)
-                self.process_post_calib(file_flc2, file_info, tripwire)
+                path1, tripwire = self.process_post_calib(file_flc1, file_info, tripwire)
+                path2, tripwire = self.process_post_calib(file_flc2, file_info, tripwire)
+                return (path1, path2), tripwire
             else:
-                self.process_post_calib(cur_file, file_info, tripwire)
+                path, tripwire = self.process_post_calib(cur_file, file_info, tripwire)
+                return path, tripwire
 
     def process_post_calib(self, path, file_info, tripwire=False):
         ## Step 2: Frame selection
@@ -147,6 +143,8 @@ class Pipeline(PipelineOptions):
         if self.collapse is not None:
             path, tripwire = self._collapse(path, file_info, tripwire)
 
+        return path, tripwire
+
     def run(self, num_proc=None):
         """
         Run the pipeline
@@ -156,19 +154,33 @@ class Pipeline(PipelineOptions):
         self.process()
 
         logger.debug(f"Output directory is {self.output_directory}")
+        self.output_directory.mkdir(parents=True, exist_ok=True)
 
         ## configure astrometry
         self.get_frame_centers()
         self.get_coordinate()
 
         ## For each file do
-        with Pool(self.num_proc) as pool:
+        self.output_files = []
+        with mp.Pool(self.num_proc) as pool:
             jobs = []
             for path, file_info in zip(self.paths, self.file_infos):
                 jobs.append(pool.apply_async(self.process_one, args=(path, file_info)))
 
             for job in tqdm(jobs, desc="Running pipeline"):
-                job.get()
+                result, tripwire = job.get()
+                if isinstance(result, Path):
+                    self.output_files.append(result)
+                else:
+                    self.output_files.extend(result)
+        ## TODO get tripwire to figure out if files have changed
+        ## Now, prepare header table
+        self.table = header_table(self.output_files, quiet=True)
+        self.save_adi_cubes(force=tripwire)
+
+        ## polarimetry
+        if self.polarimetry:
+            self._polarimetry(tripwire=tripwire)
 
         logger.info("Finished running pipeline")
 
@@ -359,98 +371,111 @@ class Pipeline(PipelineOptions):
         logger.info("Data calibration completed")
         return calib_file, tripwire
 
-    def polarimetry(self):
-        if "collapsing" not in self.config:
+    def save_adi_cubes(self, force: bool = False) -> Tuple[Optional[Path], Optional[Path]]:
+        # preset values
+        outname1 = outname2 = None
+
+        # save cubes for each camera
+        cam1_table = self.table.query("U_CAMERA == 1")
+        if len(cam1_table) > 0:
+            outname1 = self.output_directory / f"{self.name}_adi_cube_cam1.fits"
+            combine_frames_files(cam1_table["path"], output=outname1, force=force)
+            derot_angles1 = np.asarray(cam1_table["D_IMRPAD"] + PUPIL_OFFSET)
+            fits.writeto(
+                outname1.with_stem(f"{outname1.stem}_angles"),
+                derot_angles1,
+                overwrite=True,
+                checksum=True,
+            )
+
+        cam2_table = self.table.query("U_CAMERA == 2")
+        if len(cam2_table) > 0:
+            outname2 = self.output_directory / f"{self.name}_adi_cube_cam2.fits"
+            combine_frames_files(cam2_table["path"], output=outname2, force=force)
+            derot_angles2 = np.asarray(cam2_table["D_IMRPAD"] + PUPIL_OFFSET)
+            fits.writeto(
+                outname2.with_stem(f"{outname2.stem}_angles"),
+                derot_angles2,
+                overwrite=True,
+                checksum=True,
+            )
+
+    def _polarimetry(self, tripwire=False):
+        if self.collapse is None:
             raise ValueError("Cannot do PDI without collapsing data.")
-        pol_config = self.config["polarimetry"]
-        self.logger.info("Performing polarimetric calibration")
-        outdir = self.output_dir / pol_config.get("output_directory", "")
-        if not outdir.is_dir():
-            outdir.mkdir(parents=True, exist_ok=True)
-        self.logger.debug(f"saving Stokes data to {outdir.absolute()}")
-        skip_pdi = not self.tripwire and not pol_config.get("force", False)
-        if skip_pdi:
-            self.logger.debug("skipping PDI if files exist")
-        self.tripwire = self.tripwire or not skip_pdi
+        config = self.polarimetry
+        logger.info("Performing polarimetric calibration")
+        if config.output_directory is not None:
+            outdir = config.output_directory
+        else:
+            outdir = self.output_directory
+        outdir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"saving Stokes data to {outdir.absolute()}")
+        tripwire |= config.force
 
         # 1. Make diff images
-        self.make_diff_images(outdir, skip=skip_pdi)
+        self.make_diff_images(outdir, force=tripwire)
 
         # 2. Correct IP + crosstalk
-        if "ip" in pol_config:
-            self.polarimetry_ip_correct(outdir, skip=skip_pdi)
+        if config.ip is not None:
+            self.polarimetry_ip_correct(outdir, force=tripwire)
         else:
             self.diff_files_ip = self.diff_files.copy()
         # 3. Do higher-order correction
-        self.polarimetry_triplediff(outdir, skip=skip_pdi)
+        self.polarimetry_triplediff(outdir, force=tripwire)
 
-        self.logger.info("Finished PDI")
+        logger.info("Finished PDI")
 
-    def make_diff_images(self, outdir, skip=False):
-        self.logger.info("Making difference frames")
-        table = header_table(self.working_files)
-        groups = table.groupby("U_CAMERA")
-        cam1_files = groups.get_group(1)["path"]
-        cam2_files = groups.get_group(2)["path"]
-        self.diff_files = []
-        for cam1_file, cam2_file in tqdm.tqdm(
-            zip(cam1_files, cam2_files),
-            desc="making single diff and sum images",
-            total=len(cam1_files),
-        ):
-            stem = re.sub("_cam[12]", "", cam1_file.stem)
-            outname = outdir / f"{stem}_diff.fits"
-            self.diff_files.append(outname)
-            if skip and outname.is_file():
-                continue
-            self.logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
-            cam1_frame, header = fits.getdata(cam1_file, header=True)
+    def make_diff_images(self, outdir, force: bool = False):
+        logger.info("Making difference frames")
+        # table should still be sorted by MJD
+        cam1_table = self.table.query("U_CAMERA == 1")
+        cam2_table = self.table.query("U_CAMERA == 2")
+        with mp.Pool(self.num_proc) as pool:
+            jobs = []
+            for cam1_file, cam2_file in zip(cam1_table["path"], cam2_table["path"]):
+                stem = re.sub("_cam[12]", "", cam1_file.name)
+                outname = outdir / stem.replace(".fits", "_diff.fits")
+                logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
+                logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
+                kwds = dict(outname=outname, force=force)
+                jobs.append(
+                    pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
+                )
 
-            self.logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
-            cam2_frame = fits.getdata(cam2_file)
+            self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
 
-            diff = cam1_frame - cam2_frame
-            summ = cam1_frame + cam2_frame
+        logger.info("Done making difference frames")
+        return self.diff_files
 
-            stack = np.asarray((summ, diff))
-
-            # prepare header
-            del header["U_CAMERA"]
-            stokes = HWP_POS_STOKES[header["U_HWPANG"]]
-            header["CAXIS3"] = "STOKES"
-            header["STOKES"] = f"I,{stokes}"
-
-            fits.writeto(outname, stack, header=header, overwrite=True, checksum=True)
-            self.logger.debug(f"saved diff image to {outname.absolute()}")
-        self.logger.info("Done making difference frames")
-
-    def polarimetry_ip_correct(self, outdir, skip=False):
-        ip_method = self.config["polarimetry"]["ip"].get("method", "photometry")
-
-        self.logger.info(f"Correcting instrumental polarization using '{ip_method}'")
-
-        if ip_method == "photometry":
-            func = self.polarimetry_ip_correct_center
-        elif ip_method == "satspot_photometry":
-            func = self.polarimetry_ip_correct_satspot
-        elif ip_method == "mueller":
-            func = lambda f, x: f
+    def polarimetry_ip_correct(self, outdir, force=False):
+        match self.polarimetry.ip.method:
+            case "photometry":
+                func = self.polarimetry_ip_correct_center
+            case "satspot_photometry":
+                func = self.polarimetry_ip_correct_satspot
+            # case "mueller":
             # func = self.polarimetry_ip_correct_mueller
+            case _:
+                func = lambda f, x: f
 
         self.diff_files_ip = []
-        iter = tqdm.tqdm(self.diff_files, desc="Correcting IP")
-        for filename in iter:
-            outname = outdir / f"{filename.stem}_ip.fits"
-            self.diff_files_ip.append(outname)
-            if skip and outname.is_file():
-                continue
-            func(filename, outname)
+        with mp.Pool(self.num_proc) as pool:
+            jobs = []
+            for filename in self.diff_files:
+                outname = outdir / filename.name.replace(".fits", "_ip.fits")
+                self.diff_files_ip.append(outname)
+                if not force and outname.is_file():
+                    continue
+                jobs.append(pool.apply_async(func, args=(filename, outname)))
+            for job in tqdm(jobs, desc="Correcting IP"):
+                job.get()
 
-        self.logger.info(f"Done correcting instrumental polarization")
+        logger.info(f"Done correcting instrumental polarization")
 
     def polarimetry_ip_correct_center(self, filename, outname):
         stack, header = fits.getdata(filename, header=True)
-        aper_rad = self.config["polarimetry"]["ip"].get("r", 5)
+        aper_rad = self.polarimetry.ip.aper_rad
         pX = measure_instpol(
             stack[0],
             stack[1],
@@ -460,31 +485,28 @@ class Pipeline(PipelineOptions):
         stack_corr[1] -= pX * stack[0]
 
         stokes = HWP_POS_STOKES[header["U_HWPANG"]]
-        header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
+        header[f"DPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
         fits.writeto(outname, stack_corr, header=header, overwrite=True, checksum=True)
 
     def polarimetry_ip_correct_satspot(self, filename, outname):
         stack, header = fits.getdata(filename, header=True)
-        aper_rad = self.config["polarimetry"]["ip"].get("r", 5)
-        satspot_config = self.config["coronagraph"]["satellite_spots"]
-        satspot_radius = lamd_to_pixel(satspot_config["radius"], header["U_FILTER"])
-        satspot_angle = satspot_config.get("angle", -4)
+        aper_rad = self.polarimetry.ip.aper_rad
         pX = measure_instpol_satellite_spots(
             stack[0],
             stack[1],
             r=aper_rad,
-            radius=satspot_radius,
-            angle=satspot_angle,
+            radius=self.satspots.radius,
+            angle=self.satspots.angle,
         )
         stack_corr = stack.copy()
         stack_corr[1] -= pX * stack[0]
 
         stokes = HWP_POS_STOKES[header["U_HWPANG"]]
-        header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
+        header[f"DPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
         fits.writeto(outname, stack_corr, header=header, overwrite=True, checksum=True)
 
     # def polarimetry_ip_correct_mueller(self, filename, outname):
-    # self.logger.warning("Mueller matrix calibration is extremely experimental.")
+    # logger.warning("Mueller matrix calibration is extremely experimental.")
     # stack, header = fits.getdata(filename, header=True)
     # # info needed for Mueller matrices
     # pa = np.deg2rad(header["D_IMRPAD"] + 180 - header["D_IMRPAP"])
@@ -533,24 +555,22 @@ class Pipeline(PipelineOptions):
     # header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
     # fits.writeto(outname, stack, header=header, overwrite=True, checksum=True)
 
-    def polarimetry_triplediff(self, outdir, skip=False):
+    def polarimetry_triplediff(self, outdir, force=False):
         # sort table
-        table = header_table(self.diff_files_ip)
+        table = header_table(self.diff_files_ip, quiet=True)
         inds = pol_inds(table["U_HWPANG"], 2)
         table_filt = table.loc[inds]
-        self.logger.info(
+        logger.info(
             f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
         )
 
-        outname = outdir / f"{self.config['name']}_stokes_cube.fits"
+        outname = self.output_directory / f"{self.name}_stokes_cube.fits"
         outname_coll = outname.with_name(f"{outname.stem}_collapsed.fits")
-        if not skip or not outname.is_file() or not outname_coll.is_file():
+        if force or not outname.is_file() or not outname_coll.is_file():
             polarization_calibration_triplediff(table_filt["path"], outname=outname)
-            self.logger.debug(f"saved Stokes cube to {outname.absolute()}")
+            logger.debug(f"saved Stokes cube to {outname.absolute()}")
             stokes_angles = triplediff_average_angles(table_filt["path"])
-
             stokes_cube, header = fits.getdata(outname, header=True)
-
             stokes_cube_collapsed, header = collapse_stokes_cube(
                 stokes_cube, stokes_angles, header=header
             )
@@ -558,32 +578,6 @@ class Pipeline(PipelineOptions):
                 stokes_cube_collapsed,
                 outname=outname_coll,
                 header=header,
-                skip=skip,
+                force=force,
             )
-            self.logger.debug(f"saved collapsed Stokes cube to {outname_coll.absolute()}")
-
-    def parse_filenames(self, root, filenames):
-        if isinstance(filenames, str):
-            path = Path(filenames)
-            if path.is_file():
-                # is a file with a list of filenames
-                fh = path.open("r")
-                paths = [Path(f.rstrip()) for f in fh.readlines()]
-                fh.close()
-            else:
-                # is a globbing expression
-                paths = list(root.glob(filenames))
-
-        else:
-            # is a list of filenames
-            paths = [root / f for f in filenames]
-
-        # cause ruckus if no files are found
-        if len(paths) == 0:
-            self.logger.debug(f"Root directory: {root.absolute()}")
-            self.logger.debug(f"'filenames': {filenames}")
-            self.logger.error(
-                "No files found; double check your configuration file. See debug information for more details"
-            )
-
-        return paths
+            logger.debug(f"saved collapsed Stokes cube to {outname_coll.absolute()}")

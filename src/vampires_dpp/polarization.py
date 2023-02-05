@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import Optional, Sequence, Tuple
 
@@ -235,86 +236,34 @@ def polarization_calibration_triplediff(filenames: Sequence[str], outname) -> ND
         ix = i * 8  # offset index
         summ_dict = {}
         diff_dict = {}
-        matrix_dict = {}
         for file in filenames.iloc[ix : ix + 8]:
             stack, hdr = fits.getdata(file, header=True)
             key = hdr["U_HWPANG"], hdr["U_FLCSTT"]
             summ_dict[key] = stack[0]
             diff_dict[key] = stack[1]
 
-            pa = np.deg2rad(hdr["D_IMRPAD"] + 180 - hdr["D_IMRPAP"])
-            altitude = np.deg2rad(hdr["ALTITUDE"])
-            hwp_theta = np.deg2rad(hdr["U_HWPANG"])
-            imr_theta = np.deg2rad(hdr["D_IMRANG"])
-            # qwp are oriented with 0 on vertical axis
-            qwp1 = np.deg2rad(hdr["U_QWP1"]) + np.pi / 2
-            qwp2 = np.deg2rad(hdr["U_QWP2"]) + np.pi / 2
-
-            # get matrix for camera 1
-            M1 = mueller_matrix_model(
-                camera=1,
-                filter=hdr["U_FILTER"],
-                flc_state=hdr["U_FLCSTT"],
-                qwp1=qwp1,
-                qwp2=qwp2,
-                imr_theta=imr_theta,
-                hwp_theta=hwp_theta,
-                pa=pa,
-                altitude=altitude,
-            )
-            # get matrix for camera 2
-            M2 = mueller_matrix_model(
-                camera=2,
-                filter=hdr["U_FILTER"],
-                flc_state=hdr["U_FLCSTT"],
-                qwp1=qwp1,
-                qwp2=qwp2,
-                imr_theta=imr_theta,
-                hwp_theta=hwp_theta,
-                pa=pa,
-                altitude=altitude,
-            )
-            matrix_dict[key] = M1 - M2
         ## make difference images
         # double difference (FLC1 - FLC2)
         pQ = 0.5 * (diff_dict[(0, 1)] - diff_dict[(0, 2)])
         pIQ = 0.5 * (summ_dict[(0, 1)] + summ_dict[(0, 2)])
-        M_pQ = 0.5 * (matrix_dict[(0, 1)] - matrix_dict[(0, 2)])
 
         mQ = 0.5 * (diff_dict[(45, 1)] - diff_dict[(45, 2)])
         mIQ = 0.5 * (summ_dict[(45, 1)] + summ_dict[(45, 2)])
-        M_mQ = 0.5 * (matrix_dict[(45, 1)] - matrix_dict[(45, 2)])
 
         pU = 0.5 * (diff_dict[(22.5, 1)] - diff_dict[(22.5, 2)])
         pIU = 0.5 * (summ_dict[(22.5, 1)] + summ_dict[(22.5, 2)])
-        M_pU = 0.5 * (matrix_dict[(22.5, 1)] - matrix_dict[(22.5, 2)])
 
         mU = 0.5 * (diff_dict[(67.5, 1)] - diff_dict[(67.5, 2)])
         mIU = 0.5 * (summ_dict[(67.5, 1)] + summ_dict[(67.5, 2)])
-        M_mU = 0.5 * (matrix_dict[(67.5, 1)] - matrix_dict[(67.5, 2)])
 
         # triple difference (HWP1 - HWP2)
         Q = 0.5 * (pQ - mQ)
         IQ = 0.5 * (pIQ + mIQ)
-        M_Q = 0.5 * (M_pQ - M_mQ)
         U = 0.5 * (pU - mU)
         IU = 0.5 * (pIU + mIU)
-        M_U = 0.5 * (M_pU - M_mU)
         I = 0.5 * (IQ + IU)
 
-        # IP corr
-        Q -= M_Q[1, 0] * I
-        U -= M_U[2, 0] * I
-
-        # crosstalk corr
-        QU_mat = np.asarray((Q.ravel(), U.ravel()))
-        M_QU = np.asarray((M_Q[0, 1:3], M_U[0, 1:3]))
-        QU_corr = np.linalg.lstsq(M_QU, QU_mat, rcond=None)[0]
-
-        Q_corr = QU_corr[0].reshape(Q.shape)
-        U_corr = QU_corr[1].reshape(U.shape)
-
-        stokes_cube[:3, i] = I, Q, U  # Q_corr, U_corr
+        stokes_cube[:3, i] = I, Q, U
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
@@ -328,13 +277,12 @@ def triplediff_average_angles(filenames):
             "Cannot do triple-differential calibration without exact sets of 8 frames for each HWP cycle"
         )
     # make sure we get data in correct order using FITS headers
-    tbl = header_table(filenames)
-
-    N_hwp_sets = len(tbl) // 8
+    derot_angles = np.asarray([fits.getval(f, "D_IMRPAD") + PUPIL_OFFSET for f in filenames])
+    N_hwp_sets = len(filenames) // 8
     pas = np.zeros(N_hwp_sets, dtype="f4")
     for i in range(pas.shape[0]):
         ix = i * 8
-        pas[i] = average_angle(tbl["D_IMRPAD"].iloc[ix : ix + 8] + PUPIL_OFFSET)
+        pas[i] = average_angle(derot_angles[ix : ix + 8])
 
     return pas
 
@@ -425,13 +373,13 @@ def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> 
     return stokes_cube
 
 
-def write_stokes_products(stokes_cube, header=None, outname=None, skip=False, phi=0):
+def write_stokes_products(stokes_cube, header=None, outname=None, force=False, phi=0):
     if outname is None:
         path = Path("stokes_cube.fits")
     else:
         path = Path(outname)
 
-    if skip and path.is_file():
+    if not force and path.is_file():
         return path
 
     pi = np.hypot(stokes_cube[2], stokes_cube[1])
@@ -450,3 +398,31 @@ def write_stokes_products(stokes_cube, header=None, outname=None, skip=False, ph
     fits.writeto(path, data, header=header, overwrite=True, checksum=True)
 
     return path
+
+
+def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
+    if outname is not None:
+        outname = Path(outname)
+    else:
+        stem = re.sub("_cam[12]", "", cam1_file.stem)
+        outname = cam1_file.with_name(f"{stem}_diff.fits")
+
+    if not force and outname.is_file():
+        return outname
+
+    cam1_frame, header = fits.getdata(cam1_file, header=True)
+    cam2_frame = fits.getdata(cam2_file)
+
+    diff = cam1_frame - cam2_frame
+    summ = cam1_frame + cam2_frame
+
+    stack = np.asarray((summ, diff))
+
+    # prepare header
+    del header["U_CAMERA"]
+    stokes = HWP_POS_STOKES[header["U_HWPANG"]]
+    header["CAXIS3"] = "STOKES"
+    header["STOKES"] = f"I,{stokes}"
+
+    fits.writeto(outname, stack, header=header, overwrite=True, checksum=True)
+    return outname
