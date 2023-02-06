@@ -55,7 +55,7 @@ def calibrate_file(
         if not force and outpath_FLC1.is_file() and outpath_FLC2.is_file():
             return outpath_FLC1, outpath_FLC2
 
-    raw_cube = fits.getdata(path, hdu)
+    raw_cube = fits.getdata(path, hdu, output_verify="silentfix")
     # fix header
     header = apply_wcs(fix_header(header))
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
@@ -77,13 +77,13 @@ def calibrate_file(
     # dark correction
     if dark_filename is not None:
         dark_path = Path(dark_filename)
-        dark = fits.getdata(dark_path)
+        dark = fits.getdata(dark_path, output_verify="silentfix")
         cube -= dark
         header["MDARK"] = dark_path.name, "DPP master dark filename"
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
-        flat = fits.getdata(flat_path)
+        flat = fits.getdata(flat_path, output_verify="silentfix")
         cube /= flat
         header["MFLAT"] = flat_path.name, "DPP master flat filename"
     # flip cam 1 data
@@ -94,21 +94,37 @@ def calibrate_file(
         transform_path = Path(transform_filename)
         distort_coeffs = pd.read_csv(transform_path, index_col=0)
         header["MDIST"] = transform_path.name, "DPP distortion transform filename"
-        params = distort_coeffs.loc[f"cam{header['U_CAMERA']}"]
+        params = distort_coeffs.loc[f"cam{header['U_CAMERA']:.0f}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
     # deinterleave
     if deinterleave:
         header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
         header["RET-ANG2"] = 0, "Position angle of second retarder plate (deg)"
         header["RETPLAT2"] = "FLC(VAMPIRES)", "Identifier of second retarder plate"
-        fits.writeto(outpath_FLC1, cube[::2], header=header, overwrite=True, checksum=True)
+        fits.writeto(
+            outpath_FLC1,
+            cube[::2],
+            header=header,
+            overwrite=True,
+            checksum=True,
+            output_verify="silentfix",
+        )
 
         header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
         header["RET-ANG2"] = 45, "Position angle of second retarder plate (deg)"
-        fits.writeto(outpath_FLC2, cube[1::2], header=header, overwrite=True, checksum=True)
+        fits.writeto(
+            outpath_FLC2,
+            cube[1::2],
+            header=header,
+            overwrite=True,
+            checksum=True,
+            output_verify="silentfix",
+        )
         return outpath_FLC1, outpath_FLC2
 
-    fits.writeto(outpath, cube, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        outpath, cube, header=header, overwrite=True, checksum=True, output_verify="silentfix"
+    )
     return outpath
 
 
@@ -116,13 +132,20 @@ def make_dark_file(filename: str, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file():
         return outpath
-    raw_cube, header = fits.getdata(path, ext=0, header=True)
+    raw_cube, header = fits.getdata(path, ext=0, header=True, output_verify="silentfix")
     if "U_FLCSTT" in header:
         cube = raw_cube.astype("f4")
     else:
         cube = raw_cube[1:].astype("f4")
     master_dark, header = collapse_cube(cube, header=header, **kwargs)
-    fits.writeto(outpath, master_dark, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        outpath,
+        master_dark,
+        header=header,
+        overwrite=True,
+        checksum=True,
+        output_verify="silentfix",
+    )
     return outpath
 
 
@@ -130,7 +153,7 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file():
         return outpath
-    raw_cube, header = fits.getdata(path, ext=0, header=True)
+    raw_cube, header = fits.getdata(path, ext=0, header=True, output_verify="silentfix")
     if "U_FLCSTT" in header:
         cube = raw_cube.astype("f4")
     else:
@@ -138,12 +161,19 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     if dark_filename is not None:
         dark_path = Path(dark_filename)
         header["MDARK"] = (dark_path.name, "file used for dark subtraction")
-        master_dark = fits.getdata(dark_path)
+        master_dark = fits.getdata(dark_path, output_verify="silentfix")
         cube = cube - master_dark
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
     master_flat = master_flat / biweight_location(master_flat, c=6, ignore_nan=True)
 
-    fits.writeto(outpath, master_flat, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        outpath,
+        master_flat,
+        header=header,
+        overwrite=True,
+        checksum=True,
+        output_verify="silentfix",
+    )
     return outpath
 
 

@@ -174,6 +174,7 @@ class CollapseOptions(OutputDirectory):
 class IPOptions:
     method: str = "photometry"
     aper_rad: float = 6
+    force: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         if self.method not in ("photometry", "satspots", "mueller"):

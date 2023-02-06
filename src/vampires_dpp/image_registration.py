@@ -8,7 +8,12 @@ from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 
 from vampires_dpp.image_processing import shift_cube, shift_frame
-from vampires_dpp.indexing import cutout_slice, frame_center, window_slices
+from vampires_dpp.indexing import (
+    cutout_slice,
+    frame_center,
+    lamd_to_pixel,
+    window_slices,
+)
 from vampires_dpp.util import get_paths
 
 
@@ -100,6 +105,7 @@ def psf_offsets(
     refidx=0,
     center=None,
     window=None,
+    upsample_factor=1,
     **kwargs,
 ):
     if window is not None:
@@ -128,7 +134,9 @@ def psf_offsets(
                 offsets[i] = refoffset
                 continue
             view = frame[inds[0], inds[1]]
-            dft_offset = phase_cross_correlation(refview, view, return_error=False, **kwargs)
+            dft_offset = phase_cross_correlation(
+                refview, view, return_error=False, upsample_factor=upsample_factor
+            )
             offsets[i, 0] = refoffset - dft_offset
     elif method == "peak":
         for i, frame in enumerate(cube):
@@ -198,12 +206,13 @@ def measure_offsets_file(filename, method="peak", coronagraphic=False, force=Fal
     path, outpath = get_paths(filename, suffix="offsets", filetype=".csv", **kwargs)
     if not force and outpath.is_file():
         return outpath
-    cube, header = fits.getdata(path, header=True)
+    cube, header = fits.getdata(path, header=True, output_verify="silentfix")
     if "VPP_REF" in header:
         refidx = header["VPP_REF"]
     else:
         refidx = np.nanargmax(np.nanmax(cube, axis=(-2, -1)))
     if coronagraphic:
+        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["U_FILTER"])
         offsets = satellite_spot_offsets(cube, method=method, refidx=refidx, **kwargs)
     else:
         offsets = psf_offsets(cube, method=method, refidx=refidx, **kwargs)
@@ -222,7 +231,7 @@ def register_file(filename, offset_file, force=False, **kwargs):
     if not force and outpath.is_file():
         return outpath
 
-    cube, header = fits.getdata(path, header=True)
+    cube, header = fits.getdata(path, header=True, output_verify="silentfix")
     offsets_flat = np.loadtxt(offset_file, delimiter=",")
 
     # reshape offsets into a single average
@@ -230,7 +239,9 @@ def register_file(filename, offset_file, force=False, **kwargs):
 
     shifted = shift_cube(cube, -offsets)
 
-    fits.writeto(outpath, shifted, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        outpath, shifted, header=header, overwrite=True, checksum=True, output_verify="silentfix"
+    )
     return outpath
 
 
@@ -245,7 +256,9 @@ def coregister_file(filename, offset, output=None, skip=False, **kwargs):
     if skip and output.is_file():
         return output
 
-    frame, header = fits.getdata(filename, header=True)
+    frame, header = fits.getdata(filename, header=True, output_verify="silentfix")
     shifted = shift_frame(frame, -offset)
-    fits.writeto(output, shifted, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        output, shifted, header=header, overwrite=True, checksum=True, output_verify="silentfix"
+    )
     return output

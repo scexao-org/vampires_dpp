@@ -9,6 +9,7 @@ from astropy.coordinates import Angle
 from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
+from skimage.transform import rotate
 
 from vampires_dpp.indexing import frame_center
 from vampires_dpp.organization import dict_from_header
@@ -43,6 +44,30 @@ def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
     return distort_frame(data, M, **kwargs)
 
 
+def derotate_frame_skimage(data: ArrayLike, angle, center=None, **kwargs):
+    """_summary_
+
+    Parameters
+    ----------
+    data : ArrayLike
+        _description_
+    angle : _type_
+        ANGLE CONVENTION IS CW, OPPOSITE OF ASTROMETRIC
+    center : _type_, optional
+        _description_, by default None
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    if center is None:
+        center = frame_center(data)
+    return rotate(
+        data.astype("f4"), -angle, center=center[::-1], cval=np.nan, order=3, resize=False
+    )
+
+
 def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
     if center is None:
         center = frame_center(data)
@@ -53,7 +78,7 @@ def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
 
 def distort_frame(data: ArrayLike, matrix, **kwargs):
     default_kwargs = {
-        "flags": cv2.INTER_LANCZOS4,
+        "flags": cv2.INTER_CUBIC,
         "borderMode": cv2.BORDER_CONSTANT,
         "borderValue": np.nan,
     }
@@ -127,10 +152,12 @@ def collapse_cube_file(filename, force=False, **kwargs):
     if not force and outpath.is_file():
         return outpath
 
-    cube, header = fits.getdata(path, header=True)
+    cube, header = fits.getdata(path, header=True, output_verify="silentfix")
     frame, header = collapse_cube(cube, header=header, **kwargs)
 
-    fits.writeto(outpath, frame, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        outpath, frame, header=header, overwrite=True, checksum=True, output_verify="silentfix"
+    )
     return outpath
 
 
@@ -209,13 +236,15 @@ def combine_frames_files(filenames, output, force=False, **kwargs):
     frames = []
     headers = []
     for filename in filenames:
-        frame, header = fits.getdata(filename, header=True)
+        frame, header = fits.getdata(filename, header=True, output_verify="silentfix")
         frames.append(frame)
         headers.append(header)
 
     cube, header = combine_frames(frames, headers, **kwargs)
 
-    fits.writeto(path, cube, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        path, cube, header=header, overwrite=True, checksum=True, output_verify="silentfix"
+    )
     return path
 
 
@@ -232,12 +261,14 @@ def collapse_frames_files(filenames, output, force=False, **kwargs):
     frames = []
     headers = []
     for filename in filenames:
-        frame, header = fits.getdata(filename, header=True)
+        frame, header = fits.getdata(filename, header=True, output_verify="silentfix")
         frames.append(frame)
         headers.append(header)
 
     frame, header = collapse_frames(frames, headers=headers, **kwargs)
-    fits.writeto(path, frame, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        path, frame, header=header, overwrite=True, checksum=True, output_verify="silentfix"
+    )
     return path
 
 

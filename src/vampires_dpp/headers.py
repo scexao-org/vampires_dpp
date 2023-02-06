@@ -148,10 +148,10 @@ def fix_header_file(filename, output: Optional[str] = None, skip=False):
     if skip and output.exists():
         return output
 
-    data, hdr = fits.getdata(filename, header=True)
+    data, hdr = fits.getdata(filename, header=True, output_verify="silentfix")
     hdr = fix_header(hdr)
     # save file
-    fits.writeto(output, data, header=hdr, overwrite=True, checksum=True)
+    fits.writeto(output, data, header=hdr, overwrite=True, checksum=True, output_verify="silentfix")
     return output
 
 
@@ -178,7 +178,7 @@ def fix_old_headers(filename, output=None, skip=False):
     dec_tokens = hdr["DEC"].split(".")
     hdr["DEC"] = ":".join(dec_tokens[:-1]) + f".{dec_tokens[-1]}"
     hdr["U_CAMERA"] = 1 if "cam1" in filename else 2
-    fits.writeto(output, data, header=hdr, overwrite=True, checksum=True)
+    fits.writeto(output, data, header=hdr, overwrite=True, checksum=True, output_verify="silentfix")
     return output
 
 

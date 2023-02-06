@@ -167,7 +167,7 @@ class Pipeline(PipelineOptions):
             for path, file_info in zip(self.paths, self.file_infos):
                 jobs.append(pool.apply_async(self.process_one, args=(path, file_info)))
 
-            for job in tqdm(jobs, desc="Running pipeline"):
+            for job in tqdm(jobs, desc="Processing files"):
                 result, tripwire = job.get()
                 if isinstance(result, Path):
                     self.output_files.append(result)
@@ -340,7 +340,7 @@ class Pipeline(PipelineOptions):
                 output_directory=outdir,
                 force=tripwire,
                 center=ctr,
-                upample_factor=config.dft_factor,
+                upsample_factor=config.dft_factor,
             )
 
         reg_file = register_file(
@@ -386,6 +386,7 @@ class Pipeline(PipelineOptions):
                 derot_angles1,
                 overwrite=True,
                 checksum=True,
+                output_verify="silentfix",
             )
 
         cam2_table = self.table.query("U_CAMERA == 2")
@@ -398,6 +399,7 @@ class Pipeline(PipelineOptions):
                 derot_angles2,
                 overwrite=True,
                 checksum=True,
+                output_verify="silentfix",
             )
 
     def _polarimetry(self, tripwire=False):
@@ -418,6 +420,7 @@ class Pipeline(PipelineOptions):
 
         # 2. Correct IP + crosstalk
         if config.ip is not None:
+            tripwire |= config.ip.force
             self.polarimetry_ip_correct(outdir, force=tripwire)
         else:
             self.diff_files_ip = self.diff_files.copy()
@@ -452,12 +455,12 @@ class Pipeline(PipelineOptions):
         match self.polarimetry.ip.method:
             case "photometry":
                 func = self.polarimetry_ip_correct_center
-            case "satspot_photometry":
+            case "satspots":
                 func = self.polarimetry_ip_correct_satspot
             # case "mueller":
             # func = self.polarimetry_ip_correct_mueller
             case _:
-                func = lambda f, x: f
+                func = lambda f, x: f  ## TODO this breaks
 
         self.diff_files_ip = []
         with mp.Pool(self.num_proc) as pool:
@@ -474,7 +477,7 @@ class Pipeline(PipelineOptions):
         logger.info(f"Done correcting instrumental polarization")
 
     def polarimetry_ip_correct_center(self, filename, outname):
-        stack, header = fits.getdata(filename, header=True)
+        stack, header = fits.getdata(filename, header=True, output_verify="silentfix")
         aper_rad = self.polarimetry.ip.aper_rad
         pX = measure_instpol(
             stack[0],
@@ -486,10 +489,17 @@ class Pipeline(PipelineOptions):
 
         stokes = HWP_POS_STOKES[header["U_HWPANG"]]
         header[f"DPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-        fits.writeto(outname, stack_corr, header=header, overwrite=True, checksum=True)
+        fits.writeto(
+            outname,
+            stack_corr,
+            header=header,
+            overwrite=True,
+            checksum=True,
+            output_verify="silentfix",
+        )
 
     def polarimetry_ip_correct_satspot(self, filename, outname):
-        stack, header = fits.getdata(filename, header=True)
+        stack, header = fits.getdata(filename, header=True, output_verify="silentfix")
         aper_rad = self.polarimetry.ip.aper_rad
         pX = measure_instpol_satellite_spots(
             stack[0],
@@ -503,7 +513,14 @@ class Pipeline(PipelineOptions):
 
         stokes = HWP_POS_STOKES[header["U_HWPANG"]]
         header[f"DPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-        fits.writeto(outname, stack_corr, header=header, overwrite=True, checksum=True)
+        fits.writeto(
+            outname,
+            stack_corr,
+            header=header,
+            overwrite=True,
+            checksum=True,
+            output_verify="silentfix",
+        )
 
     # def polarimetry_ip_correct_mueller(self, filename, outname):
     # logger.warning("Mueller matrix calibration is extremely experimental.")
@@ -553,7 +570,7 @@ class Pipeline(PipelineOptions):
     # stack[1] -= pX * stack[0]
 
     # header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-    # fits.writeto(outname, stack, header=header, overwrite=True, checksum=True)
+    # fits.writeto(outname, stack, header=header, overwrite=True, checksum=True, output_verify="silentfix")
 
     def polarimetry_triplediff(self, outdir, force=False):
         # sort table
@@ -570,7 +587,7 @@ class Pipeline(PipelineOptions):
             polarization_calibration_triplediff(table_filt["path"], outname=outname)
             logger.debug(f"saved Stokes cube to {outname.absolute()}")
             stokes_angles = triplediff_average_angles(table_filt["path"])
-            stokes_cube, header = fits.getdata(outname, header=True)
+            stokes_cube, header = fits.getdata(outname, header=True, output_verify="silentfix")
             stokes_cube_collapsed, header = collapse_stokes_cube(
                 stokes_cube, stokes_angles, header=header
             )
