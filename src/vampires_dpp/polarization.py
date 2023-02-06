@@ -1,4 +1,5 @@
 import re
+import warnings
 from pathlib import Path
 from typing import Optional, Sequence, Tuple
 
@@ -14,7 +15,13 @@ from scipy.optimize import minimize_scalar
 from vampires_dpp.constants import PUPIL_OFFSET
 from vampires_dpp.image_processing import combine_frames_headers, derotate_cube
 from vampires_dpp.image_registration import offset_centroid
-from vampires_dpp.indexing import frame_angles, frame_center, frame_radii, window_slices
+from vampires_dpp.indexing import (
+    cutout_slice,
+    frame_angles,
+    frame_center,
+    frame_radii,
+    window_slices,
+)
 from vampires_dpp.mueller_matrices import mirror, mueller_matrix_model, rotator
 from vampires_dpp.organization import header_table
 from vampires_dpp.util import average_angle
@@ -23,7 +30,7 @@ from vampires_dpp.wcs import apply_wcs
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
 
-def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None, expected=0):
+def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, expected=0, **kwargs):
     """
     Use aperture photometry to estimate the instrument polarization.
 
@@ -33,32 +40,25 @@ def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, center=None, expected=0):
         Input Stokes cube (4, y, x)
     r : float, optional
         Radius of circular aperture in pixels, by default 5
-    center : Tuple, optional
-        Center of circular aperture (y, x). If None, will use the frame center. By default None
     expected : float, optional
         The expected fractional polarization, by default 0
+    **kwargs
 
     Returns
     -------
     float
         The instrumental polarization coefficient
     """
-    if center is None:
-        center = frame_center(I)
-
     x = X / I
-
-    rs = frame_radii(x)
-
-    weights = np.ones_like(x)
-    # only keep values inside aperture
-    weights[rs > r] = 0
-
-    pX = np.nansum(x * weights) / np.nansum(weights)
+    sl = cutout_slice(x, **kwargs)
+    cutout = x[sl[0], sl[1]]
+    pX = safe_aperture_sum(cutout, r=r)
     return pX - expected
 
 
-def measure_instpol_satellite_spots(I: ArrayLike, X: ArrayLike, r=5, expected=0, **kwargs):
+def measure_instpol_satellite_spots(
+    I: ArrayLike, X: ArrayLike, r=5, expected=0, window=30, **kwargs
+):
     """
     Use aperture photometry on satellite spots to estimate the instrument polarization.
 
@@ -80,19 +80,30 @@ def measure_instpol_satellite_spots(I: ArrayLike, X: ArrayLike, r=5, expected=0,
     float
         The instrumental polarization coefficient
     """
+
     x = X / I
 
-    slices = window_slices(x, **kwargs)
+    slices = window_slices(x, window=window, **kwargs)
     # refine satellite spot apertures onto centroids
     aps_centers = [offset_centroid(I, sl) for sl in slices]
 
     # TODO may be biased by central halo?
     # measure IP from aperture photometry
-    aps = CircularAperture(aps_centers, r)
-    fluxes = aperture_photometry(x, aps)["aperture_sum"]
-    cX = np.mean(fluxes) / aps.area
+    fluxes = []
+    for ap_center in aps_centers:
+        # use refined window
+        sl = cutout_slice(x, window=window, center=ap_center)
+        cutout = x[sl[0], sl[1]]
+        fluxes.append(safe_aperture_sum(cutout, r=r))
+    return np.mean(fluxes) - expected
 
-    return cX - expected
+
+def safe_aperture_sum(frame, r):
+    weights = np.ones_like(frame)
+    rs = frame_radii(frame)
+    # only keep values inside aperture
+    weights[rs > r] = 0
+    return np.nansum(frame * weights) / np.nansum(weights)
 
 
 def instpol_correct(stokes_cube: ArrayLike, pQ=0, pU=0, pV=0):
@@ -183,17 +194,28 @@ def Uphi_loss(X: float, stokes_cube: ArrayLike, thetas: ArrayLike, r) -> float:
     return l2norm
 
 
+def rotate_stokes(stokes_cube, theta):
+    out = stokes_cube.copy()
+    sin2ts = np.sin(2 * theta)
+    cos2ts = np.cos(2 * theta)
+    out[1] = stokes_cube[1] * cos2ts - stokes_cube[2] * sin2ts
+    out[2] = stokes_cube[1] * sin2ts + stokes_cube[2] * cos2ts
+    return out
+
+
 def collapse_stokes_cube(stokes_cube, pa, header=None):
     stokes_out = np.empty_like(stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:]))
     for s in range(stokes_cube.shape[0]):
         derot = derotate_cube(stokes_cube[s], pa)
-        stokes_out[s] = np.median(derot, axis=0)
+        stokes_out[s] = np.median(derot, axis=0, overwrite_input=True)
+    # fix PUPIL_OFFSET effect
+    stokes_corr = rotate_stokes(stokes_out, np.deg2rad(PUPIL_OFFSET))
 
     # now that cube is derotated we can apply WCS
     if header is not None:
         apply_wcs(header, pupil_offset=None)
 
-    return stokes_out, header
+    return stokes_corr, header
 
 
 def polarization_calibration_triplediff(filenames: Sequence[str], outname) -> NDArray:
@@ -237,7 +259,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str], outname) -> ND
         summ_dict = {}
         diff_dict = {}
         for file in filenames.iloc[ix : ix + 8]:
-            stack, hdr = fits.getdata(file, header=True)
+            stack, hdr = fits.getdata(file, header=True, output_verify="silentfix")
             key = hdr["U_HWPANG"], hdr["U_FLCSTT"]
             summ_dict[key] = stack[0]
             diff_dict[key] = stack[1]
@@ -358,7 +380,7 @@ def mueller_mats_file(filename, output=None, skip=False):
 
     hdu = fits.PrimaryHDU(mueller_mat)
     hdu.header["INPUT"] = filename.absolute(), "FITS diff frame"
-    hdu.writeto(output, overwrite=True)
+    hdu.writeto(output, overwrite=True, output_verify="silentfix")
 
     return output
 
@@ -395,7 +417,9 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
 
     data = np.asarray((stokes_cube[0], stokes_cube[1], stokes_cube[2], Qphi, Uphi, pi, aolp))
 
-    fits.writeto(path, data, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        path, data, header=header, overwrite=True, checksum=True, output_verify="silentfix"
+    )
 
     return path
 
@@ -410,8 +434,8 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
     if not force and outname.is_file():
         return outname
 
-    cam1_frame, header = fits.getdata(cam1_file, header=True)
-    cam2_frame = fits.getdata(cam2_file)
+    cam1_frame, header = fits.getdata(cam1_file, header=True, output_verify="silentfix")
+    cam2_frame = fits.getdata(cam2_file, output_verify="silentfix")
 
     diff = cam1_frame - cam2_frame
     summ = cam1_frame + cam2_frame
@@ -424,5 +448,7 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
     header["CAXIS3"] = "STOKES"
     header["STOKES"] = f"I,{stokes}"
 
-    fits.writeto(outname, stack, header=header, overwrite=True, checksum=True)
+    fits.writeto(
+        outname, stack, header=header, overwrite=True, checksum=True, output_verify="silentfix"
+    )
     return outname
