@@ -14,14 +14,15 @@ def measure_metric(cube, metric="l2norm", center=None, window=None, **kwargs):
     else:
         view = cube
 
-    if metric == "max":
-        values = np.max(view, axis=(-2, -1))
-    elif metric == "l2norm":
-        values = np.mean(view**2, axis=(-2, -1))
-    elif metric == "normvar":
-        var = np.var(view, axis=(-2, -1))
-        mean = np.mean(view, axis=(-2, -1))
-        values = var / mean
+    match metric:
+        case "peak" | "max":
+            values = np.max(view, axis=(-2, -1))
+        case "l2norm":
+            values = np.mean(view**2, axis=(-2, -1))
+        case "normvar":
+            var = np.var(view, axis=(-2, -1))
+            mean = np.mean(view, axis=(-2, -1))
+            values = var / mean
     return values
 
 
@@ -30,14 +31,15 @@ def measure_satellite_spot_metrics(cube, metric="l2norm", **kwargs):
     values = np.zeros_like(cube, shape=(cube.shape[0]))
     for sl in slices:
         view = cube[..., sl[0], sl[1]]
-        if metric == "max":
-            values += np.max(view, axis=(-2, -1))
-        elif metric == "l2norm":
-            values += np.mean(view**2, axis=(-2, -1))
-        elif metric == "normvar":
-            var = np.var(view, axis=(-2, -1))
-            mean = np.mean(view, axis=(-2, -1))
-            values += var / mean
+        match metric:
+            case "peak" | "max":
+                values += np.max(view, axis=(-2, -1))
+            case "l2norm":
+                values += np.mean(view**2, axis=(-2, -1))
+            case "normvar":
+                var = np.var(view, axis=(-2, -1))
+                mean = np.mean(view, axis=(-2, -1))
+                values += var / mean
     return values / len(slices)
 
 
@@ -50,7 +52,7 @@ def measure_metric_file(
 ):
     path, outpath = get_paths(filename, suffix="metric", filetype=".csv", **kwargs)
 
-    if not force and outpath.is_file():
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
     cube, header = fits.getdata(path, header=True, output_verify="silentfix")
@@ -73,7 +75,7 @@ def frame_select_file(
 ):
     path, outpath = get_paths(filename, suffix="selected", **kwargs)
 
-    if not force and outpath.is_file():
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
     cube, header = fits.getdata(path, header=True, output_verify="silentfix")

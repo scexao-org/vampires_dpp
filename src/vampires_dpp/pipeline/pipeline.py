@@ -42,7 +42,7 @@ from vampires_dpp.polarization import (
     triplediff_average_angles,
     write_stokes_products,
 )
-from vampires_dpp.util import check_version
+from vampires_dpp.util import any_file_newer, check_version
 from vampires_dpp.wcs import get_gaia_astrometry
 
 from .config import PipelineOptions
@@ -376,27 +376,27 @@ class Pipeline(PipelineOptions):
         outname1 = outname2 = None
 
         # save cubes for each camera
-        cam1_table = self.table.query("U_CAMERA == 1")
+        cam1_table = self.table.query("U_CAMERA == 1").sort_values(["MJD", "U_FLCSTT"])
         if len(cam1_table) > 0:
             outname1 = self.output_directory / f"{self.name}_adi_cube_cam1.fits"
             combine_frames_files(cam1_table["path"], output=outname1, force=force)
             derot_angles1 = np.asarray(cam1_table["D_IMRPAD"] + PUPIL_OFFSET)
             fits.writeto(
                 outname1.with_stem(f"{outname1.stem}_angles"),
-                derot_angles1,
+                derot_angles1.astype("f4"),
                 overwrite=True,
                 checksum=True,
                 output_verify="silentfix",
             )
 
-        cam2_table = self.table.query("U_CAMERA == 2")
+        cam2_table = self.table.query("U_CAMERA == 2").sort_values(["MJD", "U_FLCSTT"])
         if len(cam2_table) > 0:
             outname2 = self.output_directory / f"{self.name}_adi_cube_cam2.fits"
             combine_frames_files(cam2_table["path"], output=outname2, force=force)
             derot_angles2 = np.asarray(cam2_table["D_IMRPAD"] + PUPIL_OFFSET)
             fits.writeto(
                 outname2.with_stem(f"{outname2.stem}_angles"),
-                derot_angles2,
+                derot_angles2.astype("f4"),
                 overwrite=True,
                 checksum=True,
                 output_verify="silentfix",
@@ -432,8 +432,9 @@ class Pipeline(PipelineOptions):
     def make_diff_images(self, outdir, force: bool = False):
         logger.info("Making difference frames")
         # table should still be sorted by MJD
-        cam1_table = self.table.query("U_CAMERA == 1")
-        cam2_table = self.table.query("U_CAMERA == 2")
+        groups = self.table.groupby("U_CAMERA")
+        cam1_table = groups.get_group(1).sort_values(["MJD", "U_FLCSTT"])
+        cam2_table = groups.get_group(2).sort_values(["MJD", "U_FLCSTT"])
         with mp.Pool(self.num_proc) as pool:
             jobs = []
             for cam1_file, cam2_file in zip(cam1_table["path"], cam2_table["path"]):
@@ -457,10 +458,8 @@ class Pipeline(PipelineOptions):
                 func = self.polarimetry_ip_correct_center
             case "satspots":
                 func = self.polarimetry_ip_correct_satspot
-            # case "mueller":
-            # func = self.polarimetry_ip_correct_mueller
-            case _:
-                func = lambda f, x: f  ## TODO this breaks
+            case "mueller":
+                func = self.polarimetry_ip_correct_mueller
 
         self.diff_files_ip = []
         with mp.Pool(self.num_proc) as pool:
@@ -471,6 +470,8 @@ class Pipeline(PipelineOptions):
                 if not force and outname.is_file():
                     continue
                 jobs.append(pool.apply_async(func, args=(filename, outname)))
+            if len(jobs) == 0:
+                return
             for job in tqdm(jobs, desc="Correcting IP"):
                 job.get()
 
@@ -522,7 +523,9 @@ class Pipeline(PipelineOptions):
             output_verify="silentfix",
         )
 
-    # def polarimetry_ip_correct_mueller(self, filename, outname):
+    def polarimetry_ip_correct_mueller(self, filename, outname):
+        raise NotImplementedError()
+
     # logger.warning("Mueller matrix calibration is extremely experimental.")
     # stack, header = fits.getdata(filename, header=True)
     # # info needed for Mueller matrices
@@ -583,8 +586,13 @@ class Pipeline(PipelineOptions):
 
         outname = self.output_directory / f"{self.name}_stokes_cube.fits"
         outname_coll = outname.with_name(f"{outname.stem}_collapsed.fits")
-        if force or not outname.is_file() or not outname_coll.is_file():
-            polarization_calibration_triplediff(table_filt["path"], outname=outname)
+        if (
+            force
+            or not outname.is_file()
+            or not outname_coll.is_file()
+            or any_file_newer(table_filt["path"], outname)
+        ):
+            polarization_calibration_triplediff(table_filt["path"], outname=outname, force=True)
             logger.debug(f"saved Stokes cube to {outname.absolute()}")
             stokes_angles = triplediff_average_angles(table_filt["path"])
             stokes_cube, header = fits.getdata(outname, header=True, output_verify="silentfix")
@@ -595,6 +603,6 @@ class Pipeline(PipelineOptions):
                 stokes_cube_collapsed,
                 outname=outname_coll,
                 header=header,
-                force=force,
+                force=True,
             )
             logger.debug(f"saved collapsed Stokes cube to {outname_coll.absolute()}")

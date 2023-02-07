@@ -111,7 +111,7 @@ def fix_header(header):
     return header
 
 
-def fix_header_file(filename, output: Optional[str] = None, skip=False):
+def fix_header_file(filename, output: Optional[str] = None, force: bool = False):
     """
     Apply fixes to headers based on known bugs
 
@@ -145,7 +145,7 @@ def fix_header_file(filename, output: Optional[str] = None, skip=False):
         output = Path(output)
 
     # skip file if output exists!
-    if skip and output.exists():
+    if not force and output.exists() and path.stat().st_mtime < output.stat().st_mtime:
         return output
 
     data, hdr = fits.getdata(filename, header=True, output_verify="silentfix")
@@ -160,7 +160,7 @@ def fix_old_headers(filename, output=None, skip=False):
     if output is None:
         output = path.with_name(f"{path.stem}_hdr{path.suffix}")
 
-    if skip and output.is_file():
+    if skip and output.is_file() and path.stat().st_mtime < output.stat().st_mtime:
         return output
 
     # merge secondary headers

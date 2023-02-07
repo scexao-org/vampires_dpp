@@ -77,6 +77,9 @@ If you use the prescribed folder structure above, creating your files can be don
 dpp calib --darks=darks/raw/*.fits --flats=flats/raw/*.fits -o master_cals
 ```
 
+This will produce a series of calibration files in the `master_cals/` folder
+
+
 ### Reference
 
 ```

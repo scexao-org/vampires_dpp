@@ -204,7 +204,7 @@ def offset_modelfit(frame, inds, method, fitter=fitting.LevMarLSQFitter()):
 
 def measure_offsets_file(filename, method="peak", coronagraphic=False, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="offsets", filetype=".csv", **kwargs)
-    if not force and outpath.is_file():
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     cube, header = fits.getdata(path, header=True, output_verify="silentfix")
     if "VPP_REF" in header:
@@ -228,7 +228,7 @@ def measure_offsets_file(filename, method="peak", coronagraphic=False, force=Fal
 def register_file(filename, offset_file, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="aligned", **kwargs)
 
-    if not force and outpath.is_file():
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
     cube, header = fits.getdata(path, header=True, output_verify="silentfix")
@@ -243,22 +243,3 @@ def register_file(filename, offset_file, force=False, **kwargs):
         outpath, shifted, header=header, overwrite=True, checksum=True, output_verify="silentfix"
     )
     return outpath
-
-
-def coregister_file(filename, offset, output=None, skip=False, **kwargs):
-
-    if output is None:
-        path = Path(filename)
-        output = path.with_name(f"{path.stem}_coreg{path.suffix}")
-    else:
-        output = Path(output)
-
-    if skip and output.is_file():
-        return output
-
-    frame, header = fits.getdata(filename, header=True, output_verify="silentfix")
-    shifted = shift_frame(frame, -offset)
-    fits.writeto(
-        output, shifted, header=header, overwrite=True, checksum=True, output_verify="silentfix"
-    )
-    return output

@@ -45,7 +45,7 @@ def calibrate_file(
     **kwargs,
 ):
     path, outpath = get_paths(filename, suffix="calib", **kwargs)
-    if not force and outpath.is_file():
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     header = fits.getheader(path, hdu)
     # have to also check if deinterleaving
@@ -55,7 +55,7 @@ def calibrate_file(
         if not force and outpath_FLC1.is_file() and outpath_FLC2.is_file():
             return outpath_FLC1, outpath_FLC2
 
-    raw_cube = fits.getdata(path, hdu, output_verify="silentfix")
+    raw_cube = fits.getdata(path, hdu, checksum=True, output_verify="silentfix")
     # fix header
     header = apply_wcs(fix_header(header))
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
@@ -77,13 +77,13 @@ def calibrate_file(
     # dark correction
     if dark_filename is not None:
         dark_path = Path(dark_filename)
-        dark = fits.getdata(dark_path, output_verify="silentfix")
+        dark = fits.getdata(dark_path, checksum=True, output_verify="silentfix").astype("f4")
         cube -= dark
         header["MDARK"] = dark_path.name, "DPP master dark filename"
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
-        flat = fits.getdata(flat_path, output_verify="silentfix")
+        flat = fits.getdata(flat_path, checksum=True, output_verify="silentfix").astype("f4")
         cube /= flat
         header["MFLAT"] = flat_path.name, "DPP master flat filename"
     # flip cam 1 data
@@ -96,6 +96,7 @@ def calibrate_file(
         header["MDIST"] = transform_path.name, "DPP distortion transform filename"
         params = distort_coeffs.loc[f"cam{header['U_CAMERA']:.0f}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
+
     # deinterleave
     if deinterleave:
         header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
@@ -130,7 +131,7 @@ def calibrate_file(
 
 def make_dark_file(filename: str, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
-    if not force and outpath.is_file():
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     raw_cube, header = fits.getdata(path, ext=0, header=True, output_verify="silentfix")
     if "U_FLCSTT" in header:
@@ -151,7 +152,7 @@ def make_dark_file(filename: str, force=False, **kwargs):
 
 def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
-    if not force and outpath.is_file():
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     raw_cube, header = fits.getdata(path, ext=0, header=True, output_verify="silentfix")
     if "U_FLCSTT" in header:

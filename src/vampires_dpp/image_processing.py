@@ -13,7 +13,7 @@ from skimage.transform import rotate
 
 from vampires_dpp.indexing import frame_center
 from vampires_dpp.organization import dict_from_header
-from vampires_dpp.util import get_paths
+from vampires_dpp.util import any_file_newer, get_paths
 
 
 def shift_frame(data: ArrayLike, shift, **kwargs):
@@ -42,30 +42,6 @@ def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
         center = frame_center(data)
     M = cv2.getRotationMatrix2D(center[::-1], -angle, 1)
     return distort_frame(data, M, **kwargs)
-
-
-def derotate_frame_skimage(data: ArrayLike, angle, center=None, **kwargs):
-    """_summary_
-
-    Parameters
-    ----------
-    data : ArrayLike
-        _description_
-    angle : _type_
-        ANGLE CONVENTION IS CW, OPPOSITE OF ASTROMETRIC
-    center : _type_, optional
-        _description_, by default None
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    if center is None:
-        center = frame_center(data)
-    return rotate(
-        data.astype("f4"), -angle, center=center[::-1], cval=np.nan, order=3, resize=False
-    )
 
 
 def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
@@ -149,7 +125,7 @@ def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs
 
 def collapse_cube_file(filename, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
-    if not force and outpath.is_file():
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
     cube, header = fits.getdata(path, header=True, output_verify="silentfix")
@@ -230,7 +206,7 @@ def combine_frames_headers(headers, wcs=False):
 
 def combine_frames_files(filenames, output, force=False, **kwargs):
     path = Path(output)
-    if not force and path.is_file():
+    if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
 
     frames = []
@@ -255,7 +231,7 @@ def collapse_frames(frames, headers=None, method="median", **kwargs):
 
 def collapse_frames_files(filenames, output, force=False, **kwargs):
     path = Path(output)
-    if not force and path.is_file():
+    if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
 
     frames = []

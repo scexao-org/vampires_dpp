@@ -82,6 +82,12 @@ def get_paths(
     return path, outpath
 
 
+def any_file_newer(filenames, outpath):
+    out_mt = Path(outpath).stat().st_mtime
+    gen = (Path(f).stat().st_mtime > out_mt for f in filenames)
+    return any(gen)
+
+
 class FileType(Enum):
     GEN2 = 0
     OG = 1

@@ -24,13 +24,13 @@ from vampires_dpp.indexing import (
 )
 from vampires_dpp.mueller_matrices import mirror, mueller_matrix_model, rotator
 from vampires_dpp.organization import header_table
-from vampires_dpp.util import average_angle
+from vampires_dpp.util import any_file_newer, average_angle
 from vampires_dpp.wcs import apply_wcs
 
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
 
-def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, expected=0, **kwargs):
+def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, expected=0, window=30, **kwargs):
     """
     Use aperture photometry to estimate the instrument polarization.
 
@@ -50,7 +50,7 @@ def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, expected=0, **kwargs):
         The instrumental polarization coefficient
     """
     x = X / I
-    sl = cutout_slice(x, **kwargs)
+    sl = cutout_slice(x, window=window, **kwargs)
     cutout = x[sl[0], sl[1]]
     pX = safe_aperture_sum(cutout, r=r)
     return pX - expected
@@ -210,7 +210,6 @@ def collapse_stokes_cube(stokes_cube, pa, header=None):
         stokes_out[s] = np.median(derot, axis=0, overwrite_input=True)
     # fix PUPIL_OFFSET effect
     stokes_corr = rotate_stokes(stokes_out, np.deg2rad(PUPIL_OFFSET))
-
     # now that cube is derotated we can apply WCS
     if header is not None:
         apply_wcs(header, pupil_offset=None)
@@ -218,7 +217,7 @@ def collapse_stokes_cube(stokes_cube, pa, header=None):
     return stokes_corr, header
 
 
-def polarization_calibration_triplediff(filenames: Sequence[str], outname) -> NDArray:
+def polarization_calibration_triplediff(filenames: Sequence[str], outname, force=False) -> NDArray:
     """
     Return a Stokes cube using the _bona fide_ triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
@@ -290,7 +289,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str], outname) -> ND
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
 
-    return write_stokes_products(stokes_cube, stokes_hdr, outname=outname)
+    return write_stokes_products(stokes_cube, stokes_hdr, outname=outname, force=force)
 
 
 def triplediff_average_angles(filenames):
@@ -366,14 +365,14 @@ def polarization_calibration_model(filename):
     return M
 
 
-def mueller_mats_file(filename, output=None, skip=False):
+def mueller_mats_file(filename, output=None, force: bool = False):
     if output is None:
         indir = Path(filename).parent
         output = indir / f"mueller_mats.fits"
     else:
         output = Path(output)
 
-    if skip and output.is_file():
+    if not force and output.is_file() and Path(filename).stat().st_mtime < output.stat().st_mtime:
         return output
 
     mueller_mat = polarization_calibration_model(filename)
@@ -431,11 +430,14 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
         stem = re.sub("_cam[12]", "", cam1_file.stem)
         outname = cam1_file.with_name(f"{stem}_diff.fits")
 
-    if not force and outname.is_file():
+    if not force and outname.is_file() and not any_file_newer((cam1_file, cam2_file), outname):
         return outname
 
     cam1_frame, header = fits.getdata(cam1_file, header=True, output_verify="silentfix")
-    cam2_frame = fits.getdata(cam2_file, output_verify="silentfix")
+    cam2_frame, header2 = fits.getdata(cam2_file, header=True, output_verify="silentfix")
+
+    assert header["MJD"] == header2["MJD"]
+    assert header["U_FLCSTT"] == header2["U_FLCSTT"]
 
     diff = cam1_frame - cam2_frame
     summ = cam1_frame + cam2_frame
