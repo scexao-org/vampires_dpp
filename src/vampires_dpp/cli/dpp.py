@@ -3,6 +3,9 @@ import multiprocessing as mp
 from argparse import ArgumentParser
 from pathlib import Path
 
+import rich
+from rich.console import Console
+from rich.syntax import Syntax
 from serde.toml import to_toml
 
 import vampires_dpp as vpp
@@ -155,8 +158,32 @@ def new_config(args):
         t.coregister.method = "com"
 
     toml_str = to_toml(t)
-    if args.show:
-        print(toml_str)
+    if args.preview:
+        # print(toml_str)
+        console = Console()
+        console.rule(
+            f"PREVIEW {path.name}",
+        )
+        syn = Syntax(toml_str, theme="ansi_dark", lexer="toml")
+        console.print(syn)
+        console.rule(f"END PREVIEW")
+        response = (
+            console.input(f"Would you like to save this configuration? \[y/N] ").strip().lower()
+        )
+        if response != "y":
+            return
+
+    if path.is_file():
+        response = (
+            input(
+                f"{path.name} already exists in output directory, would you like to overwrite it? [y/N] "
+            )
+            .strip()
+            .lower()
+        )
+        if response != "y":
+            return
+
     with path.open("w") as fh:
         fh.write(toml_str)
 
@@ -176,7 +203,7 @@ new_parser.add_argument("-o", "--object", default="", help="SIMBAD-compatible ta
 new_parser.add_argument(
     "-c", "--coronagraph", dest="iwa", type=float, help="if coronagraphic, specify IWA (mas)"
 )
-new_parser.add_argument("-s", "--show", action="store_true", help="display generated TOML")
+new_parser.add_argument("-p", "--preview", action="store_true", help="preview generated TOML")
 new_parser.set_defaults(func=new_config)
 
 ########## run ##########

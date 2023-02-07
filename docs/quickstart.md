@@ -79,6 +79,17 @@ dpp calib --darks=darks/raw/*.fits --flats=flats/raw/*.fits -o master_cals
 
 This will produce a series of calibration files in the `master_cals/` folder
 
+```
+master_cals
+├── master_dark_em300_000050ms_cam1.fits
+├── master_dark_em300_000050ms_cam2.fits
+├── master_dark_em300_000080ms_cam1.fits
+├── master_dark_em300_000080ms_cam2.fits
+├── master_dark_em300_000100ms_cam1.fits
+├── master_dark_em300_000100ms_cam2.fits
+├── master_flat_em300_001000ms_cam1.fits
+└── master_flat_em300_001000ms_cam2.fits
+```
 
 ### Reference
 
@@ -107,44 +118,7 @@ options:
 After your data has been downloaded and sorted, you'll want to create configuration files for the data you want to process. To get started quickly, we provide templates for common observing scenarios that can be produced with `dpp new`. In the example below, we are creating a PDI template with the 55 mas Lyot coronagraph.
 
 ```
-dpp new 20230101_ABAur_VAMPIRES.toml -n 20230101_ABAur -t pdi -c 55 --show
-```
-```
-filenames = "raw/VMPA*.fits"
-name = "20230101_ABAur"
-target = ""
-
-[frame_centers]
-cam1 = []
-cam2 = []
-
-[coronagraph]
-iwa = 55.0
-
-[satspot]
-radius = 15.9
-angle = -4
-amp = 50
-
-[calibrate]
-output_directory = "calibrated"
-
-[calibrate.master_darks]
-cam1 = "../darks/master_dark_cam1.fits"
-cam2 = "../darks/master_dark_cam2.fits"
-
-[calibrate.master_flats]
-cam1 = "../flats/master_flat_cam1.fits"
-cam2 = "../flats/master_flat_cam2.fits"
-
-[coregister]
-output_directory = "coregistered"
-
-[collapse]
-output_directory = "collapsed"
-
-[polarimetry]
-output_directory = "pdi"
+dpp new 20230101_ABAur_VAMPIRES.toml -n 20230101_ABAur -t pdi --preview
 ```
 
 At this point, we highly recommend viewing the [pipeline options]() and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.
@@ -153,19 +127,20 @@ At this point, we highly recommend viewing the [pipeline options]() and making a
 
 ```
 dpp new --help
-usage: dpp new [-h] -t {singlecam,pdi,all} [-n NAME] [-c IWA] [-p] config
+usage: dpp new [-h] -t {singlecam,pdi,halpha,all} [-o OBJECT] [-c IWA] [-p] config
 
 positional arguments:
   config                path to configuration file
 
 options:
   -h, --help            show this help message and exit
-  -t {singlecam,pdi,all}, --template {singlecam,pdi,all}
+  -t {singlecam,pdi,halpha,all}, --template {singlecam,pdi,halpha,all}
                         template configuration to make
-  -n NAME, --name NAME  name of configuration
+  -o OBJECT, --object OBJECT
+                        SIMBAD-compatible target name
   -c IWA, --coronagraph IWA
                         if coronagraphic, specify IWA (mas)
-  -p, --preview         display generated TOML
+  -p, --preview         preview generated TOML
 ```
 
 ## Running the pipeline
@@ -174,5 +149,22 @@ After you've selected your configuration options, you can run the pipeline from 
 
 ```
 dpp run 20230101_ABAur_VAMPIRES.toml
+```
+
+### References
+
+```
+dpp run --help 
+```
+```
+usage: dpp run [-h] [-j NUM_PROC] config
+
+positional arguments:
+  config                path to configuration file
+
+options:
+  -h, --help            show this help message and exit
+  -j NUM_PROC, --num-proc NUM_PROC
+                        number of processors to use for multiprocessing (default is 8)
 ```
 

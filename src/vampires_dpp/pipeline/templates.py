@@ -11,11 +11,12 @@ DEFAULT_DIRS = {
     PolarimetryOptions: "pdi",
 }
 
+DEFAULT_FILENAME = "./**/VMPA*.fits"
 
 VAMPIRES_SINGLECAM = PipelineOptions(
     name="",
     target="",
-    filenames="raw/VMPA*.fits",
+    filenames=DEFAULT_FILENAME,
     output_directory=DEFAULT_DIRS[PipelineOptions],
     frame_centers=CamCtrOption(cam1=[]),
     calibrate=CalibrateOptions(
@@ -31,7 +32,7 @@ VAMPIRES_SINGLECAM = PipelineOptions(
 VAMPIRES_PDI = PipelineOptions(
     name="",
     target="",
-    filenames="raw/VMPA*.fits",
+    filenames=DEFAULT_FILENAME,
     output_directory=DEFAULT_DIRS[PipelineOptions],
     frame_centers=CamCtrOption(cam1=[], cam2=[]),
     calibrate=CalibrateOptions(
@@ -50,7 +51,7 @@ VAMPIRES_PDI = PipelineOptions(
 VAMPIRES_HALPHA = PipelineOptions(
     name="",
     target="",
-    filenames="raw/VMPA*.fits",
+    filenames=DEFAULT_FILENAME,
     output_directory=DEFAULT_DIRS[PipelineOptions],
     frame_centers=dict(cam1=[], cam2=[]),
     calibrate=CalibrateOptions(
@@ -65,7 +66,7 @@ VAMPIRES_HALPHA = PipelineOptions(
 VAMPIRES_MAXIMAL = PipelineOptions(
     name="",
     target="",
-    filenames="raw/VMPA*.fits",
+    filenames=DEFAULT_FILENAME,
     output_directory=DEFAULT_DIRS[PipelineOptions],
     frame_centers=dict(cam1=[], cam2=[]),
     calibrate=CalibrateOptions(
