@@ -206,7 +206,10 @@ def measure_offsets_file(filename, method="peak", coronagraphic=False, force=Fal
     path, outpath = get_paths(filename, suffix="offsets", filetype=".csv", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    cube, header = fits.getdata(path, header=True, output_verify="silentfix")
+    cube, header = fits.getdata(
+        path,
+        header=True,
+    )
     if "VPP_REF" in header:
         refidx = header["VPP_REF"]
     else:
@@ -231,7 +234,10 @@ def register_file(filename, offset_file, force=False, **kwargs):
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
-    cube, header = fits.getdata(path, header=True, output_verify="silentfix")
+    cube, header = fits.getdata(
+        path,
+        header=True,
+    )
     offsets_flat = np.loadtxt(offset_file, delimiter=",")
 
     # reshape offsets into a single average
@@ -239,7 +245,5 @@ def register_file(filename, offset_file, force=False, **kwargs):
 
     shifted = shift_cube(cube, -offsets)
 
-    fits.writeto(
-        outpath, shifted, header=header, overwrite=True, checksum=True, output_verify="silentfix"
-    )
+    fits.writeto(outpath, shifted, header=header, overwrite=True)
     return outpath

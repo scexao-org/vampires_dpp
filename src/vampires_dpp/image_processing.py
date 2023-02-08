@@ -128,12 +128,13 @@ def collapse_cube_file(filename, force=False, **kwargs):
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
-    cube, header = fits.getdata(path, header=True, output_verify="silentfix")
+    cube, header = fits.getdata(
+        path,
+        header=True,
+    )
     frame, header = collapse_cube(cube, header=header, **kwargs)
 
-    fits.writeto(
-        outpath, frame, header=header, overwrite=True, checksum=True, output_verify="silentfix"
-    )
+    fits.writeto(outpath, frame, header=header, overwrite=True)
     return outpath
 
 
@@ -212,15 +213,16 @@ def combine_frames_files(filenames, output, force=False, **kwargs):
     frames = []
     headers = []
     for filename in filenames:
-        frame, header = fits.getdata(filename, header=True, output_verify="silentfix")
+        frame, header = fits.getdata(
+            filename,
+            header=True,
+        )
         frames.append(frame)
         headers.append(header)
 
     cube, header = combine_frames(frames, headers, **kwargs)
 
-    fits.writeto(
-        path, cube, header=header, overwrite=True, checksum=True, output_verify="silentfix"
-    )
+    fits.writeto(path, cube, header=header, overwrite=True)
     return path
 
 
@@ -237,14 +239,15 @@ def collapse_frames_files(filenames, output, force=False, **kwargs):
     frames = []
     headers = []
     for filename in filenames:
-        frame, header = fits.getdata(filename, header=True, output_verify="silentfix")
+        frame, header = fits.getdata(
+            filename,
+            header=True,
+        )
         frames.append(frame)
         headers.append(header)
 
     frame, header = collapse_frames(frames, headers=headers, **kwargs)
-    fits.writeto(
-        path, frame, header=header, overwrite=True, checksum=True, output_verify="silentfix"
-    )
+    fits.writeto(path, frame, header=header, overwrite=True)
     return path
 
 

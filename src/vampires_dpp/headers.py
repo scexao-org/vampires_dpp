@@ -103,11 +103,7 @@ def fix_header(header):
         header["RET-ANG1"] = header["U_HWPANG"], "Position angle of first retarder plate (deg)"
         header["RETPLAT1"] = "HWP(NIR)", "Identifier of first retarder plate"
     if "U_FLCSTT" in header:
-        header["RET-ANG2"] = (
-            0 if header["U_FLCSTT"] == 1 else 45,
-            "Position angle of second retarder plate (deg)",
-        )
-        header["RETPLAT2"] = "FLC(VAMPIRES)", "Identifier of second retarder plate"
+        header["U_FLCANG"] = 0 if header["U_FLCSTT"] == 0 else 45, "VAMPIRES FLC angle"
     return header
 
 
@@ -140,7 +136,7 @@ def fix_header_file(filename, output: Optional[str] = None, force: bool = False)
     """
     path = Path(filename)
     if output is None:
-        output = path.with_name(f"{path.stem}_fix{path.suffix}")
+        output = path.with_name(f"{path.stem}_fix.fits.fz")
     else:
         output = Path(output)
 
@@ -148,17 +144,20 @@ def fix_header_file(filename, output: Optional[str] = None, force: bool = False)
     if not force and output.exists() and path.stat().st_mtime < output.stat().st_mtime:
         return output
 
-    data, hdr = fits.getdata(filename, header=True, output_verify="silentfix")
+    data, hdr = fits.getdata(
+        filename,
+        header=True,
+    )
     hdr = fix_header(hdr)
     # save file
-    fits.writeto(output, data, header=hdr, overwrite=True, checksum=True, output_verify="silentfix")
+    fits.writeto(output, data, header=hdr, overwrite=True)
     return output
 
 
 def fix_old_headers(filename, output=None, skip=False):
     path = Path(filename)
     if output is None:
-        output = path.with_name(f"{path.stem}_hdr{path.suffix}")
+        output = path.with_name(f"{path.stem}_hdr.fits.fz")
 
     if skip and output.is_file() and path.stat().st_mtime < output.stat().st_mtime:
         return output
@@ -178,7 +177,7 @@ def fix_old_headers(filename, output=None, skip=False):
     dec_tokens = hdr["DEC"].split(".")
     hdr["DEC"] = ":".join(dec_tokens[:-1]) + f".{dec_tokens[-1]}"
     hdr["U_CAMERA"] = 1 if "cam1" in filename else 2
-    fits.writeto(output, data, header=hdr, overwrite=True, checksum=True, output_verify="silentfix")
+    fits.writeto(output, data, header=hdr, overwrite=True)
     return output
 
 

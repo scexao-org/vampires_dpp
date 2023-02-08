@@ -32,6 +32,7 @@ Contents
 
    installation
    introduction
+   quickstart
    pipeline
    examples/index
    api/index

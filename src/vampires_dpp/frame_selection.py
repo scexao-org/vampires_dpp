@@ -55,7 +55,10 @@ def measure_metric_file(
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
-    cube, header = fits.getdata(path, header=True, output_verify="silentfix")
+    cube, header = fits.getdata(
+        path,
+        header=True,
+    )
     if coronagraphic:
         kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["U_FILTER"])
         metrics = measure_satellite_spot_metrics(cube, metric=metric, **kwargs)
@@ -78,7 +81,10 @@ def frame_select_file(
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
-    cube, header = fits.getdata(path, header=True, output_verify="silentfix")
+    cube, header = fits.getdata(
+        path,
+        header=True,
+    )
     metrics = np.loadtxt(metricfile, delimiter=",")
 
     mask = metrics >= np.quantile(metrics, q)
@@ -86,7 +92,5 @@ def frame_select_file(
 
     header["VPP_REF"] = metrics[mask].argmax() + 1, "Index of frame with highest metric"
 
-    fits.writeto(
-        outpath, selected, header=header, overwrite=True, checksum=True, output_verify="silentfix"
-    )
+    fits.writeto(outpath, selected, header=header, overwrite=True)
     return outpath

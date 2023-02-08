@@ -258,7 +258,10 @@ def polarization_calibration_triplediff(filenames: Sequence[str], outname, force
         summ_dict = {}
         diff_dict = {}
         for file in filenames.iloc[ix : ix + 8]:
-            stack, hdr = fits.getdata(file, header=True, output_verify="silentfix")
+            stack, hdr = fits.getdata(
+                file,
+                header=True,
+            )
             key = hdr["U_HWPANG"], hdr["U_FLCSTT"]
             summ_dict[key] = stack[0]
             diff_dict[key] = stack[1]
@@ -379,7 +382,10 @@ def mueller_mats_file(filename, output=None, force: bool = False):
 
     hdu = fits.PrimaryHDU(mueller_mat)
     hdu.header["INPUT"] = filename.absolute(), "FITS diff frame"
-    hdu.writeto(output, overwrite=True, output_verify="silentfix")
+    hdu.writeto(
+        output,
+        overwrite=True,
+    )
 
     return output
 
@@ -416,9 +422,7 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
 
     data = np.asarray((stokes_cube[0], stokes_cube[1], stokes_cube[2], Qphi, Uphi, pi, aolp))
 
-    fits.writeto(
-        path, data, header=header, overwrite=True, checksum=True, output_verify="silentfix"
-    )
+    fits.writeto(path, data, header=header, overwrite=True)
 
     return path
 
@@ -433,8 +437,14 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
     if not force and outname.is_file() and not any_file_newer((cam1_file, cam2_file), outname):
         return outname
 
-    cam1_frame, header = fits.getdata(cam1_file, header=True, output_verify="silentfix")
-    cam2_frame, header2 = fits.getdata(cam2_file, header=True, output_verify="silentfix")
+    cam1_frame, header = fits.getdata(
+        cam1_file,
+        header=True,
+    )
+    cam2_frame, header2 = fits.getdata(
+        cam2_file,
+        header=True,
+    )
 
     assert header["MJD"] == header2["MJD"]
     assert header["U_FLCSTT"] == header2["U_FLCSTT"]
@@ -450,7 +460,5 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
     header["CAXIS3"] = "STOKES"
     header["STOKES"] = f"I,{stokes}"
 
-    fits.writeto(
-        outname, stack, header=header, overwrite=True, checksum=True, output_verify="silentfix"
-    )
+    fits.writeto(outname, stack, header=header, overwrite=True)
     return outname
