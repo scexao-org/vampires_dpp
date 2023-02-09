@@ -1,3 +1,4 @@
+import re
 import shutil
 from dataclasses import dataclass
 from enum import Enum
@@ -34,7 +35,7 @@ def find_dark_settings(filelist):
     for filename in filelist:
         with fits.open(filename) as hdus:
             hdr = hdus[0].header
-            texp = hdr["EXPTIME"]  # exposure time in microseconds
+            texp = hdr["EXPTIME"]  # exposure time in seconds
             gain = hdr["U_EMGAIN"]
             exp_set.add((texp, gain))
 
@@ -71,13 +72,14 @@ def get_paths(
     filename, /, suffix=None, outname=None, output_directory=None, filetype=".fits", **kwargs
 ):
     path = Path(filename)
+    _suffix = "" if suffix is None else f"_{suffix}"
     if output_directory is None:
         output_directory = path.parent
     else:
         output_directory = Path(output_directory)
         output_directory.mkdir(parents=True, exist_ok=True)
     if outname is None:
-        outname = path.name.replace(".fits", f"_{suffix}{filetype}")
+        outname = re.sub("\.fits(\..*)?", f"{_suffix}{filetype}", path.name)
     outpath = output_directory / outname
     return path, outpath
 
@@ -112,7 +114,7 @@ class FileInfo:
         return cls(filetype, camera)
 
     @classmethod
-    def from_file(cls, filename):
+    def from_file(cls, filename, ext: int | str = 0):
         with fits.open(filename) as hdus:
-            hdu = hdus[0]
+            hdu = hdus[ext]
             return cls.from_hdr(hdu.header)

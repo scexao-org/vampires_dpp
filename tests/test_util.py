@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 
-from vampires_dpp.util import average_angle, check_version
+from vampires_dpp.util import average_angle, check_version, get_paths
 
 
 def test_average_angle():
@@ -33,3 +35,41 @@ def test_average_angle():
 )
 def test_check_version(cver, vpver, exp):
     assert check_version(cver, vpver) == exp
+
+
+@pytest.mark.parametrize(
+    ("name", "kwds", "expected"),
+    [
+        ("test.fits", dict(outname="test_out.fits"), "test_out.fits"),
+        ("test.fits", dict(output_directory="test"), "test/test.fits"),
+        ("test.fits", dict(output_directory="test", outname="test_out.fits"), "test/test_out.fits"),
+        ("test.fits", dict(output_directory="test", suffix="calib"), "test/test_calib.fits"),
+        ("test.fits", dict(suffix="calib"), "test_calib.fits"),
+        ("test.fits", dict(suffix="coef", filetype=".csv"), "test_coef.csv"),
+        ("test.fits.fz", dict(outname="test_out.fits"), "test_out.fits"),
+        ("test.fits.fz", dict(output_directory="test"), "test/test.fits"),
+        (
+            "test.fits.fz",
+            dict(output_directory="test", outname="test_out.fits"),
+            "test/test_out.fits",
+        ),
+        ("test.fits.fz", dict(output_directory="test", suffix="calib"), "test/test_calib.fits"),
+        ("test.fits.fz", dict(suffix="calib"), "test_calib.fits"),
+        ("test.fits.fz", dict(suffix="coef", filetype=".csv"), "test_coef.csv"),
+        ("test.fits.gz", dict(outname="test_out.fits"), "test_out.fits"),
+        ("test.fits.gz", dict(output_directory="test"), "test/test.fits"),
+        (
+            "test.fits.gz",
+            dict(output_directory="test", outname="test_out.fits"),
+            "test/test_out.fits",
+        ),
+        ("test.fits.gz", dict(output_directory="test", suffix="calib"), "test/test_calib.fits"),
+        ("test.fits.gz", dict(suffix="calib"), "test_calib.fits"),
+        ("test.fits.gz", dict(suffix="coef", filetype=".csv"), "test_coef.csv"),
+    ],
+)
+def test_get_paths(name, kwds, expected):
+    name = "test.fits"
+    path, outpath = get_paths(name, **kwds)
+    assert path == Path(name)
+    assert outpath == Path(expected)
