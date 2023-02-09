@@ -217,7 +217,9 @@ def collapse_stokes_cube(stokes_cube, pa, header=None):
     return stokes_corr, header
 
 
-def polarization_calibration_triplediff(filenames: Sequence[str], outname, force=False) -> NDArray:
+def polarization_calibration_triplediff(
+    filenames: Sequence[str], outname, force=False, N_per_hwp=1
+) -> NDArray:
     """
     Return a Stokes cube using the _bona fide_ triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
@@ -242,9 +244,9 @@ def polarization_calibration_triplediff(filenames: Sequence[str], outname, force
     NDArray
         (4, t, y, x) Stokes cube from all 16 frame sets.
     """
-    if len(filenames) % 8 != 0:
+    if len(filenames) % 8 * N_per_hwp != 0:
         raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 8 frames for each HWP cycle"
+            "Cannot do triple-differential calibration without exact sets of {8 * N_per_hwp} frames for each HWP cycle"
         )
     # now do triple-differential calibration
     # only load 8 files at a time to avoid running out of memory on large datasets
@@ -254,18 +256,25 @@ def polarization_calibration_triplediff(filenames: Sequence[str], outname, force
     iter = tqdm.trange(N_hwp_sets, desc="Triple-differential calibration")
     for i in iter:
         # prepare input frames
-        ix = i * 8  # offset index
+        ix = i * 8 * N_per_hwp  # offset index
         summ_dict = {}
         diff_dict = {}
-        for file in filenames.iloc[ix : ix + 8]:
+        for file in filenames.iloc[ix : ix + 8 * N_per_hwp]:
             stack, hdr = fits.getdata(
                 file,
                 header=True,
             )
             key = hdr["U_HWPANG"], hdr["U_FLCSTT"]
-            summ_dict[key] = stack[0]
-            diff_dict[key] = stack[1]
+            if key in summ_dict:
+                summ_dict[key].append(stack[0])
+                diff_dict[key].append(stack[1])
+            else:
+                summ_dict[key] = [stack[0]]
+                diff_dict[key] = [stack[1]]
 
+        for key, value in summ_dict.items():
+            summ_dict[key] = np.array(value)
+            diff_dict[key] = np.array(diff_dict[key])
         ## make difference images
         # double difference (FLC1 - FLC2)
         pQ = 0.5 * (diff_dict[(0, 1)] - diff_dict[(0, 2)])
@@ -287,7 +296,9 @@ def polarization_calibration_triplediff(filenames: Sequence[str], outname, force
         IU = 0.5 * (pIU + mIU)
         I = 0.5 * (IQ + IU)
 
-        stokes_cube[:3, i] = I, Q, U
+        stokes_cube[0, i : i + N_per_hwp] = I
+        stokes_cube[1, i : i + N_per_hwp] = Q
+        stokes_cube[2, i : i + N_per_hwp] = U
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
@@ -311,7 +322,7 @@ def triplediff_average_angles(filenames):
     return pas
 
 
-def pol_inds(flc_states: ArrayLike, n=4):
+def pol_inds(flc_states: ArrayLike, n=4, order="QQUU"):
     """
     Find consistent runs of FLC and HWP states.
 
@@ -331,7 +342,10 @@ def pol_inds(flc_states: ArrayLike, n=4):
     """
     states = np.asarray(flc_states)
     N_cycle = n * 4
-    ang_list = np.repeat([0, 45, 22.5, 67.5], n)
+    if order == "QQUU":
+        ang_list = np.repeat([0, 45, 22.5, 67.5], n)
+    elif order == "QUQU":
+        ang_list = np.repeat([0, 22.5, 45, 67.5], n)
     inds = []
     idx = 0
     while idx <= len(flc_states) - N_cycle:
@@ -351,8 +365,8 @@ def polarization_calibration_model(filename):
     hwp_theta = np.deg2rad(header["U_HWPANG"])
     imr_theta = np.deg2rad(header["D_IMRANG"])
     # qwp are oriented with 0 on vertical axis
-    qwp1 = np.deg2rad(header["U_QWP1"]) + np.pi / 2
-    qwp2 = np.deg2rad(header["U_QWP2"]) + np.pi / 2
+    qwp1 = np.pi / 2 - np.deg2rad(header["U_QWP1"])
+    qwp2 = np.pi / 2 - np.deg2rad(header["U_QWP2"])
 
     M = mueller_matrix_model(
         camera=header["U_CAMERA"],
@@ -446,8 +460,12 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
         header=True,
     )
 
-    assert header["MJD"] == header2["MJD"]
-    assert header["U_FLCSTT"] == header2["U_FLCSTT"]
+    if header["MJD"] != header2["MJD"]:
+        msg = f"{cam1_file.name} has MJD {header['MJD']}\n{cam2_file.name} has MJD {header2['MJD']}"
+        raise ValueError(msg)
+    if header["U_FLCSTT"] != header2["U_FLCSTT"]:
+        msg = f"{cam1_file.name} has FLC state {header['U_FLCSTT']}\n{cam2_file.name} has FLC state {header2['U_FLCSTT']}"
+        raise ValueError(msg)
 
     diff = cam1_frame - cam2_frame
     summ = cam1_frame + cam2_frame

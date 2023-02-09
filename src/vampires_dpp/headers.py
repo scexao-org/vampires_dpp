@@ -103,7 +103,7 @@ def fix_header(header):
         header["RET-ANG1"] = header["U_HWPANG"], "Position angle of first retarder plate (deg)"
         header["RETPLAT1"] = "HWP(NIR)", "Identifier of first retarder plate"
     if "U_FLCSTT" in header:
-        header["U_FLCANG"] = 0 if header["U_FLCSTT"] == 0 else 45, "VAMPIRES FLC angle"
+        header["U_FLCANG"] = 0 if header["U_FLCSTT"] == 0 else 45, "VAMPIRES FLC angle (deg)"
     return header
 
 

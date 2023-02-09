@@ -47,7 +47,6 @@ def calibrate_file(
     path, outpath = get_paths(filename, suffix="calib", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    header = fits.getheader(path, hdu)
     # have to also check if deinterleaving
     if deinterleave:
         outpath_FLC1 = outpath.with_stem(f"{outpath.stem}_FLC1")
@@ -55,7 +54,7 @@ def calibrate_file(
         if not force and outpath_FLC1.is_file() and outpath_FLC2.is_file():
             return outpath_FLC1, outpath_FLC2
 
-    raw_cube = fits.getdata(path, hdu)
+    raw_cube, header = fits.getdata(path, ext=hdu, header=True)
     # fix header
     header = apply_wcs(fix_header(header))
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
@@ -97,7 +96,7 @@ def calibrate_file(
     # deinterleave
     if deinterleave:
         header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
-        header["U_FLCANG"] = 0, "Position angle of VAMPIRES FLC (deg)"
+        header["U_FLCANG"] = 0, "VAMPIRES FLC angle (deg)"
         fits.writeto(
             outpath_FLC1,
             cube[::2],
@@ -106,7 +105,7 @@ def calibrate_file(
         )
 
         header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
-        header["U_FLCANG"] = 45, "Position angle of VAMPIRES FLC (deg)"
+        header["U_FLCANG"] = 45, "VAMPIRES FLC angle (deg)"
 
         fits.writeto(
             outpath_FLC2,

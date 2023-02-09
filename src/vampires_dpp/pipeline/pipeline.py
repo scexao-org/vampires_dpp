@@ -173,8 +173,7 @@ class Pipeline(PipelineOptions):
                     self.output_files.append(result)
                 else:
                     self.output_files.extend(result)
-        ## TODO get tripwire to figure out if files have changed
-        ## Now, prepare header table
+
         self.table = header_table(self.output_files, quiet=True)
         self.save_adi_cubes(force=tripwire)
 
@@ -249,6 +248,7 @@ class Pipeline(PipelineOptions):
         else:
             transform_filename = None
         tripwire |= config.force
+        hdu = 1 if ".fits.fz" in path.name else 0
         calib_file = calibrate_file(
             path,
             dark_filename=self.master_darks[file_info.camera],
@@ -258,6 +258,7 @@ class Pipeline(PipelineOptions):
             coord=self.coord,
             output_directory=outdir,
             force=tripwire,
+            hdu=hdu,
         )
         logger.info("Data calibration completed")
         return calib_file, tripwire
@@ -273,9 +274,9 @@ class Pipeline(PipelineOptions):
         outdir.mkdir(parents=True, exist_ok=True)
         logger.debug(f"Saving selected data to {outdir.absolute()}")
         if file_info.camera == 1:
-            ctr = self.frame_centers.cam1
+            ctr = self.centers[1]
         else:
-            ctr = self.frame_centers.cam2
+            ctr = self.centers[2]
         if self.coronagraph is not None:
             metric_file = measure_metric_file(
                 path,
@@ -316,9 +317,9 @@ class Pipeline(PipelineOptions):
         logger.debug(f"Saving coregistered data to {outdir.absolute()}")
         tripwire |= config.force
         if file_info.camera == 1:
-            ctr = self.frame_centers.cam1
+            ctr = self.centers[1]
         else:
-            ctr = self.frame_centers.cam2
+            ctr = self.centers[2]
         if self.coronagraph is not None:
             offsets_file = measure_offsets_file(
                 path,
@@ -421,19 +422,34 @@ class Pipeline(PipelineOptions):
         else:
             self.diff_files_ip = self.diff_files.copy()
         # 3. Do higher-order correction
-        self.polarimetry_triplediff(outdir, force=tripwire)
+        self.polarimetry_triplediff(
+            outdir, force=tripwire, N_per_hwp=config.N_per_hwp, order=config.order
+        )
 
         logger.info("Finished PDI")
 
     def make_diff_images(self, outdir, force: bool = False):
         logger.info("Making difference frames")
         # table should still be sorted by MJD
-        groups = self.table.groupby("U_CAMERA")
-        cam1_table = groups.get_group(1).sort_values(["MJD", "U_FLCSTT"])
-        cam2_table = groups.get_group(2).sort_values(["MJD", "U_FLCSTT"])
+        groups = self.table.groupby("MJD")
+        # filter groups without full camera/FLC states
+        cam1_paths = []
+        cam2_paths = []
+        for mjd, group in groups:
+            if len(group) == 4:
+                group.sort_values(["U_FLCSTT", "U_CAMERA"], inplace=True)
+                cam1_group = group.query("U_CAMERA == 1")
+                cam1_paths.extend(cam1_group["path"])
+                cam2_group = group.query("U_CAMERA == 2")
+                cam2_paths.extend(cam2_group["path"])
+            # otherwise, skip this data set
+            logger.warn(
+                f"Skipping data set from MJD {mjd} because it has incomplete camera or FLC states"
+            )
+
         with mp.Pool(self.num_proc) as pool:
             jobs = []
-            for cam1_file, cam2_file in zip(cam1_table["path"], cam2_table["path"]):
+            for cam1_file, cam2_file in zip(cam1_paths, cam2_paths):
                 stem = re.sub("_cam[12]", "", cam1_file.name)
                 outname = outdir / stem.replace(".fits", "_diff.fits")
                 logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
@@ -573,10 +589,12 @@ class Pipeline(PipelineOptions):
     # header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
     # fits.writeto(outname, stack, header=header, overwrite=True)
 
-    def polarimetry_triplediff(self, outdir, force=False):
+    def polarimetry_triplediff(self, outdir, force=False, N_per_hwp=1, **kwargs):
         # sort table
         table = header_table(self.diff_files_ip, quiet=True)
-        inds = pol_inds(table["U_HWPANG"], 2)
+        inds = pol_inds(table["U_HWPANG"], 2, **kwargs)
+        if len(inds) == 0:
+            raise ValueError(f"Could not correctly order the HWP angles")
         table_filt = table.loc[inds]
         logger.info(
             f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
@@ -590,7 +608,9 @@ class Pipeline(PipelineOptions):
             or not outname_coll.is_file()
             or any_file_newer(table_filt["path"], outname)
         ):
-            polarization_calibration_triplediff(table_filt["path"], outname=outname, force=True)
+            polarization_calibration_triplediff(
+                table_filt["path"], outname=outname, force=True, N_per_hwp=N_per_hwp
+            )
             logger.debug(f"saved Stokes cube to {outname.absolute()}")
             stokes_angles = triplediff_average_angles(table_filt["path"])
             stokes_cube, header = fits.getdata(

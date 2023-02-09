@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from glob import glob
 from multiprocessing import Pool
 from os import PathLike
 from pathlib import Path
@@ -46,11 +47,11 @@ class FileInput:
                     self.filenames = (Path(f.strip()) for f in fh.readlines())
             else:
                 # is a globbing expression
-                paths = self.filenames.parent.glob(pattern=self.filenames.name)
+                paths = (Path(f) for f in glob(str(self.filenames)))
         else:
             paths = self.filenames
         # only accept FITS files as inputs
-        self.paths = list(filter(lambda p: ".fit" in p.name, paths))
+        self.paths = list(filter(lambda p: ".fits" in p.name, paths))
         if len(self.paths) == 0:
             raise FileNotFoundError(
                 f"Could not find any FITS files from the following expression '{self.filenames}'"
@@ -60,7 +61,10 @@ class FileInput:
         self.cam1_paths = []
         self.cam2_paths = []
         for path in self.paths:
-            file_info = FileInfo.from_file(path)
+            if ".fits.fz" in path.name:
+                file_info = FileInfo.from_file(path, ext=1)
+            else:
+                file_info = FileInfo.from_file(path)
             self.file_infos.append(file_info)
             if file_info.camera == 1:
                 self.cam1_paths.append(path)
@@ -185,6 +189,8 @@ class IPOptions:
 @dataclass
 class PolarimetryOptions(OutputDirectory):
     ip: Optional[IPOptions] = field(default=None, skip_if_default=True)
+    N_per_hwp: int = field(default=1, skip_if_default=True)
+    order: str = field(default="QQUU", skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
