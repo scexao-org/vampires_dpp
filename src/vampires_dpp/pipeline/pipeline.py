@@ -5,31 +5,21 @@ from os import PathLike
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-import astropy.units as u
-import numpy as np
-import pandas as pd
 import tomli
-import tomli_w
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.time import Time
 from serde.toml import to_toml
 from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
-from vampires_dpp.calibration import calibrate_file, make_dark_file, make_flat_file
+from vampires_dpp.calibration import calibrate_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
-from vampires_dpp.headers import fix_header
 from vampires_dpp.image_processing import (
     collapse_cube_file,
-    collapse_frames_files,
     combine_frames_files,
-    correct_distortion_cube,
-    derotate_frame,
+    make_file_sets,
 )
 from vampires_dpp.image_registration import measure_offsets_file, register_file
-from vampires_dpp.indexing import lamd_to_pixel
 from vampires_dpp.organization import header_table
 from vampires_dpp.polarization import (
     HWP_POS_STOKES,
@@ -118,33 +108,6 @@ class Pipeline(PipelineOptions):
         path = Path(filename)
         path.write_text(to_toml(self))
 
-    def process_one(self, path, file_info):
-        tripwire = False
-        # fix headers and calibrate
-        if self.calibrate is not None:
-            cur_file, tripwire = self._calibrate(path, file_info, tripwire)
-            if not isinstance(cur_file, Path):
-                file_flc1, file_flc2 = cur_file
-                path1, tripwire = self.process_post_calib(file_flc1, file_info, tripwire)
-                path2, tripwire = self.process_post_calib(file_flc2, file_info, tripwire)
-                return (path1, path2), tripwire
-            else:
-                path, tripwire = self.process_post_calib(cur_file, file_info, tripwire)
-                return path, tripwire
-
-    def process_post_calib(self, path, file_info, tripwire=False):
-        ## Step 2: Frame selection
-        if self.frame_select is not None:
-            path, tripwire = self._frame_select(path, file_info, tripwire)
-        ## 3: Image registration
-        if self.coregister is not None:
-            path, tripwire = self._coregister(path, file_info, tripwire)
-        ## Step 4: collapsing
-        if self.collapse is not None:
-            path, tripwire = self._collapse(path, file_info, tripwire)
-
-        return path, tripwire
-
     def run(self, num_proc=None):
         """
         Run the pipeline
@@ -160,21 +123,21 @@ class Pipeline(PipelineOptions):
         self.get_frame_centers()
         self.get_coordinate()
 
+        self.file_sets = make_file_sets(self.paths)
         ## For each file do
-        self.output_files = []
+        self.output_sets = []
         with mp.Pool(self.num_proc) as pool:
             jobs = []
-            for path, file_info in zip(self.paths, self.file_infos):
-                jobs.append(pool.apply_async(self.process_one, args=(path, file_info)))
+            N = 0
+            for file_set in zip(self.file_sets):
+                N += len(file_set.paths)
+                jobs.append(pool.apply_async(self.process_one_fileset, args=(file_set,)))
 
-            for job in tqdm(jobs, desc="Processing files"):
+            for job in tqdm(jobs, desc="Processing files", total=N):
                 result, tripwire = job.get()
-                if isinstance(result, Path):
-                    self.output_files.append(result)
-                else:
-                    self.output_files.extend(result)
+                self.output_sets.append(result)
 
-        self.table = header_table(self.output_files, quiet=True)
+        self.table = header_table(self.output_sets, quiet=True)
         self.save_adi_cubes(force=tripwire)
 
         ## polarimetry
@@ -182,6 +145,26 @@ class Pipeline(PipelineOptions):
             self._polarimetry(tripwire=tripwire)
 
         logger.info("Finished running pipeline")
+
+    def process_one_fileset(self, fileset):
+        tripwire = False
+        # First thing is calibrate the data and do any
+        # deinterleaving or reinterleaving
+        if self.calibrate is not None:
+            fileset, tripwire = self.calibrate_fileset(fileset, tripwire)
+        ## Step 2: Frame selection
+        if self.frame_select is not None:
+            fileset, tripwire = self.frame_select_fileset(fileset, tripwire)
+        ## 3: Image registration
+        if self.register is not None:
+            fileset, tripwire = self.register_fileset(fileset, tripwire)
+        ## Step 4: collapsing
+        if self.collapse is not None:
+            fileset, tripwire = self.collapse_fileset(fileset, tripwire)
+        ## Step 5: PSF analysis
+        ## TODO
+
+        return fileset, tripwire
 
     def get_frame_centers(self):
         self.centers = {1: None, 2: None}
@@ -233,6 +216,19 @@ class Pipeline(PipelineOptions):
         # elif "target" in self.config:
         #     # query from GAIA DR3
         #     self.coord = get_gaia_astrometry(self.config["target"])
+
+    def calibrate_fileset(self, fileset, tripwire=False):
+
+        return fileset, tripwire
+
+    def frame_select_fileset(self, fileset, tripwire=False):
+        return fileset, tripwire
+
+    def register_fileset(self, fileset, tripwire=False):
+        return fileset, tripwire
+
+    def collapse_fileset(self, fileset, tripwire=False):
+        return fileset, tripwire
 
     def _calibrate(self, path, file_info, tripwire=False):
         logger.info("Starting data calibration")
@@ -306,15 +302,15 @@ class Pipeline(PipelineOptions):
         logger.info("Data calibration completed")
         return selected_file, tripwire
 
-    def _coregister(self, path, file_info, tripwire=False):
+    def _register(self, path, file_info, tripwire=False):
         logger.info("Performing image registration")
-        config = self.coregister
+        config = self.register
         if config.output_directory is not None:
             outdir = config.output_directory
         else:
             outdir = self.output_directory
         outdir.mkdir(parents=True, exist_ok=True)
-        logger.debug(f"Saving coregistered data to {outdir.absolute()}")
+        logger.debug(f"Saving registered data to {outdir.absolute()}")
         tripwire |= config.force
         if file_info.camera == 1:
             ctr = self.centers[1]

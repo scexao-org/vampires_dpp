@@ -415,8 +415,9 @@ def mueller_matrix_model(
         (
             wollaston(camera == 1),  # Polarizing beamsplitter
             hwp(theta=flc_ang),  # FLC
-            qwp(theta=-qwp2),  # QWP 2
-            qwp(theta=-qwp1),  # QWP 1
+            rotator(theta=np.deg2rad(PUPIL_OFFSET)),
+            qwp(theta=qwp2),  # QWP 2
+            qwp(theta=qwp1),  # QWP 1
             waveplate(theta=imr_theta, delta=cals["imr_delta"]),  # AO 188 K-mirror
             waveplate(theta=hwp_theta, delta=cals["hwp_delta"]),  # AO 188 HWP,
             rotator(theta=-altitude),

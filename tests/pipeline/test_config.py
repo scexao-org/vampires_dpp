@@ -158,26 +158,24 @@ class TestFrameSelectOptions:
         assert conf == toml_conf
 
 
-class TestCoregisterOptions:
+class TestRegisterOptions:
     def test_default_creation(self):
-        conf = CoregisterOptions()
+        conf = RegisterOptions()
         assert conf.method == "com"
         assert conf.window_size == 30
         assert not conf.force
         assert conf.output_directory is None
-        toml_conf = CoregisterOptions(**tomli.loads(to_toml(conf)))
+        toml_conf = RegisterOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
     @pytest.mark.parametrize("method", ["peak", "com", "dft", "airydisk", "moffat", "gaussian"])
     def test_creation(self, method, tmp_path):
-        conf = CoregisterOptions(
-            method=method, window_size=20, force=True, output_directory=tmp_path
-        )
+        conf = RegisterOptions(method=method, window_size=20, force=True, output_directory=tmp_path)
         assert conf.method == method
         assert conf.window_size == 20
         assert conf.force
         assert conf.output_directory == tmp_path
-        toml_conf = CoregisterOptions(**tomli.loads(to_toml(conf)))
+        toml_conf = RegisterOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf
 
 
@@ -246,7 +244,7 @@ class TestPipelineOptions:
         assert conf.coronagraph is None
         assert conf.calibrate is None
         assert conf.frame_select is None
-        assert conf.coregister is None
+        assert conf.register is None
         assert conf.collapse is None
         assert conf.polarimetry is None
         toml_conf = PipelineOptions(**tomli.loads(to_toml(conf)))
@@ -264,7 +262,7 @@ class TestPipelineOptions:
                 master_darks=dict(cam1=tmp_path / "darks" / "master_dark_cam1.fits"),
             ),
             frame_select=dict(cutoff=0.3, output_directory="selected"),
-            coregister=dict(method="com", output_directory="aligned"),
+            register=dict(method="com", output_directory="aligned"),
             collapse=dict(output_directory="collapsed"),
             polarimetry=dict(output_directory="pdi"),
         )
@@ -278,7 +276,7 @@ class TestPipelineOptions:
             master_darks=dict(cam1=tmp_path / "darks" / "master_dark_cam1.fits"),
         )
         assert conf.frame_select == FrameSelectOptions(cutoff=0.3, output_directory="selected")
-        assert conf.coregister == CoregisterOptions(method="com", output_directory="aligned")
+        assert conf.register == RegisterOptions(method="com", output_directory="aligned")
         assert conf.collapse == CollapseOptions(output_directory="collapsed")
         assert conf.polarimetry == PolarimetryOptions(output_directory="pdi")
         toml_conf = PipelineOptions(**tomli.loads(to_toml(conf)))

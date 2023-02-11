@@ -12,7 +12,7 @@ from numpy.typing import ArrayLike, NDArray
 from skimage.transform import rotate
 
 from vampires_dpp.indexing import frame_center
-from vampires_dpp.organization import dict_from_header
+from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.util import any_file_newer, get_paths
 
 
@@ -339,3 +339,42 @@ def correct_distortion_cube(
         header["VPP_SCAL"] = scale, "scaling ratio for distortion correction"
         header["VPP_ANGL"] = angle, "deg, offset angle for distortion correction"
     return corr_cube, header
+
+
+class FileSet:
+    def __init__(self, filenames, ext=None) -> None:
+        self.paths = {}
+        self.headers = {}
+        # get the headers
+        for path in map(Path, filenames):
+            if ext is None:
+                ext = 1 if ".fits.fz" in path.name else 0
+            with fits.open(path) as hdus:
+                prim_hdu = hdus[ext]
+                header = prim_hdu.header
+            cam = header["U_CAMERA"]
+            flc = header.get("U_FLCSTT", None)
+            key = (cam, flc)
+            self.paths[key] = path
+            self.headers[key] = header
+
+        # try and understand what we just got
+        N = len(self.paths)
+        if N not in (1, 2, 4):
+            if N > 4:
+                raise ValueError(f"Too many input files, should be 4 at max, got {N}")
+            if N == 3:
+                missing = set((1, 1), (1, 2), (2, 1), (2, 2)) - set(self.paths.keys())
+                print(
+                    f"Expected set of 4 files, one for each camera and FLC state combination. Missing camera {missing[0][0]} FLC state {missing[0][1]}"
+                )
+
+    @property
+    def combined_header(self):
+        return combine_frames_headers(self.headers.values(), wcs=True)
+
+
+def make_file_sets(filenames):
+    table = header_table(filenames)
+    groups = table.groupby("MJD")
+    return [FileSet(grp["path"]) for _, grp in groups]

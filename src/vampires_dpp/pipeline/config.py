@@ -30,50 +30,6 @@ class OutputDirectory:
 
 @serialize
 @dataclass
-class FileInput:
-    filenames: Path | List[Path]
-
-    def __post_init__(self):
-        if isinstance(self.filenames, list):
-            self.filenames = map(Path, self.filenames)
-        else:
-            self.filenames = Path(self.filenames)
-
-    def process(self):
-        if isinstance(self.filenames, Path):
-            if self.filenames.is_file():
-                # is a file with a list of filenames
-                with self.filenames.open("r") as fh:
-                    self.filenames = (Path(f.strip()) for f in fh.readlines())
-            else:
-                # is a globbing expression
-                paths = (Path(f) for f in glob(str(self.filenames)))
-        else:
-            paths = self.filenames
-        # only accept FITS files as inputs
-        self.paths = list(filter(lambda p: ".fits" in p.name, paths))
-        if len(self.paths) == 0:
-            raise FileNotFoundError(
-                f"Could not find any FITS files from the following expression '{self.filenames}'"
-            )
-        # split into cam1 and cam2
-        self.file_infos = []
-        self.cam1_paths = []
-        self.cam2_paths = []
-        for path in self.paths:
-            if ".fits.fz" in path.name:
-                file_info = FileInfo.from_file(path, ext=1)
-            else:
-                file_info = FileInfo.from_file(path)
-            self.file_infos.append(file_info)
-            if file_info.camera == 1:
-                self.cam1_paths.append(path)
-            else:
-                self.cam2_paths.append(path)
-
-
-@serialize
-@dataclass
 class CamFileInput:
     cam1: Optional[Path] = field(default=None, skip_if_default=True)
     cam2: Optional[Path] = field(default=None, skip_if_default=True)
@@ -96,10 +52,6 @@ class DistortionOptions:
         self.transform_filename = Path(self.transform_filename)
 
 
-def cam_dict_factory():
-    return
-
-
 @serialize
 @dataclass
 class CalibrateOptions(OutputDirectory):
@@ -107,6 +59,7 @@ class CalibrateOptions(OutputDirectory):
     master_flats: Optional[CamFileInput] = field(default=CamFileInput())
     distortion: Optional[DistortionOptions] = field(default=None, skip_if_default=True)
     deinterleave: bool = field(default=False, skip_if_default=True)
+    reinterleave: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
@@ -116,6 +69,8 @@ class CalibrateOptions(OutputDirectory):
             self.master_flats = CamFileInput(**self.master_flats)
         if self.distortion is not None and isinstance(self.distortion, dict):
             self.distortion = DistortionOptions(**self.distortion)
+        if self.reinterleave and self.deinterleave:
+            raise ValueError("Cannot set both deinterleave and reinterleave")
 
 
 @serialize
@@ -151,7 +106,7 @@ class FrameSelectOptions(OutputDirectory):
 
 @serialize
 @dataclass
-class CoregisterOptions(OutputDirectory):
+class RegisterOptions(OutputDirectory):
     method: str = field(default="com")
     window_size: int = field(default=30, skip_if_default=True)
     dft_factor: int = field(default=1, skip_if_default=True)
@@ -196,18 +151,28 @@ class PolarimetryOptions(OutputDirectory):
         super().__post_init__()
         if self.ip is not None and isinstance(self.ip, dict):
             self.ip = IPOptions(**self.ip)
+        self.order = self.order.strip().upper()
 
 
 @serialize
+@dataclass
 class CamCtrOption:
     cam1: Optional[List[float]] = field(default=None, skip_if_default=True)
     cam2: Optional[List[float]] = field(default=None, skip_if_default=True)
 
 
+@serialize
+@dataclass
+class ProductsOptions(OutputDirectory):
+    header_table: bool = field(default=True, skip_if_default=True)
+    adi_cubes: bool = field(default=True, skip_if_default=True)
+    pdi_cubes: bool = field(default=True, skip_if_default=True)
+
+
 ## Define classes for entire pipelines now
 @serialize
 @dataclass
-class PipelineOptions(FileInput, OutputDirectory):
+class PipelineOptions:
     name: str
     target: Optional[str] = field(default=None, skip_if_default=True)
     frame_centers: Optional[CamCtrOption] = field(default=None, skip_if_default=True)
@@ -215,14 +180,13 @@ class PipelineOptions(FileInput, OutputDirectory):
     satspots: Optional[SatspotOptions] = field(default=None, skip_if_default=True)
     calibrate: Optional[CalibrateOptions] = field(default=None, skip_if_default=True)
     frame_select: Optional[FrameSelectOptions] = field(default=None, skip_if_default=True)
-    coregister: Optional[CoregisterOptions] = field(default=None, skip_if_default=True)
+    register: Optional[RegisterOptions] = field(default=None, skip_if_default=True)
     collapse: Optional[CollapseOptions] = field(default=None, skip_if_default=True)
     polarimetry: Optional[PolarimetryOptions] = field(default=None, skip_if_default=True)
+    products: Optional[ProductsOptions] = field(default=None, skip_if_default=True)
     version: str = vpp.__version__
 
     def __post_init__(self):
-        super().__post_init__()
-
         if self.coronagraph is not None and isinstance(self.coronagraph, dict):
             self.coronagraph = CoronagraphOptions(**self.coronagraph)
         if self.satspots is not None and isinstance(self.satspots, dict):
@@ -233,9 +197,11 @@ class PipelineOptions(FileInput, OutputDirectory):
             self.calibrate = CalibrateOptions(**self.calibrate)
         if self.frame_select is not None and isinstance(self.frame_select, dict):
             self.frame_select = FrameSelectOptions(**self.frame_select)
-        if self.coregister is not None and isinstance(self.coregister, dict):
-            self.coregister = CoregisterOptions(**self.coregister)
+        if self.register is not None and isinstance(self.register, dict):
+            self.register = RegisterOptions(**self.register)
         if self.collapse is not None and isinstance(self.collapse, dict):
             self.collapse = CollapseOptions(**self.collapse)
         if self.polarimetry is not None and isinstance(self.polarimetry, dict):
             self.polarimetry = PolarimetryOptions(**self.polarimetry)
+        if self.products is not None and isinstance(self.products, dict):
+            self.products = ProductsOptions(**self.products)

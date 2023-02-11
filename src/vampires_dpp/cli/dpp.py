@@ -155,7 +155,7 @@ def new_config(args):
     if args.iwa:
         t.coronagraph = CoronagraphOptions(args.iwa)
         t.satspots = SatspotOptions()
-        t.coregister.method = "com"
+        t.register.method = "com"
 
     toml_str = to_toml(t)
     if args.preview:
@@ -212,11 +212,12 @@ new_parser.set_defaults(func=new_config)
 def run(args):
     path = Path(args.config)
     pipeline = Pipeline.from_file(path)
-    pipeline.run(num_proc=args.num_proc)
+    pipeline.run(args.filenames, num_proc=args.num_proc)
 
 
 run_parser = subparser.add_parser("run", aliases="r", help="run the data processing pipeline")
 run_parser.add_argument("config", help="path to configuration file")
+run_parser.add_argument("filenames", nargs="*", help="FITS files to run through pipeline")
 run_parser.add_argument(
     "-j",
     "--num-proc",
