@@ -3,9 +3,6 @@ import multiprocessing as mp
 from argparse import ArgumentParser
 from pathlib import Path
 
-import rich
-from rich.console import Console
-from rich.syntax import Syntax
 from serde.toml import to_toml
 
 import vampires_dpp as vpp
@@ -160,16 +157,10 @@ def new_config(args):
     toml_str = to_toml(t)
     if args.preview:
         # print(toml_str)
-        console = Console()
-        console.rule(
-            f"PREVIEW {path.name}",
-        )
-        syn = Syntax(toml_str, theme="ansi_dark", lexer="toml")
-        console.print(syn)
-        console.rule(f"END PREVIEW")
-        response = (
-            console.input(f"Would you like to save this configuration? \[y/N] ").strip().lower()
-        )
+        print(f"{'-'*12} PREVIEW {path.name} {'-'*12}")
+        print(toml_str)
+        print(f"{'-'*12} END PREVIEW {'-'*12}")
+        response = input(f"Would you like to save this configuration? [y/N] ").strip().lower()
         if response != "y":
             return
 

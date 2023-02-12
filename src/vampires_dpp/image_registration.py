@@ -1,10 +1,11 @@
 from pathlib import Path
+from typing import Optional
 
 import cv2
 import numpy as np
 from astropy.io import fits
 from astropy.modeling import fitting, models
-from numpy.typing import ArrayLike, Optional
+from numpy.typing import ArrayLike
 from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 

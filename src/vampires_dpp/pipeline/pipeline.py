@@ -8,9 +8,6 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 import tomli
 from astropy.io import fits
-from rich.console import Console
-from rich.logging import RichHandler
-from rich.progress import track
 from serde.toml import to_toml
 from tqdm.auto import tqdm
 
@@ -40,8 +37,6 @@ from vampires_dpp.polarization import (
 from vampires_dpp.util import any_file_newer, check_version
 from vampires_dpp.wcs import get_gaia_astrometry
 
-console = Console()
-
 
 class Pipeline(PipelineOptions):
     def __post_init__(self):
@@ -55,7 +50,6 @@ class Pipeline(PipelineOptions):
         self.master_flats = {1: None, 2: None}
         # self.console = Console()
         self.logger = logging.getLogger("DPP")
-        self.logger.addHandler(RichHandler(level=logging.INFO))
 
     @classmethod
     def from_file(cls, filename: PathLike):
@@ -140,7 +134,7 @@ class Pipeline(PipelineOptions):
             for row in self.table.itertuples(index=False):
                 jobs.append(pool.apply_async(self.process_one, args=(row._asdict(),)))
 
-            for job in track(jobs, description="Processing files"):
+            for job in tqdm(jobs, desc="Processing files"):
                 result, tripwire = job.get()
                 if isinstance(result, Path):
                     self.output_files.append(result)
@@ -451,7 +445,7 @@ class Pipeline(PipelineOptions):
                     pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
                 )
 
-            self.diff_files = [job.get() for job in track(jobs, description="Making diff images")]
+            self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
         self.logger.info("Done making difference frames")
         return self.diff_files
 
@@ -475,7 +469,7 @@ class Pipeline(PipelineOptions):
                 jobs.append(pool.apply_async(func, args=(filename, outname)))
             if len(jobs) == 0:
                 return
-            for job in track(jobs, description="Correcting IP"):
+            for job in tqdm(jobs, desc="Correcting IP"):
                 job.get()
 
         self.logger.info(f"Done correcting instrumental polarization")
