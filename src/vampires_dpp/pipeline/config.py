@@ -1,19 +1,12 @@
 from dataclasses import dataclass
-from enum import Enum
-from glob import glob
 from multiprocessing import Pool
-from os import PathLike
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from astropy.io import fits
 from serde import field, serialize
 from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
-from vampires_dpp.calibration import make_dark_file, make_flat_file
-from vampires_dpp.image_processing import collapse_frames_files
-from vampires_dpp.util import FileInfo, FileType
 
 
 ## Some base classes for repeated functionality
@@ -109,6 +102,7 @@ class FrameSelectOptions(OutputDirectory):
 class RegisterOptions(OutputDirectory):
     method: str = field(default="com")
     window_size: int = field(default=30, skip_if_default=True)
+    median_smooth: Optional[int] = field(default=None, skip_if_default=True)
     dft_factor: int = field(default=1, skip_if_default=True)
 
     def __post_init__(self):

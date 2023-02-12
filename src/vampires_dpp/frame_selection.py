@@ -90,7 +90,7 @@ def frame_select_file(
     mask = metrics >= np.quantile(metrics, q)
     selected = cube[mask]
 
-    header["VPP_REF"] = metrics[mask].argmax() + 1, "Index of frame with highest metric"
+    header["DPP_REF"] = metrics[mask].argmax() + 1, "Index of frame with highest metric"
 
     fits.writeto(outpath, selected, header=header, overwrite=True)
     return outpath

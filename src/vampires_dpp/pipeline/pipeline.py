@@ -5,8 +5,12 @@ from os import PathLike
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
+import numpy as np
 import tomli
 from astropy.io import fits
+from rich.console import Console
+from rich.logging import RichHandler
+from rich.progress import track
 from serde.toml import to_toml
 from tqdm.auto import tqdm
 
@@ -15,12 +19,13 @@ from vampires_dpp.calibration import calibrate_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
 from vampires_dpp.image_processing import (
+    FileSet,
     collapse_cube_file,
     combine_frames_files,
-    make_file_sets,
 )
 from vampires_dpp.image_registration import measure_offsets_file, register_file
 from vampires_dpp.organization import header_table
+from vampires_dpp.pipeline.config import PipelineOptions
 from vampires_dpp.polarization import (
     HWP_POS_STOKES,
     collapse_stokes_cube,
@@ -35,9 +40,7 @@ from vampires_dpp.polarization import (
 from vampires_dpp.util import any_file_newer, check_version
 from vampires_dpp.wcs import get_gaia_astrometry
 
-from .config import PipelineOptions
-
-logger = logging.getLogger("DPP")
+console = Console()
 
 
 class Pipeline(PipelineOptions):
@@ -48,11 +51,11 @@ class Pipeline(PipelineOptions):
             raise ValueError(
                 f"Input pipeline version ({self.version}) is not compatible with installed version of `vampires_dpp` ({vpp.__version__})."
             )
-        if self.output_directory is None:
-            self.output_directory = Path.cwd()
-        self.output_directory = Path(self.output_directory)
         self.master_darks = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}
+        # self.console = Console()
+        self.logger = logging.getLogger("DPP")
+        self.logger.addHandler(RichHandler(level=logging.INFO))
 
     @classmethod
     def from_file(cls, filename: PathLike):
@@ -108,63 +111,79 @@ class Pipeline(PipelineOptions):
         path = Path(filename)
         path.write_text(to_toml(self))
 
-    def run(self, num_proc=None):
+    def run(self, filenames, num_proc=None):
         """
         Run the pipeline
         """
         self.num_proc = num_proc
-        # prepare filenames
-        self.process()
 
-        logger.debug(f"Output directory is {self.output_directory}")
-        self.output_directory.mkdir(parents=True, exist_ok=True)
+        fh_logger = logging.FileHandler(f"{self.name}_debug.log")
+        fh_logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(fh_logger)
 
+        self.logger.info(f"VAMPIRES DPP: v{vpp.__version__}")
         ## configure astrometry
         self.get_frame_centers()
         self.get_coordinate()
 
-        self.file_sets = make_file_sets(self.paths)
+        self.table = header_table(filenames, quiet=True)
+        if self.products is not None:
+            self.products.output_directory.mkdir(parents=True, exist_ok=True)
+            if self.products.header_table:
+                self.table.to_csv(self.products.output_directory / f"{self.name}_headers.csv")
+
         ## For each file do
-        self.output_sets = []
+        self.logger.info("Starting file-by-file processing")
+        self.output_files = []
         with mp.Pool(self.num_proc) as pool:
             jobs = []
-            N = 0
-            for file_set in zip(self.file_sets):
-                N += len(file_set.paths)
-                jobs.append(pool.apply_async(self.process_one_fileset, args=(file_set,)))
+            for row in self.table.itertuples(index=False):
+                jobs.append(pool.apply_async(self.process_one, args=(row._asdict(),)))
 
-            for job in tqdm(jobs, desc="Processing files", total=N):
+            for job in track(jobs, description="Processing files"):
                 result, tripwire = job.get()
-                self.output_sets.append(result)
-
-        self.table = header_table(self.output_sets, quiet=True)
-        self.save_adi_cubes(force=tripwire)
-
+                if isinstance(result, Path):
+                    self.output_files.append(result)
+                else:
+                    self.output_files.extend(result)
+        self.output_table = header_table(self.output_files, quiet=True)
+        ## products
+        if self.products is not None:
+            # self.console.print("Saving ADI products")
+            if self.products.adi_cubes:
+                self.save_adi_cubes(force=tripwire)
         ## polarimetry
         if self.polarimetry:
+            # self.console.print("Doing PDI")
             self._polarimetry(tripwire=tripwire)
 
-        logger.info("Finished running pipeline")
+        # self.console.print("Finished running pipeline")
 
-    def process_one_fileset(self, fileset):
-        tripwire = False
-        # First thing is calibrate the data and do any
-        # deinterleaving or reinterleaving
+    def process_one(self, fileinfo):
+        # fix headers and calibrate
         if self.calibrate is not None:
-            fileset, tripwire = self.calibrate_fileset(fileset, tripwire)
+            cur_file, tripwire = self.calibrate_one(fileinfo["path"], fileinfo)
+            if not isinstance(cur_file, Path):
+                file_flc1, file_flc2 = cur_file
+                path1, tripwire = self.process_post_calib(file_flc1, fileinfo, tripwire)
+                path2, tripwire = self.process_post_calib(file_flc2, fileinfo, tripwire)
+                return (path1, path2), tripwire
+            else:
+                path, tripwire = self.process_post_calib(cur_file, fileinfo, tripwire)
+                return path, tripwire
+
+    def process_post_calib(self, path, fileinfo, tripwire=False):
         ## Step 2: Frame selection
         if self.frame_select is not None:
-            fileset, tripwire = self.frame_select_fileset(fileset, tripwire)
+            path, tripwire = self.frame_select_one(path, fileinfo, tripwire)
         ## 3: Image registration
         if self.register is not None:
-            fileset, tripwire = self.register_fileset(fileset, tripwire)
+            path, tripwire = self.register_one(path, fileinfo, tripwire)
         ## Step 4: collapsing
         if self.collapse is not None:
-            fileset, tripwire = self.collapse_fileset(fileset, tripwire)
-        ## Step 5: PSF analysis
-        ## TODO
+            path, tripwire = self.collapse_one(path, fileinfo, tripwire)
 
-        return fileset, tripwire
+        return path, tripwire
 
     def get_frame_centers(self):
         self.centers = {1: None, 2: None}
@@ -173,8 +192,8 @@ class Pipeline(PipelineOptions):
                 self.centers[1] = np.array(self.frame_centers.cam1)[::-1]
             if self.frame_centers.cam2 is not None:
                 self.centers[2] = np.array(self.frame_centers.cam2)[::-1]
-        logger.debug(f"Cam 1 frame center is {self.centers[1]} (y, x)")
-        logger.debug(f"Cam 2 frame center is {self.centers[2]} (y, x)")
+        self.logger.debug(f"Cam 1 frame center is {self.centers[1]} (y, x)")
+        self.logger.debug(f"Cam 2 frame center is {self.centers[2]} (y, x)")
 
     def get_coordinate(self):
         self.pxscale = PIXEL_SCALE
@@ -217,50 +236,37 @@ class Pipeline(PipelineOptions):
         #     # query from GAIA DR3
         #     self.coord = get_gaia_astrometry(self.config["target"])
 
-    def calibrate_fileset(self, fileset, tripwire=False):
-
-        return fileset, tripwire
-
-    def frame_select_fileset(self, fileset, tripwire=False):
-        return fileset, tripwire
-
-    def register_fileset(self, fileset, tripwire=False):
-        return fileset, tripwire
-
-    def collapse_fileset(self, fileset, tripwire=False):
-        return fileset, tripwire
-
-    def _calibrate(self, path, file_info, tripwire=False):
-        logger.info("Starting data calibration")
+    def calibrate_one(self, path, fileinfo, tripwire=False):
+        self.logger.info("Starting data calibration")
         config = self.calibrate
         if config.output_directory is not None:
             outdir = config.output_directory
         else:
             outdir = self.output_directory
         outdir.mkdir(parents=True, exist_ok=True)
-        logger.debug(f"Saving calibrated data to {outdir.absolute()}")
+        self.logger.debug(f"Saving calibrated data to {outdir.absolute()}")
         if config.distortion is not None:
             transform_filename = config.distortion.transform_filename
         else:
             transform_filename = None
         tripwire |= config.force
-        hdu = 1 if ".fits.fz" in path.name else 0
+        ext = 1 if ".fits.fz" in path.name else 0
         calib_file = calibrate_file(
             path,
-            dark_filename=self.master_darks[file_info.camera],
-            flat_filename=self.master_flats[file_info.camera],
+            dark_filename=self.master_darks[fileinfo["U_CAMERA"]],
+            flat_filename=self.master_flats[fileinfo["U_CAMERA"]],
             transform_filename=transform_filename,
             deinterleave=config.deinterleave,
             coord=self.coord,
             output_directory=outdir,
             force=tripwire,
-            hdu=hdu,
+            hdu=ext,
         )
-        logger.info("Data calibration completed")
+        self.logger.info("Data calibration completed")
         return calib_file, tripwire
 
-    def _frame_select(self, path, file_info, tripwire=False):
-        logger.info("Performing frame selection")
+    def frame_select_one(self, path, fileinfo, tripwire=False):
+        self.logger.info("Performing frame selection")
         config = self.frame_select
         if config.output_directory is not None:
             outdir = config.output_directory
@@ -268,11 +274,8 @@ class Pipeline(PipelineOptions):
             outdir = self.output_directory
         tripwire |= config.force
         outdir.mkdir(parents=True, exist_ok=True)
-        logger.debug(f"Saving selected data to {outdir.absolute()}")
-        if file_info.camera == 1:
-            ctr = self.centers[1]
-        else:
-            ctr = self.centers[2]
+        self.logger.debug(f"Saving selected data to {outdir.absolute()}")
+        ctr = self.centers[fileinfo["U_CAMERA"]]
         if self.coronagraph is not None:
             metric_file = measure_metric_file(
                 path,
@@ -299,23 +302,20 @@ class Pipeline(PipelineOptions):
             path, metric_file, q=config.cutoff, output_directory=outdir, force=tripwire
         )
 
-        logger.info("Data calibration completed")
+        self.logger.info("Data calibration completed")
         return selected_file, tripwire
 
-    def _register(self, path, file_info, tripwire=False):
-        logger.info("Performing image registration")
+    def register_one(self, path, fileinfo, tripwire=False):
+        self.logger.info("Performing image registration")
         config = self.register
         if config.output_directory is not None:
             outdir = config.output_directory
         else:
             outdir = self.output_directory
         outdir.mkdir(parents=True, exist_ok=True)
-        logger.debug(f"Saving registered data to {outdir.absolute()}")
+        self.logger.debug(f"Saving registered data to {outdir.absolute()}")
         tripwire |= config.force
-        if file_info.camera == 1:
-            ctr = self.centers[1]
-        else:
-            ctr = self.centers[2]
+        ctr = self.centers[fileinfo["U_CAMERA"]]
         if self.coronagraph is not None:
             offsets_file = measure_offsets_file(
                 path,
@@ -346,18 +346,18 @@ class Pipeline(PipelineOptions):
             output_directory=outdir,
             force=tripwire,
         )
-        logger.info("Data calibration completed")
+        self.logger.info("Data calibration completed")
         return reg_file, tripwire
 
-    def _collapse(self, path, file_info, tripwire=False):
-        logger.info("Starting data calibration")
+    def collapse_one(self, path, fileinfo, tripwire=False):
+        self.logger.info("Starting data calibration")
         config = self.collapse
         if config.output_directory is not None:
             outdir = config.output_directory
         else:
             outdir = self.output_directory
         outdir.mkdir(parents=True, exist_ok=True)
-        logger.debug(f"Saving collapsed data to {outdir.absolute()}")
+        self.logger.debug(f"Saving collapsed data to {outdir.absolute()}")
         tripwire |= config.force
         calib_file = collapse_cube_file(
             path,
@@ -365,7 +365,7 @@ class Pipeline(PipelineOptions):
             output_directory=outdir,
             force=tripwire,
         )
-        logger.info("Data calibration completed")
+        self.logger.info("Data calibration completed")
         return calib_file, tripwire
 
     def save_adi_cubes(self, force: bool = False) -> Tuple[Optional[Path], Optional[Path]]:
@@ -373,9 +373,9 @@ class Pipeline(PipelineOptions):
         outname1 = outname2 = None
 
         # save cubes for each camera
-        cam1_table = self.table.query("U_CAMERA == 1").sort_values(["MJD", "U_FLCSTT"])
+        cam1_table = self.output_table.query("U_CAMERA == 1").sort_values(["MJD", "U_FLCSTT"])
         if len(cam1_table) > 0:
-            outname1 = self.output_directory / f"{self.name}_adi_cube_cam1.fits"
+            outname1 = self.products.output_directory / f"{self.name}_adi_cube_cam1.fits"
             combine_frames_files(cam1_table["path"], output=outname1, force=force)
             derot_angles1 = np.asarray(cam1_table["D_IMRPAD"] + PUPIL_OFFSET)
             fits.writeto(
@@ -384,9 +384,9 @@ class Pipeline(PipelineOptions):
                 overwrite=True,
             )
 
-        cam2_table = self.table.query("U_CAMERA == 2").sort_values(["MJD", "U_FLCSTT"])
+        cam2_table = self.output_table.query("U_CAMERA == 2").sort_values(["MJD", "U_FLCSTT"])
         if len(cam2_table) > 0:
-            outname2 = self.output_directory / f"{self.name}_adi_cube_cam2.fits"
+            outname2 = self.products.output_directory / f"{self.name}_adi_cube_cam2.fits"
             combine_frames_files(cam2_table["path"], output=outname2, force=force)
             derot_angles2 = np.asarray(cam2_table["D_IMRPAD"] + PUPIL_OFFSET)
             fits.writeto(
@@ -399,13 +399,11 @@ class Pipeline(PipelineOptions):
         if self.collapse is None:
             raise ValueError("Cannot do PDI without collapsing data.")
         config = self.polarimetry
-        logger.info("Performing polarimetric calibration")
+        self.logger.info("Performing polarimetric calibration")
         if config.output_directory is not None:
             outdir = config.output_directory
-        else:
-            outdir = self.output_directory
         outdir.mkdir(parents=True, exist_ok=True)
-        logger.debug(f"saving Stokes data to {outdir.absolute()}")
+        self.logger.debug(f"saving Stokes data to {outdir.absolute()}")
         tripwire |= config.force
 
         # 1. Make diff images
@@ -418,46 +416,43 @@ class Pipeline(PipelineOptions):
         else:
             self.diff_files_ip = self.diff_files.copy()
         # 3. Do higher-order correction
-        self.polarimetry_triplediff(
-            outdir, force=tripwire, N_per_hwp=config.N_per_hwp, order=config.order
-        )
+        self.polarimetry_triplediff(force=tripwire, N_per_hwp=config.N_per_hwp, order=config.order)
 
-        logger.info("Finished PDI")
+        self.logger.info("Finished PDI")
 
     def make_diff_images(self, outdir, force: bool = False):
-        logger.info("Making difference frames")
+        self.logger.info("Making difference frames")
         # table should still be sorted by MJD
-        groups = self.table.groupby("MJD")
+        groups = self.output_table.groupby("MJD")
         # filter groups without full camera/FLC states
+        filesets = []
         cam1_paths = []
         cam2_paths = []
         for mjd, group in groups:
+            fileset = FileSet(group["path"])
             if len(group) == 4:
-                group.sort_values(["U_FLCSTT", "U_CAMERA"], inplace=True)
-                cam1_group = group.query("U_CAMERA == 1")
-                cam1_paths.extend(cam1_group["path"])
-                cam2_group = group.query("U_CAMERA == 2")
-                cam2_paths.extend(cam2_group["path"])
-            # otherwise, skip this data set
-            logger.warn(
-                f"Skipping data set from MJD {mjd} because it has incomplete camera or FLC states"
-            )
+                filesets.append(fileset)
+                for flc in (1, 2):
+                    cam1_paths.append(fileset.paths[(1, flc)])
+                    cam2_paths.append(fileset.paths[(2, flc)])
+                continue
+            miss = set([(1, 1), (1, 2), (2, 1), (2, 2)]) - set(fileset.keys)
+            self.logger.warn(f"Discarding group for missing {miss} camera, FLC state pairs")
 
         with mp.Pool(self.num_proc) as pool:
             jobs = []
             for cam1_file, cam2_file in zip(cam1_paths, cam2_paths):
                 stem = re.sub("_cam[12]", "", cam1_file.name)
                 outname = outdir / stem.replace(".fits", "_diff.fits")
-                logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
-                logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
+                self.logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
+                self.logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
                 kwds = dict(outname=outname, force=force)
                 jobs.append(
                     pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
                 )
 
-            self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
-
-        logger.info("Done making difference frames")
+            self.diff_files = [job.get() for job in track(jobs, description="Making diff images")]
+        self.logger.info("Done making difference frames")
         return self.diff_files
 
     def polarimetry_ip_correct(self, outdir, force=False):
@@ -480,10 +475,10 @@ class Pipeline(PipelineOptions):
                 jobs.append(pool.apply_async(func, args=(filename, outname)))
             if len(jobs) == 0:
                 return
-            for job in tqdm(jobs, desc="Correcting IP"):
+            for job in track(jobs, description="Correcting IP"):
                 job.get()
 
-        logger.info(f"Done correcting instrumental polarization")
+        self.logger.info(f"Done correcting instrumental polarization")
 
     def polarimetry_ip_correct_center(self, filename, outname):
         stack, header = fits.getdata(
@@ -585,18 +580,18 @@ class Pipeline(PipelineOptions):
     # header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
     # fits.writeto(outname, stack, header=header, overwrite=True)
 
-    def polarimetry_triplediff(self, outdir, force=False, N_per_hwp=1, **kwargs):
+    def polarimetry_triplediff(self, force=False, N_per_hwp=1, **kwargs):
         # sort table
         table = header_table(self.diff_files_ip, quiet=True)
-        inds = pol_inds(table["U_HWPANG"], 2, **kwargs)
+        inds = pol_inds(table["U_HWPANG"], 2 * N_per_hwp, **kwargs)
         if len(inds) == 0:
             raise ValueError(f"Could not correctly order the HWP angles")
         table_filt = table.loc[inds]
-        logger.info(
+        self.logger.info(
             f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
         )
 
-        outname = self.output_directory / f"{self.name}_stokes_cube.fits"
+        outname = self.products.output_directory / f"{self.name}_stokes_cube.fits"
         outname_coll = outname.with_name(f"{outname.stem}_collapsed.fits")
         if (
             force
@@ -607,7 +602,7 @@ class Pipeline(PipelineOptions):
             polarization_calibration_triplediff(
                 table_filt["path"], outname=outname, force=True, N_per_hwp=N_per_hwp
             )
-            logger.debug(f"saved Stokes cube to {outname.absolute()}")
+            self.logger.debug(f"saved Stokes cube to {outname.absolute()}")
             stokes_angles = triplediff_average_angles(table_filt["path"])
             stokes_cube, header = fits.getdata(
                 outname,
@@ -622,4 +617,4 @@ class Pipeline(PipelineOptions):
                 header=header,
                 force=True,
             )
-            logger.debug(f"saved collapsed Stokes cube to {outname_coll.absolute()}")
+            self.logger.debug(f"saved collapsed Stokes cube to {outname_coll.absolute()}")

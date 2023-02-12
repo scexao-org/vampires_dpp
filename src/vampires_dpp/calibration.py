@@ -41,6 +41,7 @@ def calibrate_file(
     transform_filename: Optional[str] = None,
     force: bool = False,
     deinterleave: bool = False,
+    reinterleave: bool = False,
     coord: Optional[SkyCoord] = None,
     **kwargs,
 ):
@@ -67,7 +68,6 @@ def calibrate_file(
     header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
     # Discard frames in OG VAMPIRES
     if "U_FLCSTT" in header:
-        deinterleave = False
         cube = raw_cube.astype("f4")
     else:
         cube = raw_cube[2:].astype("f4")

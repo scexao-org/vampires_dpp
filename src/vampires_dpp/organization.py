@@ -25,10 +25,12 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     -------
     OrderedDict
     """
+    path = Path(filename)
     summary = OrderedDict()
     # add path to row before the FITS header keys
-    summary["path"] = Path(filename).resolve()
-    header = fits.getheader(filename, **kwargs)
+    summary["path"] = path.resolve()
+    ext = 1 if ".fits.fz" in path.name else 0
+    header = fits.getheader(filename, ext=ext, **kwargs)
     summary.update(dict_from_header(header))
     return summary
 
@@ -64,7 +66,6 @@ def dict_from_header(header: fits.Header) -> OrderedDict:
 
 def header_table(
     filenames: List[PathLike],
-    ext: int | str = 0,
     num_proc: int = min(8, mp.cpu_count()),
     quiet: bool = False,
 ) -> pd.DataFrame:
@@ -74,8 +75,6 @@ def header_table(
     Parameters
     ----------
     filenames : List[pathlike]
-    ext : int or str, optional
-        FITS extension to parse from, by default 0
     num_proc : int, optional
         Number of processes to use in multiprocessing, by default mp.cpu_count()
     quiet : bool, optional
@@ -86,8 +85,7 @@ def header_table(
     pandas.DataFrame
     """
     with mp.Pool(num_proc) as pool:
-        kwds = dict(ext=ext)
-        jobs = [pool.apply_async(dict_from_header_file, args=(f,), kwds=kwds) for f in filenames]
+        jobs = [pool.apply_async(dict_from_header_file, args=(f,)) for f in filenames]
         iter = jobs if quiet else tqdm(jobs, desc="Parsing FITS headers")
         rows = [job.get() for job in iter]
 

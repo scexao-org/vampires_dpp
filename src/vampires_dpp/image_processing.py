@@ -282,16 +282,16 @@ def correct_distortion(
     """
     if center is None:
         center = frame_center(frame)
-    # if downsizing, use area resampling to reduce moire effect
+    # if downsizing, low-pass filter to reduce moire effect
     if scale < 1:
         frame = cv2.GaussianBlur(frame, sigmaX=0.5 / scale)
-    # scale and retate frames with single transform
+    # scale and rotate frames with single transform
     M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
     corr_frame = distort_frame(frame, M, **kwargs)
     # update header
     if header is not None:
-        header["VPP_SCAL"] = scale, "scaling ratio for distortion correction"
-        header["VPP_ANGL"] = angle, "deg, offset angle for distortion correction"
+        header["DPP_SCAL"] = scale, "scaling ratio for distortion correction"
+        header["DPP_ANGL"] = angle, "deg, offset angle for distortion correction"
     return corr_frame, header
 
 
@@ -326,9 +326,9 @@ def correct_distortion_cube(
     """
     if center is None:
         center = frame_center(cube)
-    # if downsizing, avoid interpolation to reduce moire effect
+    # if downsizing, low-pass filter to reduce moire effect
     if scale < 1:
-        kwargs.update({"flags": cv2.INTER_NEAREST})
+        frame = cv2.GaussianBlur(frame, sigmaX=0.5 / scale)
     # scale and retate frames with single transform
     M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
     corr_cube = np.empty_like(cube)
@@ -336,8 +336,8 @@ def correct_distortion_cube(
         corr_cube[i] = distort_frame(cube[i], M, **kwargs)
     # update header
     if header is not None:
-        header["VPP_SCAL"] = scale, "scaling ratio for distortion correction"
-        header["VPP_ANGL"] = angle, "deg, offset angle for distortion correction"
+        header["DPP_SCAL"] = scale, "scaling ratio for distortion correction"
+        header["DPP_ANGL"] = angle, "deg, offset angle for distortion correction"
     return corr_cube, header
 
 
@@ -373,8 +373,29 @@ class FileSet:
     def combined_header(self):
         return combine_frames_headers(self.headers.values(), wcs=True)
 
+    @property
+    def keys(self):
+        return self.paths.keys()
+
+    @property
+    def cam1_paths(self):
+        return [self.paths[k] for k in self.cam1_keys]
+
+    @property
+    def cam2_paths(self):
+        return [self.paths[k] for k in self.cam2_keys]
+
+    @property
+    def cam1_keys(self):
+        return filter(lambda k: k[0] == 1, self.keys)
+
+    @property
+    def cam2_keys(self):
+        return filter(lambda k: k[0] == 2, self.keys)
+
 
 def make_file_sets(filenames):
+    # group files by identifiers that are unique to a simultaneous capture
     table = header_table(filenames)
     groups = table.groupby("MJD")
     return [FileSet(grp["path"]) for _, grp in groups]

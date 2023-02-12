@@ -1,9 +1,10 @@
 from pathlib import Path
 
+import cv2
 import numpy as np
 from astropy.io import fits
 from astropy.modeling import fitting, models
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, Optional
 from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 
@@ -25,6 +26,7 @@ def satellite_spot_offsets(
     upsample_factor=1,
     center=None,
     background_subtract=False,
+    median_smooth: Optional[int] = None,
     **kwargs,
 ):
 
@@ -34,6 +36,10 @@ def satellite_spot_offsets(
     if background_subtract:
         background = model_background(cube, slices, center=center)
         cube = cube - background
+
+    if median_smooth:
+        for i in range(cube.shape[0]):
+            cube[i] = cv2.medianBlur(cube[i], median_smooth)
 
     offsets = np.zeros((cube.shape[0], len(slices), 2))
 
@@ -224,8 +230,8 @@ def measure_offsets_file(filename, method="peak", coronagraphic=False, force=Fal
         path,
         header=True,
     )
-    if "VPP_REF" in header:
-        refidx = header["VPP_REF"]
+    if "DPP_REF" in header:
+        refidx = header["DPP_REF"]
     else:
         refidx = np.nanargmax(np.nanmax(cube, axis=(-2, -1)))
     if coronagraphic:
