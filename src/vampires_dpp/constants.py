@@ -22,3 +22,5 @@ FILTER_ANGULAR_SIZE = {
 # limit default nproc since many operations are
 # throttled by file I/O
 DEFAULT_NPROC = min(cpu_count(), 8)
+
+READNOIES = 82  # e-

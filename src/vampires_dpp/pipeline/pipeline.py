@@ -251,6 +251,7 @@ class Pipeline(PipelineOptions):
             flat_filename=self.master_flats[fileinfo["U_CAMERA"]],
             transform_filename=transform_filename,
             deinterleave=config.deinterleave,
+            bpfix=config.fix_bad_pixels,
             coord=self.coord,
             output_directory=outdir,
             force=tripwire,

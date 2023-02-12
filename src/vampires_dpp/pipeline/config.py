@@ -51,8 +51,8 @@ class CalibrateOptions(OutputDirectory):
     master_darks: Optional[CamFileInput] = field(default=CamFileInput())
     master_flats: Optional[CamFileInput] = field(default=CamFileInput())
     distortion: Optional[DistortionOptions] = field(default=None, skip_if_default=True)
+    fix_bad_pixels: bool = field(default=False, skip_if_default=True)
     deinterleave: bool = field(default=False, skip_if_default=True)
-    reinterleave: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()

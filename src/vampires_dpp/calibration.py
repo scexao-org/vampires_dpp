@@ -6,15 +6,17 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import astropy.units as u
+import cv2
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.stats import biweight_location
+from astropy.stats import biweight_location, biweight_midvariance
 from astropy.time import Time
+from astroscrappy import detect_cosmics
 from tqdm.auto import tqdm
 
-from vampires_dpp.constants import DEFAULT_NPROC, SUBARU_LOC
+from vampires_dpp.constants import DEFAULT_NPROC, READNOISE, SUBARU_LOC
 from vampires_dpp.headers import fix_header
 from vampires_dpp.image_processing import (
     collapse_cube,
@@ -40,8 +42,8 @@ def calibrate_file(
     flat_filename: Optional[str] = None,
     transform_filename: Optional[str] = None,
     force: bool = False,
+    bpfix: bool = False,
     deinterleave: bool = False,
-    reinterleave: bool = False,
     coord: Optional[SkyCoord] = None,
     **kwargs,
 ):
@@ -83,6 +85,19 @@ def calibrate_file(
         flat_path = Path(flat_filename)
         flat = fits.getdata(flat_path).astype("f4")
         cube /= flat
+    # bad pixel correction
+    if bpfix:
+        mask, _ = detect_cosmics(
+            cube.mean(0),
+            effective_gain=header.get("DETGAIN", 4.5),
+            readnoise=READNOISE,
+            satlevel=2**16 * header.get("DETGAIN", 4.5),
+            niter=1,
+        )
+        cube_copy = cube.copy()
+        for i in range(cube.shape[0]):
+            smooth_im = cv2.medianBlur(cube_copy[i], 5)
+            cube[i, mask] = smooth_im[mask]
     # flip cam 1 data
     if header["U_CAMERA"] == 1:
         cube = np.flip(cube, axis=-2)
@@ -133,9 +148,15 @@ def make_dark_file(filename: str, force=False, **kwargs):
     else:
         cube = raw_cube[1:].astype("f4")
     master_dark, header = collapse_cube(cube, header=header, **kwargs)
+    _, clean_dark = detect_cosmics(
+        master_dark,
+        effective_gain=header.get("DETGAIN", 4.5),
+        readnoise=READNOISE,
+        satlevel=2**16 * header.get("DETGAIN", 4.5),
+    )
     fits.writeto(
         outpath,
-        master_dark,
+        clean_dark,
         header=header,
         overwrite=True,
     )
@@ -163,11 +184,17 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
         )
         cube = cube - master_dark
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
-    master_flat = master_flat / biweight_location(master_flat, c=6, ignore_nan=True)
+    _, clean_flat = detect_cosmics(
+        master_flat,
+        effective_gain=header.get("DETGAIN", 4.5),
+        readnoise=READNOISE,
+        satlevel=2**16 * header.get("DETGAIN", 4.5),
+    )
+    clean_flat /= biweight_location(clean_flat, c=6, ignore_nan=True)
 
     fits.writeto(
         outpath,
-        master_flat,
+        clean_flat,
         header=header,
         overwrite=True,
     )
