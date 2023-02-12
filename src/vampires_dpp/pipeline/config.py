@@ -62,8 +62,6 @@ class CalibrateOptions(OutputDirectory):
             self.master_flats = CamFileInput(**self.master_flats)
         if self.distortion is not None and isinstance(self.distortion, dict):
             self.distortion = DistortionOptions(**self.distortion)
-        if self.reinterleave and self.deinterleave:
-            raise ValueError("Cannot set both deinterleave and reinterleave")
 
 
 @serialize
@@ -146,6 +144,8 @@ class PolarimetryOptions(OutputDirectory):
         if self.ip is not None and isinstance(self.ip, dict):
             self.ip = IPOptions(**self.ip)
         self.order = self.order.strip().upper()
+        if self.order not in ("QQUU", "QUQU"):
+            raise ValueError(f"HWP order not recognized: {self.order}")
 
 
 @serialize

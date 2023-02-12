@@ -326,14 +326,16 @@ def correct_distortion_cube(
     """
     if center is None:
         center = frame_center(cube)
-    # if downsizing, low-pass filter to reduce moire effect
-    if scale < 1:
-        frame = cv2.GaussianBlur(frame, sigmaX=0.5 / scale)
     # scale and retate frames with single transform
     M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
     corr_cube = np.empty_like(cube)
     for i in range(cube.shape[0]):
-        corr_cube[i] = distort_frame(cube[i], M, **kwargs)
+        # if downsizing, low-pass filter to reduce moire effect
+        if scale < 1:
+            frame = cv2.GaussianBlur(cube[i], (0, 0), sigmaX=0.5 / scale)
+        else:
+            frame = cube[i]
+        corr_cube[i] = distort_frame(frame, M, **kwargs)
     # update header
     if header is not None:
         header["DPP_SCAL"] = scale, "scaling ratio for distortion correction"

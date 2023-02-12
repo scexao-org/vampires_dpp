@@ -23,4 +23,4 @@ FILTER_ANGULAR_SIZE = {
 # throttled by file I/O
 DEFAULT_NPROC = min(cpu_count(), 8)
 
-READNOIES = 82  # e-
+READNOISE = 82  # e-
