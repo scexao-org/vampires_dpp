@@ -115,7 +115,7 @@ class TestSatspotOptions:
     def test_default_creation(self):
         conf = SatspotOptions()
         assert conf.radius == 15.9
-        assert conf.angle == -4
+        assert conf.angle == -5.4
         assert conf.amp == 50
         toml_conf = SatspotOptions(**tomli.loads(to_toml(conf)))
         assert conf == toml_conf

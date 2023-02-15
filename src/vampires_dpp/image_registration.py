@@ -26,21 +26,16 @@ def satellite_spot_offsets(
     refidx=0,
     upsample_factor=1,
     center=None,
-    background_subtract=False,
-    median_smooth: Optional[int] = None,
+    smooth: bool = False,
     **kwargs,
 ):
 
     slices = window_slices(cube[0], center=center, **kwargs)
     center = frame_center(cube)
 
-    if background_subtract:
-        background = model_background(cube, slices, center=center)
-        cube = cube - background
-
-    if median_smooth:
+    if smooth:
         for i in range(cube.shape[0]):
-            cube[i] = cv2.medianBlur(cube[i], median_smooth)
+            cube[i] = cv2.GaussianBlur(cube[i], (0, 0), 3)
 
     offsets = np.zeros((cube.shape[0], len(slices), 2))
 

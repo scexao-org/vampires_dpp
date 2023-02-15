@@ -46,9 +46,11 @@ If you run into problems, take a look at the debug file, which will be saved to 
 
 The configuration file uses the [TOML](https://toml.io) format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., `[calibration]`, `[frame_selection]`) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.
 
-There is a version of the configuration file with all possible options and brief comments available in the GitHub repository.
 
-> [example.toml](https://github.com/scexao-org/vampires_dpp/blob/main/src/vampires_dpp/cli/example.toml)
+```{eval-rst}
+.. autoclass:: vampires_dpp.pipeline.config.PipelineOptions
+```
+
 
 ### Version
 

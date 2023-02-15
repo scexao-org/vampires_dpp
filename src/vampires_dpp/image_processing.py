@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union
+from typing import List, Optional, Tuple
 
 import astropy.units as u
 import cv2
@@ -16,43 +16,57 @@ from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.util import any_file_newer, get_paths
 
 
-def shift_frame(data: ArrayLike, shift, **kwargs):
-    M = np.float32(((1, 0, shift[1]), (0, 1, shift[0])))
-    return distort_frame(data, M, **kwargs)
-
-
-def derotate_frame(data: ArrayLike, angle, center=None, **kwargs):
-    """_summary_
+def shift_frame(data: ArrayLike, shift: List | Tuple, **kwargs) -> NDArray:
+    """
+    Shifts a single frame by the given offset
 
     Parameters
     ----------
     data : ArrayLike
-        _description_
-    angle : _type_
-        ANGLE CONVENTION IS CW, OPPOSITE OF ASTROMETRIC
-    center : _type_, optional
-        _description_, by default None
+        2D frame to shift
+    shift : List | Tuple
+        Shift (dy, dx) in pixels
+    **kwargs
+        Keyword arguments are passed to `warp_frame`
 
     Returns
     -------
-    _type_
-        _description_
+    NDArray
+        Shifted frame
+    """
+    M = np.float32(((1, 0, shift[1]), (0, 1, shift[0])))
+    return warp_frame(data, M, **kwargs)
+
+
+def derotate_frame(
+    data: ArrayLike, angle: float, center: Optional[List | Tuple] = None, **kwargs
+) -> NDArray:
+    """
+    Derotates a single frame by the given angle.
+
+    Parameters
+    ----------
+    data : ArrayLike
+        2D frame to derotate
+    angle : float
+        Angle, in degrees
+    center : Optional[List | Tuple]
+        Point defining the axis of rotation. If `None`, will use the frame center. Default is `None`.
+    **kwargs
+        Keyword arguments are passed to `warp_frame`
+
+    Returns
+    -------
+    NDArray
+        Derotated frame
     """
     if center is None:
         center = frame_center(data)
     M = cv2.getRotationMatrix2D(center[::-1], -angle, 1)
-    return distort_frame(data, M, **kwargs)
+    return warp_frame(data, M, **kwargs)
 
 
-def warp_frame(data: ArrayLike, shift=0, angle=0, center=None, **kwargs):
-    if center is None:
-        center = frame_center(data)
-    M = cv2.getRotationMatrix2D(center[::-1], -angle, 1)
-    M[::-1, 2] += shift
-    return distort_frame(data, M, **kwargs)
-
-
-def distort_frame(data: ArrayLike, matrix, **kwargs):
+def warp_frame(data: ArrayLike, matrix, **kwargs):
     default_kwargs = {
         "flags": cv2.INTER_CUBIC,
         "borderMode": cv2.BORDER_CONSTANT,
@@ -63,7 +77,7 @@ def distort_frame(data: ArrayLike, matrix, **kwargs):
     return cv2.warpAffine(data.astype("f4"), matrix, shape, **default_kwargs)
 
 
-def derotate_cube(data: ArrayLike, angles: Union[ArrayLike, float], **kwargs):
+def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs):
     # reverse user-given center because scikit-image
     # uses swapped axes for this parameter only
     angles = np.asarray(angles)
@@ -287,7 +301,7 @@ def correct_distortion(
         frame = cv2.GaussianBlur(frame, sigmaX=0.5 / scale)
     # scale and rotate frames with single transform
     M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
-    corr_frame = distort_frame(frame, M, **kwargs)
+    corr_frame = warp_frame(frame, M, **kwargs)
     # update header
     if header is not None:
         header["DPP_SCAL"] = scale, "scaling ratio for distortion correction"
@@ -335,7 +349,7 @@ def correct_distortion_cube(
             frame = cv2.GaussianBlur(cube[i], (0, 0), sigmaX=0.5 / scale)
         else:
             frame = cube[i]
-        corr_cube[i] = distort_frame(frame, M, **kwargs)
+        corr_cube[i] = warp_frame(frame, M, **kwargs)
     # update header
     if header is not None:
         header["DPP_SCAL"] = scale, "scaling ratio for distortion correction"
@@ -370,10 +384,6 @@ class FileSet:
                 print(
                     f"Expected set of 4 files, one for each camera and FLC state combination. Missing camera {missing[0][0]} FLC state {missing[0][1]}"
                 )
-
-    @property
-    def combined_header(self):
-        return combine_frames_headers(self.headers.values(), wcs=True)
 
     @property
     def keys(self):

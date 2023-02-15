@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from vampires_dpp.constants import FILTER_ANGULAR_SIZE, PIXEL_SCALE
+from vampires_dpp.constants import FILTER_ANGULAR_SIZE, PIXEL_SCALE, SATSPOT_ANGLE
 
 
 def frame_center(image: ArrayLike):
@@ -75,7 +75,7 @@ def lamd_to_pixel(ld, filter="Open", pxscale=PIXEL_SCALE):
     return ld * dist / pxscale
 
 
-def window_centers(center, radius, theta=-4, n=4, **kwargs):
+def window_centers(center, radius, theta=SATSPOT_ANGLE, n=4, **kwargs):
     """
     Get the centers (y, x) for each point `radius` away from `center` along `n` branches starting `theta` degrees CCW from the x-axis
 

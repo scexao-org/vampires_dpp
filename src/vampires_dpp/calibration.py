@@ -89,7 +89,7 @@ def calibrate_file(
     if bpfix:
         mask, _ = detect_cosmics(
             cube.mean(0),
-            effective_gain=header.get("DETGAIN", 4.5),
+            gain=header.get("DETGAIN", 4.5),
             readnoise=READNOISE,
             satlevel=2**16 * header.get("DETGAIN", 4.5),
             niter=1,
@@ -150,7 +150,7 @@ def make_dark_file(filename: str, force=False, **kwargs):
     master_dark, header = collapse_cube(cube, header=header, **kwargs)
     _, clean_dark = detect_cosmics(
         master_dark,
-        effective_gain=header.get("DETGAIN", 4.5),
+        gain=header.get("DETGAIN", 4.5),
         readnoise=READNOISE,
         satlevel=2**16 * header.get("DETGAIN", 4.5),
     )
@@ -186,7 +186,7 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
     _, clean_flat = detect_cosmics(
         master_flat,
-        effective_gain=header.get("DETGAIN", 4.5),
+        gain=header.get("DETGAIN", 4.5),
         readnoise=READNOISE,
         satlevel=2**16 * header.get("DETGAIN", 4.5),
     )
