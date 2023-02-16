@@ -474,7 +474,11 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
 
     # prepare header
     del header["U_CAMERA"]
-    stokes = HWP_POS_STOKES[header["U_HWPANG"]]
+    hwpang = header["U_HWPANG"]
+    if hwpang in HWP_POS_STOKES:
+        stokes = HWP_POS_STOKES[hwpang]
+    else:
+        stokes = "-"
     header["CAXIS3"] = "STOKES"
     header["STOKES"] = f"I,{stokes}"
 

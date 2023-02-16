@@ -245,10 +245,16 @@ class Pipeline(PipelineOptions):
             transform_filename = None
         tripwire |= config.force
         ext = 1 if ".fits.fz" in path.name else 0
+        if fileinfo["U_CAMERA"] == 1:
+            dark_filename = config.master_darks.cam1
+            flat_filename = config.master_flats.cam1
+        elif fileinfo["U_CAMERA"] == 2:
+            dark_filename = config.master_darks.cam2
+            flat_filename = config.master_flats.cam2
         calib_file = calibrate_file(
             path,
-            dark_filename=self.master_darks[fileinfo["U_CAMERA"]],
-            flat_filename=self.master_flats[fileinfo["U_CAMERA"]],
+            dark_filename=dark_filename,
+            flat_filename=flat_filename,
             transform_filename=transform_filename,
             deinterleave=config.deinterleave,
             bpfix=config.fix_bad_pixels,
