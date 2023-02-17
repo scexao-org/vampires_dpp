@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Frame Selection" href="frame_selection.html" />
-    <link rel="prev" title="Pipeline" href="pipeline.html" />
+    <link rel="prev" title="Organization" href="organization.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -102,13 +102,18 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="../quickstart.html">
+   Quick-start guide
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="../pipeline.html">
    Pipeline
   </a>
  </li>
  <li class="toctree-l1 has-children">
-  <a class="reference internal" href="../examples/index.html">
-   Examples
+  <a class="reference internal" href="../tutorials/index.html">
+   Tutorials
   </a>
   <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
@@ -117,22 +122,12 @@
   </label>
   <ul>
    <li class="toctree-l2">
-    <a class="reference internal" href="../examples/file_organization.html">
-     File Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../examples/polarimetric_differential_imaging.html">
-     Polarimetric Differential Imaging (PDI)
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../examples/image_registration.html">
+    <a class="reference internal" href="../tutorials/image_registration.html">
      Image Registration
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="../examples/frame_selection.html">
+    <a class="reference internal" href="../tutorials/frame_selection.html">
      Frame Selection
     </a>
    </li>
@@ -151,11 +146,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="organization.html">
      Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="pipeline.html">
-     Pipeline
     </a>
    </li>
    <li class="toctree-l2 current active">
@@ -179,8 +169,13 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="satellite_spots.html">
-     Satellite Spots
+    <a class="reference internal" href="utility.html">
+     Utility
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="polarization.html">
+     Polarization
     </a>
    </li>
   </ul>
@@ -318,49 +313,8 @@ title="Print to PDF"
                 
               <div>
                 
-  <section class="tex2jax_ignore mathjax_ignore" id="calibration">
-<h1>Calibration<a class="headerlink" href="#calibration" title="Permalink to this headline">#</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.calibration.calibrate">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.calibration.</span></span><span class="sig-name descname"><span class="pre">calibrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.calibration.calibrate" title="Permalink to this definition">#</a></dt>
-<dd><p>Basic frame calibration.</p>
-<p>Will optionally do dark subtraction, flat correction, discard leading frames, and flip the axes for mirrored data.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<em>ArrayLike</em>) – 3-D cube (t, y, x) of data</p></li>
-<li><p><strong>discard</strong> (<em>int</em><em>, </em><em>optional</em>) – The amount of leading frames to discard (for data which has destructive readout frames), by default 0.</p></li>
-<li><p><strong>dark</strong> (<em>ArrayLike</em><em>, </em><em>optional</em>) – If provided, will dark-subtract all frames by the provided 2-D master dark (y, x), by default None</p></li>
-<li><p><strong>flat</strong> (<em>ArrayLike</em><em>, </em><em>optional</em>) – If provided, will flat-correct (after dark-subtraction) all frames by the provided 2-D master flat (y, x), by default None</p></li>
-<li><p><strong>flip</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, will flip the y-axis of the data, for de-mirroring cam1 data, by default False.</p></li>
-<li><p><strong>note:</strong> (<em>..</em>) – Image flips are always done last:</p></li>
-<li><p><strong>time!</strong> (<em>so that means the dark frames and flat frames should not be flipped ahead of</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>3-D calibrated data cube (t, y, x)</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>ArrayLike</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.calibration.calibrate_file">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.calibration.</span></span><span class="sig-name descname"><span class="pre">calibrate_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deinterleave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.calibration.calibrate_file" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em>) – </p></li>
-<li><p><strong>hdu</strong> (<em>int</em>) – </p></li>
-<li><p><strong>dark</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
-<li><p><strong>flat</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
+  <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.calibration">
+<span id="calibration"></span><h1>Calibration<a class="headerlink" href="#module-vampires_dpp.calibration" title="Permalink to this headline">#</a></h1>
 </section>
 
 
@@ -371,11 +325,11 @@ title="Print to PDF"
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="pipeline.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="organization.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Pipeline</p>
+            <p class="prev-next-title">Organization</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="frame_selection.html" title="next page">

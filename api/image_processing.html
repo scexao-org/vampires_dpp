@@ -37,7 +37,7 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Satellite Spots" href="satellite_spots.html" />
+    <link rel="next" title="Utility" href="utility.html" />
     <link rel="prev" title="Image Registration" href="image_registration.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
@@ -102,13 +102,18 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="../quickstart.html">
+   Quick-start guide
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="../pipeline.html">
    Pipeline
   </a>
  </li>
  <li class="toctree-l1 has-children">
-  <a class="reference internal" href="../examples/index.html">
-   Examples
+  <a class="reference internal" href="../tutorials/index.html">
+   Tutorials
   </a>
   <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
@@ -117,22 +122,12 @@
   </label>
   <ul>
    <li class="toctree-l2">
-    <a class="reference internal" href="../examples/file_organization.html">
-     File Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../examples/polarimetric_differential_imaging.html">
-     Polarimetric Differential Imaging (PDI)
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../examples/image_registration.html">
+    <a class="reference internal" href="../tutorials/image_registration.html">
      Image Registration
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="../examples/frame_selection.html">
+    <a class="reference internal" href="../tutorials/frame_selection.html">
      Frame Selection
     </a>
    </li>
@@ -151,11 +146,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="organization.html">
      Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="pipeline.html">
-     Pipeline
     </a>
    </li>
    <li class="toctree-l2">
@@ -179,8 +169,13 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="satellite_spots.html">
-     Satellite Spots
+    <a class="reference internal" href="utility.html">
+     Utility
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="polarization.html">
+     Polarization
     </a>
    </li>
   </ul>
@@ -318,31 +313,50 @@ title="Print to PDF"
                 
               <div>
                 
-  <section class="tex2jax_ignore mathjax_ignore" id="image-processing">
-<h1>Image Processing<a class="headerlink" href="#image-processing" title="Permalink to this headline">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.image_processing">
+<span id="image-processing"></span><h1>Image Processing<a class="headerlink" href="#module-vampires_dpp.image_processing" title="Permalink to this headline">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.image_processing.frame_center">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">frame_center</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.frame_center" title="Permalink to this definition">#</a></dt>
-<dd><p>Find the center of the frame or cube in pixel coordinates</p>
+<dt class="sig sig-object py" id="vampires_dpp.image_processing.correct_distortion">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">correct_distortion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.correct_distortion" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotate and scale a single frame to match with a pinhole grid</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>image</strong> (<em>ArrayLike</em>) – N-D array with the final two dimensions as the (y, x) axes.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> (<em>ArrayLike</em>) – Input frame to transform</p></li>
+<li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – Clockwise angle to rotate frame by, by default 0</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Amount of radial scaling, by default 1</p></li>
+<li><p><strong>header</strong> (<em>Header</em><em>, </em><em>optional</em>) – FITS header to update, by default None</p></li>
+<li><p><strong>center</strong> (<em>(</em><em>y</em><em>, </em><em>x</em><em>)</em><em>, </em><em>optional</em>) – Frame center, if None will default to geometric frame center, by default None</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A tuple of the image center in pixel coordinates</p>
+<dd class="field-even"><p>The distortion-corrected frame and header. If <cite>header</cite> was not provided, this will be <cite>None</cite>.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(cy, cx)</p>
+<dd class="field-odd"><p>corrected_frame, header</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.image_processing.shift_frame">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">shift_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.shift_frame" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<dt class="sig sig-object py" id="vampires_dpp.image_processing.correct_distortion_cube">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">correct_distortion_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.correct_distortion_cube" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotate and scale a all frames in a cube to match with a pinhole grid</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Union</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>]</em><em>, </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>]</em><em>]</em><em>, </em><em>bool</em><em>, </em><em>int</em><em>, </em><em>float</em><em>, </em><em>complex</em><em>, </em><em>str</em><em>, </em><em>bytes</em><em>, </em><em>_NestedSequence</em><em>[</em><em>Union</em><em>[</em><em>bool</em><em>, </em><em>int</em><em>, </em><em>float</em><em>, </em><em>complex</em><em>, </em><em>str</em><em>, </em><em>bytes</em><em>]</em><em>]</em><em>]</em>) – </p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cube</strong> (<em>ArrayLike</em>) – Input cube to transform</p></li>
+<li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – Clockwise angle to rotate frames by, by default 0</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Amount of radial scaling, by default 1</p></li>
+<li><p><strong>header</strong> (<em>Header</em><em>, </em><em>optional</em>) – FITS header to update, by default None</p></li>
+<li><p><strong>center</strong> (<em>(</em><em>y</em><em>, </em><em>x</em><em>)</em><em>, </em><em>optional</em>) – Frame center, if None will default to geometric frame center, by default None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The distortion-corrected cube and header. If <cite>header</cite> was not provided, this will be <cite>None</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>corrected_cube, header</p>
 </dd>
 </dl>
 </dd></dl>
@@ -350,20 +364,42 @@ title="Print to PDF"
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.image_processing.derotate_frame">
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">derotate_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.derotate_frame" title="Permalink to this definition">#</a></dt>
-<dd><p>_summary_</p>
+<dd><p>Derotates a single frame by the given angle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<em>ArrayLike</em>) – _description_</p></li>
-<li><p><strong>angle</strong> (<em>_type_</em>) – ANGLE CONVENTION IS CW, OPPOSITE OF ASTROMETRIC</p></li>
-<li><p><strong>center</strong> (<em>_type_</em><em>, </em><em>optional</em>) – _description_, by default None</p></li>
+<li><p><strong>data</strong> (<em>ArrayLike</em>) – 2D frame to derotate</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) – Angle, in degrees</p></li>
+<li><p><strong>center</strong> (<em>Optional</em><em>[</em><em>list</em><em> | </em><em>Tuple</em><em>]</em>) – Point defining the axis of rotation. If <cite>None</cite>, will use the frame center. Default is <cite>None</cite>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are passed to <cite>warp_frame</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>_description_</p>
+<dd class="field-even"><p>Derotated frame</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>_type_</p>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.image_processing.shift_frame">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">shift_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.shift_frame" title="Permalink to this definition">#</a></dt>
+<dd><p>Shifts a single frame by the given offset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>ArrayLike</em>) – 2D frame to shift</p></li>
+<li><p><strong>shift</strong> (<em>list</em><em> | </em><em>Tuple</em>) – Shift (dy, dx) in pixels</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are passed to <cite>warp_frame</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Shifted frame</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>NDArray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -385,10 +421,10 @@ title="Print to PDF"
             <p class="prev-next-title">Image Registration</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="satellite_spots.html" title="next page">
+    <a class='right-next' id="next-link" href="utility.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Satellite Spots</p>
+        <p class="prev-next-title">Utility</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

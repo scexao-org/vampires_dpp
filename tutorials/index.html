@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Workflows &#8212; VAMPIRES DPP</title>
+    <title>Tutorials &#8212; VAMPIRES DPP</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -37,7 +37,7 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="API/Reference" href="../api/index.html" />
+    <link rel="next" title="Image Registration" href="image_registration.html" />
     <link rel="prev" title="Pipeline" href="../pipeline.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
@@ -75,6 +75,11 @@
         <div class="bd-sidebar__top"><div class="navbar-brand-box">
     <a class="navbar-brand text-wrap" href="../index.html">
       
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/scexao_logo.svg" class="logo" alt="logo">
       
       
       <h1 class="site-logo" id="site-title">VAMPIRES DPP</h1>
@@ -92,8 +97,13 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="../gettingstarted.html">
-   Getting started
+  <a class="reference internal" href="../introduction.html">
+   Introduction
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../quickstart.html">
+   Quick-start guide
   </a>
  </li>
  <li class="toctree-l1">
@@ -101,17 +111,34 @@
    Pipeline
   </a>
  </li>
- <li class="toctree-l1 current active">
+ <li class="toctree-l1 current active has-children">
   <a class="current reference internal" href="#">
-   Workflows
+   Tutorials
   </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="image_registration.html">
+     Image Registration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="frame_selection.html">
+     Frame Selection
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1 has-children">
   <a class="reference internal" href="../api/index.html">
    API/Reference
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
    <i class="fas fa-chevron-down">
    </i>
   </label>
@@ -142,8 +169,13 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="../api/satellite_spots.html">
-     Satellite Spots
+    <a class="reference internal" href="../api/utility.html">
+     Utility
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../api/polarization.html">
+     Polarization
     </a>
    </li>
   </ul>
@@ -257,70 +289,23 @@ title="Print to PDF"
     </ul>
   </div>
 </div>
-<label for="__page-toc"
-  class="headerbtn headerbtn-page-toc"
-  
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-list"></i>
-  </span>
-
-</label>
 
     </div>
 </div>
 
 <!-- Table of contents -->
 <div class="col-md-3 bd-toc show noprint">
-    <div class="tocsection onthispage pt-5 pb-3">
-        <i class="fas fa-list"></i> Contents
-    </div>
-    <nav id="bd-toc-nav" aria-label="Page">
-        <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#open-use-observing">
-   Open-use observing
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#engineering">
-   Engineering
-  </a>
- </li>
-</ul>
-
-    </nav>
 </div>
     </div>
     <div class="article row">
         <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>Workflows</h1>
+                <h1>Tutorials</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
                         
-                        <div>
-                            <h2> Contents </h2>
-                        </div>
-                        <nav aria-label="Page">
-                            <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#open-use-observing">
-   Open-use observing
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#engineering">
-   Engineering
-  </a>
- </li>
-</ul>
-
-                        </nav>
                     </div>
                 </div>
             </div>
@@ -328,23 +313,15 @@ title="Print to PDF"
                 
               <div>
                 
-  <section class="tex2jax_ignore mathjax_ignore" id="workflows">
-<h1>Workflows<a class="headerlink" href="#workflows" title="Permalink to this headline">#</a></h1>
-<p>VAMPIRES is a very dynamic instrument used in a variety of observing scenarios. The workflows below represent some of the most common use-cases of VAMPIRES, and while open-use observer modes are prioritized there are also tutorials for engineering related tasks.</p>
-<section id="open-use-observing">
-<h2>Open-use observing<a class="headerlink" href="#open-use-observing" title="Permalink to this headline">#</a></h2>
-<ol class="simple">
-<li><p>Speckle imaging (TODO)</p></li>
-<li><p>Polarimetric differential imaging (TODO)</p></li>
-</ol>
-</section>
-<section id="engineering">
-<h2>Engineering<a class="headerlink" href="#engineering" title="Permalink to this headline">#</a></h2>
-<ol class="simple">
-<li><p>Pixel scale and PA offset measurement (TODO)</p></li>
-<li><p>Satellite spot calibration (TODO)</p></li>
-</ol>
-</section>
+  <section class="tex2jax_ignore mathjax_ignore" id="tutorials">
+<h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">#</a></h1>
+<p>The following notebooks explore some of the different options in the processing pipeline in different observing scenarios as well as auxiliary examples.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="image_registration.html">Image Registration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frame_selection.html">Frame Selection</a></li>
+</ul>
+</div>
 </section>
 
 
@@ -362,10 +339,10 @@ title="Print to PDF"
             <p class="prev-next-title">Pipeline</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="../api/index.html" title="next page">
+    <a class='right-next' id="next-link" href="image_registration.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">API/Reference</p>
+        <p class="prev-next-title">Image Registration</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
@@ -378,7 +355,7 @@ title="Print to PDF"
   
     By Miles Lucas<br/>
   
-      &copy; Copyright 2022, Miles Lucas.<br/>
+      &copy; Copyright 2022, 2023, Miles Lucas.<br/>
 </p>
         </footer>
     </div>

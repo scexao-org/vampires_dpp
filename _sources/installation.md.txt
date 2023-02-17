@@ -1,11 +1,13 @@
 # Installation
 
+## Python Versions
 
-## Using `pip`
+```{admonition} Managing python versions
+:class: tip
 
-```{margin} Python Version
-`vampires_dpp` requires at least python 3.7
+Subaru's archive interface depends on python 2, while this package requires at least python 3.10. You will inevitably need to manage different python versions. I recommend using [pyenv](https://github.com/pyenv/pyenv) or [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-python.html#installing-a-different-version-of-python)
 ```
+## Using `pip`
 
 For now, install directly from GitHub
 
@@ -45,10 +47,11 @@ If you would like to contribute, first off, thank you! To get started, you shoul
 
 ```bash
 cd vampires_dpp
+pip install -e .[dev]
 pre-commit install
 ```
 
-and you're all set! Now whenever you `git commit` the source files will be autoformatted using [`black`](https://github.com/psf/black).
+and you're all set! Now whenever you `git commit` the source files will be autoformatted using [`black`](https://github.com/psf/black) and imports will be sorted with [`isort`](https://github.com/pycqa/isort) and [`autoflake`](https://github.com/PyCQA/autoflake).
 
 Any contributions should be submitted as [pull requests](https://github.com/scexao-org/vampires_dpp/pulls). Feel free to reach out ahead of time about questions or ambitions about contributing.
 

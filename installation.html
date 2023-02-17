@@ -102,13 +102,18 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="quickstart.html">
+   Quick-start guide
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="pipeline.html">
    Pipeline
   </a>
  </li>
  <li class="toctree-l1 has-children">
-  <a class="reference internal" href="examples/index.html">
-   Examples
+  <a class="reference internal" href="tutorials/index.html">
+   Tutorials
   </a>
   <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
@@ -117,22 +122,12 @@
   </label>
   <ul>
    <li class="toctree-l2">
-    <a class="reference internal" href="examples/file_organization.html">
-     File Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/polarimetric_differential_imaging.html">
-     Polarimetric Differential Imaging (PDI)
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/image_registration.html">
+    <a class="reference internal" href="tutorials/image_registration.html">
      Image Registration
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="examples/frame_selection.html">
+    <a class="reference internal" href="tutorials/frame_selection.html">
      Frame Selection
     </a>
    </li>
@@ -151,11 +146,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="api/organization.html">
      Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="api/pipeline.html">
-     Pipeline
     </a>
    </li>
    <li class="toctree-l2">
@@ -179,8 +169,13 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="api/satellite_spots.html">
-     Satellite Spots
+    <a class="reference internal" href="api/utility.html">
+     Utility
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/polarization.html">
+     Polarization
     </a>
    </li>
   </ul>
@@ -317,6 +312,11 @@ title="Print to PDF"
     <nav id="bd-toc-nav" aria-label="Page">
         <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#python-versions">
+   Python Versions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#using-pip">
    Using
    <code class="docutils literal notranslate">
@@ -366,6 +366,11 @@ title="Print to PDF"
                         <nav aria-label="Page">
                             <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#python-versions">
+   Python Versions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#using-pip">
    Using
    <code class="docutils literal notranslate">
@@ -407,12 +412,15 @@ title="Print to PDF"
                 
   <section class="tex2jax_ignore mathjax_ignore" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">#</a></h1>
+<section id="python-versions">
+<h2>Python Versions<a class="headerlink" href="#python-versions" title="Permalink to this headline">#</a></h2>
+<div class="tip admonition">
+<p class="admonition-title">Managing python versions</p>
+<p>Subaru’s archive interface depends on python 2, while this package requires at least python 3.10. You will inevitably need to manage different python versions. I recommend using <a class="reference external" href="https://github.com/pyenv/pyenv">pyenv</a> or <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-python.html#installing-a-different-version-of-python">conda</a></p>
+</div>
+</section>
 <section id="using-pip">
 <h2>Using <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#using-pip" title="Permalink to this headline">#</a></h2>
-<aside class="margin sidebar">
-<p class="sidebar-title">Python Version</p>
-<p><code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> requires at least python 3.7</p>
-</aside>
 <p>For now, install directly from GitHub</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>git+https://github.com/scexao-org/vampires_dpp.git
 </pre></div>
@@ -443,10 +451,11 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">#</a></h2>
 <p>If you would like to contribute, first off, thank you! To get started, you should install our git <a class="reference external" href="https://pre-commit.com/">pre-commit hooks</a> which autoformat the repository. After you have <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> installed, run</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>vampires_dpp
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
 pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
-<p>and you’re all set! Now whenever you <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code> the source files will be autoformatted using <a class="reference external" href="https://github.com/psf/black"><code class="docutils literal notranslate"><span class="pre">black</span></code></a>.</p>
+<p>and you’re all set! Now whenever you <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code> the source files will be autoformatted using <a class="reference external" href="https://github.com/psf/black"><code class="docutils literal notranslate"><span class="pre">black</span></code></a> and imports will be sorted with <a class="reference external" href="https://github.com/pycqa/isort"><code class="docutils literal notranslate"><span class="pre">isort</span></code></a> and <a class="reference external" href="https://github.com/PyCQA/autoflake"><code class="docutils literal notranslate"><span class="pre">autoflake</span></code></a>.</p>
 <p>Any contributions should be submitted as <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/pulls">pull requests</a>. Feel free to reach out ahead of time about questions or ambitions about contributing.</p>
 </section>
 <section id="documentation">

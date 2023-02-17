@@ -37,8 +37,8 @@
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Examples" href="examples/index.html" />
-    <link rel="prev" title="Introduction" href="introduction.html" />
+    <link rel="next" title="Tutorials" href="tutorials/index.html" />
+    <link rel="prev" title="Quick-start guide" href="quickstart.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -101,14 +101,19 @@
    Introduction
   </a>
  </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="quickstart.html">
+   Quick-start guide
+  </a>
+ </li>
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
    Pipeline
   </a>
  </li>
  <li class="toctree-l1 has-children">
-  <a class="reference internal" href="examples/index.html">
-   Examples
+  <a class="reference internal" href="tutorials/index.html">
+   Tutorials
   </a>
   <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
@@ -117,22 +122,12 @@
   </label>
   <ul>
    <li class="toctree-l2">
-    <a class="reference internal" href="examples/file_organization.html">
-     File Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/polarimetric_differential_imaging.html">
-     Polarimetric Differential Imaging (PDI)
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/image_registration.html">
+    <a class="reference internal" href="tutorials/image_registration.html">
      Image Registration
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="examples/frame_selection.html">
+    <a class="reference internal" href="tutorials/frame_selection.html">
      Frame Selection
     </a>
    </li>
@@ -151,11 +146,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="api/organization.html">
      Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="api/pipeline.html">
-     Pipeline
     </a>
    </li>
    <li class="toctree-l2">
@@ -179,8 +169,13 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="api/satellite_spots.html">
-     Satellite Spots
+    <a class="reference internal" href="api/utility.html">
+     Utility
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="api/polarization.html">
+     Polarization
     </a>
    </li>
   </ul>
@@ -327,18 +322,8 @@ title="Print to PDF"
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#version">
-     Version
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#global-options">
-     Global Options
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#astrometry-options">
-     Astrometry Options
+    <a class="reference internal nav-link" href="#general-options">
+     General Options
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -350,100 +335,28 @@ title="Print to PDF"
     <a class="reference internal nav-link" href="#calibration-options">
      Calibration Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#darks">
-       Darks
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#flats">
-       Flats
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#distortion">
-       Distortion
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#outputs">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#frame-selection-options">
      Frame Selection Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id1">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#image-registration-options">
      Image Registration Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id2">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#collapsing-options">
      Collapsing Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id3">
-       Outputs
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#derotation-options">
-     Derotation Options
-    </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id4">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#polarimetry-options">
      Polarimetry Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id5">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
   </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#examples">
-   Examples
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#vscode-integration">
-   VSCode Integration
-  </a>
  </li>
 </ul>
 
@@ -475,18 +388,8 @@ title="Print to PDF"
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#version">
-     Version
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#global-options">
-     Global Options
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#astrometry-options">
-     Astrometry Options
+    <a class="reference internal nav-link" href="#general-options">
+     General Options
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -498,100 +401,28 @@ title="Print to PDF"
     <a class="reference internal nav-link" href="#calibration-options">
      Calibration Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#darks">
-       Darks
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#flats">
-       Flats
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#distortion">
-       Distortion
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#outputs">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#frame-selection-options">
      Frame Selection Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id1">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#image-registration-options">
      Image Registration Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id2">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#collapsing-options">
      Collapsing Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id3">
-       Outputs
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#derotation-options">
-     Derotation Options
-    </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id4">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#polarimetry-options">
      Polarimetry Options
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id5">
-       Outputs
-      </a>
-     </li>
-    </ul>
    </li>
   </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#examples">
-   Examples
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#vscode-integration">
-   VSCode Integration
-  </a>
  </li>
 </ul>
 
@@ -605,14 +436,18 @@ title="Print to PDF"
                 
   <section class="tex2jax_ignore mathjax_ignore" id="pipeline">
 <h1>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">#</a></h1>
-<p>The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the <code class="docutils literal notranslate"><span class="pre">vpp</span></code> script</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">vpp</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">config</span> <span class="p">[</span><span class="n">config</span> <span class="o">...</span><span class="p">]</span>
+<p>The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">run</span></code> script</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">dpp</span> <span class="n">run</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="n">NUM_PROC</span><span class="p">]</span> <span class="n">config</span> <span class="p">[</span><span class="n">filenames</span> <span class="o">...</span><span class="p">]</span>
 
 <span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
-  <span class="n">config</span>      <span class="n">path</span> <span class="n">to</span> <span class="n">configuration</span> <span class="n">file</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+  <span class="n">config</span>                <span class="n">path</span> <span class="n">to</span> <span class="n">configuration</span> <span class="n">file</span>
+  <span class="n">filenames</span>             <span class="n">FITS</span> <span class="n">files</span> <span class="n">to</span> <span class="n">run</span> <span class="n">through</span> <span class="n">pipeline</span>
 
-<span class="n">optional</span> <span class="n">arguments</span><span class="p">:</span>
-   <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>  <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">j</span> <span class="n">NUM_PROC</span><span class="p">,</span> <span class="o">--</span><span class="n">num</span><span class="o">-</span><span class="n">proc</span> <span class="n">NUM_PROC</span>
+                        <span class="n">number</span> <span class="n">of</span> <span class="n">processors</span> <span class="n">to</span> <span class="n">use</span> <span class="k">for</span> <span class="n">multiprocessing</span>
+                        <span class="p">(</span><span class="n">default</span> <span class="ow">is</span> <span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>or create a <code class="docutils literal notranslate"><span class="pre">Pipeline</span></code> object and call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method.</p>
@@ -624,7 +459,6 @@ title="Print to PDF"
 <li><p>Frame Selection</p></li>
 <li><p>Image Registration</p></li>
 <li><p>Collapsing</p></li>
-<li><p>Derotation</p></li>
 <li><p>Polarimetric differential imaging</p></li>
 </ol>
 <div class="warning admonition">
@@ -636,7 +470,7 @@ title="Print to PDF"
 <div class="tip admonition">
 <p class="admonition-title">Troubleshooting</p>
 <p>If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with <code class="docutils literal notranslate"><span class="pre">_debug.log</span></code> appended to the file name as well as in the output directory.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vpp config.toml
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vpp run config.toml VMPA*.fits
 tail config_debug.log
 </pre></div>
 </div>
@@ -645,524 +479,531 @@ tail config_debug.log
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">#</a></h2>
 <p>The configuration file uses the <a class="reference external" href="https://toml.io">TOML</a> format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., <code class="docutils literal notranslate"><span class="pre">[calibration]</span></code>, <code class="docutils literal notranslate"><span class="pre">[frame_selection]</span></code>) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.</p>
-<p>There is a version of the configuration file with all possible options and brief comments available in the GitHub repository.</p>
-<blockquote>
-<div><p><a class="reference external" href="https://github.com/scexao-org/vampires_dpp/blob/main/src/vampires_dpp/cli/example.toml">example.toml</a></p>
-</div></blockquote>
-<section id="version">
-<h3>Version<a class="headerlink" href="#version" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.3.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
-</pre></div>
-</div>
-<p>The first required option is the <code class="docutils literal notranslate"><span class="pre">version</span></code> which should be set to the same value as your <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> version, which you can get from</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s1">&#39;import vampires_dpp as vpp; print(vpp.__version__)&#39;</span>
-</pre></div>
-</div>
 <p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, so there are certain guarantees about the backwards compatibility of the pipeline, which means you don’t have to have the exact same version of <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> as in the configuration- merely a version that is compatible.</p>
-</section>
-<section id="global-options">
-<h3>Global Options<a class="headerlink" href="#global-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;example&quot;</span>
+<section id="general-options">
+<h3>General Options<a class="headerlink" href="#general-options" title="Permalink to this headline">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.pipeline.Pipeline">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.pipeline.</span></span><span class="sig-name descname"><span class="pre">Pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_centers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coronagraph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">satspots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calibrate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_select</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">register</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collapse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarimetry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">products</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0.4.0'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.pipeline.Pipeline" title="Permalink to this definition">#</a></dt>
+<dd><p>Data Processing Pipeline options</p>
+<p>The processing configuration is all done through this class, which can easily be converted to and from TOML. The options will set the processing steps in the pipeline. An important paradigm in the processing pipeline is skipping unnecessary operations. That means if a file already exists, the pipeline will only reprocess it if the <cite>force</cite> flag is set, which will reprocess all files for that step (and subsequent steps), or if the input file or files are newer. You can try this out by deleting one calibrated file from a processed output and re-running the pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – filename-friendly name used for outputs from this pipeline. For example “20230101_ABAur”</p></li>
+<li><p><strong>target</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – <a class="reference external" href="https://simbad.cds.unistra.fr/simbad/">SIMBAD</a>-friendly object name used for looking up precise coordinates. If not provided, will use coordinate from headers, by default None.</p></li>
+<li><p><strong>frame_centers</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>list</em><em>]</em><em>]</em><em>]</em>) – Estimates of the star position in pixels (x, y) for each camera provided as a dict with “cam1” and “cam2” keys. If not provided, will use the geometric frame center, by default None. <em>Note: if you are estimating centers from raw data, keep in mind cam1 files are flipped on the y-axis, so any estimate needs to be flipped, too</em>.</p></li>
+<li><p><strong>coronagraph</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CoronagraphOptions" title="vampires_dpp.pipeline.config.CoronagraphOptions"><em>CoronagraphOptions</em></a><em>]</em>) – If provided, sets coronagraph-specific options and processing</p></li>
+<li><p><strong>satspots</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.SatspotOptions" title="vampires_dpp.pipeline.config.SatspotOptions"><em>SatspotOptions</em></a><em>]</em>) – If provided, sets satellite-spot specific options and enable satellite spot processing for frame selection and image registration</p></li>
+<li><p><strong>calibrate</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CalibrateOptions" title="vampires_dpp.pipeline.config.CalibrateOptions"><em>CalibrateOptions</em></a><em>]</em>) – If set, provides options for basic image calibration</p></li>
+<li><p><strong>frame_select</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.FrameSelectOptions" title="vampires_dpp.pipeline.config.FrameSelectOptions"><em>FrameSelectOptions</em></a><em>]</em>) – If set, provides options for frame selection</p></li>
+<li><p><strong>register</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.RegisterOptions" title="vampires_dpp.pipeline.config.RegisterOptions"><em>RegisterOptions</em></a><em>]</em>) – If set, provides options for image registration</p></li>
+<li><p><strong>collapse</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CollapseOptions" title="vampires_dpp.pipeline.config.CollapseOptions"><em>CollapseOptions</em></a><em>]</em>) – If set, provides options for collapsing image cubes</p></li>
+<li><p><strong>polarimetry</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.PolarimetryOptions" title="vampires_dpp.pipeline.config.PolarimetryOptions"><em>PolarimetryOptions</em></a><em>]</em>) – If set, provides options for polarimetric differential imaging (PDI)</p></li>
+<li><p><strong>products</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.ProductOptions" title="vampires_dpp.pipeline.config.ProductOptions"><em>ProductOptions</em></a><em>]</em>) – If set, provides options for saving metadata, ADI, and PDI outputs.</p></li>
+<li><p><strong>version</strong> (<em>str</em>) – The version of vampires_dpp that this configuration file is valid with. Typically not set by user.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">PipelineOptions</span><span class="p">(</span>
+<span class="go">        name=&quot;test_config&quot;,</span>
+<span class="go">        coronagraph=dict(iwa=55),</span>
+<span class="go">        satspots=dict(radius=11.2),</span>
+<span class="go">        calibrate=dict(output_directory=&quot;calibrated&quot;),</span>
+<span class="go">        collapse=dict(output_directory=&quot;collapsed&quot;),</span>
+<span class="go">        polarimetry=dict(output_directory=&quot;pdi&quot;),</span>
+<span class="go">    )</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>A simple filename-safe name that is used for some automatic naming.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;test_config&quot;</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.4.0&quot;</span>
+
+<span class="k">[coronagraph]</span>
+<span class="n">iwa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">55</span>
+
+<span class="k">[satspots]</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">11.2</span>
+<span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">84.6</span>
+<span class="n">amp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span>
+
+<span class="k">[calibrate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
+
+<span class="k">[calibrate.master_darks]</span>
+
+<span class="k">[calibrate.master_flats]</span>
+
+<span class="k">[collapse]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
+
+<span class="k">[polarimetry]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pdi&quot;</span>
 </pre></div>
 </div>
-<p>A <a class="reference external" href="https://simbad.cds.unistra.fr/simbad/">SIMBAD</a>-friendly target name. This will be used for any SIMBAD or Vizier querying.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.pipeline.Pipeline.from_file">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.pipeline.Pipeline.from_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Load configuration from TOML file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>PathLike</em>) – Path to TOML file with configuration settings.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the configuration <cite>version</cite> is not compatible with the current <cite>vampires_dpp</cite> version.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Pipeline</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;config.toml&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The absolute path of the top-level data directory</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.pipeline.Pipeline.from_str">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toml_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.pipeline.Pipeline.from_str" title="Permalink to this definition">#</a></dt>
+<dd><p>Load configuration from TOML string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>toml_str</strong> (<em>str</em>) – String of TOML configuration settings.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the configuration <cite>version</cite> is not compatible with the current <cite>vampires_dpp</cite> version.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.pipeline.Pipeline.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.pipeline.Pipeline.run" title="Permalink to this definition">#</a></dt>
+<dd><p>Run the pipeline</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames</strong> (<em>Iterable</em><em>[</em><em>PathLike</em><em>]</em>) – Input filenames to process</p></li>
+<li><p><strong>num_proc</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Number of processes to use for multi-processing, by default None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.pipeline.Pipeline.to_file">
+<span class="sig-name descname"><span class="pre">to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.pipeline.Pipeline.to_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Save configuration settings to TOML file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>PathLike</em>) – Output filename</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.ProductOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">ProductOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdi_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.ProductOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>The output products from the processing pipeline.</p>
+<div class="admonition-outputs admonition">
+<p class="admonition-title">Outputs</p>
+<p><strong>Header Table:</strong></p>
+<p>A table with the header information of all the input files will be saved to a CSV in the output directory.</p>
+<p><strong>ADI Outputs:</strong></p>
+<p>The ADI outputs will include a cube for each camera and the corresponding derotation angles. For ADI analysis, you can either interleave the two cubes into one cube with double the frames, add the two camera frames before post-processing, or add the two ADI residuals from each camera after post-processing.</p>
+<p><strong>PDI Outputs:</strong></p>
+<p>If <cite>polarimetry</cite> is set, PDI outputs will be constructed from the triple-differential method. This includes a cube with various Stokes quantities from each HWP cycle, and a derotated and collapsed cube of Stokes quantities. The Stokes quantities are listed in the “STOKES” header, and are</p>
+<ol class="arabic simple">
+<li><p>Stokes I</p></li>
+<li><p>Stokes Q</p></li>
+<li><p>Stokes U</p></li>
+<li><p>Radial Stokes Qphi</p></li>
+<li><p>Radial Stokse Uphi</p></li>
+<li><p>Linear polarized intensity</p></li>
+<li><p>Angle of linear polarization</p></li>
+</ol>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>header_table</strong> (<em>bool</em>) – If true, saves a CSV with header information, by default true.</p></li>
+<li><p><strong>adi_cubes</strong> (<em>bool</em>) – If true, saves ADI outputs</p></li>
+<li><p><strong>pdi_cubes</strong> (<em>bool</em>) – If true, saves PDI triple-diff cubes</p></li>
+<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The products will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – If true, will force all products to be recreated step to occur.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">ProductOptions</span><span class="p">(</span><span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;products&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>absolute path to top-level output directory, if empty will use the root directory</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_files.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[products]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;products&quot;</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">filenames</span></code> option can either be a list of filenames, a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1"># optional</span>
-<span class="w">    </span><span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">],</span><span class="w"> </span><span class="c1"># cam1 (x, y)</span>
-<span class="w">    </span><span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">130</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]</span><span class="w">  </span><span class="c1"># cam2 (x, y)</span>
-<span class="p">}</span>
-<span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="mi">252</span><span class="p">]</span><span class="w"> </span><span class="c1"># both (x, y)</span>
-</pre></div>
-</div>
-<p>A list of frame centers for cam1 and cam2 from visual inspection. This is useful in the case that the PSFs are not well-centered in the frame, which can make the windows used for frame selection or image registration poorly positioned. If only a single list is given it will be used as the center for both cameras. If not provided, they will default to the geometric frame centers.</p>
-</section>
-<section id="astrometry-options">
-<h3>Astrometry Options<a class="headerlink" href="#astrometry-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">astrometry</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">pixel_scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">6.24</span><span class="w"> </span><span class="c1"># mas/px, optional</span>
-<span class="n">pupil_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">140.4</span><span class="w"> </span><span class="c1"># deg, optional</span>
-</pre></div>
-</div>
-<p>The pixel scale and pupil offset can be set to your own custom values. Otherwise, they will default to the values set within the <code class="docutils literal notranslate"><span class="pre">vampires_dpp.constants</span></code>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[astrometry.coord]</span>
-</pre></div>
-</div>
-<p>The coordinates of the object will be updated and proper-motion corrected during calibration. These values can be looked up using the GAIA DR3. If you do not want to look the values, either because you are not connected to the internet or there are no GAIA DR3 entries for your target, you can manually specify the following options</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># sexagesimal hour angles, optional</span>
-<span class="n">dec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># sexagesimal degrees, optional</span>
-</pre></div>
-</div>
-<p>The RA and DEC in sexagesimal. If not provided, will use the RA and DEC in the FITS headers.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">pm_ra</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas/yr, optional</span>
-<span class="n">pm_dec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas/yr, optional</span>
-</pre></div>
-</div>
-<p>Optional proper motions. If not provided, will not be used for calculating the space-motion corrected coordinates.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">plx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># mas, optional</span>
-</pre></div>
-</div>
-<p>Optional parallax used to calculate distance</p>
-<div class="margin admonition">
-<p class="admonition-title">Tip</p>
-<p>If you are storing the coordinates retrieved from GAIA, make sure to set the frame to “ICRS” and the obstime to “J2016”</p>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span>
-<span class="n">obstime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>The frame for the input RA and DEC coordinates. By default will scrape from the FITS headers.</p>
+</dd></dl>
+
 </section>
 <section id="coronagraph-options">
 <h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Permalink to this headline">#</a></h3>
-<p>If you are reducing coronagraphic data, you will need to add the following section</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CoronagraphOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoronagraphOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iwa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoronagraphOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Coronagraph options</p>
+<p>The IWAs for the masks are listed on the <a class="reference external" href="https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html">VAMPIRES website</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iwa</strong> (<em>float</em>) – Coronagraph inner working angle (IWA) in mas.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">CoronagraphOptions</span><span class="p">(</span><span class="n">iwa</span><span class="o">=</span><span class="mi">55</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
 </pre></div>
 </div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">94</span><span class="w"> </span><span class="c1"># mas</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[coronagraph]</span>
+<span class="n">iwa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">55</span>
 </pre></div>
 </div>
-<p>The coronagraph mask inner working angle (IWA), in mas. The IWAs for the masks are listed on the <a class="reference external" href="https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html">VAMPIRES website</a>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">coronagraph</span><span class="p">.</span><span class="n">satellite_spots</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.SatspotOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">SatspotOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">84.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.SatspotOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Satellite spot options</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>radius</strong> (<em>float</em>) – Satellite spot radius in lambda/D, by default 15.9. If doing PDI with CHARIS this should be 11.2.</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) – Satellite spot position angle (in degrees), by default 45 - <cite>PUPIL_OFFSET</cite>.</p></li>
+<li><p><strong>amp</strong> (<em>float</em>) – Satellite spot modulation amplitude (in nm), by default 50.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">SatspotOptions</span><span class="p">(</span><span class="n">radius</span><span class="o">=</span><span class="mf">11.2</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>This section signifies that satellite spots were used and will change how certain reduction steps are done. For frame selection and image registration, the satellite spots will be used instead of the central PSF, which is obscured by the coronagraph.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">15.9</span><span class="w"> </span><span class="c1"># lam/D</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[satspots]</span>
+<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">11.2</span>
+<span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">84.6</span>
+<span class="n">amp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">25</span>
 </pre></div>
 </div>
-<p>The radius of the satellite spots in lambda/D. This is logged in the CHARIS data but otherwise must be communicated by SCExAO support astronomers.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-4</span><span class="w"> </span><span class="c1"># deg, optional</span>
-</pre></div>
-</div>
-<p>The angle, in degrees, of the closest satellite spot to the positive x-axis. By default -4 degrees. This should not need changed unless you are using custom satellite spot patterns.</p>
+</dd></dl>
+
 </section>
 <section id="calibration-options">
 <h3>Calibration Options<a class="headerlink" href="#calibration-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration]</span>
-</pre></div>
-</div>
-<p>This section will enable standard image calibration of VAMPIRES data. The following steps will occur</p>
-<ol class="simple">
-<li><p>If dark files are provided, a master dark will be made</p></li>
-<li><p>If flat files are provided, a master flat will be made</p></li>
-<li><p>The FITS headers will be fixed using <code class="docutils literal notranslate"><span class="pre">fix_header</span></code> and WCS information will be added</p></li>
-<li><p>The leading 2 frames of each data cube will be discarded due to detector readout artifacts</p></li>
-<li><p>The remaining frames in the cube will be filtered to exclude empty frames</p>
-<ul class="simple">
-<li><p>If over half the cube is empty it will be discarded</p></li>
-</ul>
-</li>
-<li><p>If dark files are provided, the cube will be dark subtracted</p></li>
-<li><p>If flat files are provided, the cube will be flat normalized</p></li>
-<li><p>Cam 1 data will be flipped along the y-axis</p></li>
-<li><p>(Advanced) Distortion correction will be applied</p></li>
-<li><p>(Advanced) Interleaved polarimetric data will be deinterleaved into two cubes</p></li>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CalibrateOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CalibrateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_darks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CamFileInput(cam1=None,</span> <span class="pre">cam2=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">master_flats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CamFileInput(cam1=None,</span> <span class="pre">cam2=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distortion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_bad_pixels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deinterleave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CalibrateOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Options for general image calibration</p>
+<p>The calibration strategy is generally</p>
+<ol class="arabic simple">
+<li><p>Subtract dark frame, if provided</p></li>
+<li><p>Normalize by flat field, if provided</p></li>
+<li><p>Bad pixel correction, if set</p></li>
+<li><p>Flip camera 1 data along y-axis</p></li>
+<li><p>Apply distortion correction, if provided</p></li>
+<li><p>Deinterleave FLC states, if set</p></li>
 </ol>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
+<div class="warning admonition">
+<p class="admonition-title">Deinterleaving</p>
+<p>Deinterleaving should not be required for data downloaded from STARS. Only set this option if you are dealing with PDI data downloaded directly from the VAMPIRES computer.</p>
+</div>
+<div class="admonition-outputs admonition">
+<p class="admonition-title">Outputs</p>
+<p>If <cite>deinterleave</cite> is set, two files will be saved in the output directory for each input file, with <cite>_FLC1</cite> and <cite>_FLC2</cite> appended. The calibrated files will be saved with the “_calib” suffix.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>master_darks</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>Path</em><em>]</em><em>]</em><em>]</em>) – If provided, must be a dict with keys for “cam1” and “cam2” master darks. You can omit one of the cameras. By default None.</p></li>
+<li><p><strong>master_flats</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>Path</em><em>]</em><em>]</em><em>]</em>) – If provided, must be a dict with keys for “cam1” and “cam2” master flats. You can omit one of the cameras. By default None.</p></li>
+<li><p><strong>distortion</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.DistortionOptions" title="vampires_dpp.pipeline.config.DistortionOptions"><em>DistortionOptions</em></a><em>]</em>) – (Advanced) Options for geometric distortion correction. By default None.</p></li>
+<li><p><strong>fix_bad_pixels</strong> (<em>bool</em>) – If true, will run LACosmic algorithm for one iteration on each frame and correct bad pixels. By default false.</p></li>
+<li><p><strong>deinterleave</strong> (<em>bool</em>) – <strong>(Advanced)</strong> If true, will deinterleave every other file into the two FLC states. By default false.</p></li>
+<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The calibrated files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">master_darks</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cam1&quot;</span><span class="p">:</span> <span class="s2">&quot;master_dark_cam1.fits&quot;</span><span class="p">,</span> <span class="s2">&quot;cam2&quot;</span><span class="p">:</span> <span class="s2">&quot;master_dark_cam2.fits&quot;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dist</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;transform_filename&quot;</span><span class="p">:</span> <span class="s2">&quot;20230102_fcs16000_params.csv&quot;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">CalibrateOptions</span><span class="p">(</span>
+<span class="go">        master_darks=master_darks,</span>
+<span class="go">        distortion=dist,</span>
+<span class="go">        output_directory=&quot;calibrated&quot;</span>
+<span class="go">    )</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>The output directory for the calibrated data. By default, will leave in the same directory as the input data (the root directory).</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibrate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
+
+<span class="k">[calibrate.master_darks]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;master_dark_cam1.fits&quot;</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;master_dark_cam2.fits&quot;</span>
+
+<span class="k">[calibrate.master_flats]</span>
+
+<span class="k">[calibrate.distortion]</span>
+<span class="n">transform_filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;20230102_fcs16000_params.csv&quot;</span>
 </pre></div>
 </div>
-<p>By default, if the output file already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the calibration <em>and all subsequent operations</em> will be redone.</p>
-<div class="margin admonition warning">
-<p class="admonition-title">Warning</p>
-<p>If your data starts with <code class="docutils literal notranslate"><span class="pre">VMPA*.fits</span></code> then you should not set this to true!</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.DistortionOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">DistortionOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.DistortionOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Geometric distortion correction options</p>
+<div class="warning admonition">
+<p class="admonition-title">Advanced Usage</p>
+<p>Distortion correction requires specialized calibration files. Please get in contact with the SCExAO team for more details</p>
 </div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">deinterleave</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>This is an advanced option for polarimetric data that is downloaded directly from the VAMPIRES computer (i.e., not from the STARS archive). If true, will deinterleave every-other frame into two cubes and will update the FITS header with the <code class="docutils literal notranslate"><span class="pre">U_FLCSTT</span></code> key.</p>
-<section id="darks">
-<h4>Darks<a class="headerlink" href="#darks" title="Permalink to this headline">#</a></h4>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.darks]</span>
-</pre></div>
-</div>
-<p>If this section is set, master dark frames will be created.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;darks_5ms_em300_cam1.fits&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span>
-<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;darks_5ms_em300_cam2.fits&quot;</span><span class="p">]</span>
-<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_darks.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span>
-<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;darks/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression relative to root</span>
-</pre></div>
-</div>
-<p>The filenames need to be set individually for each camera you want to reduce. The filenames option can either be a list of FITS files (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>By default, if the master dark already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the master dark <em>and all subsequent operations</em> will be redone.</p>
-</section>
-<section id="flats">
-<h4>Flats<a class="headerlink" href="#flats" title="Permalink to this headline">#</a></h4>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.flats]</span>
-</pre></div>
-</div>
-<p>If this section is set, master flat frames will be created. If <code class="docutils literal notranslate"><span class="pre">[calibration.darks]</span></code> is also set, these flat frames will be dark-subtracted.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;flats_em300_cam1.fits&quot;</span><span class="p">]</span><span class="w"> </span><span class="c1"># list of filenames</span>
-<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;flats_em300_cam2.fits&quot;</span><span class="p">]</span>
-<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;input_flats.txt&quot;</span><span class="w"> </span><span class="c1"># the path to a text file</span>
-<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;flats/VMPA*.fits&quot;</span><span class="w"> </span><span class="c1"># python glob expression relative to root</span>
-</pre></div>
-</div>
-<p>The filenames need to be set individually for each camera you want to reduce. The filenames option can either be a list of FITS files (one for cam 1 and one for cam 2), a path to a text file that contains a single filename per row, or a glob expression compatible with <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.glob">Python’s glob</a>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">force</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">false</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>By default, if the master flat already exists the calibration will be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the master flat <em>and all subsequent operations</em> will be redone.</p>
-</section>
-<section id="distortion">
-<h4>Distortion<a class="headerlink" href="#distortion" title="Permalink to this headline">#</a></h4>
-<div class="margin admonition tip">
-<p class="admonition-title">Tip</p>
-<p>This is an advanced option, consider reaching out to the SCExAO team to ensure you have the appropriate calibration data.</p>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibration.distortion]</span>
-</pre></div>
-</div>
-<p>If this section is set, a distortion correction will be applied after dark subtraction and flat correction. The distortion is corrected by rotating and scaling the images to match an astrometric solution calibrated from a pinhole grid.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">transform</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;fcs_1600_distortion_coeffs.csv&quot;</span>
-</pre></div>
-</div>
-<p>The path to the distortion coefficients for both cameras. It is important to note that you need a separate distortion solution for each unique focus position, since VAMPIRES is not telecentric.</p>
-</section>
-<section id="outputs">
-<h4>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">#</a></h4>
-<p>After calibration, FITS files will be saved to the <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_calib</span></code> appended to the name. If <code class="docutils literal notranslate"><span class="pre">deinterleave</span></code> is true, the files will also have either <code class="docutils literal notranslate"><span class="pre">_FLC1</span></code> or <code class="docutils literal notranslate"><span class="pre">_FLC2</span></code> appended. A FITS file of the angles required to rotate each frame from each camera clockwise to North up East left will be saved in <code class="docutils literal notranslate"><span class="pre">{config[&quot;name&quot;]}_cam[12]_derot_angles.fits</span></code>. A CSV with the header information scraped from all the calibrated data will be saved to <code class="docutils literal notranslate"><span class="pre">{config[&quot;name&quot;]}_headers.csv</span></code>.</p>
-</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>transform_filename</strong> (<em>Path</em>) – The path to a CSV with the distortion corrections for each camera.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="frame-selection-options">
 <h3>Frame Selection Options<a class="headerlink" href="#frame-selection-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">frame_selection</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.FrameSelectOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">FrameSelectOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'normvar'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.FrameSelectOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Frame selection options</p>
+<p>Frame selection metrics can be measured on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The quality metrics are</p>
+<ul class="simple">
+<li><p>normvar - The variance normalized by the mean.</p></li>
+<li><p>l2norm - The L2-norm, roughly equivalent to the RMS value</p></li>
+<li><p>peak - maximum value</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cutoff</strong> (<em>float</em>) – The cutoff quantile for frame selection where 0 means no frame selection and 1 would discard all frames.</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – The frame selection metric, one of <cite>“peak”</cite>, <cite>“l2norm”</cite>, and <cite>“normvar”</cite>, by default <cite>“normvar”</cite>.</p></li>
+<li><p><strong>window_size</strong> (<em>int</em>) – The window size (in pixels) to cut out around PSFs before measuring the frame selection metric, by default 30.</p></li>
+<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The trimmed files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">FrameSelectOptions</span><span class="p">(</span><span class="n">cutoff</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;selected&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>Frame selection is an optional step that can measure the image quality metrics and optionally discard frames with metrics below a certain quantile.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span><span class="w"> </span><span class="c1"># optional</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[frame_select]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
+<span class="n">cutoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span>
+<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;normvar&quot;</span>
 </pre></div>
 </div>
-<p>Frame selection metric, one of “max”, “l2norm”, or “normvar”. By default “l2norm”.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>Frame selection quantile [0, 1). A value of 0 means no frames will be discarded (and we skip the step), and a value of 1 would discard all the frames. For example, to discard the lowest scoring 30% of frames based on the frame selection metric set <code class="docutils literal notranslate"><span class="pre">q</span> <span class="pre">=</span> <span class="pre">0.3</span></code>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="c1"># pixels, optional</span>
-</pre></div>
-</div>
-<p>The frame selection metric is measured in a window for speed. In non-coronagraphic data this is a window around the frame center, and in coronagraphic data this is the window around each satellite spot.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
-</pre></div>
-</div>
-<p>The output directory for the metrics and frame-selected data. By default, will leave in the same directory as the input data (the root directory).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>By default, if the frame selection metrics or the frame-selected data cubes already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the metric measurements, discarding, <em>and all subsequent operations</em> will be redone.</p>
-<section id="id1">
-<h4>Outputs<a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h4>
-<p>CSV files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_metric</span></code> appended to the file name with the frame selection metrics for each frame in the data cube. FITS files will be saved with <code class="docutils literal notranslate"><span class="pre">_cut</span></code> appended to the file name if frames are discarded (<code class="docutils literal notranslate"><span class="pre">q</span></code> &gt; 0).</p>
-</section>
+</dd></dl>
+
 </section>
 <section id="image-registration-options">
 <h3>Image Registration Options<a class="headerlink" href="#image-registration-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">registration</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.RegisterOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">RegisterOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.RegisterOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Image registration options</p>
+<p>Image registration can be done on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The registration methods are</p>
+<ul class="simple">
+<li><p>com - centroid</p></li>
+<li><p>peak - pixel at highest value</p></li>
+<li><p>dft - Cross-correlation between frames using discrete Fourier transform (DFT) upsampling for subpixel accuracy</p></li>
+<li><p>gaussian - Model fit using a Gaussian PSF</p></li>
+<li><p>airydisk - Model fit using a Moffat PSF</p></li>
+<li><p>moffat - Model fit using an Airy disk PSF</p></li>
+</ul>
+<div class="admonition-outputs admonition">
+<p class="admonition-title">Outputs</p>
+<p>For each input file, a CSV with PSF centroids (or centroids for each satellite spot) will be saved in the output directory with the “_offsets” suffix and a registered cube will be saved with the “_aligned” suffix.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>) – The image registration method, one of <cite>“com”</cite>, <cite>“peak”</cite>, <cite>“dft”</cite>, <cite>“airydisk”</cite>, <cite>“moffat”</cite>, or <cite>“gaussian”</cite>. By default <cite>“com”</cite>.</p></li>
+<li><p><strong>window_size</strong> (<em>int</em>) – The window size (in pixels) to cut out around PSFs before measuring the centroid, by default 30.</p></li>
+<li><p><strong>smooth</strong> (<em>bool</em>) – If true, will Gaussian smooth the input frames before measuring offsets, by default false.</p></li>
+<li><p><strong>dft_factor</strong> (<em>int</em>) – If using the DFT method, the upsampling factor (inverse of centroid precision), by default 1.</p></li>
+<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The PSF offsets and aligned files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">RegisterOptions</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;com&quot;</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;registered&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>Image registration is an optional step that can measure the offset of the stellar PSF from the geometric frame center and co-align the frames.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"> </span><span class="c1"># optional</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[register]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
 </pre></div>
 </div>
-<p>Registration offset measurement method, one of “peak”, “com”, “dft”, “moffat”, “airydisk”, “gaussian”. By default “com” for coronagraphic data and “peak” for non-coronagraphic data.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">registration</span><span class="p">.</span><span class="n">dft</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
-<span class="n">upsample_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="c1"># optional</span>
-<span class="n">reference_method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>Extra options for the cross-correlation registration method. See <code class="docutils literal notranslate"><span class="pre">measure_offsets</span></code> for more details.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="c1"># pixels, optional</span>
-</pre></div>
-</div>
-<p>The PSF offsets are measured in a window for speed. In non-coronagraphic data this is a window around the frame center, and in coronagraphic data this is the window around each satellite spot.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
-</pre></div>
-</div>
-<p>The output directory for the offsets and aligned data. By default, will leave in the same directory as the input data (the root directory).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>By default, if the offsets or the aligned data cubes already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the offset measurements, alignment, <em>and all subsequent operations</em> will be redone.</p>
-<div class="admonition-tip admonition">
-<p class="admonition-title">Tip</p>
-<p>If you need to re-align the data but you don’t need to re-measure the offsets, for example if you re-calibrated with a new dark frame, then go into your output directory and delete the <code class="docutils literal notranslate"><span class="pre">*_aligned.fits</span></code> files while keeping the <code class="docutils literal notranslate"><span class="pre">*_offsets.csv</span></code> files and set <code class="docutils literal notranslate"><span class="pre">force=false</span></code>. This will re-align the data using the previously measured offsets.</p>
-</div>
-<section id="id2">
-<h4>Outputs<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h4>
-<p>CSV files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_offsets</span></code> appended to the file name with the PSF offsets (y, x) for each frame in the data cube. FITS files will be saved with <code class="docutils literal notranslate"><span class="pre">_aligned</span></code> appended to the file name.</p>
-</section>
+</dd></dl>
+
 </section>
 <section id="collapsing-options">
 <h3>Collapsing Options<a class="headerlink" href="#collapsing-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">collapsing</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CollapseOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CollapseOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CollapseOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Cube collapse options</p>
+<ul class="simple">
+<li><p>median - Pixel-by-pixel median</p></li>
+<li><p>mean - Pixel-by-pixel mean</p></li>
+<li><p>varmean - Pixel-by-pixel mean weighted by frame variance</p></li>
+<li><p>biweight - Pixel-by-pixel biweight location</p></li>
+</ul>
+<div class="admonition-outputs admonition">
+<p class="admonition-title">Outputs</p>
+<p>For each input file, a collapsed frame will be saved in the output directory with the “_collapsed” suffix.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>) – The collapse method, one of <cite>“median”</cite>, <cite>“mean”</cite>, <cite>“varmean”</cite>, or <cite>“biweight”</cite>. By default <cite>“median”</cite>.</p></li>
+<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The collapsed files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">CollapseOptions</span><span class="p">(</span><span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;collapsed&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>If this section is set, the data cubes will be combined along the time axis.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;median&quot;</span><span class="w"> </span><span class="c1"># optional</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[collapse]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
 </pre></div>
 </div>
-<p>The method for collapsing the data, one of <code class="docutils literal notranslate"><span class="pre">&quot;median&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mean&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;varmean&quot;</span></code> (variance-weighted mean). In all cases. By default will use the median.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
-</pre></div>
-</div>
-<p>The output directory for the collapsed data. By default, will leave in the same directory as the input data (the root directory).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>By default, if the collapsed data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the collapsing, <em>and all subsequent operations</em> will be redone.</p>
-<section id="id3">
-<h4>Outputs<a class="headerlink" href="#id3" title="Permalink to this headline">#</a></h4>
-<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_collapsed</span></code> appended to the file name. In addition, a cube constructed from all the collapsed frames from each camera will be saved with filename <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_cam[12]_collapsed_cube</span></code>.</p>
-</section>
-</section>
-<section id="derotation-options">
-<h3>Derotation Options<a class="headerlink" href="#derotation-options" title="Permalink to this headline">#</a></h3>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">derotate</span><span class="p">]</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>If this section is set, the collapsed data will be derotated to North up, East left.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
-</pre></div>
-</div>
-<p>The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>By default, if the derotated data frames already exist the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the derotation, <em>and all subsequent operations</em> will be redone.</p>
-<section id="id4">
-<h4>Outputs<a class="headerlink" href="#id4" title="Permalink to this headline">#</a></h4>
-<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with <code class="docutils literal notranslate"><span class="pre">_derot</span></code> appended to the file name. In addition, a cube constructed from all the derotated frames for each camera will be saved with filename <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_cam[12]_derot_cube</span></code>.</p>
-</section>
+</dd></dl>
+
 </section>
 <section id="polarimetry-options">
 <h3>Polarimetry Options<a class="headerlink" href="#polarimetry-options" title="Permalink to this headline">#</a></h3>
-<div class="tip admonition">
-<p class="admonition-title">Warning: Experimental</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.PolarimetryOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">PolarimetryOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_per_hwp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'QQUU'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PolarimetryOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Polarimetric differential imaging (PDI) options</p>
+<div class="warning admonition">
+<p class="admonition-title">Warning: experimental</p>
 <p>The polarimetric reduction in this pipeline is an active work-in-progress. Do not consider any outputs publication-ready without further vetting and consultation with the SCExAO team.</p>
 </div>
+<p>PDI is processed after all of the individual file processing since it requires sorting the files into complete sets for the triple-differential calibration.</p>
+<div class="admonition-outputs admonition">
+<p class="admonition-title">Outputs</p>
+<p>Diff images will be saved in the output directory. If IP options are set, the IP corrected frames will also be saved.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ip</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.IPOptions" title="vampires_dpp.pipeline.config.IPOptions"><em>IPOptions</em></a><em>]</em>) – Instrumental polarization (IP) correction options, by default None.</p></li>
+<li><p><strong>N_per_hwp</strong> (<em>int</em>) – Number of cubes expected per HWP position, by default 1.</p></li>
+<li><p><strong>order</strong> (<em>str</em>) – HWP iteration order, one of <cite>“QQUU”</cite> or <cite>“QUQU”</cite>. By default <cite>“QQUU”</cite>.</p></li>
+<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">PolarimetryOptions</span><span class="p">(</span><span class="n">ip</span><span class="o">=</span><span class="n">IPOptions</span><span class="p">(),</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;pdi&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
+</pre></div>
+</div>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry]</span>
-</pre></div>
-</div>
-<p>If this section is set, polarimetric differential imaging (PDI) will be carried out on the derotated frames.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;mueller&quot;</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>The PDI method, one of <code class="docutils literal notranslate"><span class="pre">&quot;mueller&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;triplediff&quot;</span></code>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># relative to root, optional</span>
-</pre></div>
-</div>
-<p>The output directory for the derotated data. By default, will leave in the same directory as the input data (the root directory).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>By default, if the Stokes cube already exists the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the polarimetric calibration, <em>and all subsequent operations</em> will be redone.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry.ip]</span>
-</pre></div>
-</div>
-<p>If this section is set, instrumental polarization (IP) will be removed from the constructed Stokes cube. By default, it will measure the IP contributions inside a frame-centered circular aperture with radius <code class="docutils literal notranslate"><span class="pre">radius</span></code>.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;photometry&quot;</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>The method for IP correction, one of <code class="docutils literal notranslate"><span class="pre">&quot;photometry&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;satspot_photometry&quot;</span></code>. The photometric method uses a frame centered aperture to estimate the IP. The satspot method uses apertures centered on the satellite spots of an image, which requires setting the <code class="docutils literal notranslate"><span class="pre">[coronagraph.satellite_spots]</span></code> section of the configuration.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="c1"># px, optional</span>
-</pre></div>
-</div>
-<p>The aperture radius in pixels, by default 5.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">pQ</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span>
-<span class="n">pU</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>The I -&gt; Q and I -&gt; U coefficients for removing IP. If these are not provided, they will be estimated using the aperture sum method.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">force</span> <span class="o">=</span> <span class="n">false</span> <span class="c1"># optional</span>
-</pre></div>
-</div>
-<p>By default, if the IP-corrected Stokes cube already exists the operations be skipped to save time. If you set this to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the IP measurement, correction, <em>and all subsequent operations</em> will be redone.</p>
-<section id="id5">
-<h4>Outputs<a class="headerlink" href="#id5" title="Permalink to this headline">#</a></h4>
-<p>FITS files will be saved in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code> with filename <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube</span></code>. If instrumental polarization is corrected, an additional FITS file is saved with name <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube_ip</span></code>. A collapsed stokes cube will be created and saved at <code class="docutils literal notranslate"><span class="pre">config[&quot;name&quot;]_stokes_cube[_ip]_collapsed</span></code>.</p>
-</section>
-</section>
-</section>
-<section id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">#</a></h2>
-<p>Here are some simple examples of configuration files for various observing scenarios. These do not make use of all the features, and make some assumptions about how the data is laid out that you are encouraged to tweak to your liking.</p>
-<details>
-<summary>Non-coronagraphic Polarimetric Imaging</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.3.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
-
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span>
-<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span>
-<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320&quot;</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20190320/processed&quot;</span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span>
-
-<span class="k">[calibration]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
-
-<span class="k">[calibration.darks]</span>
-<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;cam1_darks/VMPA*.fits&quot;</span>
-<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;cam2_darks/VMPA*.fits&quot;</span>
-
-<span class="k">[frame_selection]</span>
-<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span>
-<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
-
-<span class="k">[registration]</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
-
-<span class="k">[collapsing]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
-
-<span class="k">[polarimetry]</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;triplediff&quot;</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pdi&quot;</span>
 
 <span class="k">[polarimetry.ip]</span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;photometry&quot;</span>
+<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span>
 </pre></div>
 </div>
-</details>
-<details>
-<summary>Coronagraphic Polarimetric Imaging</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.3.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
+</dd></dl>
 
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_example&quot;</span>
-<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;AB Aur&quot;</span>
-<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224&quot;</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;abaur_20220224/processed&quot;</span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span>
-<span class="n">frame_centers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span>
-<span class="w">    </span><span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">128</span><span class="p">,</span><span class="w"> </span><span class="mi">129</span><span class="p">]</span>
-<span class="p">}</span>
-
-<span class="k">[coronagraph]</span>
-<span class="n">mask_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">55</span><span class="w"> </span><span class="c1"># mas</span>
-
-<span class="k">[coronagraph.satellite_spots]</span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">31.8</span><span class="w"> </span><span class="c1"># lam/D</span>
-<span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-6</span><span class="mf">.5</span><span class="w"> </span><span class="c1"># deg</span>
-
-<span class="k">[calibration]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
-
-<span class="k">[calibration.darks]</span>
-<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;cam1_darks/VMPA*.fits&quot;</span>
-<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;cam2_darks/VMPA*.fits&quot;</span>
-
-<span class="k">[frame_selection]</span>
-<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span>
-<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.3</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
-
-<span class="k">[registration]</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
-
-<span class="k">[collapsing]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
-
-<span class="k">[polarimetry]</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;triplediff&quot;</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;stokes&quot;</span>
-
-<span class="k">[polarimetry.ip]</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;satspot_photometry&quot;</span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span>
-</pre></div>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.IPOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">IPOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'photometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aper_rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.IPOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Instrumental polarization (IP) correction options.</p>
+<p>There are three main IP correction techniques</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Ad-hoc correction using PSF photometry</dt><dd><p>In each diff image, the partial polarization of the central PSF is measured and removed, presuming there should be no polarized stellar signal. In coronagraphic data, this uses the light penetrating the partially transmissive focal plane masks (~0.06%).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Ad-hoc correction using PSF photometry of calibration speckles (satellite spots)</dt><dd><p>Same as above, but using the average correction for the four satellite spot PSFs instead of the central PSF.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Mueller-matrix model correction (not currently implemented)</dt><dd><p>Uses a calibrated Mueller-matrix model which accurately reflects the impacts of all polarizing optics in VAMPIRES. WIP.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition-outputs admonition">
+<p class="admonition-title">Outputs</p>
+<p>For each diff image a copy will be saved with the IP correction applied and the “_ip” file suffix attached.</p>
 </div>
-</details>
-<details>
-<summary>Single Camera Speckle Imaging</summary>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.3.0&quot;</span><span class="w"> </span><span class="c1"># vampires_dpp version</span>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>) – IP correction method, one of <cite>“photometry”</cite>, <cite>“satspots”</cite>, or <cite>“mueller”</cite>. By default, <cite>“photometry”</cite></p></li>
+<li><p><strong>aper_rad</strong> (<em>float</em>) – For photometric-based methods, the aperture radius in pixels. By default, 6.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
 
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;single_cam_example&quot;</span>
-<span class="n">directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data&quot;</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;processed&quot;</span>
-<span class="n">filenames</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;science/VMPA*.fits&quot;</span>
-
-<span class="k">[calibration]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
-
-<span class="k">[calibration.darks]</span>
-<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;darks/VMPA013889.fits&quot;</span><span class="p">]</span>
-
-<span class="k">[frame_selection]</span>
-<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;l2norm&quot;</span>
-<span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
-
-<span class="k">[registration]</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
-
-<span class="k">[collapsing]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
-
-<span class="k">[derotate]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;derotated&quot;</span>
-</pre></div>
-</div>
-</details>
 </section>
-<section id="vscode-integration">
-<h2>VSCode Integration<a class="headerlink" href="#vscode-integration" title="Permalink to this headline">#</a></h2>
-<p>If you use VSCode you can create a custom task which will run the processing pipeline given a configuration TOML file. To enable this, open VSCode into a working directory. From here copy the following JSON configuration into <code class="docutils literal notranslate"><span class="pre">.vscode/tasks.json</span></code></p>
-<details>
-<summary>tasks.json</summary>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0.0&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;tasks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vpp&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shell&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${command:python.interpreterPath}&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;vampires_dpp.cli.vpp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;${file}&quot;</span><span class="p">],</span>
-<span class="w">            </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;cwd&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${fileDirname}&quot;</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">&quot;presentation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;reveal&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;silent&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;panel&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;new&quot;</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">&quot;problemMatcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
-<span class="w">        </span><span class="p">}</span>
-<span class="w">    </span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</details>
-<div class="admonition-user-level-settings admonition">
-<p class="admonition-title">User-level settings</p>
-<p>If you want to enable this task for all VSCode sessions, and not on a directory-by-directory basis, you can add it to your user-level settings. To do this, hit <code class="docutils literal notranslate"><span class="pre">Cmd/Ctrl+Shift+p</span></code> to bring up the command palette. Type “open user tasks” and choose the “Tasks: Open User Tasks” command. Then, paste the JSON from above into this file.</p>
-</div>
-<p>To use the task, open a TOML file configured for use with the pipeline and hit <code class="docutils literal notranslate"><span class="pre">Terminal</span> <span class="pre">&gt;</span> <span class="pre">Run</span> <span class="pre">Task</span></code> (or the same command from the command palette). Choose <code class="docutils literal notranslate"><span class="pre">vpp</span></code> and an integrated terminal should appear with the pipeline output.</p>
 </section>
 </section>
 
@@ -1174,17 +1015,17 @@ tail config_debug.log
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="introduction.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="quickstart.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Introduction</p>
+            <p class="prev-next-title">Quick-start guide</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="examples/index.html" title="next page">
+    <a class='right-next' id="next-link" href="tutorials/index.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Examples</p>
+        <p class="prev-next-title">Tutorials</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

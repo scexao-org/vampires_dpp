@@ -35,9 +35,11 @@
     <script src="../_static/togglebutton.js"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Pipeline" href="pipeline.html" />
+    <link rel="next" title="Calibration" href="calibration.html" />
     <link rel="prev" title="API/Reference" href="index.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
@@ -102,13 +104,18 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="../quickstart.html">
+   Quick-start guide
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="../pipeline.html">
    Pipeline
   </a>
  </li>
  <li class="toctree-l1 has-children">
-  <a class="reference internal" href="../examples/index.html">
-   Examples
+  <a class="reference internal" href="../tutorials/index.html">
+   Tutorials
   </a>
   <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
@@ -117,22 +124,12 @@
   </label>
   <ul>
    <li class="toctree-l2">
-    <a class="reference internal" href="../examples/file_organization.html">
-     File Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../examples/polarimetric_differential_imaging.html">
-     Polarimetric Differential Imaging (PDI)
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../examples/image_registration.html">
+    <a class="reference internal" href="../tutorials/image_registration.html">
      Image Registration
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="../examples/frame_selection.html">
+    <a class="reference internal" href="../tutorials/frame_selection.html">
      Frame Selection
     </a>
    </li>
@@ -151,11 +148,6 @@
    <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
      Organization
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="pipeline.html">
-     Pipeline
     </a>
    </li>
    <li class="toctree-l2">
@@ -179,8 +171,13 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="satellite_spots.html">
-     Satellite Spots
+    <a class="reference internal" href="utility.html">
+     Utility
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="polarization.html">
+     Polarization
     </a>
    </li>
   </ul>
@@ -318,18 +315,180 @@ title="Print to PDF"
                 
               <div>
                 
-  <section class="tex2jax_ignore mathjax_ignore" id="organization">
-<h1>Organization<a class="headerlink" href="#organization" title="Permalink to this headline">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.organization">
+<span id="organization"></span><h1>Organization<a class="headerlink" href="#module-vampires_dpp.organization" title="Permalink to this headline">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.headers.observation_table">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">observation_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.observation_table" title="Permalink to this definition">#</a></dt>
-<dd><p>Create a pandas DataFrame from the FITS headers of the given files. An additional entry, <cite>path</cite> will be added with the absolute path of each filename, for posterity.</p>
+<dt class="sig sig-object py" id="vampires_dpp.organization.dict_from_header">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header" title="Permalink to this definition">#</a></dt>
+<dd><p>Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like <code class="docutils literal notranslate"><span class="pre">COMMENTS</span></code> and <code class="docutils literal notranslate"><span class="pre">HISTORY</span></code> will be combined with commas. The resolved path will be inserted with the <code class="docutils literal notranslate"><span class="pre">path</span></code> key.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>filenames</strong> – Iterable of FITS files to parse into the table</p>
+<dd class="field-odd"><p><strong>header</strong> (<em>Header</em>) – FITS header to parse</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>DataFrame</p>
+<dd class="field-even"><p>OrderedDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.organization.dict_from_header_file">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like <code class="docutils literal notranslate"><span class="pre">COMMENTS</span></code> and <code class="docutils literal notranslate"><span class="pre">HISTORY</span></code> will be combined with commas. The resolved path will be inserted with the <code class="docutils literal notranslate"><span class="pre">path</span></code> key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – FITS file to parse</p></li>
+<li><p><strong>**kwargs</strong> – All keyword arguments will be passed to <code class="docutils literal notranslate"><span class="pre">fits.getheader</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>OrderedDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.organization.header_table">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">header_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.header_table" title="Permalink to this definition">#</a></dt>
+<dd><p>Generate a pandas dataframe from the FITS headers parsed from the given files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames</strong> (<em>list</em><em>[</em><em>pathlike</em><em>]</em>) – </p></li>
+<li><p><strong>num_proc</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of processes to use in multiprocessing, by default mp.cpu_count()</p></li>
+<li><p><strong>quiet</strong> (<em>bool</em><em>, </em><em>optional</em>) – Silence the progress bar, by default False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-vampires_dpp.headers"></span><dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.fix_header_file">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_header_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_header_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Apply fixes to headers based on known bugs</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>“backpack” header (should be fixed as of 2020??)</dt><dd><ul class="simple">
+<li><p>Old data have second headers with instrument info</p></li>
+<li><p>Will merge the second header into the first</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Too many colons in timestamps (should be fixed as of 2023/01/01)</dt><dd><ul class="simple">
+<li><p>Some STARS data have <cite>UT</cite> and <cite>HST</cite> timestamps like “10:03:34:342”</p></li>
+<li><p>In this case, the last colon is replaced with a period, e.g. “10:03:34.342”</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>“typical” exposure values are file creation time instead of midpoint</dt><dd><ul class="simple">
+<li><p>For <cite>UT</cite>, <cite>HST</cite>, and <cite>MJD</cite> keys will recalculate the midpoint based on the <cite>*-STR</cite> and <cite>*-END</cite> values</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>pathlike</em>) – Input FITS file</p></li>
+<li><p><strong>output</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Output file name, if None will append “_fix” to the input filename, by default None</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>path of the updated FITS file</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.fix_typical_time_iso">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_iso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_iso" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the middle point of the exposure for ISO-based timestamps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hdr</strong> (<em>FITSHeader</em>) – </p></li>
+<li><p><strong>key</strong> (<em>str</em>) – key to fix, e.g. “UT”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ISO timestamp (hh:mm:ss.sss) for the middle point of the exposure</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.fix_typical_time_mjd">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_mjd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_mjd" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the middle point of the exposure for MJD timestamps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hdr</strong> (<em>FITSHeader</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The MJD timestamp for the middle point of the exposure</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_altaz">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_altaz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">az</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.823806</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_altaz" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate parallactic angle using the altitude/elevation and azimuth directly</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alt</strong> (<em>float</em>) – altitude or elevation, in degrees</p></li>
+<li><p><strong>az</strong> (<em>float</em>) – azimuth, in degrees CCW from North</p></li>
+<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – latitude of observation in degrees, by default 19.823806</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parallactic angle, in degrees East of North</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_hadec">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_hadec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.823806</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_hadec" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate parallactic angle using the hour-angle and declination directly</p>
+<div class="math notranslate nohighlight">
+\[\theta_\mathrm{PA} = \arctan2{\frac{\sin\theta_\mathrm{HA}}{\tan\theta_\mathrm{lat}\cos\delta - \sin\delta \cos\theta_\mathrm{HA}}}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ha</strong> (<em>float</em>) – hour-angle, in hour angles</p></li>
+<li><p><strong>dec</strong> (<em>float</em>) – declination in degrees</p></li>
+<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – latitude of observation in degrees, by default 19.823806</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parallactic angle, in degrees East of North</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -351,10 +510,10 @@ title="Print to PDF"
             <p class="prev-next-title">API/Reference</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="pipeline.html" title="next page">
+    <a class='right-next' id="next-link" href="calibration.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Pipeline</p>
+        <p class="prev-next-title">Calibration</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
