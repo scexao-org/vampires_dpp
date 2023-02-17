@@ -16,12 +16,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v1
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           architecture: "x64"
       - name: Install dependencies
         run: |
           pip install -U pip
-          pip install .[docs]
+          pip install --use-deprecated=legacy-resolver .[docs]
       - name: Cache example data
         id: cache-example-data
         uses: actions/cache@v3
