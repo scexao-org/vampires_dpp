@@ -231,6 +231,10 @@ class FrameSelectOptions(OutputDirectory):
     * l2norm - The L2-norm, roughly equivalent to the RMS value
     * peak - maximum value
 
+    .. admonition:: Outputs
+
+        For each input file, a CSV with frame selection metrics for each slice will be saved in the output directory with the "_metrics" suffix and a cube with bad frames discarded will be saved with the "_selected" suffix.
+
     Parameters
     ----------
     cutoff : float
