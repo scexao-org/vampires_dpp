@@ -40,7 +40,8 @@ test = [
     "pytest-black==0.3.*",
 ]
 docs = [
-    "proplot@git+https://github.com/proplot-dev/proplot.git",
+    "numpy<1.19",
+    "proplot",
     "sphinx>=4.5,<5",
     "myst_nb==0.13",
     "sphinx_book_theme==0.3",
