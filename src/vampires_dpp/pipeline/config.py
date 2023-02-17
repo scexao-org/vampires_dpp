@@ -187,14 +187,14 @@ class CoronagraphOptions:
 @serialize
 @dataclass(frozen=True)
 class SatspotOptions:
-    f"""Satellite spot options
+    """Satellite spot options
 
     Parameters
     ----------
     radius : float
         Satellite spot radius in lambda/D, by default 15.9. If doing PDI with CHARIS this should be 11.2.
     angle : float
-        Satellite spot position angle (in degrees), by default {SATSPOT_ANGLE:.01f}.
+        Satellite spot position angle (in degrees), by default 45 - `PUPIL_OFFSET`.
     amp : float
         Satellite spot modulation amplitude (in nm), by default 50.
 
@@ -210,6 +210,7 @@ class SatspotOptions:
         angle = 84.6
         amp = 25
     """
+
     radius: float = field(default=15.9)
     angle: float = field(default=SATSPOT_ANGLE)
     amp: float = field(default=50)

@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import shutil
-from collections import Ordereddict
+from collections import OrderedDict
 from os import PathLike
 from pathlib import Path
 from typing import Optional
@@ -10,7 +10,7 @@ from astropy.io import fits
 from tqdm.auto import tqdm
 
 
-def dict_from_header_file(filename: PathLike, **kwargs) -> Ordereddict:
+def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     """
     Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
@@ -23,10 +23,10 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> Ordereddict:
 
     Returns
     -------
-    Ordereddict
+    OrderedDict
     """
     path = Path(filename)
-    summary = Ordereddict()
+    summary = OrderedDict()
     # add path to row before the FITS header keys
     summary["path"] = path.resolve()
     ext = 1 if ".fits.fz" in path.name else 0
@@ -35,7 +35,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> Ordereddict:
     return summary
 
 
-def dict_from_header(header: fits.Header) -> Ordereddict:
+def dict_from_header(header: fits.Header) -> OrderedDict:
     """
     Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
@@ -46,9 +46,9 @@ def dict_from_header(header: fits.Header) -> Ordereddict:
 
     Returns
     -------
-    Ordereddict
+    OrderedDict
     """
-    summary = Ordereddict()
+    summary = OrderedDict()
     multi_entry_keys = {"COMMENT": [], "HISTORY": []}
     for k, v in header.items():
         if k == "":
