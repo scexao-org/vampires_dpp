@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple, list
 
 import astropy.units as u
 import cv2
@@ -16,7 +16,7 @@ from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.util import any_file_newer, get_paths
 
 
-def shift_frame(data: ArrayLike, shift: List | Tuple, **kwargs) -> NDArray:
+def shift_frame(data: ArrayLike, shift: list | Tuple, **kwargs) -> NDArray:
     """
     Shifts a single frame by the given offset
 
@@ -24,7 +24,7 @@ def shift_frame(data: ArrayLike, shift: List | Tuple, **kwargs) -> NDArray:
     ----------
     data : ArrayLike
         2D frame to shift
-    shift : List | Tuple
+    shift : list | Tuple
         Shift (dy, dx) in pixels
     **kwargs
         Keyword arguments are passed to `warp_frame`
@@ -39,7 +39,7 @@ def shift_frame(data: ArrayLike, shift: List | Tuple, **kwargs) -> NDArray:
 
 
 def derotate_frame(
-    data: ArrayLike, angle: float, center: Optional[List | Tuple] = None, **kwargs
+    data: ArrayLike, angle: float, center: Optional[list | Tuple] = None, **kwargs
 ) -> NDArray:
     """
     Derotates a single frame by the given angle.
@@ -50,7 +50,7 @@ def derotate_frame(
         2D frame to derotate
     angle : float
         Angle, in degrees
-    center : Optional[List | Tuple]
+    center : Optional[list | Tuple]
         Point defining the axis of rotation. If `None`, will use the frame center. Default is `None`.
     **kwargs
         Keyword arguments are passed to `warp_frame`

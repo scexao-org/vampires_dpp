@@ -3,7 +3,7 @@
 import multiprocessing as mp
 from os import PathLike
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional, Tuple, dict, list
 
 import astropy.units as u
 import cv2
@@ -201,7 +201,7 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     return outpath
 
 
-def sort_calib_files(filenames: List[PathLike]) -> Dict[Tuple, Path]:
+def sort_calib_files(filenames: list[PathLike]) -> dict[Tuple, Path]:
     darks_dict = {}
     for filename in filenames:
         path = Path(filename)
@@ -215,14 +215,14 @@ def sort_calib_files(filenames: List[PathLike]) -> Dict[Tuple, Path]:
 
 
 def make_master_dark(
-    filenames: List[PathLike],
+    filenames: list[PathLike],
     collapse: str = "median",
     name: str = "master_dark",
     force: bool = False,
     output_directory: Optional[PathLike] = None,
     num_proc: int = DEFAULT_NPROC,
     quiet: bool = False,
-) -> List[Path]:
+) -> list[Path]:
     # prepare input filenames
     file_inputs = sort_calib_files(filenames)
     # make darks for each camera
@@ -270,15 +270,15 @@ def make_master_dark(
 
 
 def make_master_flat(
-    filenames: List[PathLike],
-    master_darks: Optional[List[PathLike]] = None,
+    filenames: list[PathLike],
+    master_darks: Optional[list[PathLike]] = None,
     collapse: str = "median",
     name: str = "master_flat",
     force: bool = False,
     output_directory: Optional[PathLike] = None,
     num_proc: int = DEFAULT_NPROC,
     quiet: bool = False,
-) -> List[Path]:
+) -> list[Path]:
     # prepare input filenames
     file_inputs = sort_calib_files(filenames)
     master_dark_inputs = {key: None for key in file_inputs.keys()}

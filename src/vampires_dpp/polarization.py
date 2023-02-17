@@ -233,7 +233,7 @@ def polarization_calibration_triplediff(
     Parameters
     ----------
     filenames : Sequence[str]
-        List of input filenames to construct Stokes frames from
+        list of input filenames to construct Stokes frames from
 
     Raises
     ------

@@ -3,7 +3,7 @@ import multiprocessing as mp
 import re
 from os import PathLike
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple, dict
 
 import numpy as np
 import tomli

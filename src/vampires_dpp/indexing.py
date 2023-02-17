@@ -152,7 +152,7 @@ def window_slices(frame, window=30, center=None, **kwargs):
     Returns
     -------
     list
-        List of linear indices for each spot
+        list of linear indices for each spot
     """
     if center is None:
         center = frame_center(frame)
@@ -179,7 +179,7 @@ def window_indices(frame, window=30, center=None, **kwargs):
     Returns
     -------
     list
-        List of linear indices for each spot
+        list of linear indices for each spot
     """
     slices = window_slices(frame, window=window, center=center, **kwargs)
     coords = (cart_coords(sl[0], sl[1]) for sl in slices)

@@ -1,16 +1,16 @@
 import multiprocessing as mp
 import shutil
-from collections import OrderedDict
+from collections import Ordereddict
 from os import PathLike
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional, list
 
 import pandas as pd
 from astropy.io import fits
 from tqdm.auto import tqdm
 
 
-def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
+def dict_from_header_file(filename: PathLike, **kwargs) -> Ordereddict:
     """
     Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
@@ -23,10 +23,10 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
 
     Returns
     -------
-    OrderedDict
+    Ordereddict
     """
     path = Path(filename)
-    summary = OrderedDict()
+    summary = Ordereddict()
     # add path to row before the FITS header keys
     summary["path"] = path.resolve()
     ext = 1 if ".fits.fz" in path.name else 0
@@ -35,7 +35,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     return summary
 
 
-def dict_from_header(header: fits.Header) -> OrderedDict:
+def dict_from_header(header: fits.Header) -> Ordereddict:
     """
     Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
@@ -46,9 +46,9 @@ def dict_from_header(header: fits.Header) -> OrderedDict:
 
     Returns
     -------
-    OrderedDict
+    Ordereddict
     """
-    summary = OrderedDict()
+    summary = Ordereddict()
     multi_entry_keys = {"COMMENT": [], "HISTORY": []}
     for k, v in header.items():
         if k == "":
@@ -65,7 +65,7 @@ def dict_from_header(header: fits.Header) -> OrderedDict:
 
 
 def header_table(
-    filenames: List[PathLike],
+    filenames: list[PathLike],
     num_proc: int = min(8, mp.cpu_count()),
     quiet: bool = False,
 ) -> pd.DataFrame:
@@ -74,7 +74,7 @@ def header_table(
 
     Parameters
     ----------
-    filenames : List[pathlike]
+    filenames : list[pathlike]
     num_proc : int, optional
         Number of processes to use in multiprocessing, by default mp.cpu_count()
     quiet : bool, optional
@@ -96,13 +96,13 @@ def header_table(
 
 # set up commands for parser to dispatch to
 def sort_files(
-    filenames: List[PathLike],
+    filenames: list[PathLike],
     copy: bool = False,
     output_directory: Optional[PathLike] = None,
     num_proc: int = min(8, mp.cpu_count()),
     quiet: bool = False,
     **kwargs,
-) -> List[Path]:
+) -> list[Path]:
     if output_directory is not None:
         outdir = Path(output_directory)
     else:

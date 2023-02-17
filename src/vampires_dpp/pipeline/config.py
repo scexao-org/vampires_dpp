@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional, dict, list
 
 from serde import field, serialize
 from serde.toml import to_toml
@@ -95,9 +95,9 @@ class CalibrateOptions(OutputDirectory):
 
     Parameters
     ----------
-    master_darks: Optional[Dict[str, Optional[Path]]]
+    master_darks: Optional[dict[str, Optional[Path]]]
         If provided, must be a dict with keys for "cam1" and "cam2" master darks. You can omit one of the cameras. By default None.
-    master_flats: Optional[Dict[str, Optional[Path]]]
+    master_flats: Optional[dict[str, Optional[Path]]]
         If provided, must be a dict with keys for "cam1" and "cam2" master flats. You can omit one of the cameras. By default None.
     distortion: Optional[DistortionOptions]
         (Advanced) Options for geometric distortion correction. By default None.
@@ -491,8 +491,8 @@ class PolarimetryOptions(OutputDirectory):
 @serialize
 @dataclass
 class CamCtrOption:
-    cam1: Optional[List[float]] = field(default=None, skip_if_default=True)
-    cam2: Optional[List[float]] = field(default=None, skip_if_default=True)
+    cam1: Optional[list[float]] = field(default=None, skip_if_default=True)
+    cam2: Optional[list[float]] = field(default=None, skip_if_default=True)
 
 
 @serialize
@@ -569,7 +569,7 @@ class PipelineOptions:
         filename-friendly name used for outputs from this pipeline. For example "20230101_ABAur"
     target : Optional[str]
         `SIMBAD <https://simbad.cds.unistra.fr/simbad/>`_-friendly object name used for looking up precise coordinates. If not provided, will use coordinate from headers, by default None.
-    frame_centers : Optional[Dict[str, Optional[List]]]
+    frame_centers : Optional[dict[str, Optional[list]]]
         Estimates of the star position in pixels (x, y) for each camera provided as a dict with "cam1" and "cam2" keys. If not provided, will use the geometric frame center, by default None. *Note: if you are estimating centers from raw data, keep in mind cam1 files are flipped on the y-axis, so any estimate needs to be flipped, too*.
     coronagraph : Optional[CoronagraphOptions]
         If provided, sets coronagraph-specific options and processing
