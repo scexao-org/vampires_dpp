@@ -58,6 +58,7 @@ We use [semantic versioning](https://semver.org/), so there are certain guarante
 
 ```{eval-rst}
 .. autoclass:: vampires_dpp.pipeline.config.CalibrateOptions
+.. autoclass:: vampires_dpp.pipeline.config.DistortionOptions
 ```
 
 ### Frame Selection Options

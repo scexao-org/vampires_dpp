@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from serde import field, serialize
+from serde.toml import to_toml
 from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
@@ -21,6 +22,9 @@ class OutputDirectory:
         if self.output_directory is not None:
             self.output_directory = Path(self.output_directory)
 
+    def to_toml(self) -> str:
+        return to_toml(self)
+
 
 @serialize
 @dataclass
@@ -34,6 +38,9 @@ class CamFileInput:
 
         if self.cam2 is not None:
             self.cam2 = Path(self.cam2)
+
+    def to_toml(self) -> str:
+        return to_toml(self)
 
 
 ## Define classes for each configuration block
@@ -57,6 +64,10 @@ class DistortionOptions:
 
     def __post_init__(self):
         self.transform_filename = Path(self.transform_filename)
+
+    def to_toml(self) -> str:
+        obj = {"calibrate": {"distortion": self}}
+        return to_toml(obj)
 
 
 @serialize
@@ -98,6 +109,31 @@ class CalibrateOptions(OutputDirectory):
         The calibrated files will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
         If true, will force this processing step to occur.
+
+    Examples
+    --------
+    >>> master_darks = {"cam1": "master_dark_cam1.fits", "cam2": "master_dark_cam2.fits"}
+    >>> dist = {"transform_filename": "20230102_fcs16000_params.csv"}
+    >>> conf = CalibrateOptions(
+            master_darks=master_darks,
+            distortion=dist,
+            output_directory="calibrated"
+        )
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [calibrate]
+        output_directory = "calibrated"
+
+        [calibrate.master_darks]
+        cam1 = "master_dark_cam1.fits"
+        cam2 = "master_dark_cam2.fits"
+
+        [calibrate.master_flats]
+
+        [calibrate.distortion]
+        transform_filename = "20230102_fcs16000_params.csv"
     """
 
     master_darks: Optional[CamFileInput] = field(default=CamFileInput())
@@ -115,6 +151,10 @@ class CalibrateOptions(OutputDirectory):
         if self.distortion is not None and isinstance(self.distortion, dict):
             self.distortion = DistortionOptions(**self.distortion)
 
+    def to_toml(self) -> str:
+        obj = {"calibrate": self}
+        return to_toml(obj)
+
 
 @serialize
 @dataclass(frozen=True)
@@ -127,9 +167,23 @@ class CoronagraphOptions:
     ----------
     iwa : float
         Coronagraph inner working angle (IWA) in mas.
+
+    Examples
+    --------
+    >>> conf = CoronagraphOptions(iwa=55)
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [coronagraph]
+        iwa = 55
     """
 
     iwa: float
+
+    def to_toml(self) -> str:
+        obj = {"coronagraph": self}
+        return to_toml(obj)
 
 
 @serialize
@@ -145,10 +199,26 @@ class SatspotOptions:
         Satellite spot position angle (in degrees), by default {SATSPOT_ANGLE:.01f}.
     amp : float
         Satellite spot modulation amplitude (in nm), by default 50.
+
+    Examples
+    --------
+    >>> conf = SatspotOptions(radius=11.2, amp=25)
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [satspots]
+        radius = 11.2
+        angle = 84.6
+        amp = 25
     """
     radius: float = field(default=15.9)
     angle: float = field(default=SATSPOT_ANGLE)
     amp: float = field(default=50)
+
+    def to_toml(self) -> str:
+        obj = {"satspots": self}
+        return to_toml(obj)
 
 
 @serialize
@@ -174,6 +244,18 @@ class FrameSelectOptions(OutputDirectory):
         The trimmed files will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
         If true, will force this processing step to occur.
+
+    Examples
+    --------
+    >>> conf = FrameSelectOptions(cutoff=0.7, output_directory="selected")
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [frame_select]
+        output_directory = "selected"
+        cutoff = 0.7
+        metric = "normvar"
     """
 
     cutoff: float
@@ -188,6 +270,10 @@ class FrameSelectOptions(OutputDirectory):
             raise ValueError(
                 f"Must use a value between 0 and 1 for frame selection quantile (got {self.cutoff})"
             )
+
+    def to_toml(self) -> str:
+        obj = {"frame_select": self}
+        return to_toml(obj)
 
 
 @serialize
@@ -222,6 +308,17 @@ class RegisterOptions(OutputDirectory):
         The PSF offsets and aligned files will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
         If true, will force this processing step to occur.
+
+    Examples
+    --------
+    >>> conf = RegisterOptions(method="com", output_directory="registered")
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [register]
+        output_directory = "registered"
+        method = "com"
     """
 
     method: str = field(default="com")
@@ -233,6 +330,10 @@ class RegisterOptions(OutputDirectory):
         super().__post_init__()
         if self.method not in ("com", "peak", "dft", "airydisk", "moffat", "gaussian"):
             raise ValueError(f"Registration method not recognized: {self.method}")
+
+    def to_toml(self) -> str:
+        obj = {"register": self}
+        return to_toml(obj)
 
 
 @serialize
@@ -259,6 +360,17 @@ class CollapseOptions(OutputDirectory):
         The collapsed files will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
         If true, will force this processing step to occur.
+
+
+    Examples
+    --------
+    >>> conf = CollapseOptions(output_directory="collapsed")
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [collapse]
+        output_directory = "collapsed"
     """
 
     method: str = field(default="median", skip_if_default=True)
@@ -267,6 +379,10 @@ class CollapseOptions(OutputDirectory):
         super().__post_init__()
         if self.method not in ("median", "mean", "varmean", "biweight"):
             raise ValueError(f"Collapse method not recognized: {self.method}")
+
+    def to_toml(self) -> str:
+        obj = {"collapse": self}
+        return to_toml(obj)
 
 
 @serialize
@@ -306,6 +422,10 @@ class IPOptions:
         if self.method not in ("photometry", "satspots", "mueller"):
             raise ValueError(f"Polarization calibration method not recognized: {self.method}")
 
+    def to_toml(self) -> str:
+        obj = {"polarimetry": {"ip": self}}
+        return to_toml(obj)
+
 
 @serialize
 @dataclass
@@ -335,6 +455,20 @@ class PolarimetryOptions(OutputDirectory):
         The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
         If true, will force this processing step to occur.
+
+    Examples
+    --------
+    >>> conf = PolarimetryOptions(ip=IPOptions(), output_directory="pdi")
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [polarimetry]
+        output_directory = "pdi"
+
+        [polarimetry.ip]
+        method = "photometry"
+        aper_rad = 6
     """
 
     ip: Optional[IPOptions] = field(default=None, skip_if_default=True)
@@ -349,6 +483,10 @@ class PolarimetryOptions(OutputDirectory):
         if self.order not in ("QQUU", "QUQU"):
             raise ValueError(f"HWP order not recognized: {self.order}")
 
+    def to_toml(self) -> str:
+        obj = {"polarimetry": self}
+        return to_toml(obj)
+
 
 @serialize
 @dataclass
@@ -362,15 +500,17 @@ class CamCtrOption:
 class ProductOptions(OutputDirectory):
     """The output products from the processing pipeline.
 
-    .. admonition:: Header Table
+    .. admonition:: Outputs
+
+        **Header Table:**
 
         A table with the header information of all the input files will be saved to a CSV in the output directory.
 
-    .. admonition:: ADI Outputs
+        **ADI Outputs:**
 
         The ADI outputs will include a cube for each camera and the corresponding derotation angles. For ADI analysis, you can either interleave the two cubes into one cube with double the frames, add the two camera frames before post-processing, or add the two ADI residuals from each camera after post-processing.
 
-    .. admonition:: PDI Outputs
+        **PDI Outputs:**
 
         If `polarimetry` is set, PDI outputs will be constructed from the triple-differential method. This includes a cube with various Stokes quantities from each HWP cycle, and a derotated and collapsed cube of Stokes quantities. The Stokes quantities are listed in the "STOKES" header, and are
 
@@ -395,11 +535,24 @@ class ProductOptions(OutputDirectory):
     force : bool
         If true, will force all products to be recreated step to occur.
 
+    Examples
+    --------
+    >>> conf = ProductOptions(output_directory="products")
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [products]
+        output_directory = "products"
     """
 
     header_table: bool = field(default=True, skip_if_default=True)
     adi_cubes: bool = field(default=True, skip_if_default=True)
     pdi_cubes: bool = field(default=True, skip_if_default=True)
+
+    def to_toml(self) -> str:
+        obj = {"products": self}
+        return to_toml(obj)
 
 
 ## Define classes for entire pipelines now
@@ -436,6 +589,45 @@ class PipelineOptions:
         If set, provides options for saving metadata, ADI, and PDI outputs.
     version : str
         The version of vampires_dpp that this configuration file is valid with. Typically not set by user.
+
+    Examples
+    --------
+    >>> conf = PipelineOptions(
+            name="test_config",
+            coronagraph=dict(iwa=55),
+            satspots=dict(radius=11.2),
+            calibrate=dict(output_directory="calibrated"),
+            collapse=dict(output_directory="collapsed"),
+            polarimetry=dict(output_directory="pdi"),
+        )
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        name = "test_config"
+        version = "0.4.0"
+
+        [coronagraph]
+        iwa = 55
+
+        [satspots]
+        radius = 11.2
+        angle = 84.6
+        amp = 50
+
+        [calibrate]
+        output_directory = "calibrated"
+
+        [calibrate.master_darks]
+
+        [calibrate.master_flats]
+
+        [collapse]
+        output_directory = "collapsed"
+
+        [polarimetry]
+        output_directory = "pdi"
+
     """
 
     name: str
@@ -470,3 +662,6 @@ class PipelineOptions:
             self.polarimetry = PolarimetryOptions(**self.polarimetry)
         if self.products is not None and isinstance(self.products, dict):
             self.products = ProductOptions(**self.products)
+
+    def to_toml(self) -> str:
+        return to_toml(self)

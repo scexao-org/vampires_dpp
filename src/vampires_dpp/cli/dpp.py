@@ -148,7 +148,7 @@ def new_config(args):
         case _:
             raise ValueError(f"template not recognized {args.template}")
     t.target = args.object
-    t.name = t.target
+    t.name = path.stem
     if args.iwa:
         t.coronagraph = CoronagraphOptions(args.iwa)
         t.satspots = SatspotOptions()

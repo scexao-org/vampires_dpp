@@ -83,7 +83,7 @@ master_cals
 After your data has been downloaded and sorted, you'll want to create configuration files for the data you want to process. To get started quickly, we provide templates for common observing scenarios that can be produced with `dpp new`. In the example below, we are creating a PDI template with the 55 mas Lyot coronagraph.
 
 ```
-dpp new 20230101_ABAur_VAMPIRES.toml -n 20230101_ABAur -t pdi --preview
+dpp new 20230101_ABAur.toml -o "AB Aur" -t pdi -c 55 --preview
 ```
 
 At this point, we highly recommend viewing the [pipeline options]() and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.
@@ -98,7 +98,7 @@ At this point, we highly recommend viewing the [pipeline options]() and making a
 After you've selected your configuration options, you can run the pipeline from the command line with `dpp run`
 
 ```
-dpp run 20230101_ABAur_VAMPIRES.toml 750-50_em300_00010ms/*
+dpp run 20230101_ABAur.toml 750-50_em300_00010ms/*
 ```
 
 ### References

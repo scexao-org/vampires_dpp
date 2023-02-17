@@ -417,7 +417,10 @@ class Pipeline(PipelineOptions):
         else:
             self.diff_files_ip = self.diff_files.copy()
         # 3. Do higher-order correction
-        self.polarimetry_triplediff(force=tripwire, N_per_hwp=config.N_per_hwp, order=config.order)
+        if self.products is not None:
+            self.polarimetry_triplediff(
+                force=tripwire, N_per_hwp=config.N_per_hwp, order=config.order
+            )
 
         self.logger.info("Finished PDI")
 

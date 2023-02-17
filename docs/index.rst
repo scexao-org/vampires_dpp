@@ -34,7 +34,7 @@ Contents
    introduction
    quickstart
    pipeline
-   examples/index
+   tutorials/index
    api/index
 
 
