@@ -28,6 +28,7 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
+    "autoflake==2",
     "black==22.*",
     "isort==5.10.*"
 ]

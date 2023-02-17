@@ -1,29 +1,19 @@
 import re
-import warnings
 from pathlib import Path
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence
 
 import numpy as np
 import tqdm.auto as tqdm
 from astropy.io import fits
-from astropy.wcs import WCS
-from astropy.wcs.utils import add_stokes_axis_to_wcs
 from numpy.typing import ArrayLike, NDArray
-from photutils import CircularAnnulus, CircularAperture, aperture_photometry
+from photutils import aperture_photometry
 from scipy.optimize import minimize_scalar
 
 from vampires_dpp.constants import PUPIL_OFFSET
 from vampires_dpp.image_processing import combine_frames_headers, derotate_cube
 from vampires_dpp.image_registration import offset_centroid
-from vampires_dpp.indexing import (
-    cutout_slice,
-    frame_angles,
-    frame_center,
-    frame_radii,
-    window_slices,
-)
-from vampires_dpp.mueller_matrices import mirror, mueller_matrix_model, rotator
-from vampires_dpp.organization import header_table
+from vampires_dpp.indexing import cutout_slice, frame_angles, frame_radii, window_slices
+from vampires_dpp.mueller_matrices import mueller_matrix_model
 from vampires_dpp.util import any_file_newer, average_angle
 from vampires_dpp.wcs import apply_wcs
 

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Tuple, list
+from typing import Optional, Tuple
 
 import astropy.units as u
 import cv2
@@ -9,7 +9,6 @@ from astropy.coordinates import Angle
 from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
-from skimage.transform import rotate
 
 from vampires_dpp.indexing import frame_center
 from vampires_dpp.organization import dict_from_header, header_table

@@ -3,7 +3,7 @@ import multiprocessing as mp
 import re
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Tuple, dict
+from typing import Optional, Tuple
 
 import numpy as np
 import tomli
@@ -13,7 +13,7 @@ from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import calibrate_file
-from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
+from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
 from vampires_dpp.image_processing import (
     FileSet,

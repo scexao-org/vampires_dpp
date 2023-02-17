@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
 from vampires_dpp.constants import PUPIL_OFFSET
 

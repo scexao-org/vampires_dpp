@@ -1,6 +1,3 @@
-from pathlib import Path
-from typing import Optional
-
 import cv2
 import numpy as np
 from astropy.io import fits
@@ -9,7 +6,7 @@ from numpy.typing import ArrayLike
 from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 
-from vampires_dpp.image_processing import shift_cube, shift_frame
+from vampires_dpp.image_processing import shift_cube
 from vampires_dpp.indexing import (
     cutout_slice,
     frame_center,
@@ -179,8 +176,8 @@ def offset_subpixel_peak(frame, inds, oversample=8):
     sinc = np.fft.fftshift(np.real(sinc_c))
     sinc2d = np.outer(sinc, sinc)
     fftview = np.fft.fftshift(np.fft.fft2(view, norm="forward"))
-    deconv_view = fftview / sinc2d
-    padded = np.array(view.shape[0])
+    fftview / sinc2d
+    np.array(view.shape[0])
 
 
 def offset_modelfit(frame, inds, method, fitter=fitting.LevMarLSQFitter()):

@@ -1,7 +1,5 @@
 from pathlib import Path
 
-from astropy.io import fits
-
 from vampires_dpp.organization import dict_from_header, header_table
 
 TEST_DIR = Path(__file__).parent

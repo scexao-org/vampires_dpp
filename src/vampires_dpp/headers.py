@@ -1,9 +1,7 @@
-from collections import Ordereddict
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
-import pandas as pd
 from astropy.io import fits
 from astropy.time import Time
 

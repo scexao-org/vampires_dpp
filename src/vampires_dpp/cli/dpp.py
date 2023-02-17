@@ -1,5 +1,4 @@
 import logging
-import multiprocessing as mp
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -11,7 +10,12 @@ from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import CoronagraphOptions, SatspotOptions
 from vampires_dpp.pipeline.pipeline import Pipeline
-from vampires_dpp.pipeline.templates import *
+from vampires_dpp.pipeline.templates import (
+    VAMPIRES_HALPHA,
+    VAMPIRES_MAXIMAL,
+    VAMPIRES_PDI,
+    VAMPIRES_SINGLECAM,
+)
 
 # set up logging
 formatter = logging.Formatter(

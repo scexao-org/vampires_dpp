@@ -1,11 +1,9 @@
 from dataclasses import dataclass
-from multiprocessing import Pool
 from pathlib import Path
-from typing import Optional, dict, list
+from typing import Optional
 
 from serde import field, serialize
 from serde.toml import to_toml
-from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
 from vampires_dpp.constants import SATSPOT_ANGLE

@@ -3,7 +3,7 @@
 import multiprocessing as mp
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Tuple, dict, list
+from typing import Optional, Tuple
 
 import astropy.units as u
 import cv2
@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.stats import biweight_location, biweight_midvariance
+from astropy.stats import biweight_location
 from astropy.time import Time
 from astroscrappy import detect_cosmics
 from tqdm.auto import tqdm

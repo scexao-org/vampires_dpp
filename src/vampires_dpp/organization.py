@@ -3,7 +3,7 @@ import shutil
 from collections import Ordereddict
 from os import PathLike
 from pathlib import Path
-from typing import Optional, list
+from typing import Optional
 
 import pandas as pd
 from astropy.io import fits
