@@ -16,12 +16,12 @@ def parallactic_angle(header):
 
 
 def parallactic_angle_hadec(ha, dec, lat=19.823806):
-    """
+    r"""
     Calculate parallactic angle using the hour-angle and declination directly
 
     .. math::
 
-        \\theta_\\mathrm{PA} = \\atan2{\\frac{\\sin\\theta_\\mathrm{HA}}{\\tan\\theta_\mathrm{lat}\\cos\\delta - \\sin\\delta \\cos\\theta_\\mathrm{HA}}}
+        \theta_\mathrm{PA} = \arctan2{\frac{\sin\theta_\mathrm{HA}}{\tan\theta_\mathrm{lat}\cos\delta - \sin\delta \cos\theta_\mathrm{HA}}}
 
     Parameters
     ----------
@@ -47,11 +47,8 @@ def parallactic_angle_hadec(ha, dec, lat=19.823806):
 
 
 def parallactic_angle_altaz(alt, az, lat=19.823806):
-    """
+    r"""
     Calculate parallactic angle using the altitude/elevation and azimuth directly
-
-    .. math::
-        \\theta_\\mathrm{PA} = \\atan2{\\frac{\\sin\\theta_\\mathrm{HA}}{\\tan\\theta_\mathrm{lat}\\cos\\delta - \\sin\\delta \\cos\\theta_\\mathrm{HA}}}
 
     Parameters
     ----------

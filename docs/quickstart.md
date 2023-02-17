@@ -1,4 +1,4 @@
-# Quick start guide
+# Quick-start guide
 
 We strive to make the VAMPIRES DPP as automated as possible- the following setup should get you 90% of the way towards successful data reduction, depending on the complexity of your dataset!
 
@@ -38,7 +38,7 @@ The prescribed folder structure for this sorting is
 ├── pinholes
 │   └── raw
 └── skies
-│   └── raw
+    └── raw
 ```
 after sorting this folders can be changed or rearranged as much as you'd like. The configuration for the pipeline is flexible, so you don't have to sort your files at all if you prefer a different method.
 
@@ -101,7 +101,7 @@ After you've selected your configuration options, you can run the pipeline from 
 dpp run 20230101_ABAur.toml 750-50_em300_00010ms/*
 ```
 
-### References
+### Reference
 
 {{dpprun_help}}
 

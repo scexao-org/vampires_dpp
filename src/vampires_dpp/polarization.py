@@ -146,7 +146,7 @@ def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs)
     r"""
     Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)
 
-    ..math::
+    .. math::
         Q_\phi = -Q\cos(2\theta) - U\sin(2\theta) \\
         U_\phi = Q\sin(2\theta) - Q\cos(2\theta)
 
@@ -221,10 +221,11 @@ def polarization_calibration_triplediff(
     filenames: Sequence[str], outname, force=False, N_per_hwp=1
 ) -> NDArray:
     """
-    Return a Stokes cube using the _bona fide_ triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
+    Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
     .. admonition:: Pupil-tracking mode
-        :class: warning
+        :class: tip
+
         For each of these 16 image sets, it is important to consider the apparant sky rotation when in pupil-tracking mode (which is the default for most VAMPIRES observations). With this naive triple-differential subtraction, if there is significant sky motion, the output Stokes frame will be smeared.
 
         The parallactic angles for each set of 16 frames should be averaged (``average_angle``) and stored to construct the final derotation angle vector
@@ -237,7 +238,7 @@ def polarization_calibration_triplediff(
     Raises
     ------
     ValueError:
-        If the input filenames are not a clean multiple of 16. To ensure you have proper 16 frame sets, use ``flc_inds`` with a sorted observation table.
+        If the input filenames are not a clean multiple of 16. To ensure you have proper 16 frame sets, use ``pol_inds`` with a sorted observation table.
 
     Returns
     -------
@@ -322,15 +323,15 @@ def triplediff_average_angles(filenames):
     return pas
 
 
-def pol_inds(flc_states: ArrayLike, n=4, order="QQUU"):
+def pol_inds(hwp_angs: ArrayLike, n=4, order="QQUU"):
     """
     Find consistent runs of FLC and HWP states.
 
-    A consistent FLC run will have either 2 or 4 files per HWP state, and will have exactly 4 HWP states per cycle. Sometimes when VAMPIRES is syncing with CHARIS a HWP state will get skipped, creating partial HWP cycles. This function will return the indices which create consistent HWP cycles from the given list of FLC states, which should already be sorted by time.
+    A consistent run will have either 2 or 4 files per HWP state, and will have exactly 4 HWP states per cycle. Sometimes when VAMPIRES is syncing with CHARIS a HWP state will get skipped, creating partial HWP cycles. This function will return the indices which create consistent HWP cycles from the given list of FLC states, which should already be sorted by time.
 
     Parameters
     ----------
-    hwp_polstt : ArrayLike
+    hwp_angs : ArrayLike
         The HWP states to sort through
     n : int, optional
         The number of files per HWP state, either 2 or 4. By default 4
@@ -338,9 +339,9 @@ def pol_inds(flc_states: ArrayLike, n=4, order="QQUU"):
     Returns
     -------
     inds :
-        The indices for which `flc_states` forms consistent HWP cycles
+        The indices for which `hwp_angs` forms consistent HWP cycles
     """
-    states = np.asarray(flc_states)
+    states = np.asarray(hwp_angs)
     N_cycle = n * 4
     if order == "QQUU":
         ang_list = np.repeat([0, 45, 22.5, 67.5], n)
@@ -348,7 +349,7 @@ def pol_inds(flc_states: ArrayLike, n=4, order="QQUU"):
         ang_list = np.repeat([0, 22.5, 45, 67.5], n)
     inds = []
     idx = 0
-    while idx <= len(flc_states) - N_cycle:
+    while idx <= len(hwp_angs) - N_cycle:
         if np.all(states[idx : idx + N_cycle] == ang_list):
             inds.extend(range(idx, idx + N_cycle))
             idx += N_cycle
