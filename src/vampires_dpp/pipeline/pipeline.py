@@ -39,6 +39,9 @@ from vampires_dpp.wcs import get_gaia_astrometry
 
 
 class Pipeline(PipelineOptions):
+
+    __doc__ = PipelineOptions.__doc__
+
     def __post_init__(self):
         super().__post_init__()
         # make sure versions match within SemVar
@@ -92,7 +95,7 @@ class Pipeline(PipelineOptions):
         config = tomli.loads(toml_str)
         return cls(**config)
 
-    def to_toml(self, filename: PathLike):
+    def to_file(self, filename: PathLike):
         """
         Save configuration settings to TOML file
 
@@ -106,8 +109,14 @@ class Pipeline(PipelineOptions):
         path.write_text(to_toml(self))
 
     def run(self, filenames, num_proc=None):
-        """
-        Run the pipeline
+        """Run the pipeline
+
+        Parameters
+        ----------
+        filenames : Iterable[PathLike]
+            Input filenames to process
+        num_proc : Optional[int]
+            Number of processes to use for multi-processing, by default None.
         """
         self.num_proc = num_proc
 
