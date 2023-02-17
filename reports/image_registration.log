@@ -1,17 +1,19 @@
 Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+  File "/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
     executenb(
-  File "/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/nbclient/client.py", line 1265, in execute
+  File "/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/nbclient/client.py", line 1204, in execute
     return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
-  File "/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 166, in wrapped
-    return loop.run_until_complete(inner)
-  File "/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+  File "/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/nbclient/util.py", line 84, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/nbclient/util.py", line 62, in just_run
+    return loop.run_until_complete(coro)
+  File "/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
     return future.result()
-  File "/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/nbclient/client.py", line 703, in async_execute
+  File "/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/nbclient/client.py", line 663, in async_execute
     await self.async_execute_cell(
-  File "/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/nbclient/client.py", line 1021, in async_execute_cell
+  File "/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/nbclient/client.py", line 965, in async_execute_cell
     await self._check_raise_for_error(cell, cell_index, exec_reply)
-  File "/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/nbclient/client.py", line 915, in _check_raise_for_error
+  File "/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/nbclient/client.py", line 862, in _check_raise_for_error
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
@@ -35,21 +37,21 @@ Cell [0;32mIn[1], line 4[0m
 [1;32m      5[0m [38;5;28;01mfrom[39;00m [38;5;21;01mzenodo_get[39;00m [38;5;28;01mimport[39;00m zenodo_get
 [1;32m      7[0m pro[38;5;241m.[39mrc[[38;5;124m"[39m[38;5;124mstyle[39m[38;5;124m"[39m] [38;5;241m=[39m [38;5;124m"[39m[38;5;124mggplot[39m[38;5;124m"[39m
 
-File [0;32m/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/proplot/__init__.py:36[0m
+File [0;32m/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/proplot/__init__.py:36[0m
 [1;32m     34[0m     [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mutils[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m  [38;5;66;03m# noqa: F401 F403[39;00m
 [1;32m     35[0m [38;5;28;01mwith[39;00m _benchmark([38;5;124m'[39m[38;5;124mcolors[39m[38;5;124m'[39m):
 [0;32m---> 36[0m     [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mcolors[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m  [38;5;66;03m# noqa: F401 F403[39;00m
 [1;32m     37[0m [38;5;28;01mwith[39;00m _benchmark([38;5;124m'[39m[38;5;124mticker[39m[38;5;124m'[39m):
 [1;32m     38[0m     [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mticker[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m  [38;5;66;03m# noqa: F401 F403[39;00m
 
-File [0;32m/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/proplot/colors.py:3111[0m
+File [0;32m/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/proplot/colors.py:3111[0m
 [1;32m   3107[0m         [38;5;28mdict[39m[38;5;241m.[39m[38;5;21m__setitem__[39m([38;5;28mself[39m, key, value)
 [1;32m   3110[0m [38;5;66;03m# Initialize databases[39;00m
 [0;32m-> 3111[0m _cmap_database [38;5;241m=[39m [43m_init_cmap_database[49m[43m([49m[43m)[49m
 [1;32m   3112[0m _color_database [38;5;241m=[39m _init_color_database()
 [1;32m   3114[0m [38;5;66;03m# Deprecated[39;00m
 
-File [0;32m/opt/hostedtoolcache/Python/3.10.9/x64/lib/python3.10/site-packages/proplot/colors.py:2719[0m, in [0;36m_init_cmap_database[0;34m()[0m
+File [0;32m/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/proplot/colors.py:2719[0m, in [0;36m_init_cmap_database[0;34m()[0m
 [1;32m   2716[0m [38;5;66;03m# WARNING: Skip over the matplotlib native duplicate entries[39;00m
 [1;32m   2717[0m [38;5;66;03m# with suffixes '_r' and '_shifted'.[39;00m
 [1;32m   2718[0m attr [38;5;241m=[39m [38;5;124m'[39m[38;5;124m_cmap_registry[39m[38;5;124m'[39m [38;5;28;01mif[39;00m [38;5;28mhasattr[39m(mcm, [38;5;124m'[39m[38;5;124m_cmap_registry[39m[38;5;124m'[39m) [38;5;28;01melse[39;00m [38;5;124m'[39m[38;5;124mcmap_d[39m[38;5;124m'[39m
