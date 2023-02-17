@@ -278,19 +278,14 @@ def linear_polarizer(theta=0) -> NDArray:
     return 0.5 * M
 
 
-def mirror(theta=0) -> NDArray:
+def mirror() -> NDArray:
     """
     Return the Mueller matrix for an ideal mirror.
-
-    Parameters
-    ----------
-    theta : float, optional
-        Angle of rotation, in radians. By default 0
 
     Returns
     -------
     NDArray
-        (4, 4) Mueller matrix for the mirror)
+        (4, 4) Mueller matrix for the mirror
 
     Examples
     --------
@@ -300,8 +295,7 @@ def mirror(theta=0) -> NDArray:
            [ 0,  0, -1,  0],
            [ 0,  0,  0, -1]])
     """
-    M = hwp(theta=theta)
-    return M
+    return hwp(theta=0)
 
 
 def wollaston(ordinary: bool = True, eta=1) -> NDArray:
@@ -339,12 +333,13 @@ def wollaston(ordinary: bool = True, eta=1) -> NDArray:
     else:
         eta = -eta
 
+    radicand = (1 - eta) * (1 + eta)
     M = np.array(
         (
             (1, eta, 0, 0),
             (eta, 1, 0, 0),
-            (0, 0, np.sqrt(1 - eta**2), 0),
-            (0, 0, 0, np.sqrt(1 - eta**2)),
+            (0, 0, np.sqrt(radicand), 0),
+            (0, 0, 0, np.sqrt(radicand)),
         )
     )
     return 0.5 * M
@@ -353,7 +348,6 @@ def wollaston(ordinary: bool = True, eta=1) -> NDArray:
 def instrumental(pQ=0, pU=0, pV=0):
     M = np.eye(4)
     M[1:, 0] = (pQ, pU, pV)
-    M[0, 1:] = (pQ, pU, pV)
     return M
 
 

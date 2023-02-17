@@ -3,6 +3,14 @@ from datetime import date
 
 from pkg_resources import DistributionNotFound, get_distribution
 
+from vampires_dpp.cli.dpp import (
+    calib_parser,
+    new_parser,
+    run_parser,
+    sort_parser,
+    table_parser,
+)
+
 # -- Project information -----------------------------------------------------
 try:
     __version__ = get_distribution("vampires_dpp").version
@@ -29,9 +37,16 @@ extensions = [
     "sphinx.ext.mathjax",
     "myst_nb",
 ]
-myst_enable_extensions = [
-    "dollarmath",
-]
+myst_enable_extensions = ["dollarmath", "substitution"]
+
+
+myst_substitutions = {
+    "dpprun_help": f"```\n{run_parser.format_help()}```",
+    "dppsort_help": f"```\n{sort_parser.format_help()}```",
+    "dppnew_help": f"```\n{new_parser.format_help()}```",
+    "dppcalib_help": f"```\n{calib_parser.format_help()}```",
+    "dpptable_help": f"```\n{table_parser.format_help()}```",
+}
 myst_heading_anchors = 2
 source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}
 nb_execution_mode = "cache"

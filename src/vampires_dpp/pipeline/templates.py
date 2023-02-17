@@ -3,7 +3,7 @@ from .config import *
 __all__ = ["VAMPIRES_SINGLECAM", "VAMPIRES_PDI", "VAMPIRES_HALPHA", "VAMPIRES_MAXIMAL"]
 
 DEFAULT_DIRS = {
-    ProductsOptions: "products",
+    ProductOptions: "products",
     CalibrateOptions: "calibrated",
     FrameSelectOptions: "selected",
     RegisterOptions: "registered",
@@ -23,7 +23,7 @@ VAMPIRES_SINGLECAM = PipelineOptions(
     ),
     register=RegisterOptions(method="peak", output_directory=DEFAULT_DIRS[RegisterOptions]),
     collapse=CollapseOptions(method="median", output_directory=DEFAULT_DIRS[CollapseOptions]),
-    products=ProductsOptions(output_directory=DEFAULT_DIRS[ProductsOptions]),
+    products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
 )
 
 
@@ -41,7 +41,7 @@ VAMPIRES_PDI = PipelineOptions(
     polarimetry=PolarimetryOptions(
         output_directory=DEFAULT_DIRS[PolarimetryOptions], ip=IPOptions()
     ),
-    products=ProductsOptions(output_directory=DEFAULT_DIRS[ProductsOptions]),
+    products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
 )
 
 
@@ -56,7 +56,7 @@ VAMPIRES_HALPHA = PipelineOptions(
     ),
     register=RegisterOptions(method="peak", output_directory=DEFAULT_DIRS[RegisterOptions]),
     collapse=CollapseOptions(method="median", output_directory=DEFAULT_DIRS[CollapseOptions]),
-    products=ProductsOptions(output_directory=DEFAULT_DIRS[ProductsOptions]),
+    products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
 )
 
 VAMPIRES_MAXIMAL = PipelineOptions(
@@ -74,5 +74,5 @@ VAMPIRES_MAXIMAL = PipelineOptions(
     register=RegisterOptions(method="peak", output_directory=DEFAULT_DIRS[RegisterOptions]),
     collapse=CollapseOptions(method="median", output_directory=DEFAULT_DIRS[CollapseOptions]),
     polarimetry=PolarimetryOptions(output_directory=DEFAULT_DIRS[PolarimetryOptions]),
-    products=ProductsOptions(output_directory=DEFAULT_DIRS[ProductsOptions]),
+    products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
 )
