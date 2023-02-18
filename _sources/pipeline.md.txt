@@ -85,3 +85,28 @@ We use [semantic versioning](https://semver.org/), so there are certain guarante
 .. autoclass:: vampires_dpp.pipeline.config.PolarimetryOptions
 .. autoclass:: vampires_dpp.pipeline.config.IPOptions
 ```
+
+
+## Templates
+
+### PDI
+
+{{pdi_toml}}
+
+### Single-cam
+
+For single-cam data you can elude all of the `cam2` keys in the configuration.
+
+{{singlecam_toml}}
+
+### H-alpha
+
+```{admonition} Warning: WIP
+:class: warning
+
+The full functionality for H-alpha is not implemented, but the collapsed data can be used as inputs, for now.
+```
+
+H-alpha reduction looks a lot like PDI reduction without the polarimetry.
+
+{{halpha_toml}}

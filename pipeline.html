@@ -358,6 +358,28 @@ title="Print to PDF"
    </li>
   </ul>
  </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#templates">
+   Templates
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pdi">
+     PDI
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#single-cam">
+     Single-cam
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#h-alpha">
+     H-alpha
+    </a>
+   </li>
+  </ul>
+ </li>
 </ul>
 
     </nav>
@@ -420,6 +442,28 @@ title="Print to PDF"
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#polarimetry-options">
      Polarimetry Options
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#templates">
+   Templates
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pdi">
+     PDI
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#single-cam">
+     Single-cam
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#h-alpha">
+     H-alpha
     </a>
    </li>
   </ul>
@@ -1007,6 +1051,127 @@ tail config_debug.log
 </dl>
 </dd></dl>
 
+</section>
+</section>
+<section id="templates">
+<h2>Templates<a class="headerlink" href="#templates" title="Permalink to this headline">#</a></h2>
+<section id="pdi">
+<h3>PDI<a class="headerlink" href="#pdi" title="Permalink to this headline">#</a></h3>
+<details>
+<summary>PDI example</summary>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.4.0&quot;</span>
+
+<span class="k">[frame_centers]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+
+<span class="k">[calibrate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
+
+<span class="k">[calibrate.master_darks]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+
+<span class="k">[calibrate.master_flats]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+
+<span class="k">[register]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+
+<span class="k">[collapse]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
+
+<span class="k">[polarimetry]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pdi&quot;</span>
+
+<span class="k">[polarimetry.ip]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;photometry&quot;</span>
+<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span>
+
+<span class="k">[products]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;products&quot;</span>
+</pre></div>
+</div>
+</details>
+</section>
+<section id="single-cam">
+<h3>Single-cam<a class="headerlink" href="#single-cam" title="Permalink to this headline">#</a></h3>
+<p>For single-cam data you can elude all of the <code class="docutils literal notranslate"><span class="pre">cam2</span></code> keys in the configuration.</p>
+<details>
+<summary>Single-cam example</summary>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.4.0&quot;</span>
+
+<span class="k">[frame_centers]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+
+<span class="k">[calibrate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
+
+<span class="k">[calibrate.master_darks]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+
+<span class="k">[calibrate.master_flats]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+
+<span class="k">[register]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+
+<span class="k">[collapse]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
+
+<span class="k">[products]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;products&quot;</span>
+</pre></div>
+</div>
+</details>
+</section>
+<section id="h-alpha">
+<h3>H-alpha<a class="headerlink" href="#h-alpha" title="Permalink to this headline">#</a></h3>
+<div class="warning admonition">
+<p class="admonition-title">Warning: WIP</p>
+<p>The full functionality for H-alpha is not implemented, but the collapsed data can be used as inputs, for now.</p>
+</div>
+<p>H-alpha reduction looks a lot like PDI reduction without the polarimetry.</p>
+<details>
+<summary>H-alpha example</summary>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="n">target</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.4.0&quot;</span>
+
+<span class="k">[frame_centers]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+
+<span class="k">[calibrate]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
+
+<span class="k">[calibrate.master_darks]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+
+<span class="k">[calibrate.master_flats]</span>
+<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;.&quot;</span>
+
+<span class="k">[register]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+
+<span class="k">[collapse]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
+
+<span class="k">[products]</span>
+<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;products&quot;</span>
+</pre></div>
+</div>
+</details>
 </section>
 </section>
 </section>
