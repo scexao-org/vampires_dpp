@@ -189,14 +189,22 @@ class Pipeline(PipelineOptions):
         return path, tripwire
 
     def get_frame_centers(self):
-        self.centers = {1: None, 2: None}
+        self.centers = {"cam1": None, "cam2": None}
         if self.frame_centers is not None:
             if self.frame_centers.cam1 is not None:
-                self.centers[1] = np.array(self.frame_centers.cam1)[::-1]
+                self.centers["cam1"] = np.array(self.frame_centers.cam1)[::-1]
             if self.frame_centers.cam2 is not None:
-                self.centers[2] = np.array(self.frame_centers.cam2)[::-1]
-        self.logger.debug(f"Cam 1 frame center is {self.centers[1]} (y, x)")
-        self.logger.debug(f"Cam 2 frame center is {self.centers[2]} (y, x)")
+                self.centers["cam2"] = np.array(self.frame_centers.cam2)[::-1]
+        self.logger.debug(f"Cam 1 frame center is {self.centers['cam1']} (y, x)")
+        self.logger.debug(f"Cam 2 frame center is {self.centers['cam2']} (y, x)")
+
+    def get_center(self, fileinfo):
+        if fileinfo["U_CAMERA"] == 2:
+            return self.centers["cam2"]
+        # for cam 1 data, need to flip coordinate about x-axis
+        Ny = fileinfo["NAXIS2"]
+        ctr = np.asarray((Ny - 1 - self.centers["cam1"][0], self.centers["cam1"][1]))
+        return ctr
 
     def get_coordinate(self):
         self.pxscale = PIXEL_SCALE
@@ -285,7 +293,7 @@ class Pipeline(PipelineOptions):
         tripwire |= config.force
         outdir.mkdir(parents=True, exist_ok=True)
         self.logger.debug(f"Saving selected data to {outdir.absolute()}")
-        ctr = self.centers[fileinfo["U_CAMERA"]]
+        ctr = self.get_center(fileinfo)
         if self.coronagraph is not None:
             metric_file = measure_metric_file(
                 path,
@@ -325,7 +333,7 @@ class Pipeline(PipelineOptions):
         outdir.mkdir(parents=True, exist_ok=True)
         self.logger.debug(f"Saving registered data to {outdir.absolute()}")
         tripwire |= config.force
-        ctr = self.centers[fileinfo["U_CAMERA"]]
+        ctr = self.get_center(fileinfo)
         if self.coronagraph is not None:
             offsets_file = measure_offsets_file(
                 path,

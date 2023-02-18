@@ -11,9 +11,9 @@ from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import CoronagraphOptions, SatspotOptions
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import (
-    VAMPIRES_HALPHA,
     VAMPIRES_MAXIMAL,
     VAMPIRES_PDI,
+    VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
 )
 
@@ -146,7 +146,7 @@ def new_config(args):
         case "pdi":
             t = VAMPIRES_PDI
         case "halpha":
-            t = VAMPIRES_HALPHA
+            t = VAMPIRES_SDI
         case "all":
             t = VAMPIRES_MAXIMAL
         case _:

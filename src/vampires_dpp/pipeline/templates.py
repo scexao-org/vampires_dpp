@@ -1,6 +1,6 @@
 from .config import *
 
-__all__ = ["VAMPIRES_SINGLECAM", "VAMPIRES_PDI", "VAMPIRES_HALPHA", "VAMPIRES_MAXIMAL"]
+__all__ = ["VAMPIRES_SINGLECAM", "VAMPIRES_PDI", "VAMPIRES_SDI", "VAMPIRES_MAXIMAL"]
 
 DEFAULT_DIRS = {
     ProductOptions: "products",
@@ -44,7 +44,7 @@ VAMPIRES_PDI = PipelineOptions(
 )
 
 
-VAMPIRES_HALPHA = PipelineOptions(
+VAMPIRES_SDI = PipelineOptions(
     name="",
     target="",
     frame_centers=dict(cam1=[], cam2=[]),

@@ -573,7 +573,7 @@ class PipelineOptions:
     target : Optional[str]
         `SIMBAD <https://simbad.cds.unistra.fr/simbad/>`_-friendly object name used for looking up precise coordinates. If not provided, will use coordinate from headers, by default None.
     frame_centers : Optional[dict[str, Optional[list]]]
-        Estimates of the star position in pixels (x, y) for each camera provided as a dict with "cam1" and "cam2" keys. If not provided, will use the geometric frame center, by default None. *Note: if you are estimating centers from raw data, keep in mind cam1 files are flipped on the y-axis, so any estimate needs to be flipped, too*.
+        Estimates of the star position in pixels (x, y) for each camera provided as a dict with "cam1" and "cam2" keys. If not provided, will use the geometric frame center, by default None.
     coronagraph : Optional[CoronagraphOptions]
         If provided, sets coronagraph-specific options and processing
     satspots : Optional[SatspotOptions]
@@ -592,6 +592,20 @@ class PipelineOptions:
         If set, provides options for saving metadata, ADI, and PDI outputs.
     version : str
         The version of vampires_dpp that this configuration file is valid with. Typically not set by user.
+
+    Notes
+    -----
+    **Frame Centers**
+
+    Frame centers need to be given as a dictionary of x, y pairs, like
+
+    .. code-block:: python
+
+        frame_centers = {
+            "cam1": (127.5, 127.5),
+            "cam2": (127.5, 127.5)
+        }
+    It is important to note that these frame centers are in the *raw* frames. If you open up the frames in DS9 and set the cross on the image center, you can copy the x, y coordinates directly into the configuration. We recommend doing this, especially for coronagraphic data since the satellite spot cutout indices depend on the frame centers and any off-center data may not register appropriately.
 
     Examples
     --------

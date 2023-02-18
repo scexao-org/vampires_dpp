@@ -226,10 +226,9 @@ def combine_frames_files(filenames, output, force=False, **kwargs):
     frames = []
     headers = []
     for filename in filenames:
-        frame, header = fits.getdata(
-            filename,
-            header=True,
-        )
+        # use memmap=False to avoid "too many files open" effects
+        # another way would be to set ulimit -n <MAX_FILES>
+        frame, header = fits.getdata(filename, header=True, memmap=False)
         frames.append(frame)
         headers.append(header)
 
@@ -252,10 +251,9 @@ def collapse_frames_files(filenames, output, force=False, **kwargs):
     frames = []
     headers = []
     for filename in filenames:
-        frame, header = fits.getdata(
-            filename,
-            header=True,
-        )
+        # use memmap=False to avoid "too many files open" effects
+        # another way would be to set ulimit -n <MAX_FILES>
+        frame, header = fits.getdata(filename, header=True, memmap=False)
         frames.append(frame)
         headers.append(header)
 

@@ -11,8 +11,8 @@ from vampires_dpp.cli.dpp import (
     table_parser,
 )
 from vampires_dpp.pipeline.templates import (
-    VAMPIRES_HALPHA,
     VAMPIRES_PDI,
+    VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
 )
 
@@ -62,12 +62,12 @@ pdi_toml = f"""
 ```
 </details>
 """
-halpha_toml = f"""
+sdi_toml = f"""
 <details>
 <summary>H-alpha example</summary>
 
 ```toml
-{VAMPIRES_HALPHA.to_toml()}
+{VAMPIRES_SDI.to_toml()}
 ```
 </details>
 """
@@ -80,7 +80,7 @@ myst_substitutions = {
     "dpptable_help": f"```\n{table_parser.format_help()}```",
     "singlecam_toml": singlecam_toml,
     "pdi_toml": pdi_toml,
-    "halpha_toml": halpha_toml,
+    "sdi_toml": sdi_toml,
 }
 myst_heading_anchors = 2
 source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}
