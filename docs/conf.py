@@ -10,6 +10,11 @@ from vampires_dpp.cli.dpp import (
     sort_parser,
     table_parser,
 )
+from vampires_dpp.pipeline.templates import (
+    VAMPIRES_HALPHA,
+    VAMPIRES_PDI,
+    VAMPIRES_SINGLECAM,
+)
 
 # -- Project information -----------------------------------------------------
 try:
@@ -39,6 +44,33 @@ extensions = [
 ]
 myst_enable_extensions = ["dollarmath", "substitution"]
 
+singlecam_toml = f"""
+<details>
+<summary>Single-cam example</summary>
+
+```toml
+{VAMPIRES_SINGLECAM.to_toml()}
+```
+</details>
+"""
+pdi_toml = f"""
+<details>
+<summary>PDI example</summary>
+
+```toml
+{VAMPIRES_PDI.to_toml()}
+```
+</details>
+"""
+halpha_toml = f"""
+<details>
+<summary>H-alpha example</summary>
+
+```toml
+{VAMPIRES_HALPHA.to_toml()}
+```
+</details>
+"""
 
 myst_substitutions = {
     "dpprun_help": f"```\n{run_parser.format_help()}```",
@@ -46,6 +78,9 @@ myst_substitutions = {
     "dppnew_help": f"```\n{new_parser.format_help()}```",
     "dppcalib_help": f"```\n{calib_parser.format_help()}```",
     "dpptable_help": f"```\n{table_parser.format_help()}```",
+    "singlecam_toml": singlecam_toml,
+    "pdi_toml": pdi_toml,
+    "halpha_toml": halpha_toml,
 }
 myst_heading_anchors = 2
 source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}

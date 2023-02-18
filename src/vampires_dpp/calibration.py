@@ -26,6 +26,14 @@ from vampires_dpp.image_processing import (
 from vampires_dpp.util import get_paths
 from vampires_dpp.wcs import apply_wcs, get_coord_header
 
+__all__ = [
+    "calibrate_file",
+    "make_dark_file",
+    "make_flat_file",
+    "make_master_dark",
+    "make_master_flat",
+]
+
 
 def filter_empty_frames(cube):
     finite_mask = np.isfinite(cube)

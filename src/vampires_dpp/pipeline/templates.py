@@ -26,7 +26,6 @@ VAMPIRES_SINGLECAM = PipelineOptions(
     products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
 )
 
-
 VAMPIRES_PDI = PipelineOptions(
     name="",
     target="",
