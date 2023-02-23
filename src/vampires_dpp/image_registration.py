@@ -26,7 +26,6 @@ def satellite_spot_offsets(
     smooth: bool = False,
     **kwargs,
 ):
-
     slices = window_slices(cube[0], center=center, **kwargs)
     center = frame_center(cube)
 

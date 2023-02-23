@@ -198,7 +198,7 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
         readnoise=READNOISE,
         satlevel=2**16 * header.get("DETGAIN", 4.5),
     )
-    clean_flat /= biweight_location(clean_flat, c=6, ignore_nan=True)
+    clean_flat /= np.nanmedian(clean_flat)
 
     fits.writeto(
         outpath,
@@ -293,7 +293,10 @@ def make_master_flat(
     if master_darks is not None:
         inputs = sort_calib_files(master_darks)
         for key in file_inputs.keys():
-            master_dark_inputs[key] = inputs.get(key, None)
+            # input should be list with one file in it
+            if key in inputs:
+                master_dark_inputs[key] = inputs[key][0]
+
     if output_directory is not None:
         outdir = Path(output_directory)
         outdir.mkdir(parents=True, exist_ok=True)
@@ -315,7 +318,7 @@ def make_master_flat(
             for path in filelist:
                 kwds = dict(
                     output_directory=path.parent.parent / "collapsed",
-                    dark_filename=master_dark_inputs[key],
+                    dark_filename=master_dark_inputs[key][0],
                     force=force,
                     method=collapse,
                 )

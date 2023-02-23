@@ -39,7 +39,6 @@ from vampires_dpp.wcs import get_gaia_astrometry
 
 
 class Pipeline(PipelineOptions):
-
     __doc__ = PipelineOptions.__doc__
 
     def __post_init__(self):
