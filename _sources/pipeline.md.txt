@@ -89,7 +89,7 @@ We use [semantic versioning](https://semver.org/), so there are certain guarante
 
 ## Templates
 
-### PDI
+### Polarimetric Differential Imaging (PDI)
 
 {{pdi_toml}}
 
@@ -99,14 +99,14 @@ For single-cam data you can elude all of the `cam2` keys in the configuration.
 
 {{singlecam_toml}}
 
-### H-alpha
+### Spectral Differential Imaging (SDI)
 
 ```{admonition} Warning: WIP
 :class: warning
 
-The full functionality for H-alpha is not implemented, but the collapsed data can be used as inputs, for now.
+The full functionality for SDI is not implemented, but the collapsed data can be used as inputs to manual reductions, for now.
 ```
 
-H-alpha reduction looks a lot like PDI reduction without the polarimetry.
+SDI reduction looks a lot like PDI reduction without the polarimetry.
 
-{{halpha_toml}}
+{{sdi_toml}}

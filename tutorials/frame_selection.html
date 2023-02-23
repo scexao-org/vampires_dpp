@@ -541,9 +541,7 @@ All files have been downloaded.
 <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
     <span class="n">qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cutoffs</span><span class="p">)</span>
     <span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">metric</span> <span class="o">&gt;</span> <span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qs</span><span class="p">]</span>
-    <span class="n">registered</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">shift_cube</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="o">-</span><span class="n">offsets</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span>
-    <span class="p">]</span>
+    <span class="n">registered</span> <span class="o">=</span> <span class="p">[</span><span class="n">shift_cube</span><span class="p">(</span><span class="n">abaur20190320_cube</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="o">-</span><span class="n">offsets</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span><span class="p">]</span>
     <span class="n">collapsed_frames</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">overwrite_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">registered</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -614,9 +612,7 @@ All files have been downloaded.
 
 <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">radius</span><span class="p">,</span> <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">130</span><span class="p">,</span> <span class="mi">130</span><span class="p">),</span> <span class="s2">&quot;window&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">}</span>
 
-<span class="n">metric_satspot_max</span> <span class="o">=</span> <span class="n">measure_satellite_spot_metrics</span><span class="p">(</span>
-    <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-<span class="p">)</span>
+<span class="n">metric_satspot_max</span> <span class="o">=</span> <span class="n">measure_satellite_spot_metrics</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <span class="n">metric_satspot_l2norm</span> <span class="o">=</span> <span class="n">measure_satellite_spot_metrics</span><span class="p">(</span>
     <span class="n">abaur20220224_cube</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;l2norm&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">)</span>
@@ -669,12 +665,8 @@ All files have been downloaded.
 <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
     <span class="n">qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cutoffs</span><span class="p">)</span>
     <span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">metric</span> <span class="o">&gt;</span> <span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qs</span><span class="p">]</span>
-    <span class="n">registered</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">shift_cube</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="o">-</span><span class="n">offsets</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span>
-    <span class="p">]</span>
-    <span class="n">collapsed_satspot_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">overwrite_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">registered</span><span class="p">]</span>
-    <span class="p">)</span>
+    <span class="n">registered</span> <span class="o">=</span> <span class="p">[</span><span class="n">shift_cube</span><span class="p">(</span><span class="n">abaur20220224_cube</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="o">-</span><span class="n">offsets</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span><span class="p">]</span>
+    <span class="n">collapsed_satspot_frames</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">overwrite_input</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">registered</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>

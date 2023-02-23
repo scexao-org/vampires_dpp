@@ -364,8 +364,8 @@ title="Print to PDF"
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pdi">
-     PDI
+    <a class="reference internal nav-link" href="#polarimetric-differential-imaging-pdi">
+     Polarimetric Differential Imaging (PDI)
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -374,8 +374,8 @@ title="Print to PDF"
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#h-alpha">
-     H-alpha
+    <a class="reference internal nav-link" href="#spectral-differential-imaging-sdi">
+     Spectral Differential Imaging (SDI)
     </a>
    </li>
   </ul>
@@ -452,8 +452,8 @@ title="Print to PDF"
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pdi">
-     PDI
+    <a class="reference internal nav-link" href="#polarimetric-differential-imaging-pdi">
+     Polarimetric Differential Imaging (PDI)
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -462,8 +462,8 @@ title="Print to PDF"
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#h-alpha">
-     H-alpha
+    <a class="reference internal nav-link" href="#spectral-differential-imaging-sdi">
+     Spectral Differential Imaging (SDI)
     </a>
    </li>
   </ul>
@@ -536,7 +536,7 @@ tail config_debug.log
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – filename-friendly name used for outputs from this pipeline. For example “20230101_ABAur”</p></li>
 <li><p><strong>target</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – <a class="reference external" href="https://simbad.cds.unistra.fr/simbad/">SIMBAD</a>-friendly object name used for looking up precise coordinates. If not provided, will use coordinate from headers, by default None.</p></li>
-<li><p><strong>frame_centers</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>list</em><em>]</em><em>]</em><em>]</em>) – Estimates of the star position in pixels (x, y) for each camera provided as a dict with “cam1” and “cam2” keys. If not provided, will use the geometric frame center, by default None. <em>Note: if you are estimating centers from raw data, keep in mind cam1 files are flipped on the y-axis, so any estimate needs to be flipped, too</em>.</p></li>
+<li><p><strong>frame_centers</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>list</em><em>]</em><em>]</em><em>]</em>) – Estimates of the star position in pixels (x, y) for each camera provided as a dict with “cam1” and “cam2” keys. If not provided, will use the geometric frame center, by default None.</p></li>
 <li><p><strong>coronagraph</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CoronagraphOptions" title="vampires_dpp.pipeline.config.CoronagraphOptions"><em>CoronagraphOptions</em></a><em>]</em>) – If provided, sets coronagraph-specific options and processing</p></li>
 <li><p><strong>satspots</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.SatspotOptions" title="vampires_dpp.pipeline.config.SatspotOptions"><em>SatspotOptions</em></a><em>]</em>) – If provided, sets satellite-spot specific options and enable satellite spot processing for frame selection and image registration</p></li>
 <li><p><strong>calibrate</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CalibrateOptions" title="vampires_dpp.pipeline.config.CalibrateOptions"><em>CalibrateOptions</em></a><em>]</em>) – If set, provides options for basic image calibration</p></li>
@@ -552,6 +552,16 @@ tail config_debug.log
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p><strong>Frame Centers</strong></p>
+<p>Frame centers need to be given as a dictionary of x, y pairs, like</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">frame_centers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;cam1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">127.5</span><span class="p">,</span> <span class="mf">127.5</span><span class="p">),</span>
+    <span class="s2">&quot;cam2&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">127.5</span><span class="p">,</span> <span class="mf">127.5</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>It is important to note that these frame centers are in the <em>raw</em> frames. If you open up the frames in DS9 and set the cross on the image center, you can copy the x, y coordinates directly into the configuration. We recommend doing this, especially for coronagraphic data since the satellite spot cutout indices depend on the frame centers and any off-center data may not register appropriately.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">PipelineOptions</span><span class="p">(</span>
 <span class="go">        name=&quot;test_config&quot;,</span>
@@ -1055,8 +1065,8 @@ tail config_debug.log
 </section>
 <section id="templates">
 <h2>Templates<a class="headerlink" href="#templates" title="Permalink to this headline">#</a></h2>
-<section id="pdi">
-<h3>PDI<a class="headerlink" href="#pdi" title="Permalink to this headline">#</a></h3>
+<section id="polarimetric-differential-imaging-pdi">
+<h3>Polarimetric Differential Imaging (PDI)<a class="headerlink" href="#polarimetric-differential-imaging-pdi" title="Permalink to this headline">#</a></h3>
 <details>
 <summary>PDI example</summary>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
@@ -1132,13 +1142,13 @@ tail config_debug.log
 </div>
 </details>
 </section>
-<section id="h-alpha">
-<h3>H-alpha<a class="headerlink" href="#h-alpha" title="Permalink to this headline">#</a></h3>
+<section id="spectral-differential-imaging-sdi">
+<h3>Spectral Differential Imaging (SDI)<a class="headerlink" href="#spectral-differential-imaging-sdi" title="Permalink to this headline">#</a></h3>
 <div class="warning admonition">
 <p class="admonition-title">Warning: WIP</p>
-<p>The full functionality for H-alpha is not implemented, but the collapsed data can be used as inputs, for now.</p>
+<p>The full functionality for SDI is not implemented, but the collapsed data can be used as inputs to manual reductions, for now.</p>
 </div>
-<p>H-alpha reduction looks a lot like PDI reduction without the polarimetry.</p>
+<p>SDI reduction looks a lot like PDI reduction without the polarimetry.</p>
 <details>
 <summary>H-alpha example</summary>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>

@@ -5,9 +5,10 @@
 VAMPIRES is an incredibly diverse instrument in its usage with SCExAO. It can be used for studying evolved stellar physics, protoplanetary disks, polarimetry, H-ɑ emission, in addition to an interferometric mode via sparse aperture masking (SAM). VAMPIRES is also used for focal-plane wavefront sensing, for example using differential focus for [phase diversity](), as well as complementary data for infrared observations (i.e., telemetry). `vampires_dpp` provides tooling primarily for imaging modes, although the image-processing tools provide building blocks for a variety of applications of VAMPIRES data (and PRs are welcome for interferometric modes!).
 
 1. Speckle imaging / telemetry
-2. Polarimetric differential imaging
-3. Coronagraphic polarimetric differential imaging
-4. H-ɑ differential imaging
+2. Polarimetric differential imaging (PDI)
+3. Narrowband spectral differential imaging (SDI)
+
+These modes also support the use of the SCExAO's [visible coronagraph](https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html).
 
 ## VAMPIRES Data Formats
 
@@ -32,7 +33,7 @@ These coordinates are the transpose/reverse of DS9 and minus one.
 ### Formats for imaging and PDI modes
 
 - STARS archive format (**default for open-use observers**)
-    - Files are given frame id names, e.g. "VMPA0023445.fits"
+    - Files are given frame id names, e.g. "VMPA00023445.fits"
     - Each file corresponds to a single camera, FLC state, and HWP angle
 - VAMPIRES format
     - Files have names as set by controller, e.g. "HD141569A_00_750-50_LyotStop_00_cam1.fits"
