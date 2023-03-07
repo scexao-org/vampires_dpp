@@ -153,7 +153,7 @@ def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs)
     NDArray, NDArray
         Returns the tuple (Qphi, Uphi)
     """
-    thetas = frame_angles(stokes_cube)
+    thetas = frame_angles(stokes_cube, conv="astro")
     if phi is None:
         phi = optimize_Uphi(stokes_cube, thetas, **kwargs)
 
@@ -193,18 +193,24 @@ def rotate_stokes(stokes_cube, theta):
     return out
 
 
-def collapse_stokes_cube(stokes_cube, pa, header=None):
+def collapse_stokes_cube(stokes_cube, pa, derotate_pa=False, header=None):
     stokes_out = np.empty_like(stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:]))
-    for s in range(stokes_cube.shape[0]):
-        derot = derotate_cube(stokes_cube[s], pa)
+    # derotate stokes vectors
+    stokes_cube_derot = np.empty_like(stokes_cube)
+    for i in range(stokes_cube.shape[1]):
+        derot_angle = PUPIL_OFFSET
+        if derotate_pa:
+            derot_angle += pa[i]
+        stokes_cube_derot[:, i] = rotate_stokes(stokes_cube[:, i], np.deg2rad(derot_angle))
+
+    for s in range(stokes_cube_derot.shape[0]):
+        derot = derotate_cube(stokes_cube_derot[s], pa)
         stokes_out[s] = np.median(derot, axis=0, overwrite_input=True)
-    # fix PUPIL_OFFSET effect
-    stokes_corr = rotate_stokes(stokes_out, np.deg2rad(PUPIL_OFFSET))
     # now that cube is derotated we can apply WCS
     if header is not None:
         apply_wcs(header, pupil_offset=None)
 
-    return stokes_corr, header
+    return stokes_out, header
 
 
 def polarization_calibration_triplediff(

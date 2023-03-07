@@ -65,7 +65,24 @@ def derotate_frame(
     return warp_frame(data, M, **kwargs)
 
 
-def warp_frame(data: ArrayLike, matrix, **kwargs):
+def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
+    """
+    Geometric frame warping. By default will use bicubic interpolation with `NaN` padding.
+
+    Parameters
+    ----------
+    data : ArrayLike
+        2D image
+    matrix : ArrayLike
+        Geometric transformation matrix
+    **kwargs
+        Keyword arguments are passed to opencv. Important keywords like `borderValue`, `borderMode`, and `flags` can customize the padding and interpolation behavior of the transformation.
+
+    Returns
+    -------
+    NDArray
+        Warped frame
+    """
     default_kwargs = {
         "flags": cv2.INTER_CUBIC,
         "borderMode": cv2.BORDER_CONSTANT,
@@ -76,7 +93,22 @@ def warp_frame(data: ArrayLike, matrix, **kwargs):
     return cv2.warpAffine(data.astype("f4"), matrix, shape, **default_kwargs)
 
 
-def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs):
+def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArray:
+    """
+    Derotates a cube frame-by-frame with the corresponding derotation angle vector.
+
+    Parameters
+    ----------
+    data : ArrayLike
+        3D cube to derotate
+    angles : ArrayLike | float
+        If a vector, will derotate each frame by the corresponding angle. If a float, will derotate each frame by the same value.
+
+    Returns
+    -------
+    NDArray
+        Derotated cube
+    """
     # reverse user-given center because scikit-image
     # uses swapped axes for this parameter only
     angles = np.asarray(angles)
@@ -89,14 +121,44 @@ def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs):
     return rotated
 
 
-def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs):
+def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs) -> NDArray:
+    """
+    Translate each frame in a cube.
+
+    Parameters
+    ----------
+    cube : ArrayLike
+        3D cube
+    shifts : ArrayLike
+        Array of (dy, dx) pairs, one for each frame in the input cube
+
+    Returns
+    -------
+    NDArray
+        Shifted cube
+    """
     out = np.empty_like(cube)
     for i in range(cube.shape[0]):
         out[i] = shift_frame(cube[i], shifts[i], **kwargs)
     return out
 
 
-def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs):
+def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
+    """
+    Do a variance-weighted simultaneous derotation and collapse of ADI data based on the algorithm presented in `Bottom 2017 <https://ui.adsabs.harvard.edu/abs/2017RNAAS...1...30B>`_.
+
+    Parameters
+    ----------
+    data : ArrayLike
+        3D cube
+    angles : ArrayLike
+        Vector of angles to derotate data cube by
+
+    Returns
+    -------
+    NDArray
+        2D derotated and collapsed frame
+    """
     variance_frame = np.var(data, axis=0, keepdims=True)
 
     # if the variance is zero, return the mean
@@ -117,7 +179,26 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs):
     return weighted_frame
 
 
-def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs):
+def collapse_cube(
+    cube: ArrayLike, method: str = "median", header: Optional[fits.Header] = None, **kwargs
+) -> Tuple[NDArray, Optional[fits.Header]]:
+    """
+    Collapse a cube along its time axis
+
+    Parameters
+    ----------
+    cube : ArrayLike
+        3D cube
+    method : str, optional
+        One of "median", "mean", "varmean", "biweight", by default "median"
+    header : fits.Header, optional
+        FITS header, which will be updated with metadata if provided. By default None
+
+    Returns
+    -------
+    Tuple[NDArray, Optional[fits.Header]]
+        Tuple of collapsed frame and updated header. If header is not provided, will be None.
+    """
     # clean inputs
     match method.strip().lower():
         case "median":
@@ -136,7 +217,7 @@ def collapse_cube(cube: ArrayLike, method: str = "median", header=None, **kwargs
     return frame, header
 
 
-def collapse_cube_file(filename, force=False, **kwargs):
+def collapse_cube_file(filename, force: bool = False, **kwargs) -> Path:
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
@@ -337,9 +418,9 @@ def correct_distortion_cube(
     """
     if center is None:
         center = frame_center(cube)
-    # scale and retate frames with single transform
+    # scale and retate frames with single transformpty_like(cube)
     M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
-    corr_cube = np.empty_like(cube)
+    corr_cube = np.em
     for i in range(cube.shape[0]):
         # if downsizing, low-pass filter to reduce moire effect
         if scale < 1:

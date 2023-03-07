@@ -454,6 +454,8 @@ class PolarimetryOptions(OutputDirectory):
         Number of cubes expected per HWP position, by default 1.
     order : str
         HWP iteration order, one of `"QQUU"` or `"QUQU"`. By default `"QQUU"`.
+    derotate_pa : bool
+        If true, will not assume the HWP is in pupil-tracking mode (the default) which requires additional rotation of the Stokes vectors by the parallactic angle. By defult, False.
     output_directory : Optional[Path]
         The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
@@ -477,6 +479,7 @@ class PolarimetryOptions(OutputDirectory):
     ip: Optional[IPOptions] = field(default=None, skip_if_default=True)
     N_per_hwp: int = field(default=1, skip_if_default=True)
     order: str = field(default="QQUU", skip_if_default=True)
+    derotate_pa: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()

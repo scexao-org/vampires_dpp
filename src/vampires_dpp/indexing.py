@@ -46,7 +46,7 @@ def frame_radii(frame: ArrayLike, center=None) -> NDArray:
     return radii
 
 
-def frame_angles(frame: ArrayLike, center=None):
+def frame_angles(frame: ArrayLike, center=None, conv="image"):
     """
     Return the angles of pixels around ``center`` in the image
 
@@ -56,6 +56,8 @@ def frame_angles(frame: ArrayLike, center=None):
         Input frame
     center : Tuple, optional
         The center to calculate radii from. If None, will default to the frame center. By default None
+    conv : str, optional
+        The convention to use, either "image" (angle increases CCW from +x axis of image) or "astro" (angle increases degrees East of North). By default, "image".
 
     Returns
     -------
@@ -64,9 +66,24 @@ def frame_angles(frame: ArrayLike, center=None):
     """
     if center is None:
         center = frame_center(frame)
+
+    match conv.lower():
+        case "image":
+            return frame_angles_image(frame, center)
+        case "astro":
+            return frame_angles_astro(frame, center)
+
+
+def frame_angles_image(frame, center):
     Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
-    # y flip + x flip TODO
     thetas = np.arctan2(Ys - center[0], Xs - center[1])
+    return thetas
+
+
+def frame_angles_astro(frame, center):
+    Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
+    # degrees East of North: phi = arctan(-x, y)
+    thetas = np.arctan2(center[1] - Xs, Ys - center[0])
     return thetas
 
 

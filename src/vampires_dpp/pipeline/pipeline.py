@@ -435,7 +435,10 @@ class Pipeline(PipelineOptions):
         # 3. Do higher-order correction
         if self.products is not None:
             self.polarimetry_triplediff(
-                force=tripwire, N_per_hwp=config.N_per_hwp, order=config.order
+                force=tripwire,
+                N_per_hwp=config.N_per_hwp,
+                order=config.order,
+                derotate_pa=config.derotate_pa,
             )
 
         self.logger.info("Finished PDI")
@@ -600,7 +603,7 @@ class Pipeline(PipelineOptions):
     # header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
     # fits.writeto(outname, stack, header=header, overwrite=True)
 
-    def polarimetry_triplediff(self, force=False, N_per_hwp=1, **kwargs):
+    def polarimetry_triplediff(self, force=False, N_per_hwp=1, derotate_pa=False, **kwargs):
         # sort table
         table = header_table(self.diff_files_ip, quiet=True)
         inds = pol_inds(table["U_HWPANG"], 2 * N_per_hwp, **kwargs)
@@ -629,7 +632,7 @@ class Pipeline(PipelineOptions):
                 header=True,
             )
             stokes_cube_collapsed, header = collapse_stokes_cube(
-                stokes_cube, stokes_angles, header=header
+                stokes_cube, stokes_angles, header=header, derotate_pa=derotate_pa
             )
             write_stokes_products(
                 stokes_cube_collapsed,
