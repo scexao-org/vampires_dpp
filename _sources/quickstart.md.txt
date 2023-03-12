@@ -80,10 +80,27 @@ master_cals
 
 ## Set up configuration files
 
-After your data has been downloaded and sorted, you'll want to create configuration files for the data you want to process. To get started quickly, we provide templates for common observing scenarios that can be produced with `dpp new`. In the example below, we are creating a PDI template with the 55 mas Lyot coronagraph.
+After your data has been downloaded and sorted, you'll want to create configuration files for the data you want to process. To get started quickly, we provide templates for common observing scenarios that can be produced interactively with `dpp new`. In the example below, we are creating a PDI template with the 55 mas Lyot coronagraph.
 
 ```
-dpp new 20230101_ABAur.toml -o "AB Aur" -t pdi -c 55 --preview
+dpp new 20230101_ABAur.toml
+```
+```
+Choose a starting template [singlecam/pdi/halpha]: pdi
+Path-friendly name for this reduction [20230101_ABAur]: 
+SIMBAD-friendly object name (optional): AB Aur
+Do you have dark files? [Y/n]: 
+Enter path to cam1 dark (optional): ../master_cals/master_dark_em300_000100ms_cam1.fits
+Enter path to cam2 dark [../master_cals/master_dark_em300_000100ms_cam2.fits]: 
+Do you have flat files? [Y/n]: y
+Enter path to cam1 flat (optional): ../master_cals/master_flat_cam1.fits
+Enter path to cam2 dark [../master_cals/master_flat_cam2.fits]: 
+Did you use a coronagraph? [y/N]: y
+  Enter coronagraph IWA (mas) [36/55/92/129]: 55
+Did you use satellite spots? [Y/n]: 
+  Enter satspot radius (lam/D) [15.8]: 11.2
+  Enter satspot amplitude (nm) [50]: 
+20230101_ABAur.toml
 ```
 
 At this point, we highly recommend viewing the [pipeline options]() and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.

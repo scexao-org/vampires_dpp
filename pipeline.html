@@ -535,7 +535,7 @@ tail config_debug.log
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – filename-friendly name used for outputs from this pipeline. For example “20230101_ABAur”</p></li>
-<li><p><strong>coordinate</strong> (<em>Optional</em><em>[</em><em>CoordinateOptions</em><em>]</em>) – </p></li>
+<li><p><strong>coordinate</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CoordinateOptions" title="vampires_dpp.pipeline.config.CoordinateOptions"><em>CoordinateOptions</em></a><em>]</em>) – </p></li>
 <li><p><strong>frame_centers</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>list</em><em>]</em><em>]</em><em>]</em>) – Estimates of the star position in pixels (x, y) for each camera provided as a dict with “cam1” and “cam2” keys. If not provided, will use the geometric frame center, by default None.</p></li>
 <li><p><strong>coronagraph</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CoronagraphOptions" title="vampires_dpp.pipeline.config.CoronagraphOptions"><em>CoronagraphOptions</em></a><em>]</em>) – If provided, sets coronagraph-specific options and processing</p></li>
 <li><p><strong>satspots</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.SatspotOptions" title="vampires_dpp.pipeline.config.SatspotOptions"><em>SatspotOptions</em></a><em>]</em>) – If provided, sets satellite-spot specific options and enable satellite spot processing for frame selection and image registration</p></li>
@@ -656,6 +656,33 @@ tail config_debug.log
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CoordinateOptions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoordinateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_ra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J2016'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoordinateOptions" title="Permalink to this definition">#</a></dt>
+<dd><p>Astronomical coordinate options</p>
+<div class="tip admonition">
+<p class="admonition-title">Tip: GAIA</p>
+<p>This can be auto-generated wtih GAIA coordinate information through the command line <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">new</span></code> interface.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>object</strong> (<em>str</em>) – SIMBAD-friendly object name</p></li>
+<li><p><strong>ra</strong> (<em>str</em>) – Right ascension in sexagesimal hour angles</p></li>
+<li><p><strong>dec</strong> (<em>str</em>) – Declination in sexagesimal degrees</p></li>
+<li><p><strong>parallax</strong> (<em>float</em>) – parallax of system in mas</p></li>
+<li><p><strong>pm_ra</strong> (<em>float</em>) – Proper motion of RA axis in mas/yr, by default 0.</p></li>
+<li><p><strong>pm_dec</strong> (<em>float</em>) – Proper motion of DEC axis in mas/yr, by default 0.</p></li>
+<li><p><strong>frame</strong> (<em>str</em>) – Coordinate reference frame, by default “icrs”.</p></li>
+<li><p><strong>obstime</strong> (<em>str</em>) – Observation time as a string, by default “J2016” (to coincide with GAIA coordinates)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">

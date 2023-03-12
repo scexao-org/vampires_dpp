@@ -547,31 +547,37 @@ options:
 </section>
 <section id="set-up-configuration-files">
 <h2>Set up configuration files<a class="headerlink" href="#set-up-configuration-files" title="Permalink to this headline">#</a></h2>
-<p>After your data has been downloaded and sorted, you’ll want to create configuration files for the data you want to process. To get started quickly, we provide templates for common observing scenarios that can be produced with <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">new</span></code>. In the example below, we are creating a PDI template with the 55 mas Lyot coronagraph.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">new</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="o">-</span><span class="n">o</span> <span class="s2">&quot;AB Aur&quot;</span> <span class="o">-</span><span class="n">t</span> <span class="n">pdi</span> <span class="o">-</span><span class="n">c</span> <span class="mi">55</span> <span class="o">--</span><span class="n">preview</span>
+<p>After your data has been downloaded and sorted, you’ll want to create configuration files for the data you want to process. To get started quickly, we provide templates for common observing scenarios that can be produced interactively with <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">new</span></code>. In the example below, we are creating a PDI template with the 55 mas Lyot coronagraph.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">new</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Choose a starting template [singlecam/pdi/halpha]: pdi
+Path-friendly name for this reduction [20230101_ABAur]: 
+SIMBAD-friendly object name (optional): AB Aur
+Do you have dark files? [Y/n]: 
+Enter path to cam1 dark (optional): ../master_cals/master_dark_em300_000100ms_cam1.fits
+Enter path to cam2 dark [../master_cals/master_dark_em300_000100ms_cam2.fits]: 
+Do you have flat files? [Y/n]: y
+Enter path to cam1 flat (optional): ../master_cals/master_flat_cam1.fits
+Enter path to cam2 dark [../master_cals/master_flat_cam2.fits]: 
+Did you use a coronagraph? [y/N]: y
+  Enter coronagraph IWA (mas) [36/55/92/129]: 55
+Did you use satellite spots? [Y/n]: 
+  Enter satspot radius (lam/D) [15.8]: 11.2
+  Enter satspot amplitude (nm) [50]: 
+20230101_ABAur.toml
 </pre></div>
 </div>
 <p>At this point, we highly recommend viewing the <span class="xref myst">pipeline options</span> and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.</p>
 <section id="id2">
 <h3>Reference<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">dpp</span> <span class="n">new</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="p">{</span><span class="n">singlecam</span><span class="p">,</span><span class="n">pdi</span><span class="p">,</span><span class="n">halpha</span><span class="p">,</span><span class="nb">all</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OBJECT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">IWA</span><span class="p">]</span>
-               <span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span>
-               <span class="n">config</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">dpp</span> <span class="n">new</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">config</span>
 
 <span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
-  <span class="n">config</span>                <span class="n">path</span> <span class="n">to</span> <span class="n">configuration</span> <span class="n">file</span>
+  <span class="n">config</span>      <span class="n">path</span> <span class="n">to</span> <span class="n">configuration</span> <span class="n">file</span>
 
 <span class="n">options</span><span class="p">:</span>
-  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
-  <span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="o">--</span><span class="n">interactive</span>     <span class="n">Launch</span> <span class="n">interactive</span> <span class="n">generator</span> <span class="p">(</span><span class="n">ignores</span> <span class="n">other</span> <span class="n">command</span>
-                        <span class="n">line</span> <span class="n">arguments</span><span class="p">)</span>
-  <span class="o">-</span><span class="n">t</span> <span class="p">{</span><span class="n">singlecam</span><span class="p">,</span><span class="n">pdi</span><span class="p">,</span><span class="n">halpha</span><span class="p">,</span><span class="nb">all</span><span class="p">},</span> <span class="o">--</span><span class="n">template</span> <span class="p">{</span><span class="n">singlecam</span><span class="p">,</span><span class="n">pdi</span><span class="p">,</span><span class="n">halpha</span><span class="p">,</span><span class="nb">all</span><span class="p">}</span>
-                        <span class="n">template</span> <span class="n">configuration</span> <span class="n">to</span> <span class="n">make</span>
-  <span class="o">-</span><span class="n">o</span> <span class="n">OBJECT</span><span class="p">,</span> <span class="o">--</span><span class="nb">object</span> <span class="n">OBJECT</span>
-                        <span class="n">SIMBAD</span><span class="o">-</span><span class="n">compatible</span> <span class="n">target</span> <span class="n">name</span>
-  <span class="o">-</span><span class="n">c</span> <span class="n">IWA</span><span class="p">,</span> <span class="o">--</span><span class="n">coronagraph</span> <span class="n">IWA</span>
-                        <span class="k">if</span> <span class="n">coronagraphic</span><span class="p">,</span> <span class="n">specify</span> <span class="n">IWA</span> <span class="p">(</span><span class="n">mas</span><span class="p">)</span>
-  <span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="o">--</span><span class="n">preview</span>         <span class="n">preview</span> <span class="n">generated</span> <span class="n">TOML</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>  <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
 </pre></div>
 </div>
 </section>
