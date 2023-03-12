@@ -112,6 +112,12 @@ At this point, we highly recommend viewing the [pipeline options]() and making a
 
 ## Running the pipeline
 
+```{admonition} Clean up files
+:class: tip
+
+Before running files through the pipeline, it is _highly_ recommended to inspect through your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.
+```
+
 After you've selected your configuration options, you can run the pipeline from the command line with `dpp run`
 
 ```

@@ -584,6 +584,10 @@ Did you use satellite spots? [Y/n]:
 </section>
 <section id="running-the-pipeline">
 <h2>Running the pipeline<a class="headerlink" href="#running-the-pipeline" title="Permalink to this headline">#</a></h2>
+<div class="tip admonition">
+<p class="admonition-title">Clean up files</p>
+<p>Before running files through the pipeline, it is <em>highly</em> recommended to inspect through your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.</p>
+</div>
 <p>After you’ve selected your configuration options, you can run the pipeline from the command line with <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">run</span></code></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">run</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00010ms</span><span class="o">/*</span>
 </pre></div>
