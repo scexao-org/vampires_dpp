@@ -45,6 +45,7 @@ We use [semantic versioning](https://semver.org/), so there are certain guarante
 ```{eval-rst}
 .. autoclass:: vampires_dpp.pipeline.pipeline.Pipeline
     :members:
+.. autoclass:: vampires_dpp.pipeline.config.CoordinateOptions
 .. autoclass:: vampires_dpp.pipeline.config.ProductOptions
 ```
 

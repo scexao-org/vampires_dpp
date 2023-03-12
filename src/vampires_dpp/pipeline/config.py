@@ -46,6 +46,33 @@ class CamFileInput:
 @serialize
 @dataclass
 class CoordinateOptions:
+    """Astronomical coordinate options
+
+    .. admonition:: Tip: GAIA
+        :class: Tip
+
+        This can be auto-generated wtih GAIA coordinate information through the command line ``dpp new`` interface.
+
+    Parameters
+    ----------
+    object: str
+        SIMBAD-friendly object name
+    ra: str
+        Right ascension in sexagesimal hour angles
+    dec: str
+        Declination in sexagesimal degrees
+    parallax: float
+        parallax of system in mas
+    pm_ra: float
+        Proper motion of RA axis in mas/yr, by default 0.
+    pm_dec: float
+        Proper motion of DEC axis in mas/yr, by default 0.
+    frame: str
+        Coordinate reference frame, by default "icrs".
+    obstime: str
+        Observation time as a string, by default "J2016" (to coincide with GAIA coordinates)
+    """
+
     object: str
     ra: str
     dec: str
