@@ -1,7 +1,11 @@
+import glob
 import logging
+import os
+import readline
 from argparse import ArgumentParser
 from pathlib import Path
 
+import astropy.units as u
 from serde.toml import to_toml
 
 import vampires_dpp as vpp
@@ -9,10 +13,10 @@ from vampires_dpp.calibration import make_master_dark, make_master_flat
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import (
+    CamFileInput,
     CoordinateOptions,
     CoronagraphOptions,
     SatspotOptions,
-    u,
 )
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import (
@@ -143,116 +147,69 @@ calib_parser.set_defaults(func=calib)
 ########## new ##########
 
 
+class TabCompleter:
+    """
+    A tab completer that can either complete from
+    the filesystem or from a list.
+
+    Partially taken from:
+    http://stackoverflow.com/questions/5637124/tab-completion-in-pythons-raw-input
+    """
+
+    def pathCompleter(self, text, state):
+        """
+        This is the tab completer for systems paths.
+        Only tested on *nix systems
+        """
+        readline.get_line_buffer().split()
+
+        # replace ~ with the user's home dir. See https://docs.python.org/2/library/os.path.html
+        if "~" in text:
+            text = os.path.expanduser("~")
+
+        # autocomplete directories with having a trailing slash
+        if os.path.isdir(text):
+            text += "/"
+
+        return [x for x in glob.glob(text + "*")][state]
+
+    def createListCompleter(self, ll):
+        """
+        This is a closure that creates a method that autocompletes from
+        the given list.
+
+        Since the autocomplete function can't be given a list to complete from
+        a closure is used to create the listCompleter function with a list to complete
+        from.
+        """
+
+        def listCompleter(text, state):
+            line = readline.get_line_buffer()
+
+            if not line:
+                return [c + " " for c in ll][state]
+
+            else:
+                return [c + " " for c in ll if c.startswith(line)][state]
+
+        return listCompleter
+
+
 def new_config(args):
     path = Path(args.config)
-    return interactive_config(path)
-    # if args.interactive:
-    # match args.template:
-    #     case "singlecam":
-    #         t = VAMPIRES_SINGLECAM
-    #     case "pdi":
-    #         t = VAMPIRES_PDI
-    #     case "halpha":
-    #         t = VAMPIRES_SDI
-    #     case "all":
-    #         t = VAMPIRES_MAXIMAL
-    #     case _:
-    #         raise ValueError(f"template not recognized {args.template}")
-    # t.target = args.object
-    # t.name = path.stem
-    # if args.iwa:
-    #     t.coronagraph = CoronagraphOptions(args.iwa)
-    #     t.satspots = SatspotOptions()
-    #     t.register.method = "com"
+    readline.set_completer_delims(" \t\n;")
+    readline.parse_and_bind("tab: complete")
 
-    # toml_str = to_toml(t)
-    # if args.preview:
-    #     # print(toml_str)
-    #     print(f"{'-'*12} PREVIEW {path.name} {'-'*12}")
-    #     print(toml_str)
-    #     print(f"{'-'*12} END PREVIEW {'-'*12}")
-    #     response = input(f"Would you like to save this configuration? [y/N] ").strip().lower()
-    #     if response != "y":
-    #         return
+    completer = TabCompleter()
 
-    # if path.is_file():
-    #     response = (
-    #         input(
-    #             f"{path.name} already exists in output directory, would you like to overwrite it? [y/N] "
-    #         )
-    #         .strip()
-    #         .lower()
-    #     )
-    #     if response != "y":
-    #         return
-
-    # with path.open("w") as fh:
-    #     fh.write(toml_str)
-
-    # return path
-
-
-import readline
-import sys
-from os import environ
-
-
-class ChoiceCompleter(object):  # Custom completer
-    def __init__(self, options):
-        self.options = sorted(options)
-
-    def complete(self, text, state):
-        if state == 0:  # on first trigger, build possible matches
-            if not text:
-                self.matches = self.options[:]
-            else:
-                self.matches = [s for s in self.options if s and s.startswith(text)]
-
-        # return match indexed by state
-        try:
-            return self.matches[state]
-        except IndexError:
-            return None
-
-    def display_matches(self, substitution, matches, longest_match_length):
-        line_buffer = readline.get_line_buffer()
-        columns = environ.get("COLUMNS", 80)
-
-        print()
-
-        tpl = "{:<" + str(int(max(map(len, matches)) * 1.2)) + "}"
-
-        buffer = ""
-        for match in matches:
-            match = tpl.format(match[len(substitution) :])
-            if len(buffer + match) > columns:
-                print(buffer)
-                buffer = ""
-            buffer += match
-
-        if buffer:
-            print(buffer)
-
-        print("> ", end="")
-        print(line_buffer, end="")
-        sys.stdout.flush()
-
-
-readline.set_completer_delims(" \t\n;")
-readline.parse_and_bind("tab: complete")
-
-template_choices = ["singlecam", "pdi", "halpha"]
-template_completer = ChoiceCompleter(template_choices)
-
-iwa_choices = ["36", "55", "92", "129"]
-iwa_completer = ChoiceCompleter(template_choices)
-
-
-def interactive_config(path):
+    iwa_choices = ["36", "55", "92", "129"]
+    iwa_completer = completer.createListCompleter(iwa_choices)
 
     ## get template
-    readline.set_completer(template_completer.complete)
-    readline.set_completion_display_matches_hook(template_completer.display_matches)
+    template_choices = ["singlecam", "pdi", "halpha"]
+    template_completer = completer.createListCompleter(template_choices)
+
+    readline.set_completer(template_completer)
     template = input(f"Choose a starting template [{'/'.join(template_choices)}]: ").strip().lower()
     match template:
         case "singlecam":
@@ -271,20 +228,20 @@ def interactive_config(path):
     tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
 
     ## get target
-    target = input(f"SIMBAD-friendly target name (optional): ").strip()
-    targ = None if target == "" else target
-    if targ is not None:
+    object = input(f"SIMBAD-friendly object name (optional): ").strip()
+    obj = None if object == "" else object
+    if obj is not None:
         coord = None
         rad = 1
         cat = "dr3"
         while True:
             try:
-                coord = get_gaia_astrometry(targ, catalog=cat, radius=rad)
+                coord = get_gaia_astrometry(obj, catalog=cat, radius=rad)
                 break
             except:
-                print(f'Could not find {targ} in GAIA {cat.upper()} with {rad}" radius.')
+                print(f'Could not find {obj} in GAIA {cat.upper()} with {rad}" radius.')
                 _input = input(
-                    "Query different catalog (dr1/dr2/dr3), enter search radius in arcsec, or enter new target name (optional): "
+                    "Query different catalog (dr1/dr2/dr3), enter search radius in arcsec, or enter new object name (optional): "
                 ).strip()
                 match _input.lower():
                     case "":
@@ -299,11 +256,11 @@ def interactive_config(path):
                         try:
                             rad = float(_input)
                         except:
-                            targ = _input
+                            obj = _input
 
         if coord is not None:
             tpl.coordinate = CoordinateOptions(
-                target=targ,
+                object=obj,
                 ra=coord.ra.to_string("hour", sep=":", pad=True),
                 dec=coord.dec.to_string("deg", sep=":", pad=True),
                 parallax=coord.distance.to(u.mas, equivalencies=u.parallax()).value,
@@ -318,20 +275,47 @@ def interactive_config(path):
     ## darks
     have_darks = input("Do you have dark files? [Y/n]: ").strip().lower()
     if have_darks == "" or have_darks == "y":
-        pass
-        # TODO get darks
+        readline.set_completer(completer.pathCompleter)
+        cam1_path = input("Enter path to cam1 dark (optional): ").strip()
+        cam1_path = None if cam1_path == "" else cam1_path
+        cam2_path = None
+        if template != "singlecam":
+            if cam1_path is not None:
+                cam2_default = cam1_path.replace("cam1", "cam2")
+                cam2_path = input(f"Enter path to cam2 dark [{cam2_default}]: ").strip()
+                if cam2_path == "":
+                    cam2_path = cam2_default
+            else:
+                cam2_path = input(f"Enter path to cam2 dark (optional): ").strip()
+                if cam2_path == "":
+                    cam2_path = None
+        readline.set_completer()
+        tpl.calibrate.master_darks = CamFileInput(cam1=cam1_path, cam2=cam2_path)
 
     ## flats
     have_flats = input("Do you have flat files? [Y/n]: ").strip().lower()
     if have_flats == "" or have_flats == "y":
-        pass
-        # TODO get flats
+        readline.set_completer(completer.pathCompleter)
+        cam1_path = input("Enter path to cam1 flat (optional): ").strip()
+        cam1_path = None if cam1_path == "" else cam1_path
+        cam2_path = None
+        if template != "singlecam":
+            if cam1_path is not None:
+                cam2_default = cam1_path.replace("cam1", "cam2")
+                cam2_path = input(f"Enter path to cam2 dark [{cam2_default}]: ").strip()
+                if cam2_path == "":
+                    cam2_path = cam2_default
+            else:
+                cam2_path = input(f"Enter path to cam2 dark (optional): ").strip()
+                if cam2_path == "":
+                    cam2_path = None
+        readline.set_completer()
+        tpl.calibrate.master_flats = CamFileInput(cam1=cam1_path, cam2=cam2_path)
 
     ## Coronagraph
     have_coro = input("Did you use a coronagraph? [y/N]: ").strip().lower()
     if have_coro == "y":
-        readline.set_completer(iwa_completer.complete)
-        readline.set_completion_display_matches_hook(iwa_completer.display_matches)
+        readline.set_completer(iwa_completer)
         iwa = float(input(f"  Enter coronagraph IWA (mas) [{'/'.join(iwa_choices)}]: ").strip())
         tpl.coronagraph = CoronagraphOptions(iwa=iwa)
         readline.set_completer()
@@ -371,24 +355,6 @@ def interactive_config(path):
 
 new_parser = subparser.add_parser("new", aliases="n", help="generate configuration files")
 new_parser.add_argument("config", help="path to configuration file")
-new_parser.add_argument(
-    "-i",
-    "--interactive",
-    action="store_true",
-    help="Launch interactive generator (ignores other command line arguments)",
-)
-new_parser.add_argument(
-    "-t",
-    "--template",
-    default="all",
-    choices=("singlecam", "pdi", "halpha", "all"),
-    help="template configuration to make",
-)
-new_parser.add_argument("-o", "--object", default="", help="SIMBAD-compatible target name")
-new_parser.add_argument(
-    "-c", "--coronagraph", dest="iwa", type=float, help="if coronagraphic, specify IWA (mas)"
-)
-new_parser.add_argument("-p", "--preview", action="store_true", help="preview generated TOML")
 new_parser.set_defaults(func=new_config)
 
 ########## run ##########

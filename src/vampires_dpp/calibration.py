@@ -17,7 +17,7 @@ from astroscrappy import detect_cosmics
 from tqdm.auto import tqdm
 
 from vampires_dpp.constants import DEFAULT_NPROC, READNOISE, SUBARU_LOC
-from vampires_dpp.headers import fix_header
+from vampires_dpp.headers import fix_header, parallactic_angle
 from vampires_dpp.image_processing import (
     collapse_cube,
     collapse_frames_files,
@@ -67,7 +67,7 @@ def calibrate_file(
 
     raw_cube, header = fits.getdata(path, ext=hdu, header=True)
     # fix header
-    header = apply_wcs(fix_header(header))
+    header = fix_header(header)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
     if coord is None:
         coord_now = get_coord_header(header, time)
@@ -76,6 +76,10 @@ def calibrate_file(
 
     header["RA"] = coord_now.ra.to_string(unit=u.hourangle, sep=":")
     header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
+    pa = parallactic_angle(time, coord_now, header)
+    header["PARANG"] = pa, "deg, parallactic angle"
+    header = apply_wcs(header, parang=pa)
+
     # Discard frames in OG VAMPIRES
     if "U_FLCSTT" in header:
         cube = raw_cube.astype("f4")

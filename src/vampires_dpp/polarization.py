@@ -208,7 +208,7 @@ def collapse_stokes_cube(stokes_cube, pa, derotate_pa=False, header=None):
         stokes_out[s] = np.median(derot, axis=0, overwrite_input=True)
     # now that cube is derotated we can apply WCS
     if header is not None:
-        apply_wcs(header, pupil_offset=None)
+        apply_wcs(header)
 
     return stokes_out, header
 
@@ -309,7 +309,7 @@ def triplediff_average_angles(filenames):
             "Cannot do triple-differential calibration without exact sets of 8 frames for each HWP cycle"
         )
     # make sure we get data in correct order using FITS headers
-    derot_angles = np.asarray([fits.getval(f, "D_IMRPAD") + PUPIL_OFFSET for f in filenames])
+    derot_angles = np.asarray([fits.getval(f, "PARANG") for f in filenames])
     N_hwp_sets = len(filenames) // 8
     pas = np.zeros(N_hwp_sets, dtype="f4")
     for i in range(pas.shape[0]):
@@ -357,7 +357,7 @@ def pol_inds(hwp_angs: ArrayLike, n=4, order="QQUU"):
 
 def polarization_calibration_model(filename):
     header = fits.getheader(filename)
-    pa = np.deg2rad(header["D_IMRPAD"] + 180 - header["D_IMRPAP"])
+    pa = np.deg2rad(header["PARANG"])
     altitude = np.deg2rad(header["ALTITUDE"])
     hwp_theta = np.deg2rad(header["U_HWPANG"])
     imr_theta = np.deg2rad(header["D_IMRANG"])

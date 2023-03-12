@@ -5,12 +5,20 @@ import numpy as np
 from astropy.io import fits
 from astropy.time import Time
 
+from vampires_dpp.constants import PUPIL_OFFSET
 
-def parallactic_angle(header):
-    if "D_IMRPAD" in header:
-        return header["D_IMRPAD"] + header["LONPOLE"] - header["D_IMRPAP"]
-    else:
-        return parallactic_angle_altaz(header["ALTITUDE"], header["AZIMUTH"])
+
+def parallactic_angle(time, coord, header, pupil_offset=PUPIL_OFFSET):
+    pa = parallactic_angle_hadec(
+        time.sidereal_time("apparent").hourangle - coord.ra.hourangle, coord.dec.deg
+    )
+    pa = (pa + PUPIL_OFFSET - 180 + header["D_IMRPAP"]) % 360
+
+    if pa > 180:
+        pa -= 360
+    elif pa < -180:
+        pa += 360
+    return pa
 
 
 def parallactic_angle_hadec(ha, dec, lat=19.823806):

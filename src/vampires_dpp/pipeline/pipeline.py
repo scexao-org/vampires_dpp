@@ -210,7 +210,7 @@ class Pipeline(PipelineOptions):
         self.pupil_offset = PUPIL_OFFSET
         self.coord = None
         if self.coordinate is not None:
-            self.coord = self.coordinate.coord
+            self.coord = self.coordinate.get_coord()
 
     def calibrate_one(self, path, fileinfo, tripwire=False):
         self.logger.info("Starting data calibration")
@@ -360,7 +360,7 @@ class Pipeline(PipelineOptions):
         if len(cam1_table) > 0:
             outname1 = self.products.output_directory / f"{self.name}_adi_cube_cam1.fits"
             combine_frames_files(cam1_table["path"], output=outname1, force=force)
-            derot_angles1 = np.asarray(cam1_table["D_IMRPAD"] + PUPIL_OFFSET)
+            derot_angles1 = np.asarray(cam1_table["PARANG"])
             fits.writeto(
                 outname1.with_stem(f"{outname1.stem}_angles"),
                 derot_angles1.astype("f4"),
@@ -371,7 +371,7 @@ class Pipeline(PipelineOptions):
         if len(cam2_table) > 0:
             outname2 = self.products.output_directory / f"{self.name}_adi_cube_cam2.fits"
             combine_frames_files(cam2_table["path"], output=outname2, force=force)
-            derot_angles2 = np.asarray(cam2_table["D_IMRPAD"] + PUPIL_OFFSET)
+            derot_angles2 = np.asarray(cam2_table["PARANG"])
             fits.writeto(
                 outname2.with_stem(f"{outname2.stem}_angles"),
                 derot_angles2.astype("f4"),

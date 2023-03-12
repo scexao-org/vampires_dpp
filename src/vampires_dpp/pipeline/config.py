@@ -46,7 +46,7 @@ class CamFileInput:
 @serialize
 @dataclass
 class CoordinateOptions:
-    target: str
+    object: str
     ra: str
     dec: str
     parallax: float
@@ -55,28 +55,29 @@ class CoordinateOptions:
     frame: str = field(default="icrs", skip_if_default=True)
     obstime: str = field(default="J2016", skip_if_default=True)
 
-    def __post__init__(self):
+    def __post_init__(self):
         if isinstance(self.ra, str):
-            self.ra_ang = Angle(self.ra, "hours")
+            self.ra_ang = Angle(self.ra, "hour")
         else:
             self.ra_ang = Angle(self.ra, "deg")
-        self.ra = self.ra_ang.to_string(style="hmsdms", sep=":")
+        self.ra = self.ra_ang.to_string(pad=True, sep=":")
         self.dec_ang = Angle(self.dec, "deg")
-        self.dec = self.dec_ang.to_string(style="hmsdms", sep=":")
-        self.distance = 1e3 / self.parallax
-        self.coord = SkyCoord(
-            ra=self.ra_ang,
-            dec=self.dec_ang,
-            pm_ra_cosdec=self.pm_ra * u.mas / u.year,
-            pm_dec=self.pm_dec * u.mas / u.year,
-            distance=self.distance * u.pc,
-            frame=self.frame,
-            obstime=self.obstime,
-        )
+        self.dec = self.dec_ang.to_string(pad=True, sep=":")
 
     def to_toml(self) -> str:
         obj = {"coordinate": self}
         return to_toml(obj)
+
+    def get_coord(self) -> SkyCoord:
+        return SkyCoord(
+            ra=self.ra_ang,
+            dec=self.dec_ang,
+            pm_ra_cosdec=self.pm_ra * u.mas / u.year,
+            pm_dec=self.pm_dec * u.mas / u.year,
+            distance=1e3 / self.parallax * u.pc,
+            frame=self.frame,
+            obstime=self.obstime,
+        )
 
 
 ## Define classes for each configuration block

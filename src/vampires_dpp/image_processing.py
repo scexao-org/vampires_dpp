@@ -420,7 +420,7 @@ def correct_distortion_cube(
         center = frame_center(cube)
     # scale and retate frames with single transformpty_like(cube)
     M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
-    corr_cube = np.em
+    corr_cube = np.empty_like(cube)
     for i in range(cube.shape[0]):
         # if downsizing, low-pass filter to reduce moire effect
         if scale < 1:

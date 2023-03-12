@@ -5,10 +5,10 @@ from astropy.coordinates import Angle, SkyCoord
 from astropy.time import Time
 from astroquery.vizier import Vizier
 
-from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET, SUBARU_LOC
+from vampires_dpp.constants import PIXEL_SCALE, SUBARU_LOC
 
 
-def apply_wcs(header, pxscale=PIXEL_SCALE, pupil_offset=PUPIL_OFFSET):
+def apply_wcs(header, pxscale=PIXEL_SCALE, parang=0):
     nx = header["NAXIS1"]
     ny = header["NAXIS2"]
 
@@ -21,11 +21,10 @@ def apply_wcs(header, pxscale=PIXEL_SCALE, pupil_offset=PUPIL_OFFSET):
     w.wcs.cunit = ["deg", "deg"]
     w.wcs.cdelt = [-pxscale / 3.6e6, pxscale / 3.6e6]
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-    if pupil_offset is not None:
-        ang = np.deg2rad(header["D_IMRPAD"] + pupil_offset)
-        cosang = np.cos(ang)
-        sinang = np.sin(ang)
-        w.wcs.pc = [[cosang, -sinang], [sinang, cosang]]
+    ang = np.deg2rad(-parang)
+    cosang = np.cos(ang)
+    sinang = np.sin(ang)
+    w.wcs.pc = [[cosang, -sinang], [sinang, cosang]]
     header.update(w.to_header())
     return header
 
@@ -46,10 +45,6 @@ def derotate_wcs(header, angle):
     header["PC2_1"] = components[2]
     header["PC2_2"] = components[3]
     return header
-
-
-def apply_wcs_file(filename, output=None, skip=False):
-    pass
 
 
 def get_coord_header(header, time=None):
