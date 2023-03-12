@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+import astropy.units as u
+from astropy.coordinates import Angle, SkyCoord
 from serde import field, serialize
 from serde.toml import to_toml
 
@@ -39,6 +41,42 @@ class CamFileInput:
 
     def to_toml(self) -> str:
         return to_toml(self)
+
+
+@serialize
+@dataclass
+class CoordinateOptions:
+    target: str
+    ra: str
+    dec: str
+    parallax: float
+    pm_ra: float = field(default=0)
+    pm_dec: float = field(default=0)
+    frame: str = field(default="icrs", skip_if_default=True)
+    obstime: str = field(default="J2016", skip_if_default=True)
+
+    def __post__init__(self):
+        if isinstance(self.ra, str):
+            self.ra_ang = Angle(self.ra, "hours")
+        else:
+            self.ra_ang = Angle(self.ra, "deg")
+        self.ra = self.ra_ang.to_string(style="hmsdms", sep=":")
+        self.dec_ang = Angle(self.dec, "deg")
+        self.dec = self.dec_ang.to_string(style="hmsdms", sep=":")
+        self.distance = 1e3 / self.parallax
+        self.coord = SkyCoord(
+            ra=self.ra_ang,
+            dec=self.dec_ang,
+            pm_ra_cosdec=self.pm_ra * u.mas / u.year,
+            pm_dec=self.pm_dec * u.mas / u.year,
+            distance=self.distance * u.pc,
+            frame=self.frame,
+            obstime=self.obstime,
+        )
+
+    def to_toml(self) -> str:
+        obj = {"coordinate": self}
+        return to_toml(obj)
 
 
 ## Define classes for each configuration block
@@ -573,8 +611,7 @@ class PipelineOptions:
     ----------
     name : str
         filename-friendly name used for outputs from this pipeline. For example "20230101_ABAur"
-    target : Optional[str]
-        `SIMBAD <https://simbad.cds.unistra.fr/simbad/>`_-friendly object name used for looking up precise coordinates. If not provided, will use coordinate from headers, by default None.
+    coordinate : Optional[CoordinateOptions]
     frame_centers : Optional[dict[str, Optional[list]]]
         Estimates of the star position in pixels (x, y) for each camera provided as a dict with "cam1" and "cam2" keys. If not provided, will use the geometric frame center, by default None.
     coronagraph : Optional[CoronagraphOptions]
@@ -651,7 +688,7 @@ class PipelineOptions:
     """
 
     name: str
-    target: Optional[str] = field(default=None, skip_if_default=True)
+    coordinate: Optional[CoordinateOptions] = field(default=None, skip_if_default=True)
     frame_centers: Optional[CamCtrOption] = field(default=None, skip_if_default=True)
     coronagraph: Optional[CoronagraphOptions] = field(default=None, skip_if_default=True)
     satspots: Optional[SatspotOptions] = field(default=None, skip_if_default=True)
@@ -664,6 +701,8 @@ class PipelineOptions:
     version: str = vpp.__version__
 
     def __post_init__(self):
+        if self.coordinate is not None and isinstance(self.coordinate, dict):
+            self.coordinate = CoordinateOptions(**self.coordinate)
         if self.coronagraph is not None and isinstance(self.coronagraph, dict):
             self.coronagraph = CoronagraphOptions(**self.coronagraph)
         if self.satspots is not None and isinstance(self.satspots, dict):

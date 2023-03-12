@@ -209,42 +209,8 @@ class Pipeline(PipelineOptions):
         self.pxscale = PIXEL_SCALE
         self.pupil_offset = PUPIL_OFFSET
         self.coord = None
-        if self.target is not None and self.target.strip() != "":
-            self.coord = get_gaia_astrometry(self.target)
-        # if "astrometry" in self.config:
-        #     astrom_config = self.config["astrometry"]
-        #     self.pxscale = astrom_config.get("pixel_scale", PIXEL_SCALE)  # mas/px
-        #     self.pupil_offset = astrom_config.get("pupil_offset", PUPIL_OFFSET)  # deg
-        #     # if custom coord
-        #     if "coord" in astrom_config:
-        #         coord_dict = astrom_config["coord"]
-        #         plx = coord_dict.get("plx", None)
-        #         if plx is not None:
-        #             distance = (plx * u.mas).to(u.parsec, equivalencies=u.parallax())
-        #         else:
-        #             distance = None
-        #         if "pm_ra" in coord_dict:
-        #             pm_ra = coord_dict["pm_ra"] * u.mas / u.year
-        #         else:
-        #             pm_ra = None
-        #         if "pm_dec" in coord_dict:
-        #             pm_dec = coord_dict["pm_ra"] * u.mas / u.year
-        #         else:
-        #             pm_dec = None
-        #         self.coord = SkyCoord(
-        #             ra=coord_dict["ra"] * u.deg,
-        #             dec=coord_dict["dec"] * u.deg,
-        #             pm_ra_cosdec=pm_ra,
-        #             pm_dec=pm_dec,
-        #             distance=distance,
-        #             frame=coord_dict.get("frame", "ICRS"),
-        #             obstime=coord_dict.get("obstime", "J2016"),
-        #         )
-        #     elif "target" in self.config:
-        #         self.coord = get_gaia_astrometry(self.config["target"])
-        # elif "target" in self.config:
-        #     # query from GAIA DR3
-        #     self.coord = get_gaia_astrometry(self.config["target"])
+        if self.coordinate is not None:
+            self.coord = self.coordinate.coord
 
     def calibrate_one(self, path, fileinfo, tripwire=False):
         self.logger.info("Starting data calibration")
