@@ -200,6 +200,8 @@ class Pipeline(PipelineOptions):
     def get_center(self, fileinfo):
         if fileinfo["U_CAMERA"] == 2:
             return self.centers["cam2"]
+        if self.centers["cam1"] is None:
+            return self.centers["cam1"]
         # for cam 1 data, need to flip coordinate about x-axis
         Ny = fileinfo["NAXIS2"]
         ctr = np.asarray((Ny - 1 - self.centers["cam1"][0], self.centers["cam1"][1]))
