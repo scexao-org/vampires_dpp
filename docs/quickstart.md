@@ -56,7 +56,7 @@ Since VAMPIRES uses EM-CCDs, the camera gain and exposure settings change the no
 
 If you use the prescribed folder structure above, creating your files can be done like so
 ```
-dpp calib -o master_cals --darks=darks/raw/*.fits --flats=flats/raw/*.fits
+dpp calib -o master_cals --darks darks/raw/*.fits --flats flats/raw/*.fits
 ```
 
 This will produce a series of calibration files in the `master_cals/` folder
