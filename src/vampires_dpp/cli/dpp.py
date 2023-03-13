@@ -303,11 +303,11 @@ def new_config(args):
         if template != "singlecam" or cam1_path is None:
             if cam1_path is not None:
                 cam2_default = cam1_path.replace("cam1", "cam2")
-                cam2_path = input(f"Enter path to cam2 dark [{cam2_default}]: ").strip()
+                cam2_path = input(f"Enter path to cam2 flat [{cam2_default}]: ").strip()
                 if cam2_path == "":
                     cam2_path = cam2_default
             else:
-                cam2_path = input(f"Enter path to cam2 dark (optional): ").strip()
+                cam2_path = input(f"Enter path to cam2 flat (optional): ").strip()
                 if cam2_path == "":
                     cam2_path = None
         readline.set_completer()
