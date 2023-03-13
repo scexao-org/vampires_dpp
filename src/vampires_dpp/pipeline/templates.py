@@ -14,7 +14,6 @@ DEFAULT_DIRS = {
 
 VAMPIRES_SINGLECAM = PipelineOptions(
     name="",
-    frame_centers=CamCtrOption(cam1=[]),
     calibrate=CalibrateOptions(
         output_directory=DEFAULT_DIRS[CalibrateOptions],
     ),
@@ -25,7 +24,6 @@ VAMPIRES_SINGLECAM = PipelineOptions(
 
 VAMPIRES_PDI = PipelineOptions(
     name="",
-    frame_centers=CamCtrOption(cam1=[], cam2=[]),
     calibrate=CalibrateOptions(
         output_directory=DEFAULT_DIRS[CalibrateOptions],
     ),
@@ -40,7 +38,6 @@ VAMPIRES_PDI = PipelineOptions(
 
 VAMPIRES_SDI = PipelineOptions(
     name="",
-    frame_centers=dict(cam1=[], cam2=[]),
     calibrate=CalibrateOptions(
         output_directory=DEFAULT_DIRS[CalibrateOptions],
     ),

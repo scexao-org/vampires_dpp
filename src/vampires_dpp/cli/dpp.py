@@ -13,6 +13,7 @@ from vampires_dpp.calibration import make_master_dark, make_master_flat
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import (
+    CamCtrOption,
     CamFileInput,
     CoordinateOptions,
     CoronagraphOptions,
@@ -299,7 +300,7 @@ def new_config(args):
         cam1_path = input("Enter path to cam1 flat (optional): ").strip()
         cam1_path = None if cam1_path == "" else cam1_path
         cam2_path = None
-        if template != "singlecam":
+        if template != "singlecam" or cam1_path is None:
             if cam1_path is not None:
                 cam2_default = cam1_path.replace("cam1", "cam2")
                 cam2_path = input(f"Enter path to cam2 dark [{cam2_default}]: ").strip()
@@ -333,6 +334,35 @@ def new_config(args):
         amp = input(f"  Enter satspot amplitude (nm) [{_default}]: ").strip()
         spotamp = _default if amp == "" else float(amp)
         tpl.satspots = SatspotOptions(radius=spotrad, amp=spotamp)
+
+    ## Frame centers
+    set_framecenters = input(f"Do you want to specify frame centers? [y/N]: ").strip().lower()
+    if set_framecenters == "y":
+        cam1_ctr = cam2_ctr = None
+        cam1_ctr_input = input("Enter comma-separated center for cam1 (x, y) (optional): ").strip()
+        if cam1_ctr_input != "":
+            toks = cam1_ctr_input.replace(" ", "").split(",")
+            cam1_ctr = list(map(float, toks))
+        if template != "singlecam" or cam1_ctr is None:
+            if cam1_ctr is not None:
+                cam2_ctr_input = input(
+                    f"Enter comma-separated center for cam2 (x, y) [{cam1_ctr}]: "
+                ).strip()
+                if cam2_ctr_input == "":
+                    cam2_ctr = cam1_ctr
+                else:
+                    toks = cam2_ctr_input.replace(" ", "").split(",")
+                    cam2_ctr = list(map(float, toks))
+            else:
+                cam2_ctr_input = input(
+                    f"Enter comma-separated center for cam2 (x, y) (optional): "
+                ).strip()
+                if cam2_ctr_input == "":
+                    cam2_ctr = None
+                else:
+                    toks = cam2_ctr_input.replace(" ", "").split(",")
+                    cam2_ctr = list(map(float, toks))
+        tpl.frame_centers = CamCtrOption(cam1=cam1_ctr, cam2=cam2_ctr)
 
     toml_str = to_toml(tpl)
 

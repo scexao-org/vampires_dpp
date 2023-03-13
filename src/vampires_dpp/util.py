@@ -10,6 +10,27 @@ from packaging import version
 from scipy.stats import circmean
 
 
+def wrap_angle(angle: float) -> float:
+    """
+    Wraps an angle into the range [-180, 180]
+
+    Parameters
+    ----------
+    angle: float
+        Input angle, in degrees
+
+    Returns
+    -------
+    angle: float
+        output angle in degrees
+    """
+    if angle < -180:
+        angle += 360
+    elif angle > 180:
+        angle -= 360
+    return angle
+
+
 def average_angle(angles: ArrayLike):
     """
     Return the circular mean of the given angles in degrees.

@@ -16,14 +16,14 @@ from astropy.time import Time
 from astroscrappy import detect_cosmics
 from tqdm.auto import tqdm
 
-from vampires_dpp.constants import DEFAULT_NPROC, READNOISE, SUBARU_LOC
+from vampires_dpp.constants import DEFAULT_NPROC, PA_OFFSET, READNOISE, SUBARU_LOC
 from vampires_dpp.headers import fix_header, parallactic_angle
 from vampires_dpp.image_processing import (
     collapse_cube,
     collapse_frames_files,
     correct_distortion_cube,
 )
-from vampires_dpp.util import get_paths
+from vampires_dpp.util import get_paths, wrap_angle
 from vampires_dpp.wcs import apply_wcs, get_coord_header
 
 __all__ = [
@@ -76,9 +76,10 @@ def calibrate_file(
 
     header["RA"] = coord_now.ra.to_string(unit=u.hourangle, sep=":")
     header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
-    pa = parallactic_angle(time, coord_now, header)
-    header["PARANG"] = pa, "deg, parallactic angle"
-    header = apply_wcs(header, parang=pa)
+    parang = parallactic_angle(time, coord_now)
+    header["PARANG"] = parang, "[deg] derotation angle for North up"
+    header["PA"] = wrap_angle(parang - PA_OFFSET), "[deg] parallactic angle of target"
+    header = apply_wcs(header, parang=parang)
 
     # Discard frames in OG VAMPIRES
     if "U_FLCSTT" in header:

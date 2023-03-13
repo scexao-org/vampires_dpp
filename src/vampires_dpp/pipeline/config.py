@@ -566,6 +566,16 @@ class CamCtrOption:
     cam1: Optional[list[float]] = field(default=None, skip_if_default=True)
     cam2: Optional[list[float]] = field(default=None, skip_if_default=True)
 
+    def __post_init__(self):
+        if self.cam1 is not None:
+            self.cam1 = list(self.cam1)
+            if len(self.cam1) == 0:
+                self.cam1 = None
+        if self.cam2 is not None:
+            self.cam2 = list(self.cam2)
+            if len(self.cam2) == 0:
+                self.cam2 = None
+
 
 @serialize
 @dataclass
