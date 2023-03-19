@@ -14,15 +14,18 @@ from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import (
     CamCtrOption,
     CamFileInput,
+    CollapseOptions,
     CoordinateOptions,
     CoronagraphOptions,
     FrameSelectOptions,
+    PipelineOptions,
     RegisterOptions,
     SatspotOptions,
 )
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import (
     DEFAULT_DIRS,
+    VAMPIRES_BLANK,
     VAMPIRES_PDI,
     VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
@@ -150,52 +153,41 @@ calib_parser.set_defaults(func=calib)
 ########## new ##########
 
 
-class TabCompleter:
+def pathCompleter(text, state):
     """
-    A tab completer that can either complete from
-    the filesystem or from a list.
-
-    Partially taken from:
-    http://stackoverflow.com/questions/5637124/tab-completion-in-pythons-raw-input
+    This is the tab completer for systems paths.
+    Only tested on *nix systems
     """
+    # replace ~ with the user's home dir. See https://docs.python.org/2/library/os.path.html
+    if "~" in text:
+        text = os.path.expanduser(text)
 
-    def pathCompleter(self, text, state):
-        """
-        This is the tab completer for systems paths.
-        Only tested on *nix systems
-        """
-        readline.get_line_buffer().split()
+    # autocomplete directories with having a trailing slash
+    if os.path.isdir(text):
+        text += "/"
 
-        # replace ~ with the user's home dir. See https://docs.python.org/2/library/os.path.html
-        if "~" in text:
-            text = os.path.expanduser("~")
+    return [x for x in glob.glob(text + "*")][state]
 
-        # autocomplete directories with having a trailing slash
-        if os.path.isdir(text):
-            text += "/"
 
-        return [x for x in glob.glob(text + "*")][state]
+def createListCompleter(items):
+    """
+    This is a closure that creates a method that autocompletes from
+    the given list.
 
-    def createListCompleter(self, ll):
-        """
-        This is a closure that creates a method that autocompletes from
-        the given list.
+    Since the autocomplete function can't be given a list to complete from
+    a closure is used to create the listCompleter function with a list to complete
+    from.
+    """
+    list_strings = map(str, items)
 
-        Since the autocomplete function can't be given a list to complete from
-        a closure is used to create the listCompleter function with a list to complete
-        from.
-        """
+    def listCompleter(text, state):
+        if not text:
+            return list(list_strings)[state]
+        else:
+            matches = filter(lambda s: s.startswith(text), list_strings)
+            return list(matches)[state]
 
-        def listCompleter(text, state):
-            line = readline.get_line_buffer()
-
-            if not line:
-                return [c + " " for c in ll][state]
-
-            else:
-                return [c + " " for c in ll if c.startswith(line)][state]
-
-        return listCompleter
+    return listCompleter
 
 
 def new_config(args):
@@ -203,13 +195,11 @@ def new_config(args):
     readline.set_completer_delims(" \t\n;")
     readline.parse_and_bind("tab: complete")
 
-    completer = TabCompleter()
-
     ## check if output file exists
     if path.is_file():
         response = (
             input(
-                f"{path.name} already exists in output directory, would you like to overwrite it? [y/N] "
+                f"{path.name} already exists in output directory, would you like to overwrite it? [y/N]: "
             )
             .strip()
             .lower()
@@ -218,20 +208,23 @@ def new_config(args):
             return
 
     ## get template
-    template_choices = ["singlecam", "pdi", "halpha"]
-    template_completer = completer.createListCompleter(template_choices)
+    template_choices = ["singlecam", "pdi", "sdi"]
 
-    readline.set_completer(template_completer)
-    template = input(f"Choose a starting template [{'/'.join(template_choices)}]: ").strip().lower()
+    readline.set_completer(createListCompleter(template_choices))
+    template = (
+        input(f"Choose a starting template [{'/'.join(template_choices)}] (optional): ")
+        .strip()
+        .lower()
+    )
     match template:
         case "singlecam":
             tpl = VAMPIRES_SINGLECAM
         case "pdi":
             tpl = VAMPIRES_PDI
-        case "halpha":
+        case "sdi":
             tpl = VAMPIRES_SDI
         case _:
-            raise ValueError(f"template not recognized {template}")
+            tpl = VAMPIRES_BLANK
     readline.set_completer()
 
     ## get name
@@ -287,7 +280,7 @@ def new_config(args):
     ## darks
     have_darks = input("Do you have dark files? [Y/n]: ").strip().lower()
     if have_darks == "" or have_darks == "y":
-        readline.set_completer(completer.pathCompleter)
+        readline.set_completer(pathCompleter)
         cam1_path = input("Enter path to cam1 dark (optional): ").strip()
         cam1_path = None if cam1_path == "" else cam1_path
         cam2_path = None
@@ -307,7 +300,7 @@ def new_config(args):
     ## flats
     have_flats = input("Do you have flat files? [Y/n]: ").strip().lower()
     if have_flats == "" or have_flats == "y":
-        readline.set_completer(completer.pathCompleter)
+        readline.set_completer(pathCompleter)
         cam1_path = input("Enter path to cam1 flat (optional): ").strip()
         cam1_path = None if cam1_path == "" else cam1_path
         cam2_path = None
@@ -326,11 +319,10 @@ def new_config(args):
 
     ## Coronagraph
     iwa_choices = ["36", "55", "92", "129"]
-    iwa_completer = completer.createListCompleter(iwa_choices)
 
+    readline.set_completer(createListCompleter(iwa_choices))
     have_coro = input("Did you use a coronagraph? [y/N]: ").strip().lower()
     if have_coro == "y":
-        readline.set_completer(iwa_completer)
         iwa = float(input(f"  Enter coronagraph IWA (mas) [{'/'.join(iwa_choices)}]: ").strip())
         tpl.coronagraph = CoronagraphOptions(iwa=iwa)
         readline.set_completer()
@@ -350,8 +342,8 @@ def new_config(args):
         tpl.satspots = SatspotOptions(radius=spotrad, amp=spotamp)
 
     ## Frame centers
-    set_framecenters = input(f"Do you want to specify frame centers? [y/N]: ").strip().lower()
-    if set_framecenters == "y":
+    set_frame_centers = input(f"Do you want to specify frame centers? [y/N]: ").strip().lower()
+    if set_frame_centers == "y":
         cam1_ctr = cam2_ctr = None
         cam1_ctr_input = input("Enter comma-separated center for cam1 (x, y) (optional): ").strip()
         if cam1_ctr_input != "":
@@ -383,9 +375,7 @@ def new_config(args):
         )
 
         metric_choices = ["normvar", "l2norm", "peak"]
-        metric_completer = completer.createListCompleter(metric_choices)
-
-        readline.set_completer(metric_completer)
+        readline.set_completer(createListCompleter(metric_choices))
         frame_select_metric = (
             input(f"  Choose a frame selection metric ([normvar]/l2norm/peak): ").strip().lower()
         )
@@ -397,26 +387,51 @@ def new_config(args):
             metric=frame_select_metric,
             output_directory=DEFAULT_DIRS[FrameSelectOptions],
         )
+    else:
+        tpl.frame_select = None
 
     ## Registration
     do_register = input(f"Would you like to do frame registration? [Y/n]: ").strip().lower()
     if do_register == "y" or do_register == "":
-
-        method_choices = ["peak", "com", "dft", "moffat", "gaussian", "airy"]
-        method_completer = completer.createListCompleter(method_choices)
-
-        readline.set_completer(method_completer)
+        method_choices = ["com", "peak", "dft", "moffat", "gaussian", "airy"]
+        readline.set_completer(createListCompleter(method_choices))
         register_method = (
-            input(f"  Choose a registration method ([peak]/com/dft/moffat/gaussian/airy): ")
+            input(f"  Choose a registration method ([com]/peak/dft/moffat/gaussian/airy): ")
             .strip()
             .lower()
         )
         readline.set_completer()
         if register_method == "":
-            register_method = None
-        tpl.register = RegisterOptions(
+            register_method = "com"
+        opts = RegisterOptions(
             method=register_method, output_directory=DEFAULT_DIRS[RegisterOptions]
         )
+        if register_method == "dft":
+            dft_factor_input = input("    Enter DFT upsample factor (default is 1): ").strip()
+            opts.dft_factor = 1 if dft_factor_input == "" else int(dft_factor_input)
+
+        smooth_input = input(f"  Smooth data before measurement? [y/N]: ").strip().lower()
+        opts.smooth = smooth_input == "y"
+        tpl.register = opts
+    else:
+        tpl.register = None
+
+    ## Collapsing
+    do_collapse = input(f"Would you like to collapse your data? [Y/n]: ").strip().lower()
+    if do_collapse == "y" or do_collapse == "":
+        collapse_choices = ["median", "mean", "varmean", "biweight"]
+        readline.set_completer(createListCompleter(collapse_choices))
+        collapse_method = (
+            input("  Choose a collapse method ([median]/mean/varmean/biweight): ").strip().lower()
+        )
+        readline.set_completer()
+        if collapse_method == "":
+            collapse_method = "median"
+        tpl.collapse = CollapseOptions(
+            collapse_method, output_directory=DEFAULT_DIRS[CollapseOptions]
+        )
+    else:
+        tpl.collapse = None
 
     ## save output TOML
     toml_str = tpl.to_toml()

@@ -12,6 +12,14 @@ DEFAULT_DIRS = {
 }
 
 
+VAMPIRES_BLANK = PipelineOptions(
+    name="",
+    calibrate=CalibrateOptions(
+        output_directory=DEFAULT_DIRS[CalibrateOptions],
+    ),
+    products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
+)
+
 VAMPIRES_SINGLECAM = PipelineOptions(
     name="",
     calibrate=CalibrateOptions(
