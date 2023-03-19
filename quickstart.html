@@ -457,17 +457,17 @@ title="Print to PDF"
 <p>The prescribed folder structure for this sorting is</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.
 ├── ABAUR
-│   └── 750-50_em300_00100ms
+│   └── 750-50_em300_00100ms_512x512
 ├── HD31233
-│   └── raw
+│   └── 750-50_em300_00100ms_512x512
 ├── darks
-│   └── raw
+│   └── em300_00100ms_512x512
 ├── flats
-│   └── raw
+│   └── 750-50_em300_00100ms_512x512
 ├── pinholes
-│   └── raw
+│   └── 750-50_em300_00100ms_512x512
 └── skies
-    └── raw
+    └── em300_00100ms_512x512
 </pre></div>
 </div>
 <p>after sorting this folders can be changed or rearranged as much as you’d like. The configuration for the pipeline is flexible, so you don’t have to sort your files at all if you prefer a different method.</p>
@@ -505,19 +505,21 @@ options:
 <p>Since VAMPIRES uses EM-CCDs, the camera gain and exposure settings change the noise properties. Therefore, we automatically sort all calibration files by camera, EM gain, and exposure time. We will automatically try and match darks to flats, but if the settings are not equal the flat will not be dark-subtracted.</p>
 </div>
 <p>If you use the prescribed folder structure above, creating your files can be done like so</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">calib</span> <span class="o">-</span><span class="n">o</span> <span class="n">master_cals</span> <span class="o">--</span><span class="n">darks</span> <span class="n">darks</span><span class="o">/</span><span class="n">raw</span><span class="o">/*.</span><span class="n">fits</span> <span class="o">--</span><span class="n">flats</span> <span class="n">flats</span><span class="o">/</span><span class="n">raw</span><span class="o">/*.</span><span class="n">fits</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">calib</span> <span class="o">-</span><span class="n">o</span> <span class="n">master_cals</span> \
+    <span class="o">--</span><span class="n">darks</span> <span class="n">darks</span><span class="o">/**/*.</span><span class="n">fits</span> \
+    <span class="o">--</span><span class="n">flats</span> <span class="n">flats</span><span class="o">/**/*.</span><span class="n">fits</span>
 </pre></div>
 </div>
 <p>This will produce a series of calibration files in the <code class="docutils literal notranslate"><span class="pre">master_cals/</span></code> folder</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>master_cals
-├── master_dark_em300_000050ms_cam1.fits
-├── master_dark_em300_000050ms_cam2.fits
-├── master_dark_em300_000080ms_cam1.fits
-├── master_dark_em300_000080ms_cam2.fits
-├── master_dark_em300_000100ms_cam1.fits
-├── master_dark_em300_000100ms_cam2.fits
-├── master_flat_em300_001000ms_cam1.fits
-└── master_flat_em300_001000ms_cam2.fits
+├── master_dark_em300_000050ms_512x512_cam1.fits
+├── master_dark_em300_000050ms_512x512_cam2.fits
+├── master_dark_em300_000080ms_512x512_cam1.fits
+├── master_dark_em300_000080ms_512x512_cam2.fits
+├── master_dark_em300_000100ms_512x512_cam1.fits
+├── master_dark_em300_000100ms_512x512_cam2.fits
+├── master_flat_750-50_em300_001000ms_512x512_cam1.fits
+└── master_flat_750-50_em300_001000ms_512x512_cam2.fits
 </pre></div>
 </div>
 <section id="id1">
@@ -586,7 +588,7 @@ Did you use satellite spots? [Y/n]:
 <h2>Running the pipeline<a class="headerlink" href="#running-the-pipeline" title="Permalink to this headline">#</a></h2>
 <div class="tip admonition">
 <p class="admonition-title">Clean up files</p>
-<p>Before running files through the pipeline, it is <em>highly</em> recommended to inspect through your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.</p>
+<p>Before running files through the pipeline, it is recommended to inspect through your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.</p>
 </div>
 <p>After you’ve selected your configuration options, you can run the pipeline from the command line with <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">run</span></code></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">run</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00010ms</span><span class="o">/*</span>
