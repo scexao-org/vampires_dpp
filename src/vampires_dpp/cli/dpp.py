@@ -6,7 +6,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import astropy.units as u
-from serde.toml import to_toml
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import make_master_dark, make_master_flat
@@ -17,10 +16,13 @@ from vampires_dpp.pipeline.config import (
     CamFileInput,
     CoordinateOptions,
     CoronagraphOptions,
+    FrameSelectOptions,
+    RegisterOptions,
     SatspotOptions,
 )
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import (
+    DEFAULT_DIRS,
     VAMPIRES_PDI,
     VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
@@ -203,8 +205,17 @@ def new_config(args):
 
     completer = TabCompleter()
 
-    iwa_choices = ["36", "55", "92", "129"]
-    iwa_completer = completer.createListCompleter(iwa_choices)
+    ## check if output file exists
+    if path.is_file():
+        response = (
+            input(
+                f"{path.name} already exists in output directory, would you like to overwrite it? [y/N] "
+            )
+            .strip()
+            .lower()
+        )
+        if response != "y":
+            return
 
     ## get template
     template_choices = ["singlecam", "pdi", "halpha"]
@@ -231,33 +242,33 @@ def new_config(args):
     ## get target
     object = input(f"SIMBAD-friendly object name (optional): ").strip()
     obj = None if object == "" else object
+    coord = None
     if obj is not None:
-        coord = None
         rad = 1
         cat = "dr3"
         while True:
-            try:
-                coord = get_gaia_astrometry(obj, catalog=cat, radius=rad)
+            coord = get_gaia_astrometry(obj, catalog=cat, radius=rad)
+            if coord is not None:
                 break
-            except:
-                print(f'Could not find {obj} in GAIA {cat.upper()} with {rad}" radius.')
-                _input = input(
-                    "Query different catalog (dr1/dr2/dr3), enter search radius in arcsec, or enter new object name (optional): "
-                ).strip()
-                match _input.lower():
-                    case "":
-                        break
-                    case "dr1":
-                        cat = "dr1"
-                    case "dr2":
-                        cat = "dr2"
-                    case "dr3":
-                        cat = "dr3"
-                    case _:
-                        try:
-                            rad = float(_input)
-                        except:
-                            obj = _input
+
+            print(f'Could not find {obj} in GAIA {cat.upper()} with {rad}" radius.')
+            _input = input(
+                "Query different catalog (dr1/dr2/dr3), enter search radius in arcsec, or enter new object name (optional): "
+            ).strip()
+            match _cat := _input.lower():
+                case "":
+                    # give up
+                    break
+                case "dr1" | "dr2" | "dr3":
+                    # try different catalog
+                    cat = _cat
+                case _:
+                    try:
+                        # if a number was entered, increase search radius
+                        rad = float(_cat)
+                    except:
+                        # otherwise try a new object
+                        obj = _input
 
         if coord is not None:
             tpl.coordinate = CoordinateOptions(
@@ -314,6 +325,9 @@ def new_config(args):
         tpl.calibrate.master_flats = CamFileInput(cam1=cam1_path, cam2=cam2_path)
 
     ## Coronagraph
+    iwa_choices = ["36", "55", "92", "129"]
+    iwa_completer = completer.createListCompleter(iwa_choices)
+
     have_coro = input("Did you use a coronagraph? [y/N]: ").strip().lower()
     if have_coro == "y":
         readline.set_completer(iwa_completer)
@@ -341,8 +355,7 @@ def new_config(args):
         cam1_ctr = cam2_ctr = None
         cam1_ctr_input = input("Enter comma-separated center for cam1 (x, y) (optional): ").strip()
         if cam1_ctr_input != "":
-            toks = cam1_ctr_input.replace(" ", "").split(",")
-            cam1_ctr = list(map(float, toks))
+            cam1_ctr = _parse_cam_center(cam1_ctr_input)
         if template != "singlecam" or cam1_ctr is None:
             if cam1_ctr is not None:
                 cam2_ctr_input = input(
@@ -351,8 +364,7 @@ def new_config(args):
                 if cam2_ctr_input == "":
                     cam2_ctr = cam1_ctr
                 else:
-                    toks = cam2_ctr_input.replace(" ", "").split(",")
-                    cam2_ctr = list(map(float, toks))
+                    cam2_ctr = _parse_cam_center(cam2_ctr_input)
             else:
                 cam2_ctr_input = input(
                     f"Enter comma-separated center for cam2 (x, y) (optional): "
@@ -360,33 +372,69 @@ def new_config(args):
                 if cam2_ctr_input == "":
                     cam2_ctr = None
                 else:
-                    toks = cam2_ctr_input.replace(" ", "").split(",")
-                    cam2_ctr = list(map(float, toks))
+                    cam2_ctr = _parse_cam_center(cam2_ctr_input)
         tpl.frame_centers = CamCtrOption(cam1=cam1_ctr, cam2=cam2_ctr)
 
-    toml_str = to_toml(tpl)
+    ## Frame selection
+    do_frame_select = input(f"Would you like to do frame selection? [y/N]: ").strip().lower()
+    if do_frame_select == "y":
+        cutoff = float(
+            input("  Enter a cutoff quantile (0 to 1, larger means more discarding): ").strip()
+        )
 
-    if path.is_file():
-        response = (
-            input(
-                f"{path.name} already exists in output directory, would you like to overwrite it? [y/N] "
-            )
+        metric_choices = ["normvar", "l2norm", "peak"]
+        metric_completer = completer.createListCompleter(metric_choices)
+
+        readline.set_completer(metric_completer)
+        frame_select_metric = (
+            input(f"  Choose a frame selection metric ([normvar]/l2norm/peak): ").strip().lower()
+        )
+        readline.set_completer()
+        if frame_select_metric == "":
+            frame_select_metric = "normvar"
+        tpl.frame_select = FrameSelectOptions(
+            cutoff=cutoff,
+            metric=frame_select_metric,
+            output_directory=DEFAULT_DIRS[FrameSelectOptions],
+        )
+
+    ## Registration
+    do_register = input(f"Would you like to do frame registration? [Y/n]: ").strip().lower()
+    if do_register == "y" or do_register == "":
+
+        method_choices = ["peak", "com", "dft", "moffat", "gaussian", "airy"]
+        method_completer = completer.createListCompleter(method_choices)
+
+        readline.set_completer(method_completer)
+        register_method = (
+            input(f"  Choose a registration method ([peak]/com/dft/moffat/gaussian/airy): ")
             .strip()
             .lower()
         )
-        if response != "y":
-            return
+        readline.set_completer()
+        if register_method == "":
+            register_method = None
+        tpl.register = RegisterOptions(
+            method=register_method, output_directory=DEFAULT_DIRS[RegisterOptions]
+        )
 
+    ## save output TOML
+    toml_str = tpl.to_toml()
     with path.open("w") as fh:
         fh.write(toml_str)
 
     return path
 
 
+def _parse_cam_center(input_string):
+    toks = input_string.replace(" ", "").split(",")
+    ctr = list(map(float, toks))
+    return ctr
+
+
 new_parser = subparser.add_parser("new", aliases="n", help="generate configuration files")
 new_parser.add_argument("config", help="path to configuration file")
 new_parser.set_defaults(func=new_config)
-
 ########## run ##########
 
 

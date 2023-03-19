@@ -67,6 +67,8 @@ def get_gaia_astrometry(target, catalog="dr3", radius=1):
     gaia_catalog_list = Vizier.query_object(
         target, radius=radius * u.arcsec, catalog=GAIA_CATALOGS[catalog.lower()]
     )
+    if len(gaia_catalog_list) == 0:
+        return None
     gaia_info = gaia_catalog_list[0][0]  # first row of first table
     plx = np.abs(gaia_info["Plx"]) * u.mas
     coord = SkyCoord(

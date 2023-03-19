@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=58", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,6 +9,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
 requires-python = ">=3.10"
+dynamic = ["version"]
 dependencies = [
     "astropy>=4,<6",
     "astroquery>=0.4,<0.5",
@@ -24,7 +25,11 @@ dependencies = [
     "tomli-w>=1,<2",
     "tqdm==4.*",
 ]
-dynamic = ["version"]
+
+[project.urls]
+homepage = "https://github.com/scexao-org/vampires_dpp"
+repository = "https://github.com/scexao-org/vampires_dpp"
+documentation = "https://scexao-org.github.io/vampires_dpp/"
 
 [project.optional-dependencies]
 dev = [
