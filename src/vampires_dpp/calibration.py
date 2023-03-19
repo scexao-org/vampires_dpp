@@ -219,7 +219,8 @@ def sort_calib_files(filenames: list[PathLike]) -> dict[Tuple, Path]:
     for filename in filenames:
         path = Path(filename)
         header = fits.getheader(path)
-        key = (header["U_CAMERA"], header["U_EMGAIN"], header["U_AQTINT"])
+        sz = header["NAXIS1"], header["NAXIS2"]
+        key = (header["U_CAMERA"], header["U_EMGAIN"], header["U_AQTINT"], sz, header["U_FILTER"])
         if key in darks_dict:
             darks_dict[key].append(path)
         else:
@@ -251,8 +252,11 @@ def make_master_dark(
     with mp.Pool(num_proc) as pool:
         jobs = []
         for key, filelist in file_inputs.items():
-            cam, gain, exptime = key
-            outname = outdir / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_cam{cam:.0f}.fits"
+            cam, gain, exptime, sz, filt = key
+            outname = (
+                outdir
+                / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
+            )
             outnames[key] = outname
             if not force and outname.is_file():
                 continue
@@ -294,13 +298,15 @@ def make_master_flat(
 ) -> list[Path]:
     # prepare input filenames
     file_inputs = sort_calib_files(filenames)
-    master_dark_inputs = {key: None for key in file_inputs.keys()}
+    master_dark_dict = {key: None for key in file_inputs.keys()}
     if master_darks is not None:
-        inputs = sort_calib_files(master_darks)
+        dark_inputs = sort_calib_files(master_darks)
         for key in file_inputs.keys():
+            # don't need to match filter for darks
+            dark_key = key[:-1]
             # input should be list with one file in it
-            if key in inputs:
-                master_dark_inputs[key] = inputs[key][0]
+            if key in dark_inputs:
+                master_dark_dict[key] = dark_inputs[dark_key][0]
 
     if output_directory is not None:
         outdir = Path(output_directory)
@@ -314,8 +320,11 @@ def make_master_flat(
     with mp.Pool(num_proc) as pool:
         jobs = []
         for key, filelist in file_inputs.items():
-            cam, gain, exptime = key
-            outname = outdir / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_cam{cam:.0f}.fits"
+            cam, gain, exptime, sz, filt = key
+            outname = (
+                outdir
+                / f"{name}_{filt}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
+            )
             outnames[key] = outname
             if not force and outname.is_file():
                 continue
@@ -323,7 +332,7 @@ def make_master_flat(
             for path in filelist:
                 kwds = dict(
                     output_directory=path.parent.parent / "collapsed",
-                    dark_filename=master_dark_inputs[key][0],
+                    dark_filename=master_dark_dict[key],
                     force=force,
                     method=collapse,
                 )

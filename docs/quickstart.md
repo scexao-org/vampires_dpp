@@ -28,17 +28,17 @@ The prescribed folder structure for this sorting is
 ```
 .
 ├── ABAUR
-│   └── 750-50_em300_00100ms
+│   └── 750-50_em300_00100ms_512x512
 ├── HD31233
-│   └── raw
+│   └── 750-50_em300_00100ms_512x512
 ├── darks
-│   └── raw
+│   └── em300_00100ms_512x512
 ├── flats
-│   └── raw
+│   └── 750-50_em300_00100ms_512x512
 ├── pinholes
-│   └── raw
+│   └── 750-50_em300_00100ms_512x512
 └── skies
-    └── raw
+    └── em300_00100ms_512x512
 ```
 after sorting this folders can be changed or rearranged as much as you'd like. The configuration for the pipeline is flexible, so you don't have to sort your files at all if you prefer a different method.
 
@@ -56,21 +56,23 @@ Since VAMPIRES uses EM-CCDs, the camera gain and exposure settings change the no
 
 If you use the prescribed folder structure above, creating your files can be done like so
 ```
-dpp calib -o master_cals --darks darks/raw/*.fits --flats flats/raw/*.fits
+dpp calib -o master_cals \
+    --darks darks/**/*.fits \
+    --flats flats/**/*.fits
 ```
 
 This will produce a series of calibration files in the `master_cals/` folder
 
 ```
 master_cals
-├── master_dark_em300_000050ms_cam1.fits
-├── master_dark_em300_000050ms_cam2.fits
-├── master_dark_em300_000080ms_cam1.fits
-├── master_dark_em300_000080ms_cam2.fits
-├── master_dark_em300_000100ms_cam1.fits
-├── master_dark_em300_000100ms_cam2.fits
-├── master_flat_em300_001000ms_cam1.fits
-└── master_flat_em300_001000ms_cam2.fits
+├── master_dark_em300_000050ms_512x512_cam1.fits
+├── master_dark_em300_000050ms_512x512_cam2.fits
+├── master_dark_em300_000080ms_512x512_cam1.fits
+├── master_dark_em300_000080ms_512x512_cam2.fits
+├── master_dark_em300_000100ms_512x512_cam1.fits
+├── master_dark_em300_000100ms_512x512_cam2.fits
+├── master_flat_750-50_em300_001000ms_512x512_cam1.fits
+└── master_flat_750-50_em300_001000ms_512x512_cam2.fits
 ```
 
 ### Reference
@@ -115,7 +117,7 @@ At this point, we highly recommend viewing the [pipeline options]() and making a
 ```{admonition} Clean up files
 :class: tip
 
-Before running files through the pipeline, it is _highly_ recommended to inspect through your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.
+Before running files through the pipeline, it is recommended to inspect through your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.
 ```
 
 After you've selected your configuration options, you can run the pipeline from the command line with `dpp run`

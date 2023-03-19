@@ -139,24 +139,29 @@ def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs
     return newname
 
 
-def foldername_new(outdir: PathLike, header: fits.Header, subdir: PathLike = "raw"):
+def foldername_new(outdir: PathLike, header: fits.Header):
+    filt = header["U_FILTER"]
+    gain = header["U_EMGAIN"]
+    exptime = header["U_AQTINT"] / 1e3  # ms
+    sz = f"{header['NAXIS1']:03d}x{header['NAXIS2']:03d}"
     match header["DATA-TYP"]:
         case "OBJECT":
             # subsort based on filter, EM gain, and exposure time
-            filt = header["U_FILTER"]
-            gain = header["U_EMGAIN"]
-            exptime = header["U_AQTINT"] / 1e3  # ms
-            subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms"
+            subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
             foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
         case "DARK":
+            subdir = f"em{gain:.0f}_{exptime:05.0f}ms_{sz}"
             foldname = outdir / "darks" / subdir
         # put sky flats separately because they are usually
         # background frames, not flats
         case "SKYFLAT":
+            subdir = f"em{gain:.0f}_{exptime:05.0f}ms_{sz}"
             foldname = outdir / "skies" / subdir
         case "FLAT" | "DOMEFLAT":
+            subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
             foldname = outdir / "flats" / subdir
         case "COMPARISON":
+            subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
             foldname = outdir / "pinholes" / subdir
         case _:
             foldname = outdir
@@ -164,22 +169,27 @@ def foldername_new(outdir: PathLike, header: fits.Header, subdir: PathLike = "ra
     return foldname
 
 
-def foldername_old(outdir: PathLike, path: Path, header: fits.Header, subdir: PathLike = "raw"):
+def foldername_old(outdir: PathLike, path: Path, header: fits.Header):
     name = header.get("U_OGFNAM", path.name)
+    filt = header["U_FILTER"]
+    gain = header["U_EMGAIN"]
+    exptime = header["U_AQTINT"] / 1e3  # ms
+    sz = f"{header['NAXIS1']:03d}x{header['NAXIS2']:03d}"
     if "dark" in name:
+        subdir = f"em{gain:.0f}_{exptime:05.0f}ms_{sz}"
         foldname = outdir / "darks" / subdir
     elif "skies" in name or "sky" in name:
+        subdir = f"em{gain:.0f}_{exptime:05.0f}ms_{sz}"
         foldname = outdir / "skies" / subdir
     elif "flat" in name:
+        subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
         foldname = outdir / "flats" / subdir
     elif "pinhole" in name:
+        subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
         foldname = outdir / "pinholes" / subdir
     else:
         # subsort based on filter, EM gain, and exposure time
-        filt = header["U_FILTER"]
-        gain = header["U_EMGAIN"]
-        exptime = header["U_AQTINT"] / 1e3  # ms
-        subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms"
+        subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
         foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
 
     return foldname
