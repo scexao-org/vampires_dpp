@@ -553,20 +553,27 @@ options:
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">new</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Choose a starting template [singlecam/pdi/halpha]: pdi
-Path-friendly name for this reduction [20230101_ABAur]: 
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Choose a starting template [singlecam/pdi/sdi] (optional): pdi
+Path-friendly name for this reduction [20230101_ABAur]:
 SIMBAD-friendly object name (optional): AB Aur
-Do you have dark files? [Y/n]: 
-Enter path to cam1 dark (optional): ../master_cals/master_dark_em300_000100ms_cam1.fits
-Enter path to cam2 dark [../master_cals/master_dark_em300_000100ms_cam2.fits]: 
-Do you have flat files? [Y/n]: y
-Enter path to cam1 flat (optional): ../master_cals/master_flat_cam1.fits
-Enter path to cam2 dark [../master_cals/master_flat_cam2.fits]: 
+Do you have dark files? [Y/n]:
+Enter path to cam1 dark (optional): ../master_cals/master_dark_em300_00100ms_512x512_cam1.fits
+Enter path to cam2 dark [../master_cals/master_dark_em300_00100ms_512x512_cam2.fits]:
+Do you have flat files? [Y/n]: n
 Did you use a coronagraph? [y/N]: y
   Enter coronagraph IWA (mas) [36/55/92/129]: 55
-Did you use satellite spots? [Y/n]: 
+Did you use satellite spots? [Y/n]:
   Enter satspot radius (lam/D) [15.8]: 11.2
-  Enter satspot amplitude (nm) [50]: 
+  Enter satspot amplitude (nm) [50]:
+Do you want to specify frame centers? [y/N]: y
+Enter comma-separated center for cam1 (x, y) (optional): 256,257
+Enter comma-separated center for cam2 (x, y) [[256.0, 257.0]]:
+Would you like to do frame selection? [y/N]:
+Would you like to do frame registration? [Y/n]:
+  Choose a registration method ([com]/peak/dft/moffat/gaussian/airy): peak
+  Smooth data before measurement? [y/N]:
+Would you like to collapse your data? [Y/n]:
+  Choose a collapse method ([median]/mean/varmean/biweight):
 20230101_ABAur.toml
 </pre></div>
 </div>
