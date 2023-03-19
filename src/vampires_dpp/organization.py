@@ -5,6 +5,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 from astropy.io import fits
 from tqdm.auto import tqdm
@@ -193,3 +194,45 @@ def foldername_old(outdir: PathLike, path: Path, header: fits.Header):
         foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
 
     return foldname
+
+
+def check_file(filename) -> bool:
+    """
+    Checks if file can be loaded and if there are empty slices
+
+    Parameters
+    ----------
+    filename : PathLike
+
+    Returns
+    -------
+    bool
+        Returns True if file can be loaded and no empty frames
+    """
+    path = Path(filename)
+    ext = 1 if ".fits.fz" in path.name else 0
+    try:
+        with fits.open(filename) as hdus:
+            hdr = hdus[ext].header
+            data = hdus[ext].data
+            if "U_FLCSTT" not in hdr:
+                data = data[2:]
+            return np.any(data, axis=(-2, -1)).all()
+    except:
+        return False
+
+
+def check_files(
+    filenames: list[PathLike],
+    num_proc: int = min(8, mp.cpu_count()),
+    quiet: bool = False,
+) -> list[bool]:
+    jobs = []
+    with mp.Pool(num_proc) as pool:
+        for filename in filenames:
+            jobs.append(pool.apply_async(check_file, args=(filename,)))
+
+        iter = jobs if quiet else tqdm(jobs, desc="Checking files")
+        results = [job.get() for job in iter]
+
+    return results

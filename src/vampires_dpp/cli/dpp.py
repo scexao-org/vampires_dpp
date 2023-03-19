@@ -6,11 +6,12 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import astropy.units as u
+import numpy as np
 
 import vampires_dpp as vpp
 from vampires_dpp.calibration import make_master_dark, make_master_flat
 from vampires_dpp.constants import DEFAULT_NPROC
-from vampires_dpp.organization import header_table, sort_files
+from vampires_dpp.organization import check_files, header_table, sort_files
 from vampires_dpp.pipeline.config import (
     CamCtrOption,
     CamFileInput,
@@ -450,6 +451,55 @@ def _parse_cam_center(input_string):
 new_parser = subparser.add_parser("new", aliases="n", help="generate configuration files")
 new_parser.add_argument("config", help="path to configuration file")
 new_parser.set_defaults(func=new_config)
+
+########## check ##########
+
+
+def check(args):
+    filenames = np.asarray(args.filenames, dtype=str)
+    valid_files = check_files(filenames, num_proc=args.num_proc, quiet=args.quiet)
+    cnt = np.sum(valid_files)
+    if cnt == 0:
+        print("No invalid files found.")
+        return
+
+    print(f"{cnt} invalid files found (either couldn't be opened or have empty slices)")
+    mask = np.asarray(valid_files, dtype=bool)
+    accept_files = filenames[mask]
+    accept_path = Path.cwd() / "files_select.txt"
+    with accept_path.open("w") as fh:
+        fh.writelines("\n".join(Path(f) for f in accept_files))
+
+    reject_files = filenames[~mask]
+    reject_path = Path.cwd() / "files_reject.txt"
+    with reject_path.open("w") as fh:
+        fh.writelines("\n".join(Path(f) for f in reject_files))
+
+    return accept_path, reject_path
+
+
+check_parser = subparser.add_parser(
+    "check",
+    help="check raw data for problems",
+    description="Checks each file to see if it can be opened (by calling fits.open) and whether there are any empty slices. Creates two text files with the selected and rejected filenames if any bad files are found.",
+)
+check_parser.add_argument("filenames", nargs="*", help="FITS files to check")
+check_parser.add_argument(
+    "-j",
+    "--num-proc",
+    type=int,
+    default=DEFAULT_NPROC,
+    help="number of processors to use for multiprocessing (default is %(default)d)",
+)
+check_parser.add_argument(
+    "-q",
+    "--quiet",
+    action="store_true",
+    help="silence the progress bar",
+)
+check_parser.set_defaults(func=check)
+
+
 ########## run ##########
 
 
