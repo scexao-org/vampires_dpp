@@ -8,6 +8,26 @@ We assume that you have already successfully installed the `vampires_dpp` packag
 dpp --version
 ```
 
+## Check for invalid files
+
+```{admonition} Clean up files
+:class: tip
+
+Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.
+```
+
+To assist with this, you can use the `dpp check` script.
+
+```
+dpp check *.fits
+```
+
+If you have invalid files that are not just empty frames your data may be corrupted. Try redownloading it, first, and then reach out to the STARS and SCExAO teams if the problem persists.
+
+### Reference
+
+{{dppcheck_help}}
+
 ## Sorting raw data
 
 After downloading your data, you may want to sort it into subfolders based on the data type and object observed.
@@ -119,18 +139,13 @@ At this point, we highly recommend viewing the [pipeline options]() and making a
 
 {{dppnew_help}}
 
+
 ## Running the pipeline
-
-```{admonition} Clean up files
-:class: tip
-
-Before running files through the pipeline, it is recommended to inspect through your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.
-```
 
 After you've selected your configuration options, you can run the pipeline from the command line with `dpp run`
 
 ```
-dpp run 20230101_ABAur.toml 750-50_em300_00010ms/*
+dpp run 20230101_ABAur.toml 750-50_em300_00010ms_512x512/*
 ```
 
 ### Reference

@@ -318,6 +318,23 @@ title="Print to PDF"
   <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.organization">
 <span id="organization"></span><h1>Organization<a class="headerlink" href="#module-vampires_dpp.organization" title="Permalink to this headline">#</a></h1>
 <dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.organization.check_file">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">check_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.check_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Checks if file can be loaded and if there are empty slices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>PathLike</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Returns True if file can be loaded and no empty frames</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.organization.dict_from_header">
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header" title="Permalink to this definition">#</a></dt>
 <dd><p>Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like <code class="docutils literal notranslate"><span class="pre">COMMENTS</span></code> and <code class="docutils literal notranslate"><span class="pre">HISTORY</span></code> will be combined with commas. The resolved path will be inserted with the <code class="docutils literal notranslate"><span class="pre">path</span></code> key.</p>
