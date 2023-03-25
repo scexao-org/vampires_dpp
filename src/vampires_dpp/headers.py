@@ -5,15 +5,15 @@ import numpy as np
 from astropy.io import fits
 from astropy.time import Time
 
-from vampires_dpp.constants import PA_OFFSET, SUBARU_LOC
+from vampires_dpp.constants import SUBARU_LOC
 from vampires_dpp.util import wrap_angle
 
 
-def parallactic_angle(time, coord, pa_offset=PA_OFFSET):
+def parallactic_angle(time, coord):
     pa = parallactic_angle_hadec(
         time.sidereal_time("apparent").hourangle - coord.ra.hourangle, coord.dec.deg
     )
-    return wrap_angle(pa + pa_offset)
+    return wrap_angle(pa)
 
 
 def parallactic_angle_hadec(ha, dec, lat=SUBARU_LOC.lat.deg):
@@ -98,10 +98,12 @@ def fix_header(header):
     if "U_EMGAIN" in header:
         header["DETGAIN"] = header["U_EMGAIN"], "Detector multiplication factor"
     if "U_HWPANG" in header:
-        header["RET-ANG1"] = header["U_HWPANG"], "Position angle of first retarder plate (deg)"
+        header["RET-ANG1"] = header["U_HWPANG"], "[deg] Position angle of first retarder plate"
         header["RETPLAT1"] = "HWP(NIR)", "Identifier of first retarder plate"
     if "U_FLCSTT" in header:
-        header["U_FLCANG"] = 0 if header["U_FLCSTT"] == 0 else 45, "VAMPIRES FLC angle (deg)"
+        header["U_FLCANG"] = 0 if header["U_FLCSTT"] == 0 else 45, "[deg] VAMPIRES FLC angle"
+
+    header["EXPTIME"] = header["U_AQTINT"] * header["NAXIS3"] / 1e6, "[s] total exposure time"
     return header
 
 

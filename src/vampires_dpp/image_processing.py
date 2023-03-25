@@ -254,6 +254,17 @@ def combine_frames_headers(headers, wcs=False):
     for key, val in unique_row.items():
         output_header[key] = val, test_header.comments[key]
 
+    # sum exposure times
+    output_header["EXPTIME"] = table["EXPTIME"].sum(), "[s] total exposure time"
+    # get PA rotation
+    if "PA" in table.keys():
+        output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
+        output_header["PA-END"] = table["PA-END"].iloc[-1], "[deg] par. angle at end"
+        total_rot = np.abs(
+            np.mod(output_header["PA-END"], 360) - np.mod(output_header["PA-STR"], 360)
+        )
+        output_header["PA-ROT"] = total_rot, "[deg] total par. angle rotation"
+
     # average position using average angle formula
     ras = Angle(table["RA"], unit=u.hourangle)
     ave_ra = np.arctan2(np.sin(ras.rad).mean(), np.cos(ras.rad).mean())

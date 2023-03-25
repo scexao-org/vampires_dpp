@@ -68,17 +68,27 @@ def calibrate_file(
     raw_cube, header = fits.getdata(path, ext=hdu, header=True)
     # fix header
     header = fix_header(header)
+    time_str = Time(header["MJD-STR"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
+    time_end = Time(header["MJD-END"], format="mjd", scale="ut1", location=SUBARU_LOC)
     if coord is None:
         coord_now = get_coord_header(header, time)
     else:
         coord_now = coord.apply_space_motion(time)
+    for _time, _key in zip((time_str, time_end), ("STR", "END")):
+        if coord is None:
+            _coord = get_coord_header(header, _time)
+        else:
+            _coord = coord.apply_space_motion(_time)
+        pa = parallactic_angle(_time, _coord)
+        header[f"PA-{_key}"] = pa, "[deg] parallactic angle of target"
 
     header["RA"] = coord_now.ra.to_string(unit=u.hourangle, sep=":")
     header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
-    parang = parallactic_angle(time, coord_now)
+    pa = parallactic_angle(time, coord_now)
+    header["PA"] = pa, "[deg] parallactic angle of target"
+    parang = wrap_angle(pa + PA_OFFSET)
     header["PARANG"] = parang, "[deg] derotation angle for North up"
-    header["PA"] = wrap_angle(parang - PA_OFFSET), "[deg] parallactic angle of target"
     header = apply_wcs(header, parang=parang)
 
     # Discard frames in OG VAMPIRES
@@ -104,7 +114,7 @@ def calibrate_file(
             cube.mean(0),
             gain=header.get("DETGAIN", 4.5),
             readnoise=READNOISE,
-            satlevel=2**16 * header.get("DETGAIN", 4.5),
+            satlevel=2**15 * header.get("DETGAIN", 4.5),
             niter=1,
         )
         cube_copy = cube.copy()
@@ -124,7 +134,8 @@ def calibrate_file(
     # deinterleave
     if deinterleave:
         header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
-        header["U_FLCANG"] = 0, "VAMPIRES FLC angle (deg)"
+        header["U_FLCANG"] = 0, "[deg] VAMPIRES FLC angle"
+        header["EXPTIME"] /= 2
         fits.writeto(
             outpath_FLC1,
             cube[::2],
@@ -133,7 +144,7 @@ def calibrate_file(
         )
 
         header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
-        header["U_FLCANG"] = 45, "VAMPIRES FLC angle (deg)"
+        header["U_FLCANG"] = 45, "[deg] VAMPIRES FLC angle"
 
         fits.writeto(
             outpath_FLC2,
@@ -161,6 +172,7 @@ def make_dark_file(filename: str, force=False, **kwargs):
     else:
         cube = raw_cube[1:].astype("f4")
     master_dark, header = collapse_cube(cube, header=header, **kwargs)
+    header = fix_header(header)
     _, clean_dark = detect_cosmics(
         master_dark,
         gain=header.get("DETGAIN", 4.5),
@@ -185,6 +197,7 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
         ext=0,
         header=True,
     )
+    header = fix_header(header)
     if "U_FLCSTT" in header:
         cube = raw_cube.astype("f4")
     else:
@@ -263,7 +276,7 @@ def make_master_dark(
             # collapse the files required for each dark
             for path in filelist:
                 kwds = dict(
-                    output_directory=path.parent.parent / "collapsed",
+                    output_directory=outdir / "collapsed",
                     force=force,
                     method=collapse,
                 )
@@ -331,7 +344,7 @@ def make_master_flat(
             # collapse the files required for each flat
             for path in filelist:
                 kwds = dict(
-                    output_directory=path.parent.parent / "collapsed",
+                    output_directory=outdir / "collapsed",
                     dark_filename=master_dark_dict[key],
                     force=force,
                     method=collapse,
