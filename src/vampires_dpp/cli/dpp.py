@@ -458,24 +458,26 @@ new_parser.set_defaults(func=new_config)
 def check(args):
     filenames = np.asarray(args.filenames, dtype=str)
     valid_files = check_files(filenames, num_proc=args.num_proc, quiet=args.quiet)
-    cnt = np.sum(valid_files)
-    if cnt == 0:
+    cnt_valid = np.sum(valid_files)
+    cnt_invalid = len(valid_files) - cnt_valid
+    if cnt_invalid == 0:
         print("No invalid files found.")
         return
 
-    print(f"{cnt} invalid files found (either couldn't be opened or have empty slices)")
+    print(f"{cnt_invalid} invalid files found (either couldn't be opened or have empty slices)")
     mask = np.asarray(valid_files, dtype=bool)
     accept_files = filenames[mask]
     accept_path = Path.cwd() / "files_select.txt"
     with accept_path.open("w") as fh:
-        fh.writelines("\n".join(Path(f) for f in accept_files))
+        fh.writelines("\n".join(str(f) for f in accept_files))
 
     reject_files = filenames[~mask]
     reject_path = Path.cwd() / "files_reject.txt"
     with reject_path.open("w") as fh:
-        fh.writelines("\n".join(Path(f) for f in reject_files))
+        fh.writelines("\n".join(str(f) for f in reject_files))
 
-    return accept_path, reject_path
+    print(str(accept_path))
+    print(str(reject_path))
 
 
 check_parser = subparser.add_parser(
