@@ -469,15 +469,18 @@ title="Print to PDF"
 </div>
 <section id="check-for-invalid-files">
 <h2>Check for invalid files<a class="headerlink" href="#check-for-invalid-files" title="Permalink to this headline">#</a></h2>
-<div class="tip admonition">
-<p class="admonition-title">Clean up files</p>
-<p>Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.</p>
-</div>
-<p>To assist with this, you can use the <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">check</span></code> script.</p>
+<p>Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors. To assist with this, you can use the <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">check</span></code> script.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">check</span> <span class="o">*.</span><span class="n">fits</span>
 </pre></div>
 </div>
 <p>If you have invalid files that are not just empty frames your data may be corrupted. Try redownloading it, first, and then reach out to the STARS and SCExAO teams if the problem persists.</p>
+<div class="tip admonition">
+<p class="admonition-title">Tip: quick organization</p>
+<p>To quickly organize data, you can make a new directory (in this case, <code class="docutils literal notranslate"><span class="pre">selected</span></code>) and move the selected files into it with</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mkdir selected &amp;&amp; mv $(&lt; files_select.txt) selected
+</pre></div>
+</div>
+</div>
 <section id="reference">
 <h3>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">#</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">dpp</span> <span class="n">check</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="n">NUM_PROC</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="p">[</span><span class="n">filenames</span> <span class="o">...</span><span class="p">]</span>
