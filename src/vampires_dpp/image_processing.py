@@ -241,6 +241,13 @@ def combine_frames(frames, headers=None, **kwargs):
     return cube, headers
 
 
+def delta_angle(alpha, beta):
+    alphar, betar = np.deg2rad(alpha), np.deg2rad(beta)
+    dy = np.sin(alphar) - np.sin(betar)
+    dx = np.cos(alphar) - np.cos(betar)
+    return np.abs(np.rad2deg(np.arctan2(dy, dx)))
+
+
 def combine_frames_headers(headers, wcs=False):
     output_header = fits.Header()
     # let's make this easier with tables
@@ -260,9 +267,7 @@ def combine_frames_headers(headers, wcs=False):
     if "PA" in table.keys():
         output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
         output_header["PA-END"] = table["PA-END"].iloc[-1], "[deg] par. angle at end"
-        total_rot = np.abs(
-            np.mod(output_header["PA-END"], 360) - np.mod(output_header["PA-STR"], 360)
-        )
+        total_rot = delta_angle(output_header["PA-END"], output_header["PA-STR"])
         output_header["PA-ROT"] = total_rot, "[deg] total par. angle rotation"
 
     # average position using average angle formula

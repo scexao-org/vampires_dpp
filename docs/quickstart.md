@@ -10,19 +10,22 @@ dpp --version
 
 ## Check for invalid files
 
-```{admonition} Clean up files
-:class: tip
-
-Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.
-```
-
-To assist with this, you can use the `dpp check` script.
+Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors. To assist with this, you can use the `dpp check` script.
 
 ```
 dpp check *.fits
 ```
 
 If you have invalid files that are not just empty frames your data may be corrupted. Try redownloading it, first, and then reach out to the STARS and SCExAO teams if the problem persists.
+
+```{admonition} Tip: quick organization
+:class: tip
+
+To quickly organize data, you can make a new directory (in this case, `selected`) and move the selected files into it with
+
+    mkdir selected && mv $(< files_select.txt) selected
+```
+
 
 ### Reference
 
