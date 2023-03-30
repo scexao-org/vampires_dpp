@@ -522,10 +522,10 @@ class PolarimetryOptions(OutputDirectory):
 
     Parameters
     ----------
+    method: Optional[str]
+        Determines the polarization calibration method, either the double/triple-difference method (`difference`) or using the inverse least-squares solution from Mueller calculus (`mueller`). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded , however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.
     ip : Optional[IPOptions]
         Instrumental polarization (IP) correction options, by default None.
-    N_per_hwp : int
-        Number of cubes expected per HWP position, by default 1.
     order : str
         HWP iteration order, one of `"QQUU"` or `"QUQU"`. By default `"QQUU"`.
     derotate_pa : bool
