@@ -8,7 +8,7 @@ from pathlib import Path
 import astropy.units as u
 import numpy as np
 
-import vampires_dpp as vpp
+import vampires_dpp as dpp
 from vampires_dpp.calibration import make_master_dark, make_master_flat
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import check_files, header_table, sort_files
@@ -23,6 +23,7 @@ from vampires_dpp.pipeline.config import (
     RegisterOptions,
     SatspotOptions,
 )
+from vampires_dpp.pipeline.deprecation import upgrade_config
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import (
     DEFAULT_DIRS,
@@ -31,6 +32,7 @@ from vampires_dpp.pipeline.templates import (
     VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
 )
+from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
 
 # set up logging
@@ -434,10 +436,7 @@ def new_config(args):
     else:
         tpl.collapse = None
 
-    ## save output TOML
-    toml_str = tpl.to_toml()
-    with path.open("w") as fh:
-        fh.write(toml_str)
+    tpl.to_file(path)
 
     return path
 
@@ -507,7 +506,12 @@ check_parser.set_defaults(func=check)
 
 def run(args):
     path = Path(args.config)
+    # make sure versions match within SemVar
     pipeline = Pipeline.from_file(path)
+    if not check_version(pipeline.version, dpp.__version__):
+        raise ValueError(
+            f"Input pipeline version ({pipeline.version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__})."
+        )
     pipeline.run(args.filenames, num_proc=args.num_proc)
 
 
@@ -571,13 +575,38 @@ table_parser.add_argument(
 )
 table_parser.set_defaults(func=table)
 
+
+########## upgrade ##########
+
+
+def upgrade(args):
+    input_config = Pipeline.from_file(args.config)
+    output_config = upgrade_config(input_config)
+    outpath = args.config if args.output is None else args.output
+    output_config.to_file(outpath)
+    return outpath
+
+
+upgrade_parser = subparser.add_parser(
+    "upgrade",
+    aliases=("u", "up"),
+    help="upgrade configuration file to current version",
+    description=f"Tries to automatically upgrade a configuration file to the current version ({dpp.__version__}), prompting the user where necessary.",
+)
+upgrade_parser.add_argument("config", help="path to configuration file")
+upgrade_parser.add_argument(
+    "-o",
+    "--output",
+    help="Output configuration filename. If not provided, will modify in-place.",
+)
+upgrade_parser.set_defaults(func=upgrade)
 ########## main ##########
 
 
 def main():
     args = parser.parse_args()
     if args.version:
-        return vpp.__version__
+        return dpp.__version__
     if hasattr(args, "func"):
         return args.func(args)
     # no inputs, print help

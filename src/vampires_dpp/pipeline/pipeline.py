@@ -1,14 +1,11 @@
 import logging
 import multiprocessing as mp
 import re
-from os import PathLike
 from pathlib import Path
 from typing import Optional, Tuple
 
 import numpy as np
-import tomli
 from astropy.io import fits
-from serde.toml import to_toml
 from tqdm.auto import tqdm
 
 import vampires_dpp as vpp
@@ -34,8 +31,7 @@ from vampires_dpp.polarization import (
     triplediff_average_angles,
     write_stokes_products,
 )
-from vampires_dpp.util import any_file_newer, check_version
-from vampires_dpp.wcs import get_gaia_astrometry
+from vampires_dpp.util import any_file_newer
 
 
 class Pipeline(PipelineOptions):
@@ -43,69 +39,10 @@ class Pipeline(PipelineOptions):
 
     def __post_init__(self):
         super().__post_init__()
-        # make sure versions match within SemVar
-        if not check_version(self.version, vpp.__version__):
-            raise ValueError(
-                f"Input pipeline version ({self.version}) is not compatible with installed version of `vampires_dpp` ({vpp.__version__})."
-            )
         self.master_darks = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}
         # self.console = Console()
         self.logger = logging.getLogger("DPP")
-
-    @classmethod
-    def from_file(cls, filename: PathLike):
-        """
-        Load configuration from TOML file
-
-        Parameters
-        ----------
-        filename : PathLike
-            Path to TOML file with configuration settings.
-
-        Raises
-        ------
-        ValueError
-            If the configuration `version` is not compatible with the current `vampires_dpp` version.
-
-        Examples
-        --------
-        >>> Pipeline.from_file("config.toml")
-        """
-        with open(filename, "rb") as fh:
-            config = tomli.load(fh)
-        return cls(**config)
-
-    @classmethod
-    def from_str(cls, toml_str: str):
-        """
-        Load configuration from TOML string.
-
-        Parameters
-        ----------
-        toml_str : str
-            String of TOML configuration settings.
-
-        Raises
-        ------
-        ValueError
-            If the configuration `version` is not compatible with the current `vampires_dpp` version.
-        """
-        config = tomli.loads(toml_str)
-        return cls(**config)
-
-    def to_file(self, filename: PathLike):
-        """
-        Save configuration settings to TOML file
-
-        Parameters
-        ----------
-        filename : PathLike
-            Output filename
-        """
-        # use serde.to_toml to serialize self
-        path = Path(filename)
-        path.write_text(to_toml(self))
 
     def run(self, filenames, num_proc=None):
         """Run the pipeline
