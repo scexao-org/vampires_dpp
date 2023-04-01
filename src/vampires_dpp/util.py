@@ -50,18 +50,6 @@ def average_angle(angles: ArrayLike):
     return np.rad2deg(radmean)
 
 
-def find_dark_settings(filelist):
-    exp_set = set()
-    for filename in filelist:
-        with fits.open(filename) as hdus:
-            hdr = hdus[0].header
-            texp = hdr["EXPTIME"]  # exposure time in seconds
-            gain = hdr["U_EMGAIN"]
-            exp_set.add((texp, gain))
-
-    return exp_set
-
-
 def check_version(config: str, vpp: str) -> bool:
     """
     Checks compatibility between versions following semantic versioning.

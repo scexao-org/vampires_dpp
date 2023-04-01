@@ -55,7 +55,6 @@ docs = [
 
 [project.scripts]
 dpp = "vampires_dpp.cli.dpp:main"
-find_dark_settings = "vampires_dpp.cli.find_dark_settings:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_dpp.__version__"}
