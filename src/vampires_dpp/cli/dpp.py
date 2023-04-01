@@ -510,7 +510,7 @@ def run(args):
     pipeline = Pipeline.from_file(path)
     if not check_version(pipeline.version, dpp.__version__):
         raise ValueError(
-            f"Input pipeline version ({pipeline.version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__})."
+            f"Input pipeline version ({pipeline.version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {args.config}`."
         )
     pipeline.run(args.filenames, num_proc=args.num_proc)
 

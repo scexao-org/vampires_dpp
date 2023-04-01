@@ -12,12 +12,12 @@ import vampires_dpp as vpp
 from vampires_dpp.calibration import calibrate_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
-from vampires_dpp.image_processing import (
-    FileSet,
-    collapse_cube_file,
-    combine_frames_files,
+from vampires_dpp.image_processing import FileSet, combine_frames_files
+from vampires_dpp.image_registration import (
+    lucky_image_file,
+    measure_offsets_file,
+    register_file,
 )
-from vampires_dpp.image_registration import measure_offsets_file, register_file
 from vampires_dpp.organization import header_table
 from vampires_dpp.pipeline.config import PipelineOptions
 from vampires_dpp.polarization import (
@@ -112,15 +112,22 @@ class Pipeline(PipelineOptions):
                 return path, tripwire
 
     def process_post_calib(self, path, fileinfo, tripwire=False):
+        metric_file = offsets_file = None
         ## Step 2: Frame selection
         if self.frame_select is not None:
-            path, tripwire = self.frame_select_one(path, fileinfo, tripwire)
+            metric_file, tripwire = self.frame_select_one(path, fileinfo, tripwire=tripwire)
         ## 3: Image registration
         if self.register is not None:
-            path, tripwire = self.register_one(path, fileinfo, tripwire)
+            offsets_file, tripwire = self.register_one(path, fileinfo, tripwire=tripwire)
         ## Step 4: collapsing
         if self.collapse is not None:
-            path, tripwire = self.collapse_one(path, fileinfo, tripwire)
+            path, tripwire = self.collapse_one(
+                path,
+                fileinfo,
+                tripwire=tripwire,
+                metric_file=metric_file,
+                offsets_file=offsets_file,
+            )
 
         return path, tripwire
 
@@ -187,7 +194,7 @@ class Pipeline(PipelineOptions):
         self.logger.info("Data calibration completed")
         return calib_file, tripwire
 
-    def frame_select_one(self, path, fileinfo, tripwire=False):
+    def frame_select_one(self, path, fileinfo, save_intermediate=False, tripwire=False):
         self.logger.info("Performing frame selection")
         config = self.frame_select
         if config.output_directory is not None:
@@ -220,14 +227,15 @@ class Pipeline(PipelineOptions):
                 force=tripwire,
             )
 
-        selected_file = frame_select_file(
-            path, metric_file, q=config.cutoff, output_directory=outdir, force=tripwire
-        )
+        if save_intermediate:
+            frame_select_file(
+                path, metric_file, q=config.cutoff, output_directory=outdir, force=tripwire
+            )
 
-        self.logger.info("Data calibration completed")
-        return selected_file, tripwire
+        self.logger.info("Frame selection completed")
+        return metric_file, tripwire
 
-    def register_one(self, path, fileinfo, tripwire=False):
+    def register_one(self, path, fileinfo, save_intermediate=False, tripwire=False):
         self.logger.info("Performing image registration")
         config = self.register
         if config.output_directory is not None:
@@ -262,16 +270,17 @@ class Pipeline(PipelineOptions):
                 upsample_factor=config.dft_factor,
             )
 
-        reg_file = register_file(
-            path,
-            offsets_file,
-            output_directory=outdir,
-            force=tripwire,
-        )
-        self.logger.info("Data calibration completed")
-        return reg_file, tripwire
+        if save_intermediate:
+            register_file(
+                path,
+                offsets_file,
+                output_directory=outdir,
+                force=tripwire,
+            )
+        self.logger.info("Image registration completed")
+        return offsets_file, tripwire
 
-    def collapse_one(self, path, fileinfo, tripwire=False):
+    def collapse_one(self, path, fileinfo, metric_file=None, offsets_file=None, tripwire=False):
         self.logger.info("Starting data calibration")
         config = self.collapse
         if config.output_directory is not None:
@@ -281,9 +290,13 @@ class Pipeline(PipelineOptions):
         outdir.mkdir(parents=True, exist_ok=True)
         self.logger.debug(f"Saving collapsed data to {outdir.absolute()}")
         tripwire |= config.force
-        calib_file = collapse_cube_file(
+
+        calib_file = lucky_image_file(
             path,
             method=config.method,
+            metric_file=metric_file,
+            offsets_file=offsets_file,
+            q=self.frame_select.cutoff,
             output_directory=outdir,
             force=tripwire,
         )

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 from astropy.io import fits
@@ -6,7 +8,8 @@ from numpy.typing import ArrayLike
 from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 
-from vampires_dpp.image_processing import shift_cube
+from vampires_dpp.frame_selection import frame_select_cube
+from vampires_dpp.image_processing import collapse_cube, shift_cube
 from vampires_dpp.indexing import (
     cutout_slice,
     frame_center,
@@ -240,6 +243,14 @@ def measure_offsets_file(filename, method="peak", coronagraphic=False, force=Fal
     return outpath
 
 
+def register_cube(cube, offsets, header=None, **kwargs):
+    # reshape offsets into a single average
+    mean_offsets = np.mean(offsets.reshape(len(offsets), -1, 2), axis=1)
+    shifted = shift_cube(cube, -mean_offsets)
+
+    return shifted, header
+
+
 def register_file(filename, offset_file, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="aligned", **kwargs)
 
@@ -250,12 +261,41 @@ def register_file(filename, offset_file, force=False, **kwargs):
         path,
         header=True,
     )
-    offsets_flat = np.loadtxt(offset_file, delimiter=",")
-
-    # reshape offsets into a single average
-    offsets = offsets_flat.reshape(len(offsets_flat), -1, 2).mean(1)
-
-    shifted = shift_cube(cube, -offsets)
+    offsets = np.loadtxt(offset_file, delimiter=",")
+    shifted, header = register_cube(cube, offsets, header=header, **kwargs)
 
     fits.writeto(outpath, shifted, header=header, overwrite=True)
+    return outpath
+
+
+def lucky_image_file(
+    filename, metric_file=None, offsets_file=None, force: bool = False, q=0, **kwargs
+) -> Path:
+    path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
+        return outpath
+
+    cube, header = fits.getdata(
+        path,
+        header=True,
+    )
+
+    ## Step 1: Frame select
+    mask = np.ones(cube.shape[0], dtype=bool)
+    if metric_file is not None:
+        metrics = np.loadtxt(metric_file, delimiter=",")
+        cube, header = frame_select_cube(cube, metrics, header=header, q=q, **kwargs)
+        mask &= metrics >= np.quantile(metrics, q)
+
+    ## Step 2: Register
+    if offsets_file is not None:
+        offsets = np.loadtxt(offsets_file, delimiter=",")
+        # mask offsets with selected metrics
+        offsets_masked = offsets[mask]
+        cube, header = register_cube(cube, offsets_masked, header=header, **kwargs)
+
+    ## Step 3: Collapse
+    frame, header = collapse_cube(cube, header=header, **kwargs)
+
+    fits.writeto(outpath, frame, header=header, overwrite=True)
     return outpath

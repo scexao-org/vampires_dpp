@@ -67,10 +67,19 @@ def measure_metric_file(
     return outpath
 
 
+def frame_select_cube(cube, metrics, q=0, header=None, **kwargs):
+
+    mask = metrics >= np.quantile(metrics, q)
+    selected = cube[mask]
+    if header is not None:
+        header["DPP_REF"] = metrics[mask].argmax() + 1, "Index of frame with highest metric"
+
+    return selected, header
+
+
 def frame_select_file(
     filename,
-    metricfile,
-    q=0,
+    metric_file,
     force=False,
     **kwargs,
 ):
@@ -83,12 +92,8 @@ def frame_select_file(
         path,
         header=True,
     )
-    metrics = np.loadtxt(metricfile, delimiter=",")
-
-    mask = metrics >= np.quantile(metrics, q)
-    selected = cube[mask]
-
-    header["DPP_REF"] = metrics[mask].argmax() + 1, "Index of frame with highest metric"
+    metrics = np.loadtxt(metric_file, delimiter=",")
+    selected, header = frame_select_cube(cube, metrics, header=header, **kwargs)
 
     fits.writeto(outpath, selected, header=header, overwrite=True)
     return outpath

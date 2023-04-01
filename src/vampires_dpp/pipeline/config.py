@@ -301,7 +301,7 @@ class FrameSelectOptions(OutputDirectory):
 
     .. admonition:: Outputs
 
-        For each input file, a CSV with frame selection metrics for each slice will be saved in the output directory with the "_metrics" suffix and a cube with bad frames discarded will be saved with the "_selected" suffix.
+        For each input file, a CSV with frame selection metrics for each slice will be saved in the output directory with the "_metrics" suffix. If `save_intermediate` is true, a cube with bad frames discarded will be saved with the "_selected" suffix.
 
     Parameters
     ----------
@@ -313,6 +313,8 @@ class FrameSelectOptions(OutputDirectory):
         The window size (in pixels) to cut out around PSFs before measuring the frame selection metric, by default 30.
     output_directory : Optional[Path]
         The trimmed files will be saved to the output directory. If not provided, will use the current working directory. By default None.
+    save_intermediate : bool
+        If true, will save the frame-selected FITS files in the output directory. WARNING this can lead to extremely large data volumes.
     force : bool
         If true, will force this processing step to occur.
 
@@ -332,6 +334,7 @@ class FrameSelectOptions(OutputDirectory):
     cutoff: float
     metric: str = field(default="normvar")
     window_size: int = field(default=30, skip_if_default=True)
+    save_intermediate: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
@@ -363,7 +366,7 @@ class RegisterOptions(OutputDirectory):
 
     .. admonition:: Outputs
 
-        For each input file, a CSV with PSF centroids (or centroids for each satellite spot) will be saved in the output directory with the "_offsets" suffix and a registered cube will be saved with the "_aligned" suffix.
+        For each input file, a CSV with PSF centroids (or centroids for each satellite spot) will be saved in the output directory with the "_offsets" suffix. If `save_intermediate` is true, a registered cube will be saved with the "_aligned" suffix.
 
     Parameters
     ----------
@@ -377,6 +380,8 @@ class RegisterOptions(OutputDirectory):
         If using the DFT method, the upsampling factor (inverse of centroid precision), by default 1.
     output_directory : Optional[Path]
         The PSF offsets and aligned files will be saved to the output directory. If not provided, will use the current working directory. By default None.
+    save_intermediate : bool
+        If true, will save the registered FITS files in the output directory. WARNING this can lead to extremely large data volumes.
     force : bool
         If true, will force this processing step to occur.
 
@@ -396,6 +401,7 @@ class RegisterOptions(OutputDirectory):
     window_size: int = field(default=30, skip_if_default=True)
     smooth: Optional[int] = field(default=None, skip_if_default=True)
     dft_factor: int = field(default=1, skip_if_default=True)
+    save_intermediate: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
