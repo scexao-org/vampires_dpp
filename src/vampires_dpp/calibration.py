@@ -173,15 +173,15 @@ def make_dark_file(filename: str, force=False, **kwargs):
         cube = raw_cube[1:].astype("f4")
     master_dark, header = collapse_cube(cube, header=header, **kwargs)
     header = fix_header(header)
-    _, clean_dark = detect_cosmics(
-        master_dark,
-        gain=header.get("DETGAIN", 4.5),
-        readnoise=READNOISE,
-        satlevel=2**16 * header.get("DETGAIN", 4.5),
-    )
+    # _, clean_dark = detect_cosmics(
+    #     master_dark,
+    #     gain=header.get("DETGAIN", 4.5),
+    #     readnoise=READNOISE,
+    #     satlevel=2**16 * header.get("DETGAIN", 4.5),
+    # )
     fits.writeto(
         outpath,
-        clean_dark,
+        master_dark,
         header=header,
         overwrite=True,
     )
@@ -210,30 +210,32 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
         )
         cube = cube - master_dark
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
-    _, clean_flat = detect_cosmics(
-        master_flat,
-        gain=header.get("DETGAIN", 4.5),
-        readnoise=READNOISE,
-        satlevel=2**16 * header.get("DETGAIN", 4.5),
-    )
-    clean_flat /= np.nanmedian(clean_flat)
+    # _, clean_flat = detect_cosmics(
+    #     master_flat,
+    #     gain=header.get("DETGAIN", 4.5),
+    #     readnoise=READNOISE,
+    #     satlevel=2**16 * header.get("DETGAIN", 4.5),
+    # )
+    master_flat /= np.nanmedian(master_flat)
 
     fits.writeto(
         outpath,
-        clean_flat,
+        master_flat,
         header=header,
         overwrite=True,
     )
     return outpath
 
 
-def sort_calib_files(filenames: list[PathLike]) -> dict[Tuple, Path]:
+def sort_calib_files(filenames: list[PathLike], darks=False) -> dict[Tuple, Path]:
     darks_dict = {}
     for filename in filenames:
         path = Path(filename)
         header = fits.getheader(path)
         sz = header["NAXIS1"], header["NAXIS2"]
         key = (header["U_CAMERA"], header["U_EMGAIN"], header["U_AQTINT"], sz, header["U_FILTER"])
+        if darks:
+            key = key[:-1]
         if key in darks_dict:
             darks_dict[key].append(path)
         else:
@@ -251,7 +253,7 @@ def make_master_dark(
     quiet: bool = False,
 ) -> list[Path]:
     # prepare input filenames
-    file_inputs = sort_calib_files(filenames)
+    file_inputs = sort_calib_files(filenames, darks=True)
     # make darks for each camera
     if output_directory is not None:
         outdir = Path(output_directory)
@@ -265,7 +267,7 @@ def make_master_dark(
     with mp.Pool(num_proc) as pool:
         jobs = []
         for key, filelist in file_inputs.items():
-            cam, gain, exptime, sz, filt = key
+            cam, gain, exptime, sz = key
             outname = (
                 outdir
                 / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
@@ -284,7 +286,7 @@ def make_master_dark(
         iter = jobs if quiet else tqdm(jobs, desc="Collapsing dark frames")
         frames = [job.get() for job in iter]
         # create master frames from collapsed files
-        collapsed_inputs = sort_calib_files(frames)
+        collapsed_inputs = sort_calib_files(frames, darks=True)
         jobs = []
         for key, filelist in collapsed_inputs.items():
             kwds = dict(
@@ -313,12 +315,12 @@ def make_master_flat(
     file_inputs = sort_calib_files(filenames)
     master_dark_dict = {key: None for key in file_inputs.keys()}
     if master_darks is not None:
-        dark_inputs = sort_calib_files(master_darks)
+        dark_inputs = sort_calib_files(master_darks, darks=True)
         for key in file_inputs.keys():
             # don't need to match filter for darks
             dark_key = key[:-1]
             # input should be list with one file in it
-            if key in dark_inputs:
+            if dark_key in dark_inputs:
                 master_dark_dict[key] = dark_inputs[dark_key][0]
 
     if output_directory is not None:

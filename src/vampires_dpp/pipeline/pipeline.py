@@ -291,15 +291,17 @@ class Pipeline(PipelineOptions):
         self.logger.debug(f"Saving collapsed data to {outdir.absolute()}")
         tripwire |= config.force
 
-        calib_file = lucky_image_file(
-            path,
+        kwargs = dict(
             method=config.method,
             metric_file=metric_file,
             offsets_file=offsets_file,
-            q=self.frame_select.cutoff,
             output_directory=outdir,
             force=tripwire,
         )
+        if self.frame_select is not None:
+            kwargs["q"] = self.frame_select.cutoff
+
+        calib_file = lucky_image_file(path, **kwargs)
         self.logger.info("Data calibration completed")
         return calib_file, tripwire
 

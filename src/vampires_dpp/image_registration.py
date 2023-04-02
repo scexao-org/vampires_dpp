@@ -168,20 +168,6 @@ def offset_peak(frame, inds):
     return ctr
 
 
-def offset_subpixel_peak(frame, inds, oversample=8):
-    view = frame[inds]
-    sinc_c = (
-        np.view.shape[0]
-        * np.fft.fft(fftsinc, norm="forward")
-        * np.exp(1j * np.pi * (oversample - 1))
-    )
-    sinc = np.fft.fftshift(np.real(sinc_c))
-    sinc2d = np.outer(sinc, sinc)
-    fftview = np.fft.fftshift(np.fft.fft2(view, norm="forward"))
-    fftview / sinc2d
-    np.array(view.shape[0])
-
-
 def offset_modelfit(frame, inds, method, fitter=fitting.LevMarLSQFitter()):
     view = frame[inds[0], inds[1]]
     y, x = np.mgrid[0 : view.shape[0], 0 : view.shape[1]]
