@@ -9,7 +9,7 @@ from astropy.coordinates import Angle, SkyCoord
 from serde import field, serialize
 from serde.toml import to_toml
 
-import vampires_dpp as vpp
+import vampires_dpp as dpp
 from vampires_dpp.constants import SATSPOT_ANGLE
 
 
@@ -744,7 +744,7 @@ class PipelineOptions:
     collapse: Optional[CollapseOptions] = field(default=None, skip_if_default=True)
     polarimetry: Optional[PolarimetryOptions] = field(default=None, skip_if_default=True)
     products: Optional[ProductOptions] = field(default=None, skip_if_default=True)
-    version: str = vpp.__version__
+    version: str = dpp.__version__
 
     def __post_init__(self):
         if self.coordinate is not None and isinstance(self.coordinate, dict):

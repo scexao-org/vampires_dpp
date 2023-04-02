@@ -17,18 +17,14 @@ The pipeline will reduce the data in the following order
 
 ```{admonition} Warning: Large data volume
 :class: warning
-The data volumes associated with typical VAMPIRES observations can easily balloon into the terabyte (TB) range when using this pipeline. It is strongly recommended to work with a large attached storage.
-
-As an example, a half-night of coronagraphic data can easily produce 200 GB of raw data. The calibration, frame selection, and image-registration steps will *each* make a copy, leading to a data volume three to four times larger (600 GB to 800 GB). After the individual frames are collapsed the data size reduces by about two orders of magnitude, making them negligible in comparison.
-
-An easy way to reclaim storage space is to delete the intermediate data products after you have finalized a reduction. You can always rerun the pipeline later to reproduce the files.
+This pipeline tries to minimize the number of FITS files saved to disk due to the massive volume of VAMPIRES data. To accomplish this, we skip saving intermediate files when possible. Still, you should expect your data volume to increase by a factor of \~2.5. If saving intermediate products, this factor increases to \~6.5 times the raw data size. It is strongly recommended to work with a large attached storage.
 ```
 
 ```{admonition} Troubleshooting
 :class: tip
 If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with `_debug.log` appended to the file name as well as in the output directory.
 
-    vpp run config.toml VMPA*.fits
+    dpp run config.toml VMPA*.fits
     tail config_debug.log
 ```
 

@@ -8,7 +8,7 @@ import numpy as np
 from astropy.io import fits
 from tqdm.auto import tqdm
 
-import vampires_dpp as vpp
+import vampires_dpp as dpp
 from vampires_dpp.calibration import calibrate_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
@@ -60,7 +60,7 @@ class Pipeline(PipelineOptions):
         fh_logger.setLevel(logging.DEBUG)
         self.logger.addHandler(fh_logger)
 
-        self.logger.info(f"VAMPIRES DPP: v{vpp.__version__}")
+        self.logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
         ## configure astrometry
         self.get_frame_centers()
         self.get_coordinate()
@@ -471,55 +471,6 @@ class Pipeline(PipelineOptions):
 
     def polarimetry_ip_correct_mueller(self, filename, outname):
         raise NotImplementedError()
-
-    # logger.warning("Mueller matrix calibration is extremely experimental.")
-    # stack, header = fits.getdata(filename, header=True)
-    # # info needed for Mueller matrices
-    # pa = np.deg2rad(header["D_IMRPAD"] + 180 - header["D_IMRPAP"])
-    # altitude = np.deg2rad(header["ALTITUDE"])
-    # hwp_theta = np.deg2rad(header["U_HWPANG"])
-    # imr_theta = np.deg2rad(header["D_IMRANG"])
-    # # qwp are oriented with 0 on vertical axis
-    # qwp1 = np.deg2rad(header["U_QWP1"]) + np.pi/2
-    # qwp2 = np.deg2rad(header["U_QWP2"]) + np.pi/2
-
-    # # get matrix for camera 1
-    # M1 = mueller_matrix_model(
-    #     camera=1,
-    #     filter=header["U_FILTER"],
-    #     flc_state=header["U_FLCSTT"],
-    #     qwp1=qwp1,
-    #     qwp2=qwp2,
-    #     imr_theta=imr_theta,
-    #     hwp_theta=hwp_theta,
-    #     pa=pa,
-    #     altitude=altitude,
-    # )
-    # # get matrix for camera 2
-    # M2 = mueller_matrix_model(
-    #     camera=2,
-    #     filter=header["U_FILTER"],
-    #     flc_state=header["U_FLCSTT"],
-    #     qwp1=qwp1,
-    #     qwp2=qwp2,
-    #     imr_theta=imr_theta,
-    #     hwp_theta=hwp_theta,
-    #     pa=pa,
-    #     altitude=altitude,
-    # )
-
-    # diff_M = M1 - M2
-    # # IP correct
-    # stokes = HWP_POS_STOKES[header["U_HWPANG"]]
-    # if stokes.endswith("Q"):
-    #     pX = diff_M[0, 1]
-    # elif stokes.endswith("U"):
-    #     pX = diff_M[0, 2]
-
-    # stack[1] -= pX * stack[0]
-
-    # header[f"VPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-    # fits.writeto(outname, stack, header=header, overwrite=True)
 
     def polarimetry_triplediff(self, force=False, N_per_hwp=1, derotate_pa=False, **kwargs):
         # sort table

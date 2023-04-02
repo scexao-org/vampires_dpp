@@ -50,7 +50,7 @@ def average_angle(angles: ArrayLike):
     return np.rad2deg(radmean)
 
 
-def check_version(config: str, vpp: str) -> bool:
+def check_version(config: str, dpp: str) -> bool:
     """
     Checks compatibility between versions following semantic versioning.
 
@@ -58,7 +58,7 @@ def check_version(config: str, vpp: str) -> bool:
     ----------
     config : str
         Version string for the configuration
-    vpp : str
+    dpp : str
         Version string for `vampires_dpp`
 
     Returns
@@ -66,13 +66,13 @@ def check_version(config: str, vpp: str) -> bool:
     bool
     """
     config_maj, config_min, config_pat = version.parse(config).release
-    vpp_maj, vpp_min, vpp_pat = version.parse(vpp).release
-    if vpp_maj == 0:
-        flag = config_maj == vpp_maj and config_min == vpp_min and vpp_pat >= config_pat
+    dpp_maj, dpp_min, dpp_pat = version.parse(dpp).release
+    if dpp_maj == 0:
+        flag = config_maj == dpp_maj and config_min == dpp_min and dpp_pat >= config_pat
     else:
-        flag = config_maj == vpp_maj and vpp_min >= config_min
-        if vpp_min == config_min:
-            flag = flag and vpp_pat >= config_pat
+        flag = config_maj == dpp_maj and dpp_min >= config_min
+        if dpp_min == config_min:
+            flag = flag and dpp_pat >= config_pat
     return flag
 
 
