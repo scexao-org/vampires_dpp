@@ -507,14 +507,12 @@ title="Print to PDF"
 </ol>
 <div class="warning admonition">
 <p class="admonition-title">Warning: Large data volume</p>
-<p>The data volumes associated with typical VAMPIRES observations can easily balloon into the terabyte (TB) range when using this pipeline. It is strongly recommended to work with a large attached storage.</p>
-<p>As an example, a half-night of coronagraphic data can easily produce 200 GB of raw data. The calibration, frame selection, and image-registration steps will <em>each</em> make a copy, leading to a data volume three to four times larger (600 GB to 800 GB). After the individual frames are collapsed the data size reduces by about two orders of magnitude, making them negligible in comparison.</p>
-<p>An easy way to reclaim storage space is to delete the intermediate data products after you have finalized a reduction. You can always rerun the pipeline later to reproduce the files.</p>
+<p>This pipeline tries to minimize the number of FITS files saved to disk due to the massive volume of VAMPIRES data. To accomplish this, we skip saving intermediate files when possible. Still, you should expect your data volume to increase by a factor of ~2.5. If saving intermediate products, this factor increases to ~6.5 times the raw data size. It is strongly recommended to work with a large attached storage.</p>
 </div>
 <div class="tip admonition">
 <p class="admonition-title">Troubleshooting</p>
 <p>If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with <code class="docutils literal notranslate"><span class="pre">_debug.log</span></code> appended to the file name as well as in the output directory.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vpp run config.toml VMPA*.fits
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dpp run config.toml VMPA*.fits
 tail config_debug.log
 </pre></div>
 </div>
@@ -834,7 +832,7 @@ tail config_debug.log
 <h3>Frame Selection Options<a class="headerlink" href="#frame-selection-options" title="Permalink to this headline">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.FrameSelectOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">FrameSelectOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'normvar'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.FrameSelectOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">FrameSelectOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'normvar'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.FrameSelectOptions" title="Permalink to this definition">#</a></dt>
 <dd><p>Frame selection options</p>
 <p>Frame selection metrics can be measured on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The quality metrics are</p>
 <ul class="simple">
@@ -844,7 +842,7 @@ tail config_debug.log
 </ul>
 <div class="admonition-outputs admonition">
 <p class="admonition-title">Outputs</p>
-<p>For each input file, a CSV with frame selection metrics for each slice will be saved in the output directory with the “_metrics” suffix and a cube with bad frames discarded will be saved with the “_selected” suffix.</p>
+<p>For each input file, a CSV with frame selection metrics for each slice will be saved in the output directory with the “_metrics” suffix. If <cite>save_intermediate</cite> is true, a cube with bad frames discarded will be saved with the “_selected” suffix.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -853,6 +851,7 @@ tail config_debug.log
 <li><p><strong>metric</strong> (<em>str</em>) – The frame selection metric, one of <cite>“peak”</cite>, <cite>“l2norm”</cite>, and <cite>“normvar”</cite>, by default <cite>“normvar”</cite>.</p></li>
 <li><p><strong>window_size</strong> (<em>int</em>) – The window size (in pixels) to cut out around PSFs before measuring the frame selection metric, by default 30.</p></li>
 <li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The trimmed files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
+<li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save the frame-selected FITS files in the output directory. WARNING this can lead to extremely large data volumes.</p></li>
 <li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
 </ul>
 </dd>
@@ -878,7 +877,7 @@ tail config_debug.log
 <h3>Image Registration Options<a class="headerlink" href="#image-registration-options" title="Permalink to this headline">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.RegisterOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">RegisterOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.RegisterOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">RegisterOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.RegisterOptions" title="Permalink to this definition">#</a></dt>
 <dd><p>Image registration options</p>
 <p>Image registration can be done on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The registration methods are</p>
 <ul class="simple">
@@ -891,7 +890,7 @@ tail config_debug.log
 </ul>
 <div class="admonition-outputs admonition">
 <p class="admonition-title">Outputs</p>
-<p>For each input file, a CSV with PSF centroids (or centroids for each satellite spot) will be saved in the output directory with the “_offsets” suffix and a registered cube will be saved with the “_aligned” suffix.</p>
+<p>For each input file, a CSV with PSF centroids (or centroids for each satellite spot) will be saved in the output directory with the “_offsets” suffix. If <cite>save_intermediate</cite> is true, a registered cube will be saved with the “_aligned” suffix.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -901,6 +900,7 @@ tail config_debug.log
 <li><p><strong>smooth</strong> (<em>bool</em>) – If true, will Gaussian smooth the input frames before measuring offsets, by default false.</p></li>
 <li><p><strong>dft_factor</strong> (<em>int</em>) – If using the DFT method, the upsampling factor (inverse of centroid precision), by default 1.</p></li>
 <li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The PSF offsets and aligned files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
+<li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save the registered FITS files in the output directory. WARNING this can lead to extremely large data volumes.</p></li>
 <li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
 </ul>
 </dd>
