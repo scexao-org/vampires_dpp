@@ -1,6 +1,5 @@
 import logging
 import multiprocessing as mp
-import re
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -23,7 +22,7 @@ from vampires_dpp.pipeline.config import PipelineOptions
 from vampires_dpp.polarization import (
     HWP_POS_STOKES,
     collapse_stokes_cube,
-    make_diff_image,
+    instpol_correct,
     measure_instpol,
     measure_instpol_satellite_spots,
     pol_inds,
@@ -333,6 +332,8 @@ class Pipeline(PipelineOptions):
             )
 
     def _polarimetry(self, tripwire=False):
+        if self.products is None:
+            return
         if self.collapse is None:
             raise ValueError("Cannot do PDI without collapsing data.")
         config = self.polarimetry
@@ -343,172 +344,144 @@ class Pipeline(PipelineOptions):
         self.logger.debug(f"saving Stokes data to {outdir.absolute()}")
         tripwire |= config.force
 
-        # 1. Make diff images
-        self.make_diff_images(outdir, force=tripwire)
+        # create variables
+        self.stokes_cube_file = self.stokes_angles_file = self.stokes_collapsed_file = None
 
-        # 2. Correct IP + crosstalk
-        if config.ip is not None:
-            tripwire |= config.ip.force
-            self.polarimetry_ip_correct(outdir, force=tripwire)
-        else:
-            self.diff_files_ip = self.diff_files.copy()
-        # 3. Do higher-order correction
-        if self.products is not None:
+        # 1. Make Stokes cube
+        if config.method == "difference":
             self.polarimetry_triplediff(
                 force=tripwire,
                 N_per_hwp=config.N_per_hwp,
                 order=config.order,
-                derotate_pa=config.derotate_pa,
+                adi_sync=config.adi_sync,
             )
+        else:
+            raise NotImplementedError()
+
+        # 2. 2nd order IP correction
+        if config.ip is not None:
+            tripwire |= config.ip.force
+            self.polarimetry_ip_correct(outdir, force=tripwire)
 
         self.logger.info("Finished PDI")
-
-    def make_diff_images(self, outdir, force: bool = False):
-        self.logger.info("Making difference frames")
-        # table should still be sorted by MJD
-        groups = self.output_table.groupby("MJD")
-        # filter groups without full camera/FLC states
-        filesets = []
-        cam1_paths = []
-        cam2_paths = []
-        for mjd, group in groups:
-            fileset = FileSet(group["path"])
-            if len(group) == 4:
-                filesets.append(fileset)
-                for flc in (1, 2):
-                    cam1_paths.append(fileset.paths[(1, flc)])
-                    cam2_paths.append(fileset.paths[(2, flc)])
-                continue
-            miss = set([(1, 1), (1, 2), (2, 1), (2, 2)]) - set(fileset.keys)
-            self.logger.warn(f"Discarding group for missing {miss} camera, FLC state pairs")
-
-        with mp.Pool(self.num_proc) as pool:
-            jobs = []
-            for cam1_file, cam2_file in zip(cam1_paths, cam2_paths):
-                stem = re.sub("_cam[12]", "", cam1_file.name)
-                outname = outdir / stem.replace(".fits", "_diff.fits")
-                self.logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
-                self.logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
-                kwds = dict(outname=outname, force=force)
-                jobs.append(
-                    pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
-                )
-
-            self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
-        self.logger.info("Done making difference frames")
-        return self.diff_files
 
     def polarimetry_ip_correct(self, outdir, force=False):
         match self.polarimetry.ip.method:
             case "photometry":
-                func = self.polarimetry_ip_correct_center
+                opts = dict(r=self.polarimetry.ip.aper_rad)
+                func = measure_instpol
             case "satspots":
-                func = self.polarimetry_ip_correct_satspot
-            case "mueller":
-                func = self.polarimetry_ip_correct_mueller
+                opts = dict(
+                    r=self.polarimetry.ip.aper_rad,
+                    radius=self.satspots.radius,
+                    angle=self.satspots.angle,
+                )
+                func = measure_instpol_satellite_spots
 
-        self.diff_files_ip = []
-        with mp.Pool(self.num_proc) as pool:
-            jobs = []
-            for filename in self.diff_files:
-                outname = outdir / filename.name.replace(".fits", "_ip.fits")
-                self.diff_files_ip.append(outname)
-                if not force and outname.is_file():
-                    continue
-                jobs.append(pool.apply_async(func, args=(filename, outname)))
-            if len(jobs) == 0:
-                return
-            for job in tqdm(jobs, desc="Correcting IP"):
-                job.get()
+        # for triple diff correct each frame and collapse
+        if self.stokes_cube_file is not None:
+            ip_file = self.stokes_cube_file.with_name(
+                self.stokes_cube_file.name.replace(".fits", "_ipcorr.fits")
+            )
+            ip_coll_file = ip_file.with_name(ip_file.name.replace("cube", "cube_collapsed"))
+            if (
+                force
+                or not ip_file.is_file()
+                or not ip_coll_file.is_file()
+                or any_file_newer(self.stokes_cube_file, ip_file)
+            ):
+                stokes_cube, header = fits.getdata(self.stokes_cube_file, header=True)
+                # average cQ and cU for header
+                ave_cQ = ave_cU = 0
+                for i in range(stokes_cube.shape[1]):
+                    cQ = func(stokes_cube[0, i], stokes_cube[1, i], **opts)
+                    cU = func(stokes_cube[0, i], stokes_cube[2, i], **opts)
+                    ave_cQ += cQ
+                    ave_cU += cU
+                    stokes_cube[:3, i] = instpol_correct(stokes_cube[:3, i], cQ, cU)
+                header["DPP_PQ"] = ave_cQ / stokes_cube.shape[1], "I -> Q IP correction value"
+                header["DPP_PU"] = ave_cU / stokes_cube.shape[1], "I -> U IP correction value"
+                write_stokes_products(stokes_cube, header=header, outname=ip_file, force=True)
+                self.logger.debug(f"saved Stokes cube to {ip_file.absolute()}")
+
+                stokes_angles = fits.getdata(self.stokes_angles_file)
+                stokes_cube_collapsed, header = collapse_stokes_cube(
+                    stokes_cube, stokes_angles, header=header, adi_sync=self.polarimetry.adi_sync
+                )
+                write_stokes_products(
+                    stokes_cube_collapsed,
+                    outname=ip_coll_file,
+                    header=header,
+                    force=True,
+                )
+                self.logger.debug(f"saved collapsed Stokes cube to {ip_coll_file.absolute()}")
+        else:  # no cube means least-square reduction
+            ip_file = self.stokes_coll_file.with_name(
+                self.stokes_coll_file.name.replace(".fits", "_ipcorr.fits")
+            )
+            if (
+                force
+                or not ip_file.is_file()
+                or any_file_newer(self.stokes_collapsed_file, ip_file)
+            ):
+                stokes_frame, header = fits.getdata(self.stokes_collapsed_file, header=True)
+                cQ = func(stokes_frame[0], stokes_frame[1], **opts)
+                cU = func(stokes_frame[0], stokes_frame[2], **opts)
+                stokes_frame = instpol_correct(stokes_frame, cQ, cU)
+                header["DPP_PQ"] = cQ, "I -> Q IP correction value"
+                header["DPP_PU"] = cU, "I -> U IP correction value"
+                write_stokes_products(stokes_frame, header=header, outname=ip_file, force=True)
+                self.logger.debug(f"saved ip corrected file to {ip_file.absolute()}")
 
         self.logger.info(f"Done correcting instrumental polarization")
 
-    def polarimetry_ip_correct_center(self, filename, outname):
-        stack, header = fits.getdata(
-            filename,
-            header=True,
-        )
-        aper_rad = self.polarimetry.ip.aper_rad
-        pX = measure_instpol(
-            stack[0],
-            stack[1],
-            r=aper_rad,
-        )
-        stack_corr = stack.copy()
-        stack_corr[1] -= pX * stack[0]
-
-        stokes = HWP_POS_STOKES[header["U_HWPANG"]]
-        header[f"DPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-        fits.writeto(
-            outname,
-            stack_corr,
-            header=header,
-            overwrite=True,
-        )
-
-    def polarimetry_ip_correct_satspot(self, filename, outname):
-        stack, header = fits.getdata(
-            filename,
-            header=True,
-        )
-        aper_rad = self.polarimetry.ip.aper_rad
-        pX = measure_instpol_satellite_spots(
-            stack[0],
-            stack[1],
-            r=aper_rad,
-            radius=self.satspots.radius,
-            angle=self.satspots.angle,
-        )
-        stack_corr = stack.copy()
-        stack_corr[1] -= pX * stack[0]
-
-        stokes = HWP_POS_STOKES[header["U_HWPANG"]]
-        header[f"DPP_P{stokes}"] = pX, f"I -> {stokes} IP correction"
-        fits.writeto(
-            outname,
-            stack_corr,
-            header=header,
-            overwrite=True,
-        )
-
-    def polarimetry_ip_correct_mueller(self, filename, outname):
-        raise NotImplementedError()
-
-    def polarimetry_triplediff(self, force=False, N_per_hwp=1, derotate_pa=False, **kwargs):
+    def polarimetry_triplediff(self, force=False, N_per_hwp=1, adi_sync=True, **kwargs):
         # sort table
-        table = header_table(self.diff_files_ip, quiet=True)
-        inds = pol_inds(table["U_HWPANG"], 2 * N_per_hwp, **kwargs)
+        inds = pol_inds(self.output_table["U_HWPANG"], 4 * N_per_hwp, **kwargs)
         if len(inds) == 0:
             raise ValueError(f"Could not correctly order the HWP angles")
-        table_filt = table.loc[inds]
+        table_filt = self.output_table.loc[inds]
         self.logger.info(
-            f"using {len(table_filt)}/{len(table)} files for triple-differential processing"
+            f"using {len(table_filt)}/{len(self.output_table)} files for triple-differential processing"
         )
 
-        outname = self.products.output_directory / f"{self.name}_stokes_cube.fits"
-        outname_coll = outname.with_name(f"{outname.stem}_collapsed.fits")
+        self.stokes_cube_file = self.products.output_directory / f"{self.name}_stokes_cube.fits"
+        self.stokes_angles_file = (
+            self.products.output_directory / f"{self.name}_stokes_cube_angles.fits"
+        )
+        self.stokes_collapsed_file = self.stokes_cube_file.with_name(
+            f"{self.stokes_cube_file.stem}_collapsed.fits"
+        )
         if (
             force
-            or not outname.is_file()
-            or not outname_coll.is_file()
-            or any_file_newer(table_filt["path"], outname)
+            or not self.stokes_cube_file.is_file()
+            or not self.stokes_angles_file.is_file()
+            or not self.stokes_collapsed_file.is_file()
+            or any_file_newer(table_filt["path"], self.stokes_cube_file)
         ):
+            # create stokes cube
             polarization_calibration_triplediff(
-                table_filt["path"], outname=outname, force=True, N_per_hwp=N_per_hwp
+                table_filt["path"], outname=self.stokes_cube_file, force=True, N_per_hwp=N_per_hwp
             )
-            self.logger.debug(f"saved Stokes cube to {outname.absolute()}")
+            self.logger.debug(f"saved Stokes cube to {self.stokes_cube_file.absolute()}")
+            # get average angles for each HWP set, save to disk
             stokes_angles = triplediff_average_angles(table_filt["path"])
+            fits.writeto(self.stokes_angles_file, stokes_angles, overwrite=True)
+            self.logger.debug(f"saved Stokes angles to {self.stokes_angles_file.absolute()}")
+            # collapse the stokes cube
             stokes_cube, header = fits.getdata(
-                outname,
+                self.stokes_cube_file,
                 header=True,
             )
             stokes_cube_collapsed, header = collapse_stokes_cube(
-                stokes_cube, stokes_angles, header=header, derotate_pa=derotate_pa
+                stokes_cube, stokes_angles, header=header, adi_sync=adi_sync
             )
             write_stokes_products(
                 stokes_cube_collapsed,
-                outname=outname_coll,
+                outname=self.stokes_collapsed_file,
                 header=header,
                 force=True,
             )
-            self.logger.debug(f"saved collapsed Stokes cube to {outname_coll.absolute()}")
+            self.logger.debug(
+                f"saved collapsed Stokes cube to {self.stokes_collapsed_file.absolute()}"
+            )

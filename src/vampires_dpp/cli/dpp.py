@@ -7,6 +7,7 @@ from pathlib import Path
 
 import astropy.units as u
 import numpy as np
+import tomli
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import make_master_dark, make_master_flat
@@ -580,8 +581,9 @@ table_parser.set_defaults(func=table)
 
 
 def upgrade(args):
-    input_config = Pipeline.from_file(args.config)
-    output_config = upgrade_config(input_config)
+    with open(args.config, "rb") as fh:
+        input_toml = tomli.load(fh)
+    output_config = upgrade_config(input_toml)
     outpath = args.config if args.output is None else args.output
     output_config.to_file(outpath)
     return outpath

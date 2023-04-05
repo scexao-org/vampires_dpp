@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -96,32 +95,29 @@ def safe_aperture_sum(frame, r):
     return np.nansum(frame * weights) / np.nansum(weights)
 
 
-def instpol_correct(stokes_cube: ArrayLike, pQ=0, pU=0, pV=0):
+def instpol_correct(stokes_cube: ArrayLike, pQ=0, pU=0):
     """
     Apply instrument polarization correction to stokes cube.
 
     Parameters
     ----------
     stokes_cube : ArrayLike
-        (4, ...) array of stokes values
+        (3, ...) array of stokes values
     pQ : float, optional
         I -> Q contribution, by default 0
     pU : float, optional
         I -> U contribution, by default 0
-    pV : float, optional
-        I -> V contribution, by default 0
 
     Returns
     -------
     NDArray
-        (4, ...) stokes cube with corrected parameters
+        (3, ...) stokes cube with corrected parameters
     """
     return np.array(
         (
             stokes_cube[0],
             stokes_cube[1] - pQ * stokes_cube[0],
             stokes_cube[2] - pU * stokes_cube[0],
-            stokes_cube[3] - pV * stokes_cube[0],
         )
     )
 
@@ -193,13 +189,13 @@ def rotate_stokes(stokes_cube, theta):
     return out
 
 
-def collapse_stokes_cube(stokes_cube, pa, derotate_pa=False, header=None):
+def collapse_stokes_cube(stokes_cube, pa, adi_sync=True, header=None):
     stokes_out = np.empty_like(stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:]))
     # derotate stokes vectors
     stokes_cube_derot = np.empty_like(stokes_cube)
     for i in range(stokes_cube.shape[1]):
         derot_angle = PUPIL_OFFSET
-        if derotate_pa:
+        if not adi_sync:
             derot_angle += pa[i]
         stokes_cube_derot[:, i] = rotate_stokes(stokes_cube[:, i], np.deg2rad(derot_angle))
 
@@ -241,50 +237,61 @@ def polarization_calibration_triplediff(
     NDArray
         (4, t, y, x) Stokes cube from all 16 frame sets.
     """
-    if len(filenames) % 8 * N_per_hwp != 0:
+    if len(filenames) % 16 * N_per_hwp != 0:
         raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of {8 * N_per_hwp} frames for each HWP cycle"
+            "Cannot do triple-differential calibration without exact sets of {16 * N_per_hwp} frames for each HWP cycle"
         )
     # now do triple-differential calibration
     # only load 8 files at a time to avoid running out of memory on large datasets
-    N_hwp_sets = len(filenames) // 8
+    N_hwp_sets = len(filenames) // 16
     with fits.open(filenames.iloc[0]) as hdus:
         stokes_cube = np.zeros(shape=(4, N_hwp_sets, *hdus[0].shape[-2:]), dtype=hdus[0].data.dtype)
     iter = tqdm.trange(N_hwp_sets, desc="Triple-differential calibration")
     for i in iter:
         # prepare input frames
-        ix = i * 8 * N_per_hwp  # offset index
-        summ_dict = {}
-        diff_dict = {}
-        for file in filenames.iloc[ix : ix + 8 * N_per_hwp]:
-            stack, hdr = fits.getdata(
+        ix = i * 16 * N_per_hwp  # offset index
+        frame_dict = {}
+        for file in filenames.iloc[ix : ix + 16 * N_per_hwp]:
+            frame, hdr = fits.getdata(
                 file,
                 header=True,
             )
-            key = hdr["U_HWPANG"], hdr["U_FLCSTT"]
-            if key in summ_dict:
-                summ_dict[key].append(stack[0])
-                diff_dict[key].append(stack[1])
-            else:
-                summ_dict[key] = [stack[0]]
-                diff_dict[key] = [stack[1]]
+            key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
+            frame_dict[key] = frame
 
-        for key, value in summ_dict.items():
-            summ_dict[key] = np.array(value)
-            diff_dict[key] = np.array(diff_dict[key])
         ## make difference images
+        # single diff (cams)
+        pQ0 = frame_dict[(0, 1, 1)] - frame_dict[(0, 1, 2)]
+        pIQ0 = frame_dict[(0, 1, 1)] + frame_dict[(0, 1, 2)]
+        pQ1 = frame_dict[(0, 2, 1)] - frame_dict[(0, 2, 2)]
+        pIQ1 = frame_dict[(0, 2, 1)] + frame_dict[(0, 2, 2)]
         # double difference (FLC1 - FLC2)
-        pQ = 0.5 * (diff_dict[(0, 1)] - diff_dict[(0, 2)])
-        pIQ = 0.5 * (summ_dict[(0, 1)] + summ_dict[(0, 2)])
+        pQ = 0.5 * (pQ0 - pQ1)
+        pIQ = 0.5 * (pIQ0 + pIQ1)
 
-        mQ = 0.5 * (diff_dict[(45, 1)] - diff_dict[(45, 2)])
-        mIQ = 0.5 * (summ_dict[(45, 1)] + summ_dict[(45, 2)])
+        mQ0 = frame_dict[(45, 1, 1)] - frame_dict[(45, 1, 2)]
+        mIQ0 = frame_dict[(45, 1, 1)] + frame_dict[(45, 1, 2)]
+        mQ1 = frame_dict[(45, 2, 1)] - frame_dict[(45, 2, 2)]
+        mIQ1 = frame_dict[(45, 2, 1)] + frame_dict[(45, 2, 2)]
 
-        pU = 0.5 * (diff_dict[(22.5, 1)] - diff_dict[(22.5, 2)])
-        pIU = 0.5 * (summ_dict[(22.5, 1)] + summ_dict[(22.5, 2)])
+        mQ = 0.5 * (mQ0 - mQ1)
+        mIQ = 0.5 * (mIQ0 + mIQ1)
 
-        mU = 0.5 * (diff_dict[(67.5, 1)] - diff_dict[(67.5, 2)])
-        mIU = 0.5 * (summ_dict[(67.5, 1)] + summ_dict[(67.5, 2)])
+        pU0 = frame_dict[(22.5, 1, 1)] - frame_dict[(22.5, 1, 2)]
+        pIU0 = frame_dict[(22.5, 1, 1)] + frame_dict[(22.5, 1, 2)]
+        pU1 = frame_dict[(22.5, 2, 1)] - frame_dict[(22.5, 2, 2)]
+        pIU1 = frame_dict[(22.5, 2, 1)] + frame_dict[(22.5, 2, 2)]
+
+        pU = 0.5 * (pU0 - pU1)
+        pIU = 0.5 * (pIU0 + pIU1)
+
+        mU0 = frame_dict[(67.5, 1, 1)] - frame_dict[(67.5, 1, 2)]
+        mIU0 = frame_dict[(67.5, 1, 1)] + frame_dict[(67.5, 1, 2)]
+        mU1 = frame_dict[(67.5, 2, 1)] - frame_dict[(67.5, 2, 2)]
+        mIU1 = frame_dict[(67.5, 2, 1)] + frame_dict[(67.5, 2, 2)]
+
+        mU = 0.5 * (mU0 - mU1)
+        mIU = 0.5 * (mIU0 + mIU1)
 
         # triple difference (HWP1 - HWP2)
         Q = 0.5 * (pQ - mQ)
@@ -304,17 +311,17 @@ def polarization_calibration_triplediff(
 
 
 def triplediff_average_angles(filenames):
-    if len(filenames) % 8 != 0:
+    if len(filenames) % 16 != 0:
         raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 8 frames for each HWP cycle"
+            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
         )
     # make sure we get data in correct order using FITS headers
     derot_angles = np.asarray([fits.getval(f, "PARANG") for f in filenames])
-    N_hwp_sets = len(filenames) // 8
+    N_hwp_sets = len(filenames) // 16
     pas = np.zeros(N_hwp_sets, dtype="f4")
     for i in range(pas.shape[0]):
-        ix = i * 8
-        pas[i] = average_angle(derot_angles[ix : ix + 8])
+        ix = i * 16
+        pas[i] = average_angle(derot_angles[ix : ix + 16])
 
     return pas
 
@@ -436,48 +443,3 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
     fits.writeto(path, data, header=header, overwrite=True)
 
     return path
-
-
-def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
-    if outname is not None:
-        outname = Path(outname)
-    else:
-        stem = re.sub("_cam[12]", "", cam1_file.stem)
-        outname = cam1_file.with_name(f"{stem}_diff.fits")
-
-    if not force and outname.is_file() and not any_file_newer((cam1_file, cam2_file), outname):
-        return outname
-
-    cam1_frame, header = fits.getdata(
-        cam1_file,
-        header=True,
-    )
-    cam2_frame, header2 = fits.getdata(
-        cam2_file,
-        header=True,
-    )
-
-    if header["MJD"] != header2["MJD"]:
-        msg = f"{cam1_file.name} has MJD {header['MJD']}\n{cam2_file.name} has MJD {header2['MJD']}"
-        raise ValueError(msg)
-    if header["U_FLCSTT"] != header2["U_FLCSTT"]:
-        msg = f"{cam1_file.name} has FLC state {header['U_FLCSTT']}\n{cam2_file.name} has FLC state {header2['U_FLCSTT']}"
-        raise ValueError(msg)
-
-    diff = cam1_frame - cam2_frame
-    summ = cam1_frame + cam2_frame
-
-    stack = np.asarray((summ, diff))
-
-    # prepare header
-    del header["U_CAMERA"]
-    hwpang = header["U_HWPANG"]
-    if hwpang in HWP_POS_STOKES:
-        stokes = HWP_POS_STOKES[hwpang]
-    else:
-        stokes = "-"
-    header["CAXIS3"] = "STOKES"
-    header["STOKES"] = f"I,{stokes}"
-
-    fits.writeto(outname, stack, header=header, overwrite=True)
-    return outname
