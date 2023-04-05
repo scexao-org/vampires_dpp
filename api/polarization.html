@@ -355,19 +355,18 @@ title="Print to PDF"
 <span id="polarization"></span><h1>Polarization<a class="headerlink" href="#module-vampires_dpp.polarization" title="Permalink to this headline">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.instpol_correct">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">instpol_correct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pQ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pV</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.instpol_correct" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">instpol_correct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pQ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.instpol_correct" title="Permalink to this definition">#</a></dt>
 <dd><p>Apply instrument polarization correction to stokes cube.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>stokes_cube</strong> (<em>ArrayLike</em>) – (4, …) array of stokes values</p></li>
+<li><p><strong>stokes_cube</strong> (<em>ArrayLike</em>) – (3, …) array of stokes values</p></li>
 <li><p><strong>pQ</strong> (<em>float</em><em>, </em><em>optional</em>) – I -&gt; Q contribution, by default 0</p></li>
 <li><p><strong>pU</strong> (<em>float</em><em>, </em><em>optional</em>) – I -&gt; U contribution, by default 0</p></li>
-<li><p><strong>pV</strong> (<em>float</em><em>, </em><em>optional</em>) – I -&gt; V contribution, by default 0</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>(4, …) stokes cube with corrected parameters</p>
+<dd class="field-even"><p>(3, …) stokes cube with corrected parameters</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>NDArray</p>
