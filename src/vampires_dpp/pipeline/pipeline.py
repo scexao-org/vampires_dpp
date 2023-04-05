@@ -380,23 +380,25 @@ class Pipeline(PipelineOptions):
 
         # for triple diff correct each frame and collapse
         if self.stokes_cube_file is not None:
-            ip_file = self.stokes_cube_file.replace(".fits", "_ipcorr.fits")
-            ip_coll_file = ip_file.replace("cube", "cube_collapsed")
+            ip_file = self.stokes_cube_file.with_name(
+                self.stokes_cube_file.name.replace(".fits", "_ipcorr.fits")
+            )
+            ip_coll_file = ip_file.with_name(ip_file.name.replace("cube", "cube_collapsed"))
             if (
-                not force
-                and ip_file.is_file()
-                and ip_coll_file.is_file()
-                and not any_file_newer(self.stokes_cube_file, ip_file)
+                force
+                or not ip_file.is_file()
+                or not ip_coll_file.is_file()
+                or any_file_newer(self.stokes_cube_file, ip_file)
             ):
                 stokes_cube, header = fits.getdata(self.stokes_cube_file, header=True)
                 # average cQ and cU for header
                 ave_cQ = ave_cU = 0
-                for i in range(len(stokes_cube.shape[1])):
+                for i in range(stokes_cube.shape[1]):
                     cQ = func(stokes_cube[0, i], stokes_cube[1, i], **opts)
                     cU = func(stokes_cube[0, i], stokes_cube[2, i], **opts)
                     ave_cQ += cQ
                     ave_cU += cU
-                    stokes_cube[:, i] = instpol_correct(stokes_cube[:, i], cQ, cU)
+                    stokes_cube[:3, i] = instpol_correct(stokes_cube[:3, i], cQ, cU)
                 header["DPP_PQ"] = ave_cQ / stokes_cube.shape[1], "I -> Q IP correction value"
                 header["DPP_PU"] = ave_cU / stokes_cube.shape[1], "I -> U IP correction value"
                 write_stokes_products(stokes_cube, header=header, outname=ip_file, force=True)
@@ -414,11 +416,13 @@ class Pipeline(PipelineOptions):
                 )
                 self.logger.debug(f"saved collapsed Stokes cube to {ip_coll_file.absolute()}")
         else:  # no cube means least-square reduction
-            ip_file = self.stokes_collapsed_file.replace(".fits", "_ipcorr.fits")
+            ip_file = self.stokes_coll_file.with_name(
+                self.stokes_coll_file.name.replace(".fits", "_ipcorr.fits")
+            )
             if (
-                not force
-                and ip_file.is_file()
-                and not any_file_newer(self.stokes_collapsed_file, ip_file)
+                force
+                or not ip_file.is_file()
+                or any_file_newer(self.stokes_collapsed_file, ip_file)
             ):
                 stokes_frame, header = fits.getdata(self.stokes_collapsed_file, header=True)
                 cQ = func(stokes_frame[0], stokes_frame[1], **opts)
