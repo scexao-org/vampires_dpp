@@ -5,7 +5,7 @@ from vampires_dpp.pipeline.config import *
 from vampires_dpp.pipeline.pipeline import Pipeline
 
 
-def upgrade_config(config: Pipeline) -> Pipeline:
+def upgrade_config(config_dict: dict) -> Pipeline:
     f"""
     Tries to upgrade an old configuration to a new version, appropriately reflecting name changes and prompting the user for input when needed.
 
@@ -24,13 +24,23 @@ def upgrade_config(config: Pipeline) -> Pipeline:
     Pipeline
         Pipeline configuration upgraded to the current package version ({__version__}).
     """
-    config_version = Version(config.version)
-    output_config = Pipeline.from_str(config.to_toml())
-    ## start with version 0.6
-    if config_version < Version("0.6"):
-        ## no changes yet, this breaking change was because of removing a script
-        pass
+    config_version = Version(config_dict["version"])
+    ## start with version 0.7, first breaking changes
+    if config_version < Version("0.7"):
+        config_dict = upgrade_to_0p7(config_dict)
 
-    # update version
-    output_config.version = __version__
-    return output_config
+    pipeline = Pipeline(**config_dict)
+    return pipeline
+
+
+def upgrade_to_0p7(config_dict):
+    if "polarimetry" in config_dict:
+        # added method to polarimetry between "difference" and "mueller"
+        # defaults to difference since that was all that was supported
+        config_dict["polarimetry"]["method"] = "difference"
+        # derotate_pa renamed to adi_sync and logic inverted
+        adi_sync = not config_dict["polarimetry"].get("derotate_pa", False)
+        config_dict["polarimetry"]["adi_sync"] = adi_sync
+        del config_dict["polarimetry"]["derotate_pa"]
+
+    return config_dict

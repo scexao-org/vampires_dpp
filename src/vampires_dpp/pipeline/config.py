@@ -473,18 +473,15 @@ class IPOptions:
         In each diff image, the partial polarization of the central PSF is measured and removed, presuming there should be no polarized stellar signal. In coronagraphic data, this uses the light penetrating the partially transmissive focal plane masks (~0.06%).
     * Ad-hoc correction using PSF photometry of calibration speckles (satellite spots)
         Same as above, but using the average correction for the four satellite spot PSFs instead of the central PSF.
-    * Mueller-matrix model correction (not currently implemented)
-        Uses a calibrated Mueller-matrix model which accurately reflects the impacts of all polarizing optics in VAMPIRES. WIP.
 
     .. admonition:: Outputs
 
-        For each diff image a copy will be saved with the IP correction applied and the "_ip" file suffix attached.
-
+        The IP corrected versions of any Stokes cubes or collapsed frames will be saved with the additional suffix `_ipcorr`.
 
     Parameters
     ----------
     method : str
-        IP correction method, one of `"photometry"`, `"satspots"`, or `"mueller"`. By default, `"photometry"`
+        IP correction method, one of `"photometry"`, `"satspots"`. By default, `"photometry"`
     aper_rad : float
         For photometric-based methods, the aperture radius in pixels. By default, 6.
     force : bool
@@ -496,8 +493,8 @@ class IPOptions:
     force: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
-        if self.method not in ("photometry", "satspots", "mueller"):
-            raise ValueError(f"Polarization calibration method not recognized: {self.method}")
+        if self.method.lower() not in ("photometry", "satspots"):
+            raise ValueError(f"Polarization IP correction method not recognized: {self.method}")
 
     def to_toml(self) -> str:
         obj = {"polarimetry": {"ip": self}}
@@ -518,18 +515,20 @@ class PolarimetryOptions(OutputDirectory):
 
     .. admonition:: Outputs
 
-        Diff images will be saved in the output directory. If IP options are set, the IP corrected frames will also be saved.
+        If using the `difference` method, a cube of Stokes frames for each HWP set and a derotated and collapsed Stokes frame will be saved in the products directory with the suffixes `_stokes_cube` and `_stokes_cube_collapsed`, respectively.
+
+        If using the `mueller` method, a Stokes frame will be saved in the products directory with the suffix `_stokes_frame`.
 
     Parameters
     ----------
     method: Optional[str]
-        Determines the polarization calibration method, either the double/triple-difference method (`difference`) or using the inverse least-squares solution from Mueller calculus (`mueller`). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded , however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.
+        Determines the polarization calibration method, either the double/triple-difference method (`difference`) or using the inverse least-squares solution from Mueller calculus (`mueller`). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.
     ip : Optional[IPOptions]
         Instrumental polarization (IP) correction options, by default None.
     order : str
         HWP iteration order, one of `"QQUU"` or `"QUQU"`. By default `"QQUU"`.
-    derotate_pa : bool
-        If true, will not assume the HWP is in pupil-tracking mode (the default) which requires additional rotation of the Stokes vectors by the parallactic angle. By defult, False.
+    adi_sync : bool
+        If true, will assume the HWP is in pupil-tracking mode. By default, True.
     output_directory : Optional[Path]
         The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
@@ -550,13 +549,17 @@ class PolarimetryOptions(OutputDirectory):
         aper_rad = 6
     """
 
+    method: str = "difference"
     ip: Optional[IPOptions] = field(default=None, skip_if_default=True)
     N_per_hwp: int = field(default=1, skip_if_default=True)
     order: str = field(default="QQUU", skip_if_default=True)
-    derotate_pa: bool = field(default=False, skip_if_default=True)
+    adi_sync: bool = field(default=True, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
+        if self.method.strip().lower() not in ("photometry", "satspots"):
+            raise ValueError(f"Polarization calibration method not recognized: {self.method}")
+
         if self.ip is not None and isinstance(self.ip, dict):
             self.ip = IPOptions(**self.ip)
         self.order = self.order.strip().upper()
@@ -602,7 +605,7 @@ class ProductOptions(OutputDirectory):
 
         **PDI Outputs:**
 
-        If `polarimetry` is set, PDI outputs will be constructed from the triple-differential method. This includes a cube with various Stokes quantities from each HWP cycle, and a derotated and collapsed cube of Stokes quantities. The Stokes quantities are listed in the "STOKES" header, and are
+        If `polarimetry` is set, PDI outputs will be constructed from the triple-differential or inverse least-squares methods. The Stokes images in each cube or frame are listed in the "STOKES" header, and are
 
         #. Stokes I
         #. Stokes Q

@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -193,13 +192,13 @@ def rotate_stokes(stokes_cube, theta):
     return out
 
 
-def collapse_stokes_cube(stokes_cube, pa, derotate_pa=False, header=None):
+def collapse_stokes_cube(stokes_cube, pa, adi_sync=True, header=None):
     stokes_out = np.empty_like(stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:]))
     # derotate stokes vectors
     stokes_cube_derot = np.empty_like(stokes_cube)
     for i in range(stokes_cube.shape[1]):
         derot_angle = PUPIL_OFFSET
-        if derotate_pa:
+        if not adi_sync:
             derot_angle += pa[i]
         stokes_cube_derot[:, i] = rotate_stokes(stokes_cube[:, i], np.deg2rad(derot_angle))
 
@@ -436,48 +435,3 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
     fits.writeto(path, data, header=header, overwrite=True)
 
     return path
-
-
-def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
-    if outname is not None:
-        outname = Path(outname)
-    else:
-        stem = re.sub("_cam[12]", "", cam1_file.stem)
-        outname = cam1_file.with_name(f"{stem}_diff.fits")
-
-    if not force and outname.is_file() and not any_file_newer((cam1_file, cam2_file), outname):
-        return outname
-
-    cam1_frame, header = fits.getdata(
-        cam1_file,
-        header=True,
-    )
-    cam2_frame, header2 = fits.getdata(
-        cam2_file,
-        header=True,
-    )
-
-    if header["MJD"] != header2["MJD"]:
-        msg = f"{cam1_file.name} has MJD {header['MJD']}\n{cam2_file.name} has MJD {header2['MJD']}"
-        raise ValueError(msg)
-    if header["U_FLCSTT"] != header2["U_FLCSTT"]:
-        msg = f"{cam1_file.name} has FLC state {header['U_FLCSTT']}\n{cam2_file.name} has FLC state {header2['U_FLCSTT']}"
-        raise ValueError(msg)
-
-    diff = cam1_frame - cam2_frame
-    summ = cam1_frame + cam2_frame
-
-    stack = np.asarray((summ, diff))
-
-    # prepare header
-    del header["U_CAMERA"]
-    hwpang = header["U_HWPANG"]
-    if hwpang in HWP_POS_STOKES:
-        stokes = HWP_POS_STOKES[hwpang]
-    else:
-        stokes = "-"
-    header["CAXIS3"] = "STOKES"
-    header["STOKES"] = f"I,{stokes}"
-
-    fits.writeto(outname, stack, header=header, overwrite=True)
-    return outname
