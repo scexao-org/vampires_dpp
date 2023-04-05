@@ -557,7 +557,7 @@ class PolarimetryOptions(OutputDirectory):
 
     def __post_init__(self):
         super().__post_init__()
-        if self.method.strip().lower() not in ("photometry", "satspots"):
+        if self.method.strip().lower() not in ("difference", "mueller"):
             raise ValueError(f"Polarization calibration method not recognized: {self.method}")
 
         if self.ip is not None and isinstance(self.ip, dict):

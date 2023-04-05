@@ -28,7 +28,7 @@ def upgrade_config(config_dict: dict) -> Pipeline:
     ## start with version 0.7, first breaking changes
     if config_version < Version("0.7"):
         config_dict = upgrade_to_0p7(config_dict)
-
+    config_dict["version"] = __version__
     pipeline = Pipeline(**config_dict)
     return pipeline
 
@@ -39,8 +39,7 @@ def upgrade_to_0p7(config_dict):
         # defaults to difference since that was all that was supported
         config_dict["polarimetry"]["method"] = "difference"
         # derotate_pa renamed to adi_sync and logic inverted
-        adi_sync = not config_dict["polarimetry"].get("derotate_pa", False)
+        adi_sync = not config_dict["polarimetry"].pop("derotate_pa", False)
         config_dict["polarimetry"]["adi_sync"] = adi_sync
-        del config_dict["polarimetry"]["derotate_pa"]
 
     return config_dict
