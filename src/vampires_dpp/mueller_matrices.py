@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from vampires_dpp.constants import PUPIL_OFFSET
+from vampires_dpp.constants import PUPIL_OFFSET, SUBARU_LOC
 
 __all__ = (
     "hwp",
@@ -391,32 +391,31 @@ CAL_DICT = {
 }
 
 
-def mueller_matrix_model(
-    camera,
-    filter,
-    flc_state,
-    qwp1,
-    qwp2,
-    imr_theta,
-    hwp_theta,
-    pa,
-    altitude,
-):
-    cam_idx = 0 if camera == 1 else 1
-    flc_ang = 0 if flc_state == 1 else np.pi / 4
-    cals = CAL_DICT[filter]
+def mueller_matrix_from_header(header, adi_sync=True):
+    pa_theta = np.deg2rad(header["PA"])
+    alt = np.deg2rad(header["ALTITUDE"])
+    az = np.deg2rad(header["AZIMUTH"] - 180)
+    if adi_sync:
+        lat = SUBARU_LOC.lat.rad
+        hwp_offset = (
+            0.5 * np.arctan2(np.sin(az), np.sin(alt) * np.cos(az) + np.cos(alt) * np.tan(lat)) + alt
+        )
+    else:
+        hwp_offset = 0
+    hwp_theta = np.deg2rad(header["U_HWPANG"])
+    imr_theta = np.deg2rad(header["D_IMRANG"])
+    flc_theta = 0 if header["U_FLCSTT"] == 1 else np.pi / 4
+
     M = np.linalg.multi_dot(
         (
-            wollaston(camera == 1),  # Polarizing beamsplitter
-            hwp(theta=flc_ang),  # FLC
-            rotator(theta=np.deg2rad(PUPIL_OFFSET)),
-            qwp(theta=qwp2),  # QWP 2
-            qwp(theta=qwp1),  # QWP 1
-            waveplate(theta=imr_theta, delta=cals["imr_delta"]),  # AO 188 K-mirror
-            waveplate(theta=hwp_theta, delta=cals["hwp_delta"]),  # AO 188 HWP,
-            rotator(theta=-altitude),
+            wollaston(header["U_CAMERA"] == 1),
+            waveplate(flc_theta, np.pi),
+            waveplate(imr_theta, np.pi),
+            waveplate(hwp_theta + hwp_offset, np.pi),
+            rotator(-alt),
             mirror(),
-            rotator(theta=pa),
+            rotator(pa_theta),
         )
     )
+
     return M
