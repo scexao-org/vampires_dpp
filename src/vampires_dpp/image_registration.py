@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 import cv2
 import numpy as np
@@ -253,6 +254,16 @@ def register_file(filename, offset_file, force=False, **kwargs):
     fits.writeto(outpath, shifted, header=header, overwrite=True)
     return outpath
 
+def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
+    new_shape = (cube.shape[0], cube.shape[1] + 2 * pad_width, cube.shape[2] + 2 * pad_width)
+    output = np.empty_like(cube, shape=new_shape)
+    
+    for idx in range(cube.shape[0]):
+        output[idx] = np.pad(cube[idx], pad_width, constant_values=np.nan)
+    if header is not None:
+        pass # TODO
+    return output, header
+
 
 def lucky_image_file(
     filename, metric_file=None, offsets_file=None, force: bool = False, q=0, **kwargs
@@ -278,7 +289,12 @@ def lucky_image_file(
         offsets = np.loadtxt(offsets_file, delimiter=",")
         # mask offsets with selected metrics
         offsets_masked = offsets[mask]
-        cube, header = register_cube(cube, offsets_masked, header=header, **kwargs)
+        # determine maximum padding, with sqrt(2)
+        # for radial coverage
+        rad_factor = (np.sqrt(2) - 1) * np.max(cube.shape[-2:]) / 2
+        npad = np.ceil(rad_factor + 1)
+        cube_padded, header = pad_cube(cube, int(npad), header=header)
+        cube, header = register_cube(cube_padded, offsets_masked, header=header, **kwargs)
 
     ## Step 3: Collapse
     frame, header = collapse_cube(cube, header=header, **kwargs)

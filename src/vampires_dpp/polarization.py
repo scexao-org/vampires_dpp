@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Optional, Sequence
+import warnings
 
 import numpy as np
 import tqdm.auto as tqdm
@@ -201,7 +202,9 @@ def collapse_stokes_cube(stokes_cube, pa, adi_sync=True, header=None):
 
     for s in range(stokes_cube_derot.shape[0]):
         derot = derotate_cube(stokes_cube_derot[s], pa)
-        stokes_out[s] = np.median(derot, axis=0, overwrite_input=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            stokes_out[s] = np.nanmedian(derot, axis=0, overwrite_input=True)
     # now that cube is derotated we can apply WCS
     if header is not None:
         apply_wcs(header)

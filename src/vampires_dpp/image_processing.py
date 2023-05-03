@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Optional, Tuple
+import warnings
 
 import astropy.units as u
 import cv2
@@ -202,14 +203,23 @@ def collapse_cube(
     # clean inputs
     match method.strip().lower():
         case "median":
-            frame = np.median(cube, axis=0, overwrite_input=True)
+            # suppress all-nan axis warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                frame = np.nanmedian(cube, axis=0, overwrite_input=True)
         case "mean":
-            frame = np.mean(cube, axis=0)
+            # suppress all-nan axis warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                frame = np.nanmean(cube, axis=0)
         case "varmean":
-            weights = 1 / np.nanvar(cube, axis=(1, 2), keepdims=True)
-            frame = np.sum(cube * weights, axis=0) / np.sum(weights)
+            # suppress all-nan axis warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                weights = 1 / np.nanvar(cube, axis=(1, 2), keepdims=True)
+                frame = np.sum(cube * weights, axis=0) / np.sum(weights)
         case "biweight":
-            frame = biweight_location(cube, axis=0, c=6)
+            frame = biweight_location(cube, axis=0, c=6, skip_nans=True)
 
     if header is not None:
         header["COL_METH"] = method, "DPP cube collapse method"
