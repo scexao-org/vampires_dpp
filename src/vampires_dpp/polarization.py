@@ -376,8 +376,9 @@ def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=Fa
     frames = []
     headers = []
     mueller_mats = []
-    for file in filenames:
+    for file in tqdm.tqdm(filenames, desc="Least-squares calibration"):
         frame, hdr = fits.getdata(file, header=True)
+        # rotate to N up E left
         frame_derot = derotate_frame(frame, hdr["PARANG"])
         # get row vector for mueller matrix of each file
         mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
