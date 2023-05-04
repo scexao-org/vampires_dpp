@@ -194,21 +194,10 @@ def rotate_stokes(stokes_cube, theta):
     return out
 
 
-def collapse_stokes_cube(stokes_cube, pa, adi_sync=True, header=None):
-    stokes_out = np.empty_like(stokes_cube, shape=(stokes_cube.shape[0], *stokes_cube.shape[-2:]))
-    # derotate stokes vectors
-    stokes_cube_derot = np.empty_like(stokes_cube)
-    for i in range(stokes_cube.shape[1]):
-        derot_angle = PUPIL_OFFSET
-        if not adi_sync:
-            derot_angle += pa[i]
-        stokes_cube_derot[:, i] = rotate_stokes(stokes_cube[:, i], np.deg2rad(derot_angle))
-
-    for s in range(stokes_cube_derot.shape[0]):
-        derot = derotate_cube(stokes_cube_derot[s], pa)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            stokes_out[s] = np.nanmedian(derot, axis=0, overwrite_input=True)
+def collapse_stokes_cube(stokes_cube, header=None):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        stokes_out = np.nanmedian(stokes_cube, axis=1, overwrite_input=True)
     # now that cube is derotated we can apply WCS
     if header is not None:
         apply_wcs(header)
@@ -264,33 +253,35 @@ def polarization_calibration_triplediff(
                 file,
                 header=True,
             )
-            # derotate frame
-            # frame_derot = derotate_frame(frame, hdr["PARANG"])
-            mueller_mat = mueller_matrix_from_header(hdr)
+            # derotate frame - necessary for crosstalk correction
+            frame_derot = derotate_frame(frame, hdr["PARANG"])
+            mueller_mat = mueller_matrix_from_header(hdr)[0]
             key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
-            frame_dict[key] = frame
+            frame_dict[key] = frame_derot
             mm_dict[key] = mueller_mat
 
         I, Q, U = triple_diff_dict(frame_dict)
-        mmI, mmQ, mmU = triple_diff_dict(mm_dict)
+        _, mmQ, mmU = triple_diff_dict(mm_dict)
 
-        # # correct IP
-        # Q -= mmQ[0, 1] * I
-        # U -= mmU[0, 2] * I
-
-        # # correct cross-talk
-        # Sarr = np.array((Q.ravel(), U.ravel()))
-        # Marr = np.array((mmQ[0, 1:3], mmU[0, 1:3]))
-        # res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
+        # correct IP
+        Q -= mmQ[0] * I
+        U -= mmU[0] * I
+        
+        # correct cross-talk
+        Sarr = np.array((Q.ravel(), U.ravel()))
+        Marr = np.array((mmQ[1:3], mmU[1:3]))
+        res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
 
         stokes_cube[0, i] = I
-        # stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-2:])
-        stokes_cube[1, i] = Q
-        # stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-2:])
-        stokes_cube[2, i] = U
+        stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-2:])
+        # stokes_cube[1, i] = Q
+        stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-2:])
+        # stokes_cube[2, i] = U
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
+    # reduce exptime by 2 because cam1 and cam2 are simultaneous
+    stokes_hdr["EXPTIME"] /= 2
 
     return write_stokes_products(stokes_cube, stokes_hdr, outname=outname, force=force)
 

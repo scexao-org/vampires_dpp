@@ -404,9 +404,8 @@ class Pipeline(PipelineOptions):
                 write_stokes_products(stokes_cube, header=header, outname=ip_file, force=True)
                 self.logger.debug(f"saved Stokes cube to {ip_file.absolute()}")
 
-                stokes_angles = fits.getdata(self.stokes_angles_file)
                 stokes_cube_collapsed, header = collapse_stokes_cube(
-                    stokes_cube, stokes_angles, header=header, adi_sync=self.polarimetry.adi_sync
+                    stokes_cube, header=header
                 )
                 write_stokes_products(
                     stokes_cube_collapsed,
@@ -474,7 +473,7 @@ class Pipeline(PipelineOptions):
                 header=True,
             )
             stokes_cube_collapsed, header = collapse_stokes_cube(
-                stokes_cube, stokes_angles, header=header, adi_sync=adi_sync
+                stokes_cube, header=header
             )
             write_stokes_products(
                 stokes_cube_collapsed,
