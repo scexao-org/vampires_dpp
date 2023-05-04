@@ -9,10 +9,8 @@ from numpy.typing import ArrayLike, NDArray
 from photutils import aperture_photometry
 from scipy.optimize import minimize_scalar
 
-from vampires_dpp.constants import PUPIL_OFFSET
 from vampires_dpp.image_processing import (
     combine_frames_headers,
-    derotate_cube,
     derotate_frame,
 )
 from vampires_dpp.image_registration import offset_centroid
@@ -133,7 +131,7 @@ def background_subtracted_photometry(frame, aps, anns):
     return ap_sums - aps.area / anns.area * ann_sums
 
 
-def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs) -> NDArray:
+def radial_stokes(stokes_cube: ArrayLike, phi: float = 0) -> NDArray:
     r"""
     Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)
 
@@ -146,8 +144,8 @@ def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs)
     ----------
     stokes_cube : ArrayLike
         Input Stokes cube, with dimensions (4, N, M)
-    phi : float, optional
-        Radial angle offset in radians. If None, will automatically optimize the angle with ``optimize_Uphi``, which minimizes the Uphi signal. By default None
+    phi : float
+        Radial angle offset in radians, by default 0
 
     Returns
     -------
@@ -155,8 +153,6 @@ def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs)
         Returns the tuple (Qphi, Uphi)
     """
     thetas = frame_angles(stokes_cube, conv="astro")
-    if phi is None:
-        phi = optimize_Uphi(stokes_cube, thetas, **kwargs)
 
     cos2t = np.cos(2 * (thetas + phi))
     sin2t = np.sin(2 * (thetas + phi))
@@ -164,26 +160,6 @@ def radial_stokes(stokes_cube: ArrayLike, phi: Optional[float] = None, **kwargs)
     Uphi = stokes_cube[1] * sin2t - stokes_cube[2] * cos2t
 
     return Qphi, Uphi
-
-
-def optimize_Uphi(stokes_cube: ArrayLike, thetas: ArrayLike, r=8) -> float:
-    rs = frame_radii(stokes_cube)
-    mask = rs <= r
-    masked_stokes_cube = stokes_cube[..., mask]
-    masked_thetas = thetas[..., mask]
-
-    loss = lambda X: Uphi_loss(X, masked_stokes_cube, masked_thetas, r=r)
-    res = minimize_scalar(loss, bounds=(-np.pi / 2, np.pi / 2), method="bounded")
-    return res.x
-
-
-def Uphi_loss(X: float, stokes_cube: ArrayLike, thetas: ArrayLike, r) -> float:
-    cos2t = np.cos(2 * (thetas + X))
-    sin2t = np.sin(2 * (thetas + X))
-    Uphi = stokes_cube[1] * sin2t - stokes_cube[2] * cos2t
-    l2norm = np.nansum(Uphi**2)
-    return l2norm
-
 
 def rotate_stokes(stokes_cube, theta):
     out = stokes_cube.copy()
@@ -206,7 +182,7 @@ def collapse_stokes_cube(stokes_cube, header=None):
 
 
 def polarization_calibration_triplediff(
-    filenames: Sequence[str], outname, force=False, N_per_hwp=1
+    filenames: Sequence[str], outname, force=False, N_per_hwp=1, adi_sync=True
 ) -> NDArray:
     """
     Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
@@ -255,7 +231,9 @@ def polarization_calibration_triplediff(
             )
             # derotate frame - necessary for crosstalk correction
             frame_derot = derotate_frame(frame, hdr["PARANG"])
-            mueller_mat = mueller_matrix_from_header(hdr)[0]
+            # get row vector for mueller matrix of each file
+            mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
+            # store into dictionaries
             key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
             frame_dict[key] = frame_derot
             mm_dict[key] = mueller_mat
@@ -274,9 +252,7 @@ def polarization_calibration_triplediff(
 
         stokes_cube[0, i] = I
         stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-2:])
-        # stokes_cube[1, i] = Q
         stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-2:])
-        # stokes_cube[2, i] = U
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
@@ -384,13 +360,37 @@ def pol_inds(hwp_angs: ArrayLike, n=4, order="QQUU"):
 
 
 def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:
-    stokes_cube = np.zeros((mueller_matrices.shape[-1], cube.shape[-2], cube.shape[-1]))
+    stokes_cube = np.zeros_like(cube, shape=(mueller_matrices.shape[-1], *cube.shape[-2:]))
     # go pixel-by-pixel
     for i in range(cube.shape[-2]):
         for j in range(cube.shape[-1]):
             stokes_cube[:, i, j] = np.linalg.lstsq(mueller_matrices, cube[:, i, j], rcond=None)[0]
 
-    return stokes_cube
+    return stokes_cube[:3]
+
+def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=False):
+    path = Path(outname)
+    if not force and path.is_file() and not any_file_newer(filenames, path):
+        return path
+    # step 1: load each file and header- derotate on the way
+    frames = []
+    headers = []
+    mueller_mats = []
+    for file in filenames:
+        frame, hdr = fits.getdata(file, header=True)
+        frame_derot = derotate_frame(frame, hdr["PARANG"])
+        # get row vector for mueller matrix of each file
+        mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
+        frames.append(frame_derot)
+        headers.append(hdr)
+        mueller_mats.append(mueller_mat)
+
+    mueller_mat_cube = np.array(mueller_mats)
+    cube = np.array(frames)
+    stokes_hdr = combine_frames_headers(headers, wcs=True)
+    stokes_cube = mueller_matrix_calibration(mueller_mat_cube, cube)
+
+    return write_stokes_products(stokes_cube, stokes_hdr, outname=path, force=force)
 
 
 def write_stokes_products(stokes_cube, header=None, outname=None, force=False, phi=0):

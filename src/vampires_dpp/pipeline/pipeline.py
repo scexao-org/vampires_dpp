@@ -20,7 +20,7 @@ from vampires_dpp.image_registration import (
 from vampires_dpp.organization import header_table
 from vampires_dpp.pipeline.config import PipelineOptions
 from vampires_dpp.polarization import (
-    HWP_POS_STOKES,
+    polarization_calibration_leastsq,
     collapse_stokes_cube,
     instpol_correct,
     measure_instpol,
@@ -346,6 +346,7 @@ class Pipeline(PipelineOptions):
 
         # create variables
         self.stokes_cube_file = self.stokes_angles_file = self.stokes_collapsed_file = None
+        
 
         # 1. Make Stokes cube
         if config.method == "difference":
@@ -355,8 +356,11 @@ class Pipeline(PipelineOptions):
                 order=config.order,
                 adi_sync=config.adi_sync,
             )
-        else:
-            raise NotImplementedError()
+        elif config.method == "leastsq":
+            self.polarimetry_leastsq(
+                force=tripwire,
+                adi_sync=config.adi_sync
+            )
 
         # 2. 2nd order IP correction
         if config.ip is not None:
@@ -415,8 +419,8 @@ class Pipeline(PipelineOptions):
                 )
                 self.logger.debug(f"saved collapsed Stokes cube to {ip_coll_file.absolute()}")
         else:  # no cube means least-square reduction
-            ip_file = self.stokes_coll_file.with_name(
-                self.stokes_coll_file.name.replace(".fits", "_ipcorr.fits")
+            ip_file = self.stokes_collapsed_file.with_name(
+                self.stokes_collapsed_file.name.replace(".fits", "_ipcorr.fits")
             )
             if (
                 force
@@ -460,7 +464,7 @@ class Pipeline(PipelineOptions):
         ):
             # create stokes cube
             polarization_calibration_triplediff(
-                table_filt["path"], outname=self.stokes_cube_file, force=True, N_per_hwp=N_per_hwp
+                table_filt["path"], outname=self.stokes_cube_file, force=True, N_per_hwp=N_per_hwp, adi_sync=adi_sync
             )
             self.logger.debug(f"saved Stokes cube to {self.stokes_cube_file.absolute()}")
             # get average angles for each HWP set, save to disk
@@ -483,4 +487,17 @@ class Pipeline(PipelineOptions):
             )
             self.logger.debug(
                 f"saved collapsed Stokes cube to {self.stokes_collapsed_file.absolute()}"
+            )
+
+
+    def polarimetry_leastsq(self, force=False, adi_sync=True, **kwargs):
+        self.stokes_collapsed_file = self.products.output_directory / f"{self.name}_stokes_cube_collapsed.fits"
+        if (
+            force
+            or not self.stokes_collapsed_file.is_file()
+            or any_file_newer(self.output_table["path"], self.stokes_cube_file)
+        ):
+            # create stokes cube
+            polarization_calibration_leastsq(
+                self.output_table["path"], outname=self.stokes_collapsed_file, force=True, adi_sync=adi_sync
             )
