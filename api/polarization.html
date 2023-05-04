@@ -446,7 +446,7 @@ title="Print to PDF"
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.polarization_calibration_triplediff">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">polarization_calibration_triplediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_per_hwp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.polarization_calibration_triplediff" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">polarization_calibration_triplediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_per_hwp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.polarization_calibration_triplediff" title="Permalink to this definition">#</a></dt>
 <dd><p>Return a Stokes cube using the <em>bona fide</em> triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.</p>
 <div class="tip admonition">
 <p class="admonition-title">Pupil-tracking mode</p>
@@ -471,7 +471,7 @@ title="Print to PDF"
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.radial_stokes">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">radial_stokes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.radial_stokes" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">radial_stokes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.radial_stokes" title="Permalink to this definition">#</a></dt>
 <dd><p>Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}Q_\phi = -Q\cos(2\theta) - U\sin(2\theta) \\
@@ -480,7 +480,7 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>stokes_cube</strong> (<em>ArrayLike</em>) – Input Stokes cube, with dimensions (4, N, M)</p></li>
-<li><p><strong>phi</strong> (<em>float</em><em>, </em><em>optional</em>) – Radial angle offset in radians. If None, will automatically optimize the angle with <code class="docutils literal notranslate"><span class="pre">optimize_Uphi</span></code>, which minimizes the Uphi signal. By default None</p></li>
+<li><p><strong>phi</strong> (<em>float</em>) – Radial angle offset in radians, by default 0</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

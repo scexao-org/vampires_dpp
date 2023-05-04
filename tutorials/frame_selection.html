@@ -390,7 +390,7 @@ title="Print to PDF"
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/proplot/__init__.py:71: ProplotWarning: Rebuilding font cache. This usually happens after installing or updating proplot.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/proplot/__init__.py:71: ProplotWarning: Rebuilding font cache. This usually happens after installing or updating proplot.
   register_fonts(default=True)
 </pre></div>
 </div>
@@ -419,45 +419,45 @@ Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_01
 <span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1"># download example data</span>
 <span class="ne">----&gt; </span><span class="mi">2</span> <span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/zenodo_get/zget.py:349,</span> in <span class="ni">zenodo_get</span><span class="nt">(argv)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/zenodo_get/zget.py:349,</span> in <span class="ni">zenodo_get</span><span class="nt">(argv)</span>
 <span class="g g-Whitespace">    </span><span class="mi">347</span> <span class="k">try</span><span class="p">:</span>
 <span class="g g-Whitespace">    </span><span class="mi">348</span>     <span class="n">link</span> <span class="o">=</span> <span class="n">url</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
 <span class="ne">--&gt; </span><span class="mi">349</span>     <span class="n">filename</span> <span class="o">=</span> <span class="n">wget</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
 <span class="g g-Whitespace">    </span><span class="mi">350</span> <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
 <span class="g g-Whitespace">    </span><span class="mi">351</span>     <span class="n">eprint</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Download error. Original link: </span><span class="si">{</span><span class="n">link</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/site-packages/wget.py:526,</span> in <span class="ni">download</span><span class="nt">(url, out, bar)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/wget.py:526,</span> in <span class="ni">download</span><span class="nt">(url, out, bar)</span>
 <span class="g g-Whitespace">    </span><span class="mi">524</span> <span class="k">else</span><span class="p">:</span>
 <span class="g g-Whitespace">    </span><span class="mi">525</span>     <span class="n">binurl</span> <span class="o">=</span> <span class="n">url</span>
 <span class="ne">--&gt; </span><span class="mi">526</span> <span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span> <span class="o">=</span> <span class="n">ulib</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">binurl</span><span class="p">,</span> <span class="n">tmpfile</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
 <span class="g g-Whitespace">    </span><span class="mi">527</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">detect_filename</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
 <span class="g g-Whitespace">    </span><span class="mi">528</span> <span class="k">if</span> <span class="n">outdir</span><span class="p">:</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/urllib/request.py:270,</span> in <span class="ni">urlretrieve</span><span class="nt">(url, filename, reporthook, data)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/urllib/request.py:270,</span> in <span class="ni">urlretrieve</span><span class="nt">(url, filename, reporthook, data)</span>
 <span class="g g-Whitespace">    </span><span class="mi">267</span>     <span class="n">reporthook</span><span class="p">(</span><span class="n">blocknum</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
 <span class="g g-Whitespace">    </span><span class="mi">269</span> <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
 <span class="ne">--&gt; </span><span class="mi">270</span>     <span class="n">block</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
 <span class="g g-Whitespace">    </span><span class="mi">271</span>     <span class="k">if</span> <span class="ow">not</span> <span class="n">block</span><span class="p">:</span>
 <span class="g g-Whitespace">    </span><span class="mi">272</span>         <span class="k">break</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/http/client.py:465,</span> in <span class="ni">HTTPResponse.read</span><span class="nt">(self, amt)</span>
-<span class="g g-Whitespace">    </span><span class="mi">462</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">amt</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">463</span>     <span class="c1"># clip the read to the &quot;end of response&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">464</span>     <span class="n">amt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span>
-<span class="ne">--&gt; </span><span class="mi">465</span> <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">amt</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">466</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">amt</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">467</span>     <span class="c1"># Ideally, we would raise IncompleteRead if the content-length</span>
-<span class="g g-Whitespace">    </span><span class="mi">468</span>     <span class="c1"># wasn&#39;t satisfied, but it might break compatibility.</span>
-<span class="g g-Whitespace">    </span><span class="mi">469</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_close_conn</span><span class="p">()</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/http/client.py:466,</span> in <span class="ni">HTTPResponse.read</span><span class="nt">(self, amt)</span>
+<span class="g g-Whitespace">    </span><span class="mi">463</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">amt</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">464</span>     <span class="c1"># clip the read to the &quot;end of response&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">465</span>     <span class="n">amt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span>
+<span class="ne">--&gt; </span><span class="mi">466</span> <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">amt</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">467</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">amt</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">468</span>     <span class="c1"># Ideally, we would raise IncompleteRead if the content-length</span>
+<span class="g g-Whitespace">    </span><span class="mi">469</span>     <span class="c1"># wasn&#39;t satisfied, but it might break compatibility.</span>
+<span class="g g-Whitespace">    </span><span class="mi">470</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_close_conn</span><span class="p">()</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/socket.py:705,</span> in <span class="ni">SocketIO.readinto</span><span class="nt">(self, b)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/socket.py:705,</span> in <span class="ni">SocketIO.readinto</span><span class="nt">(self, b)</span>
 <span class="g g-Whitespace">    </span><span class="mi">703</span> <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
 <span class="g g-Whitespace">    </span><span class="mi">704</span>     <span class="k">try</span><span class="p">:</span>
 <span class="ne">--&gt; </span><span class="mi">705</span>         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">recv_into</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
 <span class="g g-Whitespace">    </span><span class="mi">706</span>     <span class="k">except</span> <span class="n">timeout</span><span class="p">:</span>
 <span class="g g-Whitespace">    </span><span class="mi">707</span>         <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_occurred</span> <span class="o">=</span> <span class="kc">True</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/ssl.py:1274,</span> in <span class="ni">SSLSocket.recv_into</span><span class="nt">(self, buffer, nbytes, flags)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/ssl.py:1274,</span> in <span class="ni">SSLSocket.recv_into</span><span class="nt">(self, buffer, nbytes, flags)</span>
 <span class="g g-Whitespace">   </span><span class="mi">1270</span>     <span class="k">if</span> <span class="n">flags</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
 <span class="g g-Whitespace">   </span><span class="mi">1271</span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
 <span class="g g-Whitespace">   </span><span class="mi">1272</span>           <span class="s2">&quot;non-zero flags not allowed in calls to recv_into() on </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
@@ -466,7 +466,7 @@ Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_01
 <span class="g g-Whitespace">   </span><span class="mi">1275</span> <span class="k">else</span><span class="p">:</span>
 <span class="g g-Whitespace">   </span><span class="mi">1276</span>     <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">recv_into</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">nbytes</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.10/x64/lib/python3.10/ssl.py:1130,</span> in <span class="ni">SSLSocket.read</span><span class="nt">(self, len, buffer)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/ssl.py:1130,</span> in <span class="ni">SSLSocket.read</span><span class="nt">(self, len, buffer)</span>
 <span class="g g-Whitespace">   </span><span class="mi">1128</span> <span class="k">try</span><span class="p">:</span>
 <span class="g g-Whitespace">   </span><span class="mi">1129</span>     <span class="k">if</span> <span class="n">buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 <span class="ne">-&gt; </span><span class="mi">1130</span>         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sslobj</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">buffer</span><span class="p">)</span>
