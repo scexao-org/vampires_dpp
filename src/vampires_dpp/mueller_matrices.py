@@ -392,6 +392,8 @@ CAL_DICT = {
 
 
 def mueller_matrix_from_header(header, adi_sync=True):
+    filt = header["U_FILTER"]
+    filt_dict = CAL_DICT[filt]
     pa_theta = np.deg2rad(header["PA"])
     alt = np.deg2rad(header["ALTITUDE"])
     az = np.deg2rad(header["AZIMUTH"] - 180)
@@ -404,14 +406,14 @@ def mueller_matrix_from_header(header, adi_sync=True):
         hwp_offset = 0
     hwp_theta = np.deg2rad(header["U_HWPANG"])
     imr_theta = np.deg2rad(header["D_IMRANG"])
-    flc_theta = 0 if header["U_FLCSTT"] == 1 else np.pi / 4
+    flc_idx = int(header["U_FLCSTT"] - 1)
 
     M = np.linalg.multi_dot(
         (
             wollaston(header["U_CAMERA"] == 1),
-            waveplate(flc_theta, np.pi),
-            waveplate(imr_theta, np.pi),
-            waveplate(hwp_theta + hwp_offset, np.pi),
+            waveplate(filt_dict["flc_theta"][flc_idx], filt_dict["flc_delta"][flc_idx]),
+            waveplate(imr_theta, filt_dict["imr_delta"]),
+            waveplate(hwp_theta + hwp_offset, filt_dict["hwp_delta"]),
             rotator(-alt),
             mirror(),
             rotator(pa_theta),
