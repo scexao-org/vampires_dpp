@@ -68,8 +68,9 @@ class Pipeline(PipelineOptions):
         if self.products is not None:
             self.products.output_directory.mkdir(parents=True, exist_ok=True)
             if self.products.header_table:
-                self.table.to_csv(self.products.output_directory / f"{self.name}_headers.csv")
-
+                table_path = self.products.output_directory / f"{self.name}_headers.csv"
+                self.table.to_csv(table_path)
+                print(f"Saved header values to: {table_path}")
         ## For each file do
         self.logger.info("Starting file-by-file processing")
         self.output_files = []
@@ -312,24 +313,29 @@ class Pipeline(PipelineOptions):
         cam1_table = self.output_table.query("U_CAMERA == 1").sort_values(["MJD", "U_FLCSTT"])
         if len(cam1_table) > 0:
             outname1 = self.products.output_directory / f"{self.name}_adi_cube_cam1.fits"
+            outname1_angles = outname1.with_stem(f"{outname1.stem}_angles")
             combine_frames_files(cam1_table["path"], output=outname1, force=force)
             derot_angles1 = np.asarray(cam1_table["PARANG"])
             fits.writeto(
-                outname1.with_stem(f"{outname1.stem}_angles"),
+                outname1_angles,
                 derot_angles1.astype("f4"),
                 overwrite=True,
             )
-
+            print(f"Saved ADI cube (cam1) to: {outname1}")
+            print(f"Saved derotation angles (cam1) to: {outname1_angles}")
         cam2_table = self.output_table.query("U_CAMERA == 2").sort_values(["MJD", "U_FLCSTT"])
         if len(cam2_table) > 0:
             outname2 = self.products.output_directory / f"{self.name}_adi_cube_cam2.fits"
+            outname2_angles = outname2.with_stem(f"{outname2.stem}_angles")
             combine_frames_files(cam2_table["path"], output=outname2, force=force)
             derot_angles2 = np.asarray(cam2_table["PARANG"])
             fits.writeto(
-                outname2.with_stem(f"{outname2.stem}_angles"),
+                outname2_angles,
                 derot_angles2.astype("f4"),
                 overwrite=True,
             )
+            print(f"Saved ADI cube (cam2) to: {outname2}")
+            print(f"Saved derotation angles (cam2) to: {outname2_angles}")
 
     def _polarimetry(self, tripwire=False):
         if self.products is None:
@@ -406,7 +412,8 @@ class Pipeline(PipelineOptions):
                 header["DPP_PQ"] = ave_cQ / stokes_cube.shape[1], "I -> Q IP correction value"
                 header["DPP_PU"] = ave_cU / stokes_cube.shape[1], "I -> U IP correction value"
                 write_stokes_products(stokes_cube, header=header, outname=ip_file, force=True)
-                self.logger.debug(f"saved Stokes cube to {ip_file.absolute()}")
+                self.logger.debug(f"saved Stokes cube to: {ip_file.absolute()}")
+                print(f"Saved IP-corrected Stokes cube to: {ip_file}")
 
                 stokes_cube_collapsed, header = collapse_stokes_cube(
                     stokes_cube, header=header
@@ -417,7 +424,8 @@ class Pipeline(PipelineOptions):
                     header=header,
                     force=True,
                 )
-                self.logger.debug(f"saved collapsed Stokes cube to {ip_coll_file.absolute()}")
+                self.logger.debug(f"saved collapsed Stokes cube to: {ip_coll_file.absolute()}")
+                print(f"Saved IP-corrected collapsed Stokes cube to: {ip_coll_file}")
         else:  # no cube means least-square reduction
             ip_file = self.stokes_collapsed_file.with_name(
                 self.stokes_collapsed_file.name.replace(".fits", "_ipcorr.fits")
@@ -435,6 +443,7 @@ class Pipeline(PipelineOptions):
                 header["DPP_PU"] = cU, "I -> U IP correction value"
                 write_stokes_products(stokes_frame, header=header, outname=ip_file, force=True)
                 self.logger.debug(f"saved ip corrected file to {ip_file.absolute()}")
+                print(f"Saved IP-corrected file to {ip_file}")
 
         self.logger.info(f"Done correcting instrumental polarization")
 
@@ -467,10 +476,12 @@ class Pipeline(PipelineOptions):
                 table_filt["path"], outname=self.stokes_cube_file, force=True, N_per_hwp=N_per_hwp, adi_sync=adi_sync
             )
             self.logger.debug(f"saved Stokes cube to {self.stokes_cube_file.absolute()}")
+            print(f"Saved Stokes cube to: {self.stokes_cube_file}")
             # get average angles for each HWP set, save to disk
             stokes_angles = triplediff_average_angles(table_filt["path"])
             fits.writeto(self.stokes_angles_file, stokes_angles, overwrite=True)
             self.logger.debug(f"saved Stokes angles to {self.stokes_angles_file.absolute()}")
+            print(f"Saved derotation angles to: {self.stokes_angles_file}")
             # collapse the stokes cube
             stokes_cube, header = fits.getdata(
                 self.stokes_cube_file,
@@ -488,6 +499,7 @@ class Pipeline(PipelineOptions):
             self.logger.debug(
                 f"saved collapsed Stokes cube to {self.stokes_collapsed_file.absolute()}"
             )
+            print(f"Saved collapsed Stokes cube to: {self.stokes_collapsed_file}")
 
 
     def polarimetry_leastsq(self, force=False, adi_sync=True, **kwargs):
