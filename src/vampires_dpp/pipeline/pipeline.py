@@ -310,7 +310,11 @@ class Pipeline(PipelineOptions):
         outname1 = outname2 = None
 
         # save cubes for each camera
-        cam1_table = self.output_table.query("U_CAMERA == 1").sort_values(["MJD", "U_FLCSTT"])
+        if "U_FLCSTT" in self.output_table.keys():
+            sort_keys = ["MJD", "U_FLCSTT"] 
+        else:
+            sort_keys = "MJD"
+        cam1_table = self.output_table.query("U_CAMERA == 1").sort_values(sort_keys)
         if len(cam1_table) > 0:
             outname1 = self.products.output_directory / f"{self.name}_adi_cube_cam1.fits"
             outname1_angles = outname1.with_stem(f"{outname1.stem}_angles")
