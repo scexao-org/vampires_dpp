@@ -431,8 +431,10 @@ CAL_DICT = {
 
 def mueller_matrix_from_header(header, adi_sync=True):
     filt = header["U_FILTER"]
-    filt_dict = CAL_DICT[filt]
-    filt_dict = CAL_DICT["ideal"]
+    if filt in CAL_DICT:
+        filt_dict = CAL_DICT[filt]
+    else:
+        filt_dict = CAL_DICT["ideal"]
     pa_theta = np.deg2rad(header["PA"])
     alt = np.deg2rad(header["ALTITUDE"])
     az = np.deg2rad(header["AZIMUTH"] - 180)
@@ -445,7 +447,7 @@ def mueller_matrix_from_header(header, adi_sync=True):
         hwp_offset = 0
     hwp_theta = np.deg2rad(header["U_HWPANG"]) + filt_dict["hwp_offset"] + hwp_offset
     imr_theta = np.deg2rad(header["D_IMRANG"]) + filt_dict["imr_offset"]
-    flc_ang = 0 if header["U_FLCSTT"] == 1 else -np.pi/4
+    flc_ang = 0 if header["U_FLCSTT"] == 1 else np.pi/4
     flc_theta = flc_ang + filt_dict["flc_offset"]
 
     M = np.linalg.multi_dot(
