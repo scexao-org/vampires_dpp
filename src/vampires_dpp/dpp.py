@@ -39,7 +39,7 @@ from vampires_dpp.pipeline.templates import (
 )
 from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
-from vampires_dpp.cli.click_helpers import abort_if_false
+from trogon import tui
 
 # set up logging
 handler = RichHandler(
@@ -48,15 +48,23 @@ handler = RichHandler(
     show_path=False,
 )
 
-# set up command line arguments
-parser = ArgumentParser(prog="dpp")
-parser.add_argument("-v", "--version", action="store_true", help="print version information")
-subparser = parser.add_subparsers(help="command to run")
+
+# callback that will confirm if a flag is false
+def abort_if_false(ctx, param, value):
+    if not value:
+        ctx.abort()
+
+
+def abort_if_true(ctx, param, value):
+    if value:
+        ctx.abort()
+
 
 ########## sort ##########
 
 
 @click.command(
+    name="sort",
     short_help="Sort raw data",
     help="Sorts raw data based on the data type. This will either use the `DATA-TYP` header value or the `U_OGFNAM` header, depending on when your data was taken.",
 )
@@ -94,7 +102,7 @@ subparser = parser.add_subparsers(help="command to run")
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def sort(filenames, outdir=Path.cwd(), num_proc=DEFAULT_NPROC, ext=0, copy=False, quiet=False):
+def sort_raw(filenames, outdir=Path.cwd(), num_proc=DEFAULT_NPROC, ext=0, copy=False, quiet=False):
     sort_files(
         filenames,
         copy=copy,
@@ -684,6 +692,7 @@ def upgrade(config, output):
 ########## main ##########
 
 
+@tui()
 @click.group(name="main")
 @click.version_option(dpp.__version__, "--version", "-v", prog_name="vampires_dpp")
 def main():
@@ -691,7 +700,7 @@ def main():
 
 
 # add sub-commands
-main.add_command(sort)
+main.add_command(sort_raw)
 main.add_command(prep)
 main.add_command(check)
 main.add_command(table)

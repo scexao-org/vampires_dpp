@@ -28,6 +28,8 @@ def upgrade_config(config_dict: dict) -> Pipeline:
     ## start with version 0.7, first breaking changes
     if config_version < Version("0.7"):
         config_dict = upgrade_to_0p7(config_dict)
+    elif config_version < Version("0.8"):
+        config_dict = upgrade_to_0p8(config_dict)
     config_dict["version"] = __version__
     pipeline = Pipeline(**config_dict)
     return pipeline
@@ -42,4 +44,8 @@ def upgrade_to_0p7(config_dict):
         adi_sync = not config_dict["polarimetry"].pop("derotate_pa", False)
         config_dict["polarimetry"]["adi_sync"] = adi_sync
 
+    return config_dict
+
+
+def upgrade_to_0p8(config_dict):
     return config_dict

@@ -24,9 +24,9 @@ dependencies = [
     "tomli>=2,<3",
     "tomli-w>=1,<2",
     "tqdm==4.*",
-    "rich==10.*",
-    "click==7.*",
-    "trogon==0.4.*"
+    "rich",
+    "click",
+    "trogon"
 ]
 
 [project.urls]
@@ -57,7 +57,7 @@ docs = [
 ]
 
 [project.scripts]
-dpp = "vampires_dpp.cli.dpp:main"
+dpp = "vampires_dpp.dpp:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_dpp.__version__"}

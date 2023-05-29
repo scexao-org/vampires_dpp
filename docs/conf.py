@@ -3,7 +3,7 @@ from datetime import date
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from vampires_dpp.cli.dpp import (
+from vampires_dpp.dpp import (
     calib_parser,
     check_parser,
     new_parser,
