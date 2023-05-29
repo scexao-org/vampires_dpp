@@ -254,14 +254,15 @@ def register_file(filename, offset_file, force=False, **kwargs):
     fits.writeto(outpath, shifted, header=header, overwrite=True)
     return outpath
 
+
 def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
     new_shape = (cube.shape[0], cube.shape[1] + 2 * pad_width, cube.shape[2] + 2 * pad_width)
     output = np.empty_like(cube, shape=new_shape)
-    
+
     for idx in range(cube.shape[0]):
         output[idx] = np.pad(cube[idx], pad_width, constant_values=np.nan)
     if header is not None:
-        pass # TODO
+        pass  # TODO
     return output, header
 
 

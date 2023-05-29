@@ -43,7 +43,7 @@ class Pipeline(PipelineOptions):
         # self.console = Console()
         self.logger = logging.getLogger("DPP")
 
-    def run(self, filenames, num_proc=None):
+    def run(self, filenames, num_proc: int = None, quiet: bool = False):
         """Run the pipeline
 
         Parameters
@@ -311,7 +311,7 @@ class Pipeline(PipelineOptions):
 
         # save cubes for each camera
         if "U_FLCSTT" in self.output_table.keys():
-            sort_keys = ["MJD", "U_FLCSTT"] 
+            sort_keys = ["MJD", "U_FLCSTT"]
         else:
             sort_keys = "MJD"
         cam1_table = self.output_table.query("U_CAMERA == 1").sort_values(sort_keys)
@@ -356,7 +356,6 @@ class Pipeline(PipelineOptions):
 
         # create variables
         self.stokes_cube_file = self.stokes_angles_file = self.stokes_collapsed_file = None
-        
 
         # 1. Make Stokes cube
         if config.method == "difference":
@@ -367,10 +366,7 @@ class Pipeline(PipelineOptions):
                 adi_sync=config.adi_sync,
             )
         elif config.method == "leastsq":
-            self.polarimetry_leastsq(
-                force=tripwire,
-                adi_sync=config.adi_sync
-            )
+            self.polarimetry_leastsq(force=tripwire, adi_sync=config.adi_sync)
 
         # 2. 2nd order IP correction
         if config.ip is not None:
@@ -419,9 +415,7 @@ class Pipeline(PipelineOptions):
                 self.logger.debug(f"saved Stokes cube to: {ip_file.absolute()}")
                 print(f"Saved IP-corrected Stokes cube to: {ip_file}")
 
-                stokes_cube_collapsed, header = collapse_stokes_cube(
-                    stokes_cube, header=header
-                )
+                stokes_cube_collapsed, header = collapse_stokes_cube(stokes_cube, header=header)
                 write_stokes_products(
                     stokes_cube_collapsed,
                     outname=ip_coll_file,
@@ -477,7 +471,11 @@ class Pipeline(PipelineOptions):
         ):
             # create stokes cube
             polarization_calibration_triplediff(
-                table_filt["path"], outname=self.stokes_cube_file, force=True, N_per_hwp=N_per_hwp, adi_sync=adi_sync
+                table_filt["path"],
+                outname=self.stokes_cube_file,
+                force=True,
+                N_per_hwp=N_per_hwp,
+                adi_sync=adi_sync,
             )
             self.logger.debug(f"saved Stokes cube to {self.stokes_cube_file.absolute()}")
             print(f"Saved Stokes cube to: {self.stokes_cube_file}")
@@ -491,9 +489,7 @@ class Pipeline(PipelineOptions):
                 self.stokes_cube_file,
                 header=True,
             )
-            stokes_cube_collapsed, header = collapse_stokes_cube(
-                stokes_cube, header=header
-            )
+            stokes_cube_collapsed, header = collapse_stokes_cube(stokes_cube, header=header)
             write_stokes_products(
                 stokes_cube_collapsed,
                 outname=self.stokes_collapsed_file,
@@ -505,9 +501,10 @@ class Pipeline(PipelineOptions):
             )
             print(f"Saved collapsed Stokes cube to: {self.stokes_collapsed_file}")
 
-
     def polarimetry_leastsq(self, force=False, adi_sync=True, **kwargs):
-        self.stokes_collapsed_file = self.products.output_directory / f"{self.name}_stokes_cube_collapsed.fits"
+        self.stokes_collapsed_file = (
+            self.products.output_directory / f"{self.name}_stokes_cube_collapsed.fits"
+        )
         if (
             force
             or not self.stokes_collapsed_file.is_file()
@@ -515,5 +512,8 @@ class Pipeline(PipelineOptions):
         ):
             # create stokes cube
             polarization_calibration_leastsq(
-                self.output_table["path"], outname=self.stokes_collapsed_file, force=True, adi_sync=adi_sync
+                self.output_table["path"],
+                outname=self.stokes_collapsed_file,
+                force=True,
+                adi_sync=adi_sync,
             )

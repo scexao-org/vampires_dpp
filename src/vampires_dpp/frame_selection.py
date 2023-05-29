@@ -68,7 +68,6 @@ def measure_metric_file(
 
 
 def frame_select_cube(cube, metrics, q=0, header=None, **kwargs):
-
     mask = metrics >= np.quantile(metrics, q)
     selected = cube[mask]
     if header is not None:

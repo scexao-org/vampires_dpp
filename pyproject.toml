@@ -24,6 +24,9 @@ dependencies = [
     "tomli>=2,<3",
     "tomli-w>=1,<2",
     "tqdm==4.*",
+    "rich==10.*",
+    "click==7.*",
+    "trogon==0.4.*"
 ]
 
 [project.urls]

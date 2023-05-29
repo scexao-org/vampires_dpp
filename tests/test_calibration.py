@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from astropy.io import fits
 
-from vampires_dpp.calibration import calibrate_file, make_dark_file, make_flat_file
+from vampires_dpp.calibration import calibrate_file, make_background_file, make_flat_file
 
 
 class TestCalibrationFrames:
@@ -26,13 +26,13 @@ class TestCalibrationFrames:
         cube = 10 * np.random.randn(100, 512, 512) + 200
         path = tmp_path / "dark_file_cam1.fits"
         fits.writeto(path, cube.astype("uint16"))
-        outpath = make_dark_file(path)
+        outpath = make_background_file(path)
         assert outpath == path.with_stem(f"{path.stem}_collapsed")
         c, h = fits.getdata(outpath, header=True)
         assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 200, rtol=1e-2)
         name = tmp_path / "master_dark_cam1.fits"
-        make_dark_file(path, outname=name)
+        make_background_file(path, outname=name)
         c, h = fits.getdata(name, header=True)
         assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 200, rtol=1e-2)

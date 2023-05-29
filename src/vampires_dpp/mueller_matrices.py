@@ -351,7 +351,6 @@ def instrumental(pQ=0, pU=0, pV=0):
     return M
 
 
-
 # filter: hwp_phi, imr_phi, flc1_phi, flc2_phi, flc1_theta, flc2_theta, dp
 CAL_DICT = {
     "775-50": {
@@ -379,7 +378,7 @@ CAL_DICT = {
         "pbs_throughput": 0.48,
     },
     "725-50": {
-        "hwp_delta":  2 * np.pi * 0.465,
+        "hwp_delta": 2 * np.pi * 0.465,
         "hwp_offset": np.deg2rad(-3.279),
         "imr_delta": 2 * np.pi * 0.446,
         "imr_offset": np.deg2rad(1.696),
@@ -391,7 +390,7 @@ CAL_DICT = {
         "pbs_throughput": 0.446,
     },
     "675-50": {
-        "hwp_delta":  2 * np.pi * 0.451,
+        "hwp_delta": 2 * np.pi * 0.451,
         "hwp_offset": np.deg2rad(0.996),
         "imr_delta": 2 * np.pi * 0.321,
         "imr_offset": np.deg2rad(2.769),
@@ -424,15 +423,16 @@ CAL_DICT = {
         "optics_theta": 0,
         "flc_delta": np.pi,
         "flc_offset": 0,
-        "pbs_throughput": 1
-    }
+        "pbs_throughput": 1,
+    },
 }
 
 
 def mueller_matrix_from_header(header, adi_sync=True):
     filt = header["U_FILTER"]
     if filt in CAL_DICT:
-        filt_dict = CAL_DICT[filt]
+        filt_dict = CAL_DICT["ideal"]
+        # filt_dict = CAL_DICT[filt]
     else:
         filt_dict = CAL_DICT["ideal"]
     pa_theta = np.deg2rad(header["PA"])
@@ -447,14 +447,16 @@ def mueller_matrix_from_header(header, adi_sync=True):
         hwp_offset = 0
     hwp_theta = np.deg2rad(header["U_HWPANG"]) + filt_dict["hwp_offset"] + hwp_offset
     imr_theta = np.deg2rad(header["D_IMRANG"]) + filt_dict["imr_offset"]
-    flc_ang = 0 if header["U_FLCSTT"] == 1 else np.pi/4
+    flc_ang = 0 if header["U_FLCSTT"] == 1 else np.pi / 4
     flc_theta = flc_ang + filt_dict["flc_offset"]
 
     M = np.linalg.multi_dot(
         (
             wollaston(header["U_CAMERA"] == 1),
             waveplate(flc_theta, filt_dict["flc_delta"]),
-            generic(filt_dict["optics_theta"], filt_dict["optics_diatt"], filt_dict["optics_delta"]),
+            generic(
+                filt_dict["optics_theta"], filt_dict["optics_diatt"], filt_dict["optics_delta"]
+            ),
             waveplate(imr_theta, filt_dict["imr_delta"]),
             waveplate(hwp_theta, filt_dict["hwp_delta"]),
             rotator(-alt),

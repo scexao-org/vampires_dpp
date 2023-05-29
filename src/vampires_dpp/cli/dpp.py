@@ -4,13 +4,17 @@ import os
 import readline
 from argparse import ArgumentParser
 from pathlib import Path
+from multiprocessing import cpu_count
 
+from astropy.io import fits
 import astropy.units as u
 import numpy as np
 import tomli
+import click
+from rich.logging import RichHandler
 
 import vampires_dpp as dpp
-from vampires_dpp.calibration import make_master_dark, make_master_flat
+from vampires_dpp.calibration import make_master_background, make_master_flat
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import check_files, header_table, sort_files
 from vampires_dpp.pipeline.config import (
@@ -35,10 +39,13 @@ from vampires_dpp.pipeline.templates import (
 )
 from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
+from vampires_dpp.cli.click_helpers import abort_if_false
 
 # set up logging
-formatter = logging.Formatter(
-    "%(asctime)s|%(name)s|%(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+handler = RichHandler(
+    level=logging.INFO,
+    log_time_format="%Y-%m-%d %H:%M:%S",
+    show_path=False,
 )
 
 # set up command line arguments
@@ -49,110 +56,167 @@ subparser = parser.add_subparsers(help="command to run")
 ########## sort ##########
 
 
-def sort(args):
-    outdir = args.output if args.output else Path.cwd()
-    try:
-        ext = int(args.ext)
-    except ValueError:
-        ext = args.ext
+@click.command(
+    short_help="Sort raw data",
+    help="Sorts raw data based on the data type. This will either use the `DATA-TYP` header value or the `U_OGFNAM` header, depending on when your data was taken.",
+)
+@click.argument(
+    "filenames",
+    nargs=-1,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option(
+    "--outdir",
+    "-o",
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+    default=Path.cwd(),
+    help="Output directory.",
+)
+@click.option(
+    "--num-proc",
+    "-j",
+    default=DEFAULT_NPROC,
+    type=click.IntRange(1, cpu_count()),
+    help="Number of processes to use.",
+    show_default=True,
+)
+@click.option("--ext", "-e", default=0, help="HDU extension")
+@click.option(
+    "--copy/--no-copy",
+    "-c/",
+    callback=abort_if_false,
+    prompt="Are you sure you want to move data files?",
+    help="copy files instead of moving them",
+)
+@click.option(
+    "--quiet",
+    "-q",
+    is_flag=True,
+    help="Silence progress bars and extraneous logging.",
+)
+def sort(filenames, outdir=Path.cwd(), num_proc=DEFAULT_NPROC, ext=0, copy=False, quiet=False):
     sort_files(
-        args.filenames,
-        copy=args.copy,
+        filenames,
+        copy=copy,
         ext=ext,
         output_directory=outdir,
-        num_proc=args.num_proc,
-        quiet=args.quiet,
+        num_proc=num_proc,
+        quiet=quiet,
     )
 
 
-sort_parser = subparser.add_parser(
-    "sort",
-    aliases="s",
-    help="sort raw VAMPIRES data",
-    description="Sorts raw data based on the data type. This will either use the `DATA-TYP` header value or the `U_OGFNAM` header, depending on when your data was taken.",
+########## prep ##########
+
+
+@click.group(
+    name="prep",
+    short_help="Prepare calibration files",
+    help="Create calibration files from background files (darks or sky frames) and flats.",
 )
-sort_parser.add_argument("filenames", nargs="+", help="FITS files to sort")
-sort_parser.add_argument(
-    "-o", "--output", help="output directory, if not specified will use current working directory"
+@click.option(
+    "--outdir",
+    "-o",
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+    default=Path.cwd(),
+    help="Output directory.",
 )
-sort_parser.add_argument(
-    "-c", "--copy", action="store_true", help="copy files instead of moving them"
-)
-sort_parser.add_argument("-e", "--ext", default=0, help="FITS extension/HDU to use")
-sort_parser.add_argument(
-    "-j",
+@click.option(
     "--num-proc",
-    type=int,
-    default=DEFAULT_NPROC,
-    help="number of processors to use for multiprocessing (default is %(default)d)",
-)
-sort_parser.add_argument(
-    "-q",
-    "--quiet",
-    action="store_true",
-    help="silence the progress bar",
-)
-sort_parser.set_defaults(func=sort)
-
-########## calib ##########
-
-
-def calib(args):
-    outdir = args.output if args.output else Path.cwd()
-
-    master_darks = master_flats = None
-    if args.darks is not None:
-        master_darks = make_master_dark(
-            args.darks,
-            collapse=args.collapse,
-            force=args.force,
-            output_directory=outdir,
-            quiet=args.quiet,
-            num_proc=args.num_proc,
-        )
-    if args.flats is not None:
-        master_flats = make_master_flat(
-            args.flats,
-            collapse=args.collapse,
-            master_darks=master_darks,
-            force=args.force,
-            output_directory=outdir,
-            quiet=args.quiet,
-            num_proc=args.num_proc,
-        )
-
-
-calib_parser = subparser.add_parser(
-    "calib",
-    aliases="c",
-    help="create calibration files",
-    description="Create calibration files from darks and flats.",
-)
-calib_parser.add_argument("--darks", nargs="*", help="FITS files to use as dark frames")
-calib_parser.add_argument("--flats", nargs="*", help="FITS files to use as flat frames")
-calib_parser.add_argument(
-    "-c", "--collapse", default="median", choices=("median", "mean", "varmean", "biweight")
-)
-calib_parser.add_argument(
-    "-o", "--output", help="output directory, if not specified will use current working directory"
-)
-calib_parser.add_argument(
-    "-f", "--force", action="store_true", help="Force recomputation and overwrite existing files."
-)
-calib_parser.add_argument(
     "-j",
-    "--num-proc",
-    type=int,
     default=DEFAULT_NPROC,
-    help="number of processors to use for multiprocessing (default is %(default)d)",
+    type=click.IntRange(1, cpu_count()),
+    help="Number of processes to use.",
+    show_default=True,
 )
-calib_parser.add_argument(
-    "-q",
+@click.option(
     "--quiet",
-    action="store_true",
-    help="silence the progress bar",
+    "-q",
+    is_flag=True,
+    help="Silence progress bars and extraneous logging.",
 )
-calib_parser.set_defaults(func=calib)
+@click.pass_context
+def prep(ctx, outdir, quiet, num_proc):
+    # prepare context
+    ctx.ensure_object(dict)
+    ctx.obj["outdir"] = outdir
+    ctx.obj["quiet"] = quiet
+    ctx.obj["num_proc"] = num_proc
+
+
+@prep.command(
+    name="back",
+    short_help="background files (darks/skies)",
+    help="Create background files from darks/skies. Each input file will be collapsed. Groups of files with the same exposure time, EM gain, and frame size will be median-combined together to create a super-background file.",
+)
+@click.argument(
+    "filenames",
+    nargs=-1,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option(
+    "--collapse",
+    "-c",
+    type=click.Choice(["median", "mean", "varmean", "biweight"], case_sensitive=False),
+    default="median",
+    help="Frame collapse method",
+    show_default=True,
+)
+@click.option("--force", "-f", is_flag=True, help="Force processing of files")
+@click.pass_context
+def back(ctx, filenames, collapse, force):
+    make_master_background(
+        filenames,
+        collapse=collapse,
+        force=force,
+        output_directory=ctx["outdir"],
+        quiet=ctx["quiet"],
+        num_proc=ctx["num_proc"],
+    )
+
+
+@prep.command(
+    name="flat",
+    short_help="flat-field files",
+    help="Create flat-field files. Each input file will be collapsed with background-subtraction if files are provided. Groups of files with the same exposure time, EM gain, frame size, and filter will be median-combined together to create a super-flat file.",
+)
+@click.argument(
+    "filenames",
+    nargs=-1,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option(
+    "--back",
+    "-b",
+    type=click.Path(exists=True, path_type=Path),
+    help="Background file to subtract from each flat-field. If a directory, will match the background files in that directory to the exposure times, EM gains, and frame sizes.",
+)
+@click.option(
+    "--collapse",
+    "-c",
+    type=click.Choice(["median", "mean", "varmean", "biweight"], case_sensitive=False),
+    default="median",
+    help="Frame collapse method",
+    show_default=True,
+)
+@click.option("--force", "-f", is_flag=True, help="Force processing of files")
+@click.pass_context
+def flat(ctx, filenames, back, collapse, force):
+    # if directory, filter non-FITS files and sort for background files
+    background_files = []
+    if back.is_dir():
+        fits_files = back.rglob("*.fits.*") + back.rglob("*.fts.*") + back.rglob("*.fit.*")
+        background_files.extend(
+            filter(lambda f: fits.getkey(f, "CAL_TYPE") == "BACKGROUND", fits_files)
+        )
+    make_master_flat(
+        filenames,
+        collapse=collapse,
+        force=force,
+        output_directory=ctx["outdir"],
+        quiet=ctx["quiet"],
+        num_proc=ctx["num_proc"],
+    )
+
 
 ########## new ##########
 
@@ -194,16 +258,20 @@ def createListCompleter(items):
     return listCompleter
 
 
-def new_config(args):
-    path = Path(args.config)
+@click.command(name="new", help="Generate configuration files")
+@click.argument(
+    "config",
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+def new_config(config):
     readline.set_completer_delims(" \t\n;")
     readline.parse_and_bind("tab: complete")
 
     ## check if output file exists
-    if path.is_file():
+    if config.is_file():
         response = (
             input(
-                f"{path.name} already exists in output directory, would you like to overwrite it? [y/N]: "
+                f"{config.name} already exists in output directory, would you like to overwrite it? [y/N]: "
             )
             .strip()
             .lower()
@@ -232,7 +300,7 @@ def new_config(args):
     readline.set_completer()
 
     ## get name
-    name_guess = path.stem
+    name_guess = config.stem
     name = input(f"Path-friendly name for this reduction [{name_guess}]: ").strip().lower()
     tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
 
@@ -437,9 +505,9 @@ def new_config(args):
     else:
         tpl.collapse = None
 
-    tpl.to_file(path)
+    tpl.to_file(config)
 
-    return path
+    return config
 
 
 def _parse_cam_center(input_string):
@@ -448,16 +516,31 @@ def _parse_cam_center(input_string):
     return ctr
 
 
-new_parser = subparser.add_parser("new", aliases="n", help="generate configuration files")
-new_parser.add_argument("config", help="path to configuration file")
-new_parser.set_defaults(func=new_config)
-
 ########## check ##########
 
 
-def check(args):
-    filenames = np.asarray(args.filenames, dtype=str)
-    valid_files = check_files(filenames, num_proc=args.num_proc, quiet=args.quiet)
+@click.command(
+    name="check",
+    short_help="Check raw data for problems",
+    help="Checks each file to see if it can be opened (by calling fits.open) and whether there are any empty slices. Creates two text files with the selected and rejected filenames if any bad files are found.",
+)
+@click.argument(
+    "filenames",
+    nargs=-1,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option(
+    "--num-proc",
+    "-j",
+    default=DEFAULT_NPROC,
+    type=click.IntRange(1, cpu_count()),
+    help="Number of processes to use.",
+    show_default=True,
+)
+@click.option("--ext", "-e", default=0, help="HDU extension")
+def check(filenames, num_proc, quiet):
+    filenames = np.asarray(filenames, dtype=str)
+    valid_files = check_files(filenames, num_proc=num_proc, quiet=quiet)
     cnt_valid = np.sum(valid_files)
     cnt_invalid = len(valid_files) - cnt_valid
     if cnt_invalid == 0:
@@ -480,140 +563,141 @@ def check(args):
     print(str(reject_path))
 
 
-check_parser = subparser.add_parser(
-    "check",
-    help="check raw data for problems",
-    description="Checks each file to see if it can be opened (by calling fits.open) and whether there are any empty slices. Creates two text files with the selected and rejected filenames if any bad files are found.",
-)
-check_parser.add_argument("filenames", nargs="*", help="FITS files to check")
-check_parser.add_argument(
-    "-j",
-    "--num-proc",
-    type=int,
-    default=DEFAULT_NPROC,
-    help="number of processors to use for multiprocessing (default is %(default)d)",
-)
-check_parser.add_argument(
-    "-q",
-    "--quiet",
-    action="store_true",
-    help="silence the progress bar",
-)
-check_parser.set_defaults(func=check)
-
-
 ########## run ##########
 
 
-def run(args):
-    path = Path(args.config)
+@click.command(name="run", help="Run the data processing pipeline")
+@click.argument(
+    "config",
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.argument(
+    "filenames",
+    nargs=-1,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option(
+    "--num-proc",
+    "-j",
+    default=DEFAULT_NPROC,
+    type=click.IntRange(1, cpu_count()),
+    help="Number of processes to use.",
+    show_default=True,
+)
+@click.option(
+    "--quiet",
+    "-q",
+    is_flag=True,
+    help="Silence progress bars and extraneous logging.",
+)
+def run(config, filenames, num_proc, quiet):
     # make sure versions match within SemVar
-    pipeline = Pipeline.from_file(path)
+    pipeline = Pipeline.from_file(config)
     if not check_version(pipeline.version, dpp.__version__):
         raise ValueError(
-            f"Input pipeline version ({pipeline.version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {args.config}`."
+            f"Input pipeline version ({pipeline.version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
         )
-    pipeline.run(args.filenames, num_proc=args.num_proc)
+    pipeline.run(filenames, num_proc=num_proc, quiet=quiet)
 
-
-run_parser = subparser.add_parser("run", aliases="r", help="run the data processing pipeline")
-run_parser.add_argument("config", help="path to configuration file")
-run_parser.add_argument("filenames", nargs="*", help="FITS files to run through pipeline")
-run_parser.add_argument(
-    "-j",
-    "--num-proc",
-    type=int,
-    default=DEFAULT_NPROC,
-    help="number of processors to use for multiprocessing (default is %(default)d)",
-)
-run_parser.set_defaults(func=run)
 
 ########## table ##########
 
 
-def table(args):
+@click.command(
+    name="table",
+    short_help="Create CSV from headers",
+    help="Go through each file and combine the header information into a single CSV.",
+)
+@click.argument(
+    "filenames",
+    nargs=-1,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    default=(Path.cwd() / "header_table.csv").name,
+    help="Output path.",
+    show_default=True,
+)
+@click.option(
+    "--num-proc",
+    "-j",
+    default=DEFAULT_NPROC,
+    type=click.IntRange(1, cpu_count()),
+    help="Number of processes to use.",
+    show_default=True,
+)
+@click.option("--ext", "-e", default=0, help="HDU extension")
+@click.option(
+    "--quiet",
+    "-q",
+    is_flag=True,
+    help="Silence progress bars and extraneous logging.",
+)
+def table(filenames, output, ext, num_proc, quiet):
     # handle name clashes
-    outpath = Path(args.output).resolve()
+    outpath = Path(output).resolve()
     if outpath.is_file():
         resp = input(f"{outpath.name} already exists in the output directory. Overwrite? [y/N]: ")
         if resp.strip().lower() != "y":
             return
     # tryparse ext as int
     try:
-        ext = int(args.ext)
+        ext = int(ext)
     except ValueError:
-        ext = args.ext
-    df = header_table(args.filenames, ext=ext, num_proc=args.num_proc, quiet=args.quiet)
+        pass
+    df = header_table(filenames, ext=ext, num_proc=num_proc, quiet=quiet)
     df.to_csv(outpath)
-
-
-table_parser = subparser.add_parser(
-    "table",
-    aliases="t",
-    help="create CSV from headers",
-    description="Go through each file and combine the header information into a single CSV.",
-)
-table_parser.add_argument("filenames", nargs="+", help="FITS files to parse headers from")
-table_parser.add_argument(
-    "-o",
-    "--output",
-    default="header_table.csv",
-    help="Output CSV filename (default is '%(default)s')",
-)
-table_parser.add_argument("-e", "--ext", default=0, help="FITS extension/HDU to use")
-table_parser.add_argument(
-    "-j",
-    "--num-proc",
-    default=DEFAULT_NPROC,
-    type=int,
-    help="Number of processes to use for multi-processing (default is %(default)d)",
-)
-table_parser.add_argument(
-    "-q",
-    "--quiet",
-    action="store_true",
-    help="silence the progress bar",
-)
-table_parser.set_defaults(func=table)
 
 
 ########## upgrade ##########
 
 
-def upgrade(args):
-    with open(args.config, "rb") as fh:
+@click.command(
+    name="upgrade",
+    short_help="Upgrade configuration file",
+    help=f"Tries to automatically upgrade a configuration file to the current version ({dpp.__version__}), prompting where necessary.",
+)
+@click.argument(
+    "config",
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    callback=abort_if_false,
+    prompt="Are you sure you want to modify your configuration in-place?",
+    help="Output path.",
+)
+def upgrade(config, output):
+    with open(config, "rb") as fh:
         input_toml = tomli.load(fh)
     output_config = upgrade_config(input_toml)
-    outpath = args.config if args.output is None else args.output
+    outpath = config if output is None else output
     output_config.to_file(outpath)
     return outpath
 
 
-upgrade_parser = subparser.add_parser(
-    "upgrade",
-    aliases=("u", "up"),
-    help="upgrade configuration file to current version",
-    description=f"Tries to automatically upgrade a configuration file to the current version ({dpp.__version__}), prompting the user where necessary.",
-)
-upgrade_parser.add_argument("config", help="path to configuration file")
-upgrade_parser.add_argument(
-    "-o",
-    "--output",
-    help="Output configuration filename. If not provided, will modify in-place.",
-)
-upgrade_parser.set_defaults(func=upgrade)
 ########## main ##########
 
 
+@click.group(name="main")
+@click.version_option(dpp.__version__, "--version", "-v", prog_name="vampires_dpp")
 def main():
-    args = parser.parse_args()
-    if args.version:
-        return dpp.__version__
-    if hasattr(args, "func"):
-        return args.func(args)
-    # no inputs, print help
-    parser.print_help()
+    pass
 
+
+# add sub-commands
+main.add_command(sort)
+main.add_command(prep)
+main.add_command(check)
+main.add_command(table)
+main.add_command(upgrade)
+main.add_command(run)
+main.add_command(new_config)
 
 if __name__ == "__main__":
     main()

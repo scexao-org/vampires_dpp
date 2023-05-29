@@ -1,5 +1,5 @@
 # library functions for common calibration tasks like
-# dark subtraction, collapsing cubes
+# background subtraction, collapsing cubes
 import multiprocessing as mp
 from os import PathLike
 from pathlib import Path
@@ -28,9 +28,9 @@ from vampires_dpp.wcs import apply_wcs, get_coord_header
 
 __all__ = [
     "calibrate_file",
-    "make_dark_file",
+    "make_background_file",
     "make_flat_file",
-    "make_master_dark",
+    "make_master_background",
     "make_master_flat",
 ]
 
@@ -46,7 +46,7 @@ def filter_empty_frames(cube):
 def calibrate_file(
     filename: str,
     hdu: int = 0,
-    dark_filename: Optional[str] = None,
+    back_filename: Optional[str] = None,
     flat_filename: Optional[str] = None,
     transform_filename: Optional[str] = None,
     force: bool = False,
@@ -98,11 +98,11 @@ def calibrate_file(
         cube = raw_cube[2:].astype("f4")
     # remove empty and NaN frames
     cube = filter_empty_frames(cube)
-    # dark correction
-    if dark_filename is not None:
-        dark_path = Path(dark_filename)
-        dark = fits.getdata(dark_path).astype("f4")
-        cube -= dark
+    # background subtraction
+    if back_filename is not None:
+        back_path = Path(back_filename)
+        background = fits.getdata(back_path).astype("f4")
+        cube -= background
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
@@ -158,7 +158,7 @@ def calibrate_file(
     return outpath
 
 
-def make_dark_file(filename: str, force=False, **kwargs):
+def make_background_file(filename: str, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
@@ -171,24 +171,25 @@ def make_dark_file(filename: str, force=False, **kwargs):
         cube = raw_cube.astype("f4")
     else:
         cube = raw_cube[1:].astype("f4")
-    master_dark, header = collapse_cube(cube, header=header, **kwargs)
+    master_background, header = collapse_cube(cube, header=header, **kwargs)
     header = fix_header(header)
-    # _, clean_dark = detect_cosmics(
-    #     master_dark,
+    header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
+    # _, clean_background = detect_cosmics(
+    #     master_background,
     #     gain=header.get("DETGAIN", 4.5),
     #     readnoise=READNOISE,
     #     satlevel=2**16 * header.get("DETGAIN", 4.5),
     # )
     fits.writeto(
         outpath,
-        master_dark,
+        master_background,
         header=header,
         overwrite=True,
     )
     return outpath
 
 
-def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
+def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
@@ -198,17 +199,18 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
         header=True,
     )
     header = fix_header(header)
+    header["CAL_TYPE"] = "FLATFIELD", "DPP calibration file type"
     if "U_FLCSTT" in header:
         cube = raw_cube.astype("f4")
     else:
         cube = raw_cube[1:].astype("f4")
-    if dark_filename is not None:
-        dark_path = Path(dark_filename)
-        header["MDARK"] = (dark_path.name, "file used for dark subtraction")
-        master_dark = fits.getdata(
-            dark_path,
+    if back_filename is not None:
+        back_path = Path(back_filename)
+        header["DPP_BACK"] = (back_path.name, "DPP file used for background subtraction")
+        master_back = fits.getdata(
+            back_path,
         )
-        cube = cube - master_dark
+        cube = cube - master_back
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
     # _, clean_flat = detect_cosmics(
     #     master_flat,
@@ -227,41 +229,41 @@ def make_flat_file(filename: str, force=False, dark_filename=None, **kwargs):
     return outpath
 
 
-def sort_calib_files(filenames: list[PathLike], darks=False) -> dict[Tuple, Path]:
-    darks_dict = {}
+def sort_calib_files(filenames: list[PathLike], backs=False, ext=0) -> dict[Tuple, Path]:
+    file_dict = {}
     for filename in filenames:
         path = Path(filename)
-        header = fits.getheader(path)
+        header = fits.getheader(path, ext=ext)
         sz = header["NAXIS1"], header["NAXIS2"]
         key = (header["U_CAMERA"], header["U_EMGAIN"], header["U_AQTINT"], sz, header["U_FILTER"])
-        if darks:
+        if backs:
             key = key[:-1]
-        if key in darks_dict:
-            darks_dict[key].append(path)
+        if key in file_dict:
+            file_dict[key].append(path)
         else:
-            darks_dict[key] = [path]
-    return darks_dict
+            file_dict[key] = [path]
+    return file_dict
 
 
-def make_master_dark(
+def make_master_background(
     filenames: list[PathLike],
     collapse: str = "median",
-    name: str = "master_dark",
+    name: str = "master_background",
     force: bool = False,
     output_directory: Optional[PathLike] = None,
     num_proc: int = DEFAULT_NPROC,
     quiet: bool = False,
 ) -> list[Path]:
     # prepare input filenames
-    file_inputs = sort_calib_files(filenames, darks=True)
-    # make darks for each camera
+    file_inputs = sort_calib_files(filenames, backgrounds=True)
+    # make backgrounds for each camera
     if output_directory is not None:
         outdir = Path(output_directory)
         outdir.mkdir(parents=True, exist_ok=True)
     else:
         outdir = Path.cwd()
 
-    # get names for master darks and remove
+    # get names for master backgrounds and remove
     # files from queue if they exist
     outnames = {}
     with mp.Pool(num_proc) as pool:
@@ -275,18 +277,18 @@ def make_master_dark(
             outnames[key] = outname
             if not force and outname.is_file():
                 continue
-            # collapse the files required for each dark
+            # collapse the files required for each background
             for path in filelist:
                 kwds = dict(
                     output_directory=outdir / "collapsed",
                     force=force,
                     method=collapse,
                 )
-                jobs.append(pool.apply_async(make_dark_file, args=(path,), kwds=kwds))
-        iter = jobs if quiet else tqdm(jobs, desc="Collapsing dark frames")
+                jobs.append(pool.apply_async(make_background_file, args=(path,), kwds=kwds))
+        iter = jobs if quiet else tqdm(jobs, desc="Collapsing background frames")
         frames = [job.get() for job in iter]
         # create master frames from collapsed files
-        collapsed_inputs = sort_calib_files(frames, darks=True)
+        collapsed_inputs = sort_calib_files(frames, backgrounds=True)
         jobs = []
         for key, filelist in collapsed_inputs.items():
             kwds = dict(
@@ -295,7 +297,7 @@ def make_master_dark(
                 force=force,
             )
             jobs.append(pool.apply_async(collapse_frames_files, args=(filelist,), kwds=kwds))
-        iter = jobs if quiet else tqdm(jobs, desc="Making master darks")
+        iter = jobs if quiet else tqdm(jobs, desc="Making master backgrounds")
         [job.get() for job in iter]
 
     return list(outnames.values())
@@ -303,7 +305,7 @@ def make_master_dark(
 
 def make_master_flat(
     filenames: list[PathLike],
-    master_darks: Optional[list[PathLike]] = None,
+    master_backgrounds: Optional[list[PathLike]] = None,
     collapse: str = "median",
     name: str = "master_flat",
     force: bool = False,
@@ -313,15 +315,15 @@ def make_master_flat(
 ) -> list[Path]:
     # prepare input filenames
     file_inputs = sort_calib_files(filenames)
-    master_dark_dict = {key: None for key in file_inputs.keys()}
-    if master_darks is not None:
-        dark_inputs = sort_calib_files(master_darks, darks=True)
+    master_back_dict = {key: None for key in file_inputs.keys()}
+    if master_backgrounds is not None:
+        back_inputs = sort_calib_files(master_backgrounds, backs=True)
         for key in file_inputs.keys():
-            # don't need to match filter for darks
-            dark_key = key[:-1]
+            # don't need to match filter for backs
+            back_key = key[:-1]
             # input should be list with one file in it
-            if dark_key in dark_inputs:
-                master_dark_dict[key] = dark_inputs[dark_key][0]
+            if back_key in back_inputs:
+                master_back_dict[key] = back_inputs[back_key][0]
 
     if output_directory is not None:
         outdir = Path(output_directory)
@@ -329,7 +331,7 @@ def make_master_flat(
     else:
         outdir = Path.cwd()
 
-    # get names for master darks and remove
+    # get names for master backs and remove
     # files from queue if they exist
     outnames = {}
     with mp.Pool(num_proc) as pool:
@@ -347,7 +349,7 @@ def make_master_flat(
             for path in filelist:
                 kwds = dict(
                     output_directory=outdir / "collapsed",
-                    dark_filename=master_dark_dict[key],
+                    back_filename=master_back_dict[key],
                     force=force,
                     method=collapse,
                 )

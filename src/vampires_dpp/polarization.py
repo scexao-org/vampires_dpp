@@ -161,6 +161,7 @@ def radial_stokes(stokes_cube: ArrayLike, phi: float = 0) -> NDArray:
 
     return Qphi, Uphi
 
+
 def rotate_stokes(stokes_cube, theta):
     out = stokes_cube.copy()
     sin2ts = np.sin(2 * theta)
@@ -244,7 +245,7 @@ def polarization_calibration_triplediff(
         # correct IP
         Q -= mmQ[0] * I
         U -= mmU[0] * I
-        
+
         # correct cross-talk
         Sarr = np.array((Q.ravel(), U.ravel()))
         Marr = np.array((mmQ[1:3], mmU[1:3]))
@@ -367,6 +368,7 @@ def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> 
             stokes_cube[:, i, j] = np.linalg.lstsq(mueller_matrices, cube[:, i, j], rcond=None)[0]
 
     return stokes_cube[:3]
+
 
 def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=False):
     path = Path(outname)
