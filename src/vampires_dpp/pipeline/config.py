@@ -143,7 +143,7 @@ class CalibrateOptions(OutputDirectory):
 
     The calibration strategy is generally
 
-    #. Subtract dark frame, if provided
+    #. Subtract background frame, if provided
     #. Normalize by flat field, if provided
     #. Bad pixel correction, if set
     #. Flip camera 1 data along y-axis
@@ -161,8 +161,8 @@ class CalibrateOptions(OutputDirectory):
 
     Parameters
     ----------
-    master_darks: Optional[dict[str, Optional[Path]]]
-        If provided, must be a dict with keys for "cam1" and "cam2" master darks. You can omit one of the cameras. By default None.
+    master_backgrounds: Optional[dict[str, Optional[Path]]]
+        If provided, must be a dict with keys for "cam1" and "cam2" master backgrounds. You can omit one of the cameras. By default None.
     master_flats: Optional[dict[str, Optional[Path]]]
         If provided, must be a dict with keys for "cam1" and "cam2" master flats. You can omit one of the cameras. By default None.
     distortion: Optional[DistortionOptions]
@@ -178,10 +178,10 @@ class CalibrateOptions(OutputDirectory):
 
     Examples
     --------
-    >>> master_darks = {"cam1": "master_dark_cam1.fits", "cam2": "master_dark_cam2.fits"}
+    >>> master_backs = {"cam1": "master_back_cam1.fits", "cam2": "master_back_cam2.fits"}
     >>> dist = {"transform_filename": "20230102_fcs16000_params.csv"}
     >>> conf = CalibrateOptions(
-            master_darks=master_darks,
+            master_backgrounds=master_backs,
             distortion=dist,
             output_directory="calibrated"
         )
@@ -192,9 +192,9 @@ class CalibrateOptions(OutputDirectory):
         [calibrate]
         output_directory = "calibrated"
 
-        [calibrate.master_darks]
-        cam1 = "master_dark_cam1.fits"
-        cam2 = "master_dark_cam2.fits"
+        [calibrate.master_backgrounds]
+        cam1 = "master_back_cam1.fits"
+        cam2 = "master_back_cam2.fits"
 
         [calibrate.master_flats]
 
@@ -202,7 +202,7 @@ class CalibrateOptions(OutputDirectory):
         transform_filename = "20230102_fcs16000_params.csv"
     """
 
-    master_darks: Optional[CamFileInput] = field(default=CamFileInput())
+    master_backgrounds: Optional[CamFileInput] = field(default=CamFileInput())
     master_flats: Optional[CamFileInput] = field(default=CamFileInput())
     distortion: Optional[DistortionOptions] = field(default=None, skip_if_default=True)
     fix_bad_pixels: bool = field(default=False, skip_if_default=True)
@@ -210,8 +210,8 @@ class CalibrateOptions(OutputDirectory):
 
     def __post_init__(self):
         super().__post_init__()
-        if self.master_darks is not None and isinstance(self.master_darks, dict):
-            self.master_darks = CamFileInput(**self.master_darks)
+        if self.master_backgrounds is not None and isinstance(self.master_backgrounds, dict):
+            self.master_backgrounds = CamFileInput(**self.master_backgrounds)
         if self.master_flats is not None and isinstance(self.master_flats, dict):
             self.master_flats = CamFileInput(**self.master_flats)
         if self.distortion is not None and isinstance(self.distortion, dict):
@@ -724,7 +724,7 @@ class PipelineOptions:
         [calibrate]
         output_directory = "calibrated"
 
-        [calibrate.master_darks]
+        [calibrate.master_backgrounds]
 
         [calibrate.master_flats]
 

@@ -7,10 +7,10 @@ from vampires_dpp.calibration import calibrate_file, make_background_file, make_
 
 class TestCalibrationFrames:
     @pytest.fixture()
-    def dark_frame(self, tmp_path):
-        path = tmp_path / "master_dark_cam1.fits"
-        dark = np.random.randn(512, 512) + 200
-        fits.writeto(path, dark.astype("uint16"), overwrite=True)
+    def background_frame(self, tmp_path):
+        path = tmp_path / "master_back_cam1.fits"
+        back = np.random.randn(512, 512) + 200
+        fits.writeto(path, back.astype("uint16"), overwrite=True)
         return path
 
     @pytest.fixture()
@@ -22,16 +22,16 @@ class TestCalibrationFrames:
         fits.writeto(path, data.astype("uint16"))
         return path
 
-    def test_make_dark_file(self, tmp_path):
+    def test_make_background_file(self, tmp_path):
         cube = 10 * np.random.randn(100, 512, 512) + 200
-        path = tmp_path / "dark_file_cam1.fits"
+        path = tmp_path / "back_file_cam1.fits"
         fits.writeto(path, cube.astype("uint16"))
         outpath = make_background_file(path)
         assert outpath == path.with_stem(f"{path.stem}_collapsed")
         c, h = fits.getdata(outpath, header=True)
         assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 200, rtol=1e-2)
-        name = tmp_path / "master_dark_cam1.fits"
+        name = tmp_path / "master_back_cam1.fits"
         make_background_file(path, outname=name)
         c, h = fits.getdata(name, header=True)
         assert c.dtype == np.dtype(">f4")
@@ -45,23 +45,23 @@ class TestCalibrationFrames:
             header=True,
         )
         assert c.dtype == np.dtype(">f4")
-        assert "MDARK" not in h
+        assert "DPP_BACK" not in h
         assert np.isclose(np.median(c), 1)
 
-    def test_make_flat_file_with_dark(self, tmp_path, dark_frame, flat_cube):
+    def test_make_flat_file_with_back(self, tmp_path, background_frame, flat_cube):
         outpath = make_flat_file(
-            flat_cube, dark_filename=dark_frame, outname=tmp_path / "master_flat_cam1.fits"
+            flat_cube, back_filename=background_frame, outname=tmp_path / "master_flat_cam1.fits"
         )
         assert outpath == tmp_path / "master_flat_cam1.fits"
         c, h = fits.getdata(outpath, header=True)
         assert c.dtype == np.dtype(">f4")
         assert np.isclose(np.median(c), 1)
-        assert h["MDARK"] == dark_frame.name
+        assert h["DPP_BACK"] == background_frame.name
 
 
 class TestCalibrate:
     @pytest.fixture()
-    def dark_frame(self):
+    def background_frame(self):
         data = np.random.randn(512, 512) + 200
         return data.astype("f4")
 
@@ -70,14 +70,14 @@ class TestCalibrate:
         return np.ones((512, 512), dtype="f4")
 
     @pytest.fixture()
-    def data_cube_cam1(self, dark_frame):
-        cube = 10 * np.random.randn(102, 512, 512) + dark_frame
+    def data_cube_cam1(self, background_frame):
+        cube = 10 * np.random.randn(102, 512, 512) + background_frame
         cube += np.random.poisson(2e4, (102, 512, 512))
         return np.flipud(cube).astype("uint16")
 
     @pytest.fixture()
-    def data_cube_cam2(self, dark_frame):
-        cube = 10 * np.random.randn(102, 512, 512) + dark_frame
+    def data_cube_cam2(self, background_frame):
+        cube = 10 * np.random.randn(102, 512, 512) + background_frame
         cube += np.random.poisson(2.3e4, (102, 512, 512))
         return cube.astype("uint16")
 

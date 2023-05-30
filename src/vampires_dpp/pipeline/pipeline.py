@@ -38,7 +38,7 @@ class Pipeline(PipelineOptions):
 
     def __post_init__(self):
         super().__post_init__()
-        self.master_darks = {1: None, 2: None}
+        self.master_backgrounds = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}
         # self.console = Console()
         self.logger = logging.getLogger("DPP")
@@ -174,14 +174,14 @@ class Pipeline(PipelineOptions):
         tripwire |= config.force
         ext = 1 if ".fits.fz" in path.name else 0
         if fileinfo["U_CAMERA"] == 1:
-            dark_filename = config.master_darks.cam1
+            back_filename = config.master_backgrounds.cam1
             flat_filename = config.master_flats.cam1
         elif fileinfo["U_CAMERA"] == 2:
-            dark_filename = config.master_darks.cam2
+            back_filename = config.master_backgrounds.cam2
             flat_filename = config.master_flats.cam2
         calib_file = calibrate_file(
             path,
-            dark_filename=dark_filename,
+            back_filename=back_filename,
             flat_filename=flat_filename,
             transform_filename=transform_filename,
             deinterleave=config.deinterleave,
