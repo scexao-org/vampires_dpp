@@ -489,7 +489,7 @@ class IPOptions:
     """
 
     method: str = "photometry"
-    aper_rad: float = 6
+    aper_rad: float = 10
     force: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):

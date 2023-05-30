@@ -12,6 +12,7 @@ import numpy as np
 import tomli
 import click
 from rich.logging import RichHandler
+from rich.prompt import Prompt, Confirm
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import make_master_background, make_master_flat
@@ -27,6 +28,7 @@ from vampires_dpp.pipeline.config import (
     PipelineOptions,
     RegisterOptions,
     SatspotOptions,
+    IPOptions,
 )
 from vampires_dpp.pipeline.deprecation import upgrade_config
 from vampires_dpp.pipeline.pipeline import Pipeline
@@ -271,30 +273,31 @@ def createListCompleter(items):
     "config",
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
 )
-def new_config(config):
+@click.option(
+    "--edit", "-e", is_flag=True, help="Launch configuration file in editor after creation."
+)
+@click.pass_context
+def new_config(ctx, config, edit):
     readline.set_completer_delims(" \t\n;")
     readline.parse_and_bind("tab: complete")
 
     ## check if output file exists
     if config.is_file():
-        response = (
-            input(
-                f"{config.name} already exists in output directory, would you like to overwrite it? [y/N]: "
-            )
-            .strip()
-            .lower()
+        overwrite = click.confirm(
+            f"{config.name} already exists in output directory, would you like to overwrite it?",
+            default=False,
         )
-        if response != "y":
-            return
+        if not overwrite:
+            ctx.exit()
 
     ## get template
-    template_choices = ["singlecam", "pdi", "sdi"]
+    template_choices = ["none", "singlecam", "pdi", "sdi"]
 
     readline.set_completer(createListCompleter(template_choices))
-    template = (
-        input(f"Choose a starting template [{'/'.join(template_choices)}] (optional): ")
-        .strip()
-        .lower()
+    template = click.prompt(
+        "Choose a starting template",
+        type=click.Choice(template_choices, case_sensitive=False),
+        default="none",
     )
     match template:
         case "singlecam":
@@ -309,11 +312,11 @@ def new_config(config):
 
     ## get name
     name_guess = config.stem
-    name = input(f"Path-friendly name for this reduction [{name_guess}]: ").strip().lower()
+    name = click.prompt(f"Path-friendly name for this reduction", default=name_guess)
     tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
 
     ## get target
-    object = input(f"SIMBAD-friendly object name (optional): ").strip()
+    object = click.prompt("SIMBAD-friendly object name (optional)", default="")
     obj = None if object == "" else object
     coord = None
     if obj is not None:
@@ -324,22 +327,22 @@ def new_config(config):
             if coord is not None:
                 break
 
-            print(f'Could not find {obj} in GAIA {cat.upper()} with {rad}" radius.')
-            _input = input(
-                "Query different catalog (dr1/dr2/dr3), enter search radius in arcsec, or enter new object name (optional): "
-            ).strip()
-            match _cat := _input.lower():
+            click.echo(f'  Could not find {obj} in GAIA {cat.upper()} with {rad}" radius.')
+            _input = click.prompt(
+                "Query different catalog (dr1/dr2/dr3), enter search radius in arcsec, or enter new object name (optional)"
+            )
+            match _input:
                 case "":
                     # give up
                     break
                 case "dr1" | "dr2" | "dr3":
                     # try different catalog
-                    cat = _cat
+                    cat = _input
                 case _:
                     try:
                         # if a number was entered, increase search radius
-                        rad = float(_cat)
-                    except:
+                        rad = float(_input)
+                    except ValueError:
                         # otherwise try a new object
                         obj = _input
 
@@ -355,43 +358,65 @@ def new_config(config):
                 obstime=str(coord.obstime),
             )
     if coord is None:
-        print("No coordinate information set; will only use header values.")
+        click.echo("  No coordinate information set; will only use header values.")
 
-    ## darks
-    have_darks = input("Do you have dark files? [Y/n]: ").strip().lower()
-    if have_darks == "" or have_darks == "y":
+    ## backgrounds
+    have_backgrounds = click.confirm("Do you have background files?", default=True)
+    if have_backgrounds:
         readline.set_completer(pathCompleter)
-        cam1_path = input("Enter path to cam1 dark (optional): ").strip()
+        cam1_path = click.prompt(
+            "Enter path to cam1 background (optional)",
+            default="",
+            type=click.Path(dir_okay=False, path_type=Path),
+        )
         cam1_path = None if cam1_path == "" else cam1_path
         cam2_path = None
         if template != "singlecam":
             if cam1_path is not None:
                 cam2_default = cam1_path.replace("cam1", "cam2")
-                cam2_path = input(f"Enter path to cam2 dark [{cam2_default}]: ").strip()
-                if cam2_path == "":
-                    cam2_path = cam2_default
+                cam2_path = click.prompt(
+                    f"Enter path to cam2 background",
+                    default=cam2_default,
+                    type=click.Path(dir_okay=False, path_type=Path),
+                )
             else:
-                cam2_path = input(f"Enter path to cam2 dark (optional): ").strip()
+                cam2_path = click.prompt(
+                    "Enter path to cam2 background (optional)",
+                    default="",
+                    type=click.Path(dir_okay=False, path_type=Path),
+                )
                 if cam2_path == "":
                     cam2_path = None
         readline.set_completer()
-        tpl.calibrate.master_darks = CamFileInput(cam1=cam1_path, cam2=cam2_path)
+        tpl.calibrate.master_backgrounds = CamFileInput(cam1=cam1_path, cam2=cam2_path)
 
     ## flats
-    have_flats = input("Do you have flat files? [Y/n]: ").strip().lower()
-    if have_flats == "" or have_flats == "y":
+    have_flats = click.confirm("Do you have flat files?", default=have_backgrounds)
+    if have_flats:
         readline.set_completer(pathCompleter)
-        cam1_path = input("Enter path to cam1 flat (optional): ").strip()
+        cam1_path = click.prompt(
+            "Enter path to cam1 flat (optional)",
+            default="",
+            type=click.Path(dir_okay=False, path_type=Path),
+        )
         cam1_path = None if cam1_path == "" else cam1_path
         cam2_path = None
         if template != "singlecam" or cam1_path is None:
             if cam1_path is not None:
                 cam2_default = cam1_path.replace("cam1", "cam2")
-                cam2_path = input(f"Enter path to cam2 flat [{cam2_default}]: ").strip()
+                cam2_path = click.prompt(
+                    "Enter path to cam2 flat",
+                    default=cam2_default,
+                    type=click.Path(dir_okay=False, path_type=Path),
+                )
                 if cam2_path == "":
                     cam2_path = cam2_default
             else:
-                cam2_path = input(f"Enter path to cam2 flat (optional): ").strip()
+                cam2_path = click.prompt(
+                    "Enter path to cam2 flat (optional)",
+                    default="",
+                    type=click.Path(dir_okay=False, path_type=Path),
+                )
                 if cam2_path == "":
                     cam2_path = None
         readline.set_completer()
@@ -401,46 +426,41 @@ def new_config(config):
     iwa_choices = ["36", "55", "92", "129"]
 
     readline.set_completer(createListCompleter(iwa_choices))
-    have_coro = input("Did you use a coronagraph? [y/N]: ").strip().lower()
-    if have_coro == "y":
-        iwa = float(input(f"  Enter coronagraph IWA (mas) [{'/'.join(iwa_choices)}]: ").strip())
-        tpl.coronagraph = CoronagraphOptions(iwa=iwa)
+    have_coro = click.confirm("Did you use a coronagraph?", default=False)
+    if have_coro:
+        iwa = click.prompt("  Enter coronagraph IWA (mas)", type=click.Choice(iwa_choices))
+        tpl.coronagraph = CoronagraphOptions(iwa=float(iwa))
         readline.set_completer()
 
     ## Satellite spots
-    _default = tpl.coronagraph is not None
-    prompt = "Y/n" if _default else "y/N"
-    have_satspot = input(f"Did you use satellite spots? [{prompt}]: ").strip().lower()
-    if (_default and have_satspot == "") or have_satspot == "y":
-        _default = 15.8
-        radius = input(f"  Enter satspot radius (lam/D) [{_default}]: ").strip()
-        spotrad = _default if radius == "" else float(radius)
-
-        _default = 50
-        amp = input(f"  Enter satspot amplitude (nm) [{_default}]: ").strip()
-        spotamp = _default if amp == "" else float(amp)
+    have_satspot = click.confirm(
+        "Did you use satellite spots?", default=tpl.coronagraph is not None
+    )
+    if have_satspot:
+        spotrad = click.prompt("  Enter satspot radius (lam/D)", default=15.8, type=float)
+        spotamp = click.prompt("  Enter satspot amplitude (nm)", default=50, type=float)
         tpl.satspots = SatspotOptions(radius=spotrad, amp=spotamp)
 
     ## Frame centers
-    set_frame_centers = input(f"Do you want to specify frame centers? [y/N]: ").strip().lower()
-    if set_frame_centers == "y":
+    set_frame_centers = click.confirm("Do you want to specify frame centers?", default=False)
+    if set_frame_centers:
         cam1_ctr = cam2_ctr = None
-        cam1_ctr_input = input("Enter comma-separated center for cam1 (x, y) (optional): ").strip()
+        cam1_ctr_input = click.prompt(
+            "Enter comma-separated center for cam1 (x, y) (optional)", default=""
+        )
         if cam1_ctr_input != "":
             cam1_ctr = _parse_cam_center(cam1_ctr_input)
         if template != "singlecam" or cam1_ctr is None:
             if cam1_ctr is not None:
-                cam2_ctr_input = input(
-                    f"Enter comma-separated center for cam2 (x, y) [{cam1_ctr}]: "
-                ).strip()
-                if cam2_ctr_input == "":
-                    cam2_ctr = cam1_ctr
-                else:
-                    cam2_ctr = _parse_cam_center(cam2_ctr_input)
+                cam2_ctr_input = click.prompt(
+                    "Enter comma-separated center for cam1 (x, y) (optional)",
+                    default=cam1_ctr_input,
+                )
+                cam2_ctr = _parse_cam_center(cam2_ctr_input)
             else:
-                cam2_ctr_input = input(
-                    f"Enter comma-separated center for cam2 (x, y) (optional): "
-                ).strip()
+                cam2_ctr_input = click.prompt(
+                    "Enter comma-separated center for cam2 (x, y) (optional)", default=""
+                )
                 if cam2_ctr_input == "":
                     cam2_ctr = None
                 else:
@@ -448,20 +468,20 @@ def new_config(config):
         tpl.frame_centers = CamCtrOption(cam1=cam1_ctr, cam2=cam2_ctr)
 
     ## Frame selection
-    do_frame_select = input(f"Would you like to do frame selection? [y/N]: ").strip().lower()
-    if do_frame_select == "y":
-        cutoff = float(
-            input("  Enter a cutoff quantile (0 to 1, larger means more discarding): ").strip()
+    do_frame_select = click.confirm("Would you like to do frame selection?", default=False)
+    if do_frame_select:
+        cutoff = click.prompt(
+            "  Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
         )
 
         metric_choices = ["normvar", "l2norm", "peak"]
         readline.set_completer(createListCompleter(metric_choices))
-        frame_select_metric = (
-            input(f"  Choose a frame selection metric ([normvar]/l2norm/peak): ").strip().lower()
+        frame_select_metric = click.prompt(
+            "  Choose a frame selection metric",
+            type=click.Choice(metric_choices, case_sensitive=False),
+            default="normvar",
         )
         readline.set_completer()
-        if frame_select_metric == "":
-            frame_select_metric = "normvar"
         tpl.frame_select = FrameSelectOptions(
             cutoff=cutoff,
             metric=frame_select_metric,
@@ -471,51 +491,70 @@ def new_config(config):
         tpl.frame_select = None
 
     ## Registration
-    do_register = input(f"Would you like to do frame registration? [Y/n]: ").strip().lower()
-    if do_register == "y" or do_register == "":
+    do_register = click.confirm(f"Would you like to do frame registration?", default=True)
+    if do_register:
         method_choices = ["com", "peak", "dft", "moffat", "gaussian", "airy"]
         readline.set_completer(createListCompleter(method_choices))
-        register_method = (
-            input(f"  Choose a registration method ([com]/peak/dft/moffat/gaussian/airy): ")
-            .strip()
-            .lower()
+        register_method = click.prompt(
+            "  Choose a registration method",
+            type=click.Choice(method_choices, case_sensitive=False),
+            default="com",
         )
         readline.set_completer()
-        if register_method == "":
-            register_method = "com"
         opts = RegisterOptions(
             method=register_method, output_directory=DEFAULT_DIRS[RegisterOptions]
         )
         if register_method == "dft":
-            dft_factor_input = input("    Enter DFT upsample factor (default is 1): ").strip()
-            opts.dft_factor = 1 if dft_factor_input == "" else int(dft_factor_input)
+            opts.dft_factor = click.prompt("    Enter DFT upsample factor", default=1, type=int)
 
-        smooth_input = input(f"  Smooth data before measurement? [y/N]: ").strip().lower()
-        opts.smooth = smooth_input == "y"
+        opts.smooth = click.confirm("  Smooth data before measurement?", default=False)
         tpl.register = opts
     else:
         tpl.register = None
 
     ## Collapsing
-    do_collapse = input(f"Would you like to collapse your data? [Y/n]: ").strip().lower()
-    if do_collapse == "y" or do_collapse == "":
+    do_collapse = click.confirm("Would you like to collapse your data?", default=True)
+    if do_collapse:
         collapse_choices = ["median", "mean", "varmean", "biweight"]
         readline.set_completer(createListCompleter(collapse_choices))
-        collapse_method = (
-            input("  Choose a collapse method ([median]/mean/varmean/biweight): ").strip().lower()
+        collapse_method = click.prompt(
+            "  Choose a collapse method",
+            type=click.Choice(collapse_choices, case_sensitive=False),
+            default="median",
         )
         readline.set_completer()
-        if collapse_method == "":
-            collapse_method = "median"
         tpl.collapse = CollapseOptions(
             collapse_method, output_directory=DEFAULT_DIRS[CollapseOptions]
         )
     else:
         tpl.collapse = None
 
-    tpl.to_file(config)
+    ## Polarization
+    if tpl.polarimetry:
+        calib_choices = ["difference", "leastsq"]
+        readline.set_completer(createListCompleter(calib_choices))
+        tpl.polarimetry.method = click.prompt(
+            "  Choose a polarimetric calibration method",
+            type=click.Choice(calib_choices, case_sensitive=False),
+            default="difference",
+        )
+        readline.set_completer()
 
-    return config
+        ip_touchup = click.confirm(
+            "  Would you like to do IP touchup?", default=tpl.polarimetry.ip is not None
+        )
+        if ip_touchup:
+            tpl.polarimetry.ip = IPOptions(
+                aper_rad=click.prompt("    Enter IP aperture radius (px)", default=10, type=float)
+            )
+
+    tpl.to_file(config)
+    click.echo(f"File saved to {config.name}")
+    if not edit:
+        edit |= click.confirm("Would you like to edit this config file now?")
+
+    if edit:
+        click.edit(filename=config)
 
 
 def _parse_cam_center(input_string):
