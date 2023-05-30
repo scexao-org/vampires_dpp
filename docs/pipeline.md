@@ -135,6 +135,7 @@ Some antique VAMPIRES data uses a different order for the HWP cycles than modern
 
 ```toml
 [polarimetry]
+method = "difference"
 order = "QUQU"
 ```
 
