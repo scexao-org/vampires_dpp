@@ -1,0 +1,127 @@
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/nbclient/client.py", line 1305, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 166, in wrapped
+    return loop.run_until_complete(inner)
+  File "/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/nbclient/client.py", line 705, in async_execute
+    await self.async_execute_cell(
+  File "/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/nbclient/client.py", line 1058, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/nbclient/client.py", line 914, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+fig, axes = pro.subplots()
+frame_idx = 248
+
+frame = abaur20190320_cube[frame_idx]
+
+c = axes[0].imshow(frame, cmap="magma", norm="log")
+fig.colorbar(c)
+axes.format(grid=False)
+fig.suptitle("AB Aurigae 2019/03/20 Non-coronagraphic");
+------------------
+
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mValueError[0m                                Traceback (most recent call last)
+Cell [0;32mIn[4], line 7[0m
+[1;32m      4[0m frame [38;5;241m=[39m abaur20190320_cube[frame_idx]
+[1;32m      6[0m c [38;5;241m=[39m axes[[38;5;241m0[39m][38;5;241m.[39mimshow(frame, cmap[38;5;241m=[39m[38;5;124m"[39m[38;5;124mmagma[39m[38;5;124m"[39m, norm[38;5;241m=[39m[38;5;124m"[39m[38;5;124mlog[39m[38;5;124m"[39m)
+[0;32m----> 7[0m [43mfig[49m[38;5;241;43m.[39;49m[43mcolorbar[49m[43m([49m[43mc[49m[43m)[49m
+[1;32m      8[0m axes[38;5;241m.[39mformat(grid[38;5;241m=[39m[38;5;28;01mFalse[39;00m)
+[1;32m      9[0m fig[38;5;241m.[39msuptitle([38;5;124m"[39m[38;5;124mAB Aurigae 2019/03/20 Non-coronagraphic[39m[38;5;124m"[39m);
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/proplot/figure.py:1634[0m, in [0;36mFigure.colorbar[0;34m(self, mappable, values, loc, location, row, col, rows, cols, span, space, pad, width, **kwargs)[0m
+[1;32m   1629[0m loc [38;5;241m=[39m _not_none(loc[38;5;241m=[39mloc, location[38;5;241m=[39mlocation, default[38;5;241m=[39m[38;5;124m'[39m[38;5;124mr[39m[38;5;124m'[39m)
+[1;32m   1630[0m ax [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39m_add_figure_panel(
+[1;32m   1631[0m     loc, row[38;5;241m=[39mrow, col[38;5;241m=[39mcol, rows[38;5;241m=[39mrows, cols[38;5;241m=[39mcols, span[38;5;241m=[39mspan,
+[1;32m   1632[0m     width[38;5;241m=[39mwidth, space[38;5;241m=[39mspace, pad[38;5;241m=[39mpad,
+[1;32m   1633[0m )
+[0;32m-> 1634[0m [38;5;28;01mreturn[39;00m [43max[49m[38;5;241;43m.[39;49m[43mcolorbar[49m[43m([49m[43mmappable[49m[43m,[49m[43m [49m[43mvalues[49m[43m,[49m[43m [49m[43mloc[49m[38;5;241;43m=[39;49m[38;5;124;43m'[39;49m[38;5;124;43mfill[39;49m[38;5;124;43m'[39;49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/proplot/axes/base.py:2440[0m, in [0;36mAxes.colorbar[0;34m(self, mappable, values, loc, location, queue, **kwargs)[0m
+[1;32m   2438[0m     [38;5;28mself[39m[38;5;241m.[39m_register_guide([38;5;124m'[39m[38;5;124mcolorbar[39m[38;5;124m'[39m, (mappable, values), loc, [38;5;241m*[39m[38;5;241m*[39mkwargs)
+[1;32m   2439[0m [38;5;28;01melse[39;00m:
+[0;32m-> 2440[0m     cb [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_draw_colorbar[49m[43m([49m[43mmappable[49m[43m,[49m[43m [49m[43mvalues[49m[43m,[49m[43m [49m[43mloc[49m[38;5;241;43m=[39;49m[43mloc[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m   2441[0m     [38;5;28;01mreturn[39;00m cb
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/proplot/axes/base.py:2311[0m, in [0;36mAxes._draw_colorbar[0;34m(self, mappable, values, loc, space, pad, align, label, title, reverse, rotation, grid, edges, drawedges, extend, extendsize, extendfrac, tickminor, ticklen, ticklenratio, tickdir, tickdirection, tickwidth, tickwidthratio, ticklabelsize, ticklabelweight, ticklabelcolor, labelloc, labellocation, labelsize, labelweight, labelcolor, c, color, lw, linewidth, edgefix, rasterize, **kwargs)[0m
+[1;32m   2309[0m [38;5;28;01melse[39;00m:
+[1;32m   2310[0m     kwargs[[38;5;124m'[39m[38;5;124mextend[39m[38;5;124m'[39m] [38;5;241m=[39m extend
+[0;32m-> 2311[0m obj [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mfigure[49m[38;5;241;43m.[39;49m[43mcolorbar[49m[43m([49m[43mmappable[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m   2313[0m [38;5;66;03m# Label and tick label settings[39;00m
+[1;32m   2314[0m [38;5;66;03m# WARNING: Must use colorbar set_label to set text, calling set_text on[39;00m
+[1;32m   2315[0m [38;5;66;03m# the axis will do nothing![39;00m
+[1;32m   2316[0m axis [38;5;241m=[39m cax[38;5;241m.[39myaxis [38;5;28;01mif[39;00m orientation [38;5;241m==[39m [38;5;124m'[39m[38;5;124mvertical[39m[38;5;124m'[39m [38;5;28;01melse[39;00m cax[38;5;241m.[39mxaxis
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/proplot/figure.py:1621[0m, in [0;36mFigure.colorbar[0;34m(self, mappable, values, loc, location, row, col, rows, cols, span, space, pad, width, **kwargs)[0m
+[1;32m   1619[0m [38;5;28;01mif[39;00m cax [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+[1;32m   1620[0m     [38;5;28;01mwith[39;00m context[38;5;241m.[39m_state_context(cax, _internal_call[38;5;241m=[39m[38;5;28;01mTrue[39;00m):  [38;5;66;03m# do not wrap pcolor[39;00m
+[0;32m-> 1621[0m         [38;5;28;01mreturn[39;00m [38;5;28;43msuper[39;49m[43m([49m[43m)[49m[38;5;241;43m.[39;49m[43mcolorbar[49m[43m([49m[43mmappable[49m[43m,[49m[43m [49m[43mcax[49m[38;5;241;43m=[39;49m[43mcax[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m   1622[0m [38;5;66;03m# Axes panel colorbar[39;00m
+[1;32m   1623[0m [38;5;28;01melif[39;00m ax [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/matplotlib/figure.py:1176[0m, in [0;36mFigureBase.colorbar[0;34m(self, mappable, cax, ax, use_gridspec, **kw)[0m
+[1;32m   1173[0m NON_COLORBAR_KEYS [38;5;241m=[39m [[38;5;124m'[39m[38;5;124mfraction[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124mpad[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124mshrink[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124maspect[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124manchor[39m[38;5;124m'[39m,
+[1;32m   1174[0m                      [38;5;124m'[39m[38;5;124mpanchor[39m[38;5;124m'[39m]
+[1;32m   1175[0m cb_kw [38;5;241m=[39m {k: v [38;5;28;01mfor[39;00m k, v [38;5;129;01min[39;00m kw[38;5;241m.[39mitems() [38;5;28;01mif[39;00m k [38;5;129;01mnot[39;00m [38;5;129;01min[39;00m NON_COLORBAR_KEYS}
+[0;32m-> 1176[0m cb [38;5;241m=[39m [43mcbar[49m[38;5;241;43m.[39;49m[43mColorbar[49m[43m([49m[43mcax[49m[43m,[49m[43m [49m[43mmappable[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mcb_kw[49m[43m)[49m
+[1;32m   1178[0m [38;5;28mself[39m[38;5;241m.[39msca(current_ax)
+[1;32m   1179[0m [38;5;28mself[39m[38;5;241m.[39mstale [38;5;241m=[39m [38;5;28;01mTrue[39;00m
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/matplotlib/colorbar.py:1197[0m, in [0;36mColorbar.__init__[0;34m(self, ax, mappable, **kwargs)[0m
+[1;32m   1195[0m     [38;5;28;01mif[39;00m [38;5;28misinstance[39m(mappable, martist[38;5;241m.[39mArtist):
+[1;32m   1196[0m         _add_disjoint_kwargs(kwargs, alpha[38;5;241m=[39mmappable[38;5;241m.[39mget_alpha())
+[0;32m-> 1197[0m     [38;5;28;43msuper[39;49m[43m([49m[43m)[49m[38;5;241;43m.[39;49m[38;5;21;43m__init__[39;49m[43m([49m[43max[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+[1;32m   1199[0m mappable[38;5;241m.[39mcolorbar [38;5;241m=[39m [38;5;28mself[39m
+[1;32m   1200[0m mappable[38;5;241m.[39mcolorbar_cid [38;5;241m=[39m mappable[38;5;241m.[39mcallbacksSM[38;5;241m.[39mconnect(
+[1;32m   1201[0m     [38;5;124m'[39m[38;5;124mchanged[39m[38;5;124m'[39m, [38;5;28mself[39m[38;5;241m.[39mupdate_normal)
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/matplotlib/_api/deprecation.py:471[0m, in [0;36mmake_keyword_only.<locals>.wrapper[0;34m(*args, **kwargs)[0m
+[1;32m    465[0m [38;5;28;01mif[39;00m [38;5;28mlen[39m(args) [38;5;241m>[39m idx:
+[1;32m    466[0m     warn_deprecated(
+[1;32m    467[0m         since, message[38;5;241m=[39m[38;5;124m"[39m[38;5;124mPassing the [39m[38;5;132;01m%(name)s[39;00m[38;5;124m [39m[38;5;132;01m%(obj_type)s[39;00m[38;5;124m [39m[38;5;124m"[39m
+[1;32m    468[0m         [38;5;124m"[39m[38;5;124mpositionally is deprecated since Matplotlib [39m[38;5;132;01m%(since)s[39;00m[38;5;124m; the [39m[38;5;124m"[39m
+[1;32m    469[0m         [38;5;124m"[39m[38;5;124mparameter will become keyword-only [39m[38;5;132;01m%(removal)s[39;00m[38;5;124m.[39m[38;5;124m"[39m,
+[1;32m    470[0m         name[38;5;241m=[39mname, obj_type[38;5;241m=[39m[38;5;124mf[39m[38;5;124m"[39m[38;5;124mparameter of [39m[38;5;132;01m{[39;00mfunc[38;5;241m.[39m[38;5;18m__name__[39m[38;5;132;01m}[39;00m[38;5;124m()[39m[38;5;124m"[39m)
+[0;32m--> 471[0m [38;5;28;01mreturn[39;00m [43mfunc[49m[43m([49m[38;5;241;43m*[39;49m[43margs[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/matplotlib/colorbar.py:511[0m, in [0;36mColorbarBase.__init__[0;34m(self, ax, cmap, norm, alpha, values, boundaries, orientation, ticklocation, extend, spacing, ticks, format, drawedges, filled, extendfrac, extendrect, label)[0m
+[1;32m    509[0m [38;5;28;01melse[39;00m:
+[1;32m    510[0m     [38;5;28mself[39m[38;5;241m.[39mformatter [38;5;241m=[39m [38;5;28mformat[39m  [38;5;66;03m# Assume it is a Formatter or None[39;00m
+[0;32m--> 511[0m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mdraw_all[49m[43m([49m[43m)[49m
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/matplotlib/colorbar.py:528[0m, in [0;36mColorbarBase.draw_all[0;34m(self)[0m
+[1;32m    526[0m [38;5;28mself[39m[38;5;241m.[39m_config_axis()  [38;5;66;03m# Inline it after deprecation elapses.[39;00m
+[1;32m    527[0m [38;5;66;03m# Set self._boundaries and self._values, including extensions.[39;00m
+[0;32m--> 528[0m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_process_values[49m[43m([49m[43m)[49m
+[1;32m    529[0m [38;5;66;03m# Set self.vmin and self.vmax to first and last boundary, excluding[39;00m
+[1;32m    530[0m [38;5;66;03m# extensions.[39;00m
+[1;32m    531[0m [38;5;28mself[39m[38;5;241m.[39mvmin, [38;5;28mself[39m[38;5;241m.[39mvmax [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39m_boundaries[[38;5;28mself[39m[38;5;241m.[39m_inside][[[38;5;241m0[39m, [38;5;241m-[39m[38;5;241m1[39m]]
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/matplotlib/colorbar.py:962[0m, in [0;36mColorbarBase._process_values[0;34m(self, b)[0m
+[1;32m    955[0m     [38;5;28mself[39m[38;5;241m.[39mnorm[38;5;241m.[39mvmax [38;5;241m=[39m [38;5;241m1[39m
+[1;32m    957[0m [38;5;28mself[39m[38;5;241m.[39mnorm[38;5;241m.[39mvmin, [38;5;28mself[39m[38;5;241m.[39mnorm[38;5;241m.[39mvmax [38;5;241m=[39m mtransforms[38;5;241m.[39mnonsingular(
+[1;32m    958[0m     [38;5;28mself[39m[38;5;241m.[39mnorm[38;5;241m.[39mvmin,
+[1;32m    959[0m     [38;5;28mself[39m[38;5;241m.[39mnorm[38;5;241m.[39mvmax,
+[1;32m    960[0m     expander[38;5;241m=[39m[38;5;241m0.1[39m)
+[0;32m--> 962[0m b [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mnorm[49m[38;5;241;43m.[39;49m[43minverse[49m[43m([49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_uniform_y[49m[43m([49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mcmap[49m[38;5;241;43m.[39;49m[43mN[49m[43m [49m[38;5;241;43m+[39;49m[43m [49m[38;5;241;43m1[39;49m[43m)[49m[43m)[49m
+[1;32m    964[0m [38;5;28;01mif[39;00m [38;5;28misinstance[39m([38;5;28mself[39m[38;5;241m.[39mnorm, (colors[38;5;241m.[39mPowerNorm, colors[38;5;241m.[39mLogNorm)):
+[1;32m    965[0m     [38;5;66;03m# If using a lognorm or powernorm, ensure extensions don't[39;00m
+[1;32m    966[0m     [38;5;66;03m# go negative[39;00m
+[1;32m    967[0m     [38;5;28;01mif[39;00m [38;5;28mself[39m[38;5;241m.[39m_extend_lower():
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.11/x64/lib/python3.10/site-packages/matplotlib/colors.py:1480[0m, in [0;36m_make_norm_from_scale.<locals>.Norm.inverse[0;34m(self, value)[0m
+[1;32m   1478[0m t_vmin, t_vmax [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39m_trf[38;5;241m.[39mtransform([[38;5;28mself[39m[38;5;241m.[39mvmin, [38;5;28mself[39m[38;5;241m.[39mvmax])
+[1;32m   1479[0m [38;5;28;01mif[39;00m [38;5;129;01mnot[39;00m np[38;5;241m.[39misfinite([t_vmin, t_vmax])[38;5;241m.[39mall():
+[0;32m-> 1480[0m     [38;5;28;01mraise[39;00m [38;5;167;01mValueError[39;00m([38;5;124m"[39m[38;5;124mInvalid vmin or vmax[39m[38;5;124m"[39m)
+[1;32m   1481[0m value, is_scalar [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mprocess_value(value)
+[1;32m   1482[0m rescaled [38;5;241m=[39m value [38;5;241m*[39m (t_vmax [38;5;241m-[39m t_vmin)
+
+[0;31mValueError[0m: Invalid vmin or vmax
+
