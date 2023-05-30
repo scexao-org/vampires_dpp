@@ -13,6 +13,7 @@ The pipeline will reduce the data in the following order
 2. Frame Selection
 3. Image Registration
 4. Collapsing
+5. Make difference images
 6. Polarimetric differential imaging
 
 ```{admonition} Warning: Large data volume
@@ -76,6 +77,12 @@ We use [semantic versioning](https://semver.org/), so there are certain guarante
 .. autoclass:: vampires_dpp.pipeline.config.CollapseOptions
 ```
 
+### Difference Image Options
+
+```{eval-rst}
+.. autoclass:: vampires_dpp.pipeline.config.DiffOptions
+```
+
 ### Polarimetry Options
 
 ```{eval-rst}
@@ -101,9 +108,49 @@ For single-cam data you can elude all of the `cam2` keys in the configuration.
 ```{admonition} Warning: WIP
 :class: warning
 
-The full functionality for SDI is not implemented, but the collapsed data can be used as inputs to manual reductions, for now.
+The full functionality for SDI is not implemented, but the difference images can be used as inputs to manual reductions, for now.
 ```
 
 SDI reduction looks a lot like PDI reduction without the polarimetry.
 
 {{sdi_toml}}
+
+
+## Frequently Asked Questions (FAQ)
+
+### Pipeline and Configuration version mismatch
+
+> I can't run the pipeline because it says my TOML file has a version mismatch?
+
+In order to try and manage compatibility for the pipeline, your configuration file has a `version` key in it. This key must be compatible (within SemVer) with the installed version of `vampires_dpp`. There are two approaches to fixing this:
+
+1. (Recommended) Call `dpp upgrade` to try to automatically upgrade your configuration
+2. Downgrade `vampires_dpp` to match the version in your configuration
+
+### Older data and PDI
+
+> I downloaded some archival VAMPIRES data and I keep getting errors during PDI that say the HWP indices can't be ordered.
+
+Some antique VAMPIRES data uses a different order for the HWP cycles than modern VAMPIRES data. In other words, instead of iterating between 0° (Q), 45° (-Q), 22.5° (U), 67.5° (-U), in this data the order is 0° (Q), 22.5° (U), 45° (-Q), 67.5° (-U). To fix this behavior, you can use the least-squares polarimetry method which does not need ordering, or you can set the following in your configuration-
+
+```toml
+[polarimetry]
+order = "QUQU"
+```
+
+### Performance
+
+> It's slow. It's so, so slow. Help.
+
+It's hard to process data in the volumes that VAMPIRES produces, but there are some tips for speeding it up.
+1. Use an SSD (over USB 3 or thunderbolt)
+
+Faster storage media reduces slowdowns from opening and closing files, which happens *a lot* throughout the pipeline
+
+2. Don't save intermediate files
+
+The time it takes to open a file, write to disk, and close it will add a lot to your overheads, in addition to the huge increase in data volume
+
+3. Use multi-processing
+
+Using more processes should improve some parts of the pipeline, but don't expect multiplicative increases in speed since most operations are limited by the storage IO speed.

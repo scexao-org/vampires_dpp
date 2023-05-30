@@ -465,6 +465,21 @@ class CollapseOptions(OutputDirectory):
 @serialize
 @dataclass
 class DiffOptions(OutputDirectory):
+    """DIfference imaging options.
+
+    Difference images are made by taking camera 1 - camera 2.
+    
+    .. admonition:: Outputs
+
+        Each pair of camera 1 / camera 2 inputs will be subtracted and added. The difference image is stored in the first slice of the output file and the sum image is stored in the second slice.
+
+    Parameters
+    ----------
+    output_directory : Optional[Path]
+        The collapsed files will be saved to the output directory. If not provided, will use the current working directory. By default None.
+    force : bool
+        If true, will force this processing step to occur.
+    """
     pass
 
 

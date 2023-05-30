@@ -2,7 +2,7 @@
 
 We strive to make the VAMPIRES DPP as automated as possible- the following setup should get you 90% of the way towards successful data reduction, depending on the complexity of your dataset!
 
-We assume that you have already successfully installed the `vampires_dpp` package. If not, see [Installation](_). You can quickly check by calling the `dpp` command
+We assume that you have already successfully installed the `vampires_dpp` package. If not, see [Installation](). You can quickly check by calling the `dpp` command
 
 ```
 dpp --version
@@ -63,7 +63,7 @@ To quickly organize data, you can make a new directory (in this case, `selected`
 
 ## Create master calibration files
 
-Next, you'll want to create your master darks and flats. This can be accomplished in one command using `dpp calib`.
+Next, you'll want to create your master backgrounds and flats. This can be accomplished in one command using `dpp prep`.
 
 ```{admonition} Matching calibration settings
 Since VAMPIRES uses EM-CCDs, the camera gain and exposure settings change the noise properties. Therefore, we automatically sort all calibration files by camera, EM gain, and exposure time. We will automatically try and match darks to flats, but if the settings are not equal the flat will not be dark-subtracted.
@@ -89,11 +89,6 @@ master_cals
 └── master_flat_750-50_em300_001000ms_512x512_cam2.fits
 ```
 
-### Reference
-
-
-{{dppcalib_help}}
-
 ## Set up configuration files
 
 After your data has been downloaded and sorted, you'll want to create configuration files for the data you want to process. To get started quickly, we provide templates for common observing scenarios that can be produced interactively with `dpp new`. In the example below, we are creating a PDI template with the 55 mas Lyot coronagraph.
@@ -101,37 +96,8 @@ After your data has been downloaded and sorted, you'll want to create configurat
 ```
 dpp new 20230101_ABAur.toml
 ```
-```
-Choose a starting template [singlecam/pdi/sdi] (optional): pdi
-Path-friendly name for this reduction [20230101_ABAur]:
-SIMBAD-friendly object name (optional): AB Aur
-Do you have dark files? [Y/n]:
-Enter path to cam1 dark (optional): ../master_cals/master_dark_em300_00100ms_512x512_cam1.fits
-Enter path to cam2 dark [../master_cals/master_dark_em300_00100ms_512x512_cam2.fits]:
-Do you have flat files? [Y/n]: n
-Did you use a coronagraph? [y/N]: y
-  Enter coronagraph IWA (mas) [36/55/92/129]: 55
-Did you use satellite spots? [Y/n]:
-  Enter satspot radius (lam/D) [15.8]: 11.2
-  Enter satspot amplitude (nm) [50]:
-Do you want to specify frame centers? [y/N]: y
-Enter comma-separated center for cam1 (x, y) (optional): 256,257
-Enter comma-separated center for cam2 (x, y) [[256.0, 257.0]]:
-Would you like to do frame selection? [y/N]:
-Would you like to do frame registration? [Y/n]:
-  Choose a registration method ([com]/peak/dft/moffat/gaussian/airy): peak
-  Smooth data before measurement? [y/N]:
-Would you like to collapse your data? [Y/n]:
-  Choose a collapse method ([median]/mean/varmean/biweight):
-20230101_ABAur.toml
-```
 
 At this point, we highly recommend viewing the [pipeline options]() and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.
-
-### Reference
-
-
-{{dppnew_help}}
 
 
 ## Running the pipeline
@@ -141,8 +107,3 @@ After you've selected your configuration options, you can run the pipeline from 
 ```
 dpp run 20230101_ABAur.toml 750-50_em300_00010ms_512x512/*
 ```
-
-### Reference
-
-{{dpprun_help}}
-
