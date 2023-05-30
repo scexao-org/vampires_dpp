@@ -24,7 +24,6 @@ dependencies = [
     "tomli>=2,<3",
     "tomli-w>=1,<2",
     "tqdm==4.*",
-    "rich",
     "click",
     "trogon"
 ]

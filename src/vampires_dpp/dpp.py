@@ -11,8 +11,6 @@ import astropy.units as u
 import numpy as np
 import tomli
 import click
-from rich.logging import RichHandler
-from rich.prompt import Prompt, Confirm
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import make_master_background, make_master_flat
@@ -42,13 +40,6 @@ from vampires_dpp.pipeline.templates import (
 from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
 from trogon import tui
-
-# set up logging
-handler = RichHandler(
-    level=logging.INFO,
-    log_time_format="%Y-%m-%d %H:%M:%S",
-    show_path=False,
-)
 
 
 # callback that will confirm if a flag is false
