@@ -258,7 +258,7 @@ def polarization_calibration_triplediff(
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
     # reduce exptime by 2 because cam1 and cam2 are simultaneous
-    stokes_hdr["EXPTIME"] /= 2
+    stokes_hdr["TINT"] /= 2
 
     return write_stokes_products(stokes_cube, stokes_hdr, outname=outname, force=force)
 

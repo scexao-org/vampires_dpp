@@ -103,7 +103,8 @@ def fix_header(header):
     if "U_FLCSTT" in header:
         header["U_FLCANG"] = 0 if header["U_FLCSTT"] == 0 else 45, "[deg] VAMPIRES FLC angle"
 
-    header["EXPTIME"] = header["U_AQTINT"] * header["NAXIS3"] / 1e6, "[s] total exposure time"
+    header["EXPTIME"] = header["U_AQTINT"] / 1e6, "[s] exposure time"
+    header["TINT"] = header["U_AQTINT"] * header["NAXIS3"] / 1e6, "[s] total integration time"
     return header
 
 

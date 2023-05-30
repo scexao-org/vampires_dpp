@@ -8,29 +8,6 @@ We assume that you have already successfully installed the `vampires_dpp` packag
 dpp --version
 ```
 
-## Check for invalid files
-
-Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors. To assist with this, you can use the `dpp check` script.
-
-```
-dpp check *.fits
-```
-
-If you have invalid files that are not just empty frames your data may be corrupted. Try redownloading it, first, and then reach out to the STARS and SCExAO teams if the problem persists.
-
-```{admonition} Tip: quick organization
-:class: tip
-
-To quickly organize data, you can make a new directory (in this case, `selected`) and move the selected files into it with
-
-    mkdir selected && mv $(< files_select.txt) selected
-```
-
-
-### Reference
-
-{{dppcheck_help}}
-
 ## Sorting raw data
 
 After downloading your data, you may want to sort it into subfolders based on the data type and object observed.
@@ -65,9 +42,24 @@ The prescribed folder structure for this sorting is
 ```
 after sorting this folders can be changed or rearranged as much as you'd like. The configuration for the pipeline is flexible, so you don't have to sort your files at all if you prefer a different method.
 
-### Reference
+## Check for invalid files
 
-{{dppsort_help}}
+Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors. To assist with this, you can use the `dpp check` script.
+
+```
+dpp check *.fits
+```
+
+If you have invalid files that are not just empty frames your data may be corrupted. Try redownloading it, first, and then reach out to the STARS and SCExAO teams if the problem persists.
+
+```{admonition} Tip: quick organization
+:class: tip
+
+To quickly organize data, you can make a new directory (in this case, `selected`) and move the selected files into it with
+
+    mkdir selected && mv $(< files_select.txt) selected
+```
+
 
 ## Create master calibration files
 
@@ -79,21 +71,20 @@ Since VAMPIRES uses EM-CCDs, the camera gain and exposure settings change the no
 
 If you use the prescribed folder structure above, creating your files can be done like so
 ```
-dpp calib -o master_cals \
-    --darks darks/**/*.fits \
-    --flats flats/**/*.fits
+dpp prep -o master_cals back darks/**/*.fits
+dpp prep -o master_cals flat flats/**/*.fits
 ```
 
 This will produce a series of calibration files in the `master_cals/` folder
 
 ```
 master_cals
-├── master_dark_em300_000050ms_512x512_cam1.fits
-├── master_dark_em300_000050ms_512x512_cam2.fits
-├── master_dark_em300_000080ms_512x512_cam1.fits
-├── master_dark_em300_000080ms_512x512_cam2.fits
-├── master_dark_em300_000100ms_512x512_cam1.fits
-├── master_dark_em300_000100ms_512x512_cam2.fits
+├── master_back_em300_000050ms_512x512_cam1.fits
+├── master_back_em300_000050ms_512x512_cam2.fits
+├── master_back_em300_000080ms_512x512_cam1.fits
+├── master_back_em300_000080ms_512x512_cam2.fits
+├── master_back_em300_000100ms_512x512_cam1.fits
+├── master_back_em300_000100ms_512x512_cam2.fits
 ├── master_flat_750-50_em300_001000ms_512x512_cam1.fits
 └── master_flat_750-50_em300_001000ms_512x512_cam2.fits
 ```

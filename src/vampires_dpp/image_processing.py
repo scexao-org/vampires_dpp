@@ -273,7 +273,7 @@ def combine_frames_headers(headers, wcs=False):
         output_header[key] = val, test_header.comments[key]
 
     # sum exposure times
-    output_header["EXPTIME"] = table["EXPTIME"].sum(), "[s] total exposure time"
+    output_header["TINT"] = table["TINT"].sum(), "[s] total exposure time"
     # get PA rotation
     if "PA" in table.keys():
         output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"

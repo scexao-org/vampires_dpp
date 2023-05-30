@@ -101,11 +101,13 @@ def calibrate_file(
     # background subtraction
     if back_filename is not None:
         back_path = Path(back_filename)
+        header["DPP_BACK"] = back_path.name
         background = fits.getdata(back_path).astype("f4")
         cube -= background
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
+        header["DPP_FLAT"] = flat_path.name
         flat = fits.getdata(flat_path).astype("f4")
         cube /= flat
     # bad pixel correction
@@ -135,7 +137,7 @@ def calibrate_file(
     if deinterleave:
         header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
         header["U_FLCANG"] = 0, "[deg] VAMPIRES FLC angle"
-        header["EXPTIME"] /= 2
+        header["TINT"] /= 2
         fits.writeto(
             outpath_FLC1,
             cube[::2],
@@ -248,7 +250,7 @@ def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dic
 def make_master_background(
     filenames: list[PathLike],
     collapse: str = "median",
-    name: str = "master_background",
+    name: str = "master_back",
     force: bool = False,
     output_directory: Optional[PathLike] = None,
     num_proc: int = DEFAULT_NPROC,

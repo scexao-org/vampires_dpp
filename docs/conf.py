@@ -3,14 +3,6 @@ from datetime import date
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from vampires_dpp.dpp import (
-    calib_parser,
-    check_parser,
-    new_parser,
-    run_parser,
-    sort_parser,
-    table_parser,
-)
 from vampires_dpp.pipeline.templates import (
     VAMPIRES_PDI,
     VAMPIRES_SDI,
@@ -74,12 +66,6 @@ sdi_toml = f"""
 """
 
 myst_substitutions = {
-    "dpprun_help": f"```\n{run_parser.format_help()}```",
-    "dppsort_help": f"```\n{sort_parser.format_help()}```",
-    "dppnew_help": f"```\n{new_parser.format_help()}```",
-    "dppcheck_help": f"```\n{check_parser.format_help()}```",
-    "dppcalib_help": f"```\n{calib_parser.format_help()}```",
-    "dpptable_help": f"```\n{table_parser.format_help()}```",
     "singlecam_toml": singlecam_toml,
     "pdi_toml": pdi_toml,
     "sdi_toml": sdi_toml,
