@@ -464,6 +464,12 @@ class CollapseOptions(OutputDirectory):
 
 @serialize
 @dataclass
+class DiffOptions(OutputDirectory):
+    pass
+
+
+@serialize
+@dataclass
 class IPOptions:
     """Instrumental polarization (IP) correction options.
 
@@ -675,6 +681,8 @@ class PipelineOptions:
         If set, provides options for image registration
     collapse : Optional[CollapseOptions]
         If set, provides options for collapsing image cubes
+    diff : Optional[DiffOptions]
+        If set, provides options for creating difference images
     polarimetry : Optional[PolarimetryOptions]
         If set, provides options for polarimetric differential imaging (PDI)
     products : Optional[ProductOptions]
@@ -745,6 +753,7 @@ class PipelineOptions:
     frame_select: Optional[FrameSelectOptions] = field(default=None, skip_if_default=True)
     register: Optional[RegisterOptions] = field(default=None, skip_if_default=True)
     collapse: Optional[CollapseOptions] = field(default=None, skip_if_default=True)
+    diff: Optional[DiffOptions] = field(default=None, skip_if_default=True)
     polarimetry: Optional[PolarimetryOptions] = field(default=None, skip_if_default=True)
     products: Optional[ProductOptions] = field(default=None, skip_if_default=True)
     version: str = dpp.__version__
@@ -766,6 +775,8 @@ class PipelineOptions:
             self.register = RegisterOptions(**self.register)
         if self.collapse is not None and isinstance(self.collapse, dict):
             self.collapse = CollapseOptions(**self.collapse)
+        if self.diff is not None and isinstance(self.diff, dict):
+            self.diff = DiffOptions(**self.diff)
         if self.polarimetry is not None and isinstance(self.polarimetry, dict):
             self.polarimetry = PolarimetryOptions(**self.polarimetry)
         if self.products is not None and isinstance(self.products, dict):

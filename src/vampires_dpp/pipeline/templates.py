@@ -9,6 +9,7 @@ DEFAULT_DIRS = {
     RegisterOptions: "registered",
     CollapseOptions: "collapsed",
     PolarimetryOptions: "pdi",
+    DiffOptions: "diff",
 }
 
 
@@ -51,5 +52,6 @@ VAMPIRES_SDI = PipelineOptions(
     ),
     register=RegisterOptions(method="peak", output_directory=DEFAULT_DIRS[RegisterOptions]),
     collapse=CollapseOptions(method="median", output_directory=DEFAULT_DIRS[CollapseOptions]),
+    diff=DiffOptions(output_directory=DEFAULT_DIRS[DiffOptions]),
     products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
 )

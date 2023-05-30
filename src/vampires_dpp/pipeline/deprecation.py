@@ -3,6 +3,7 @@ from packaging.version import Version
 from vampires_dpp import __version__
 from vampires_dpp.pipeline.config import *
 from vampires_dpp.pipeline.pipeline import Pipeline
+import click
 
 
 def upgrade_config(config_dict: dict) -> Pipeline:
@@ -39,7 +40,11 @@ def upgrade_to_0p7(config_dict):
     if "polarimetry" in config_dict:
         # added method to polarimetry between "difference" and "mueller"
         # defaults to difference since that was all that was supported
-        config_dict["polarimetry"]["method"] = "difference"
+        config_dict["polarimetry"]["method"] = click.prompt(
+            "Which polarization calibration would you like to use?",
+            type=click.Choice(["difference", "leastsq"], case_sensitive=False),
+            default="difference",
+        )
         # derotate_pa renamed to adi_sync and logic inverted
         adi_sync = not config_dict["polarimetry"].pop("derotate_pa", False)
         config_dict["polarimetry"]["adi_sync"] = adi_sync
@@ -53,5 +58,8 @@ def upgrade_to_0p8(config_dict):
         config_dict["calibrate"]["master_backgrounds"] = config_dict["calibrate"].pop(
             "master_darks"
         )
+    add_diff = click.confirm("Would you like to make difference images?", default=False)
+    if add_diff:
+        config_dict["diff"] = dict(output_directory="diff")
 
     return config_dict

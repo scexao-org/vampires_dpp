@@ -14,6 +14,7 @@ from numpy.typing import ArrayLike, NDArray
 from vampires_dpp.indexing import frame_center
 from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.util import any_file_newer, get_paths
+import re
 
 
 def shift_frame(data: ArrayLike, shift: list | Tuple, **kwargs) -> NDArray:
@@ -515,3 +516,42 @@ def make_file_sets(filenames):
     table = header_table(filenames)
     groups = table.groupby("MJD")
     return [FileSet(grp["path"]) for _, grp in groups]
+
+
+def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
+    if outname is not None:
+        outname = Path(outname)
+    else:
+        stem = re.sub("_cam[12]", "", cam1_file.stem)
+        outname = cam1_file.with_name(f"{stem}_diff.fits")
+
+    if not force and outname.is_file() and not any_file_newer((cam1_file, cam2_file), outname):
+        return outname
+
+    cam1_frame, header = fits.getdata(
+        cam1_file,
+        header=True,
+    )
+    cam2_frame, header2 = fits.getdata(
+        cam2_file,
+        header=True,
+    )
+
+    if header["MJD"] != header2["MJD"]:
+        msg = f"{cam1_file.name} has MJD {header['MJD']}\n{cam2_file.name} has MJD {header2['MJD']}"
+        raise ValueError(msg)
+    if "U_FLCSTT" in header:
+        if header["U_FLCSTT"] != header2["U_FLCSTT"]:
+            msg = f"{cam1_file.name} has FLC state {header['U_FLCSTT']}\n{cam2_file.name} has FLC state {header2['U_FLCSTT']}"
+            raise ValueError(msg)
+
+    diff = cam1_frame - cam2_frame
+    summ = cam1_frame + cam2_frame
+
+    stack = np.asarray((diff, summ))
+
+    # prepare header
+    del header["U_CAMERA"]
+
+    fits.writeto(outname, stack, header=header, overwrite=True)
+    return outname

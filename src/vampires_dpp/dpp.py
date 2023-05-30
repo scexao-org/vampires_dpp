@@ -23,7 +23,7 @@ from vampires_dpp.pipeline.config import (
     CoordinateOptions,
     CoronagraphOptions,
     FrameSelectOptions,
-    PipelineOptions,
+    DiffOptions,
     RegisterOptions,
     SatspotOptions,
     IPOptions,
@@ -463,7 +463,9 @@ def new_config(ctx, config, edit):
         tpl.frame_centers = CamCtrOption(cam1=cam1_ctr, cam2=cam2_ctr)
 
     ## Frame selection
-    do_frame_select = click.confirm("Would you like to do frame selection?", default=False)
+    do_frame_select = click.confirm(
+        "Would you like to do frame selection?", default=tpl.frame_select is not None
+    )
     if do_frame_select:
         cutoff = click.prompt(
             "  Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
@@ -486,7 +488,9 @@ def new_config(ctx, config, edit):
         tpl.frame_select = None
 
     ## Registration
-    do_register = click.confirm(f"Would you like to do frame registration?", default=True)
+    do_register = click.confirm(
+        f"Would you like to do frame registration?", default=tpl.register is not None
+    )
     if do_register:
         method_choices = ["com", "peak", "dft", "moffat", "gaussian", "airy"]
         readline.set_completer(createListCompleter(method_choices))
@@ -508,7 +512,9 @@ def new_config(ctx, config, edit):
         tpl.register = None
 
     ## Collapsing
-    do_collapse = click.confirm("Would you like to collapse your data?", default=True)
+    do_collapse = click.confirm(
+        "Would you like to collapse your data?", default=tpl.collapse is not None
+    )
     if do_collapse:
         collapse_choices = ["median", "mean", "varmean", "biweight"]
         readline.set_completer(createListCompleter(collapse_choices))
@@ -524,8 +530,19 @@ def new_config(ctx, config, edit):
     else:
         tpl.collapse = None
 
+    do_diff = click.confirm(
+        "Would you like to make difference images?", default=tpl.diff is not None
+    )
+    if do_diff:
+        tpl.diff = DiffOptions(output_directory=DEFAULT_DIRS[DiffOptions])
+    else:
+        tpl.diff = None
+
     ## Polarization
-    if tpl.polarimetry:
+    do_polar = click.confirm(
+        "Would you like to do polarimetry?", default=tpl.polarimetry is not None
+    )
+    if do_polar:
         calib_choices = ["difference", "leastsq"]
         readline.set_completer(createListCompleter(calib_choices))
         tpl.polarimetry.method = click.prompt(
@@ -542,6 +559,8 @@ def new_config(ctx, config, edit):
             tpl.polarimetry.ip = IPOptions(
                 aper_rad=click.prompt("    Enter IP aperture radius (px)", default=10, type=float)
             )
+    else:
+        tpl.polarimetry = None
 
     tpl.to_file(config)
     click.echo(f"File saved to {config.name}")
@@ -713,7 +732,10 @@ def table(filenames, output, num_proc, quiet):
     type=click.Path(dir_okay=False, writable=True, path_type=Path),
     help="Output path.",
 )
-def upgrade(config, output):
+@click.option(
+    "--edit", "-e", is_flag=True, help="Launch configuration file in editor after creation."
+)
+def upgrade(config, output, edit):
     if output is None:
         click.confirm("Are you sure you want to modify your configuration in-place?", abort=True)
         output = config
@@ -721,7 +743,12 @@ def upgrade(config, output):
         input_toml = tomli.load(fh)
     output_config = upgrade_config(input_toml)
     output_config.to_file(output)
-    return output
+    click.echo(f"File saved to {output.name}")
+    if not edit:
+        edit |= click.confirm("Would you like to edit this config file now?")
+
+    if edit:
+        click.edit(filename=output)
 
 
 ########## main ##########

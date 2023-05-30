@@ -6,12 +6,13 @@ from typing import Optional, Tuple
 import numpy as np
 from astropy.io import fits
 from tqdm.auto import tqdm
+import re
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import calibrate_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
-from vampires_dpp.image_processing import FileSet, combine_frames_files
+from vampires_dpp.image_processing import FileSet, combine_frames_files, make_diff_image
 from vampires_dpp.image_registration import (
     lucky_image_file,
     measure_offsets_file,
@@ -40,8 +41,10 @@ class Pipeline(PipelineOptions):
         super().__post_init__()
         self.master_backgrounds = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}
-        # self.console = Console()
         self.logger = logging.getLogger("DPP")
+        fh_logger = logging.FileHandler(f"{self.name}_debug.log")
+        fh_logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(fh_logger)
 
     def run(self, filenames, num_proc: int = None, quiet: bool = False):
         """Run the pipeline
@@ -55,10 +58,6 @@ class Pipeline(PipelineOptions):
         """
         self.num_proc = num_proc
 
-        fh_logger = logging.FileHandler(f"{self.name}_debug.log")
-        fh_logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(fh_logger)
-
         self.logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
         ## configure astrometry
         self.get_frame_centers()
@@ -70,7 +69,7 @@ class Pipeline(PipelineOptions):
             if self.products.header_table:
                 table_path = self.products.output_directory / f"{self.name}_headers.csv"
                 self.table.to_csv(table_path)
-                print(f"Saved header values to: {table_path}")
+                self.logger.info(f"Saved header values to: {table_path}")
         ## For each file do
         self.logger.info("Starting file-by-file processing")
         self.output_files = []
@@ -91,6 +90,9 @@ class Pipeline(PipelineOptions):
             # self.console.print("Saving ADI products")
             if self.products.adi_cubes:
                 self.save_adi_cubes(force=tripwire)
+        ## diff images
+        if self.diff is not None:
+            self.make_diff_images(force=tripwire)
         ## polarimetry
         if self.polarimetry:
             # self.console.print("Doing PDI")
@@ -340,6 +342,46 @@ class Pipeline(PipelineOptions):
             )
             print(f"Saved ADI cube (cam2) to: {outname2}")
             print(f"Saved derotation angles (cam2) to: {outname2_angles}")
+
+    def make_diff_images(self, tripwire=False):
+        self.logger.info("Making difference frames")
+        if self.diff.output_directory is not None:
+            outdir = self.diff.output_directory
+        outdir.mkdir(parents=True, exist_ok=True)
+        self.logger.debug(f"saving difference images to {outdir.absolute()}")
+        tripwire |= self.diff.force
+        # table should still be sorted by MJD
+        groups = self.output_table.groupby("MJD")
+        # filter groups without full camera/FLC states
+        filesets = []
+        cam1_paths = []
+        cam2_paths = []
+        for _, group in groups:
+            fileset = FileSet(group["path"])
+            if len(group) == 4:
+                filesets.append(fileset)
+                for flc in (1, 2):
+                    cam1_paths.append(fileset.paths[(1, flc)])
+                    cam2_paths.append(fileset.paths[(2, flc)])
+                continue
+            miss = set([(1, 1), (1, 2), (2, 1), (2, 2)]) - set(fileset.keys)
+            self.logger.warn(f"Discarding group for missing {miss} camera, FLC state pairs")
+
+        with mp.Pool(self.num_proc) as pool:
+            jobs = []
+            for cam1_file, cam2_file in zip(cam1_paths, cam2_paths):
+                stem = re.sub("_cam[12]", "", cam1_file.name)
+                outname = outdir / stem.replace(".fits", "_diff.fits")
+                self.logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
+                self.logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
+                kwds = dict(outname=outname, force=tripwire)
+                jobs.append(
+                    pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
+                )
+
+            self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
+        self.logger.info("Done making difference frames")
+        return self.diff_files
 
     def _polarimetry(self, tripwire=False):
         if self.products is None:
