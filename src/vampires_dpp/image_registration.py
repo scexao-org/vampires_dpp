@@ -1,5 +1,4 @@
 from pathlib import Path
-import warnings
 
 import cv2
 import numpy as np
@@ -56,7 +55,7 @@ def satellite_spot_offsets(
 
         for i in range(cube.shape[0]):
             if i == refidx:
-                offsets[i, j] = refoffset
+                offsets[i] = refoffset
                 continue
             frame = cube[i]
             for j, sl in enumerate(slices):

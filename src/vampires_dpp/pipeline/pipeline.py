@@ -1,12 +1,13 @@
 import logging
 import multiprocessing as mp
+import re
 from pathlib import Path
 from typing import Optional, Tuple
 
 import numpy as np
 from astropy.io import fits
+from multiprocessing_logging import install_mp_handler
 from tqdm.auto import tqdm
-import re
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import calibrate_file
@@ -21,12 +22,12 @@ from vampires_dpp.image_registration import (
 from vampires_dpp.organization import header_table
 from vampires_dpp.pipeline.config import PipelineOptions
 from vampires_dpp.polarization import (
-    polarization_calibration_leastsq,
     collapse_stokes_cube,
     instpol_correct,
     measure_instpol,
     measure_instpol_satellite_spots,
     pol_inds,
+    polarization_calibration_leastsq,
     polarization_calibration_triplediff,
     triplediff_average_angles,
     write_stokes_products,
@@ -45,6 +46,10 @@ class Pipeline(PipelineOptions):
         fh_logger = logging.FileHandler(f"{self.name}_debug.log")
         fh_logger.setLevel(logging.DEBUG)
         self.logger.addHandler(fh_logger)
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        self.logger.addHandler(stream_handler)
+        install_mp_handler(self.logger)
 
     def run(self, filenames, num_proc: int = None, quiet: bool = False):
         """Run the pipeline
@@ -258,6 +263,7 @@ class Pipeline(PipelineOptions):
                 center=ctr,
                 coronagraphic=True,
                 upample_factor=config.dft_factor,
+                refmethod=config.dft_ref,
                 radius=self.satspots.radius,
                 theta=self.satspots.angle,
             )
@@ -270,6 +276,7 @@ class Pipeline(PipelineOptions):
                 force=tripwire,
                 center=ctr,
                 upsample_factor=config.dft_factor,
+                refmethod=config.dft_ref,
             )
 
         if save_intermediate:

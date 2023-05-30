@@ -378,6 +378,8 @@ class RegisterOptions(OutputDirectory):
         If true, will Gaussian smooth the input frames before measuring offsets, by default false.
     dft_factor : int
         If using the DFT method, the upsampling factor (inverse of centroid precision), by default 1.
+    dft_ref : str
+        If using the DFT method, the reference method, one of "com", "peak".
     output_directory : Optional[Path]
         The PSF offsets and aligned files will be saved to the output directory. If not provided, will use the current working directory. By default None.
     save_intermediate : bool
@@ -401,12 +403,15 @@ class RegisterOptions(OutputDirectory):
     window_size: int = field(default=30, skip_if_default=True)
     smooth: Optional[int] = field(default=None, skip_if_default=True)
     dft_factor: int = field(default=1, skip_if_default=True)
+    dft_ref: str = field(default="com")
     save_intermediate: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
         if self.method not in ("com", "peak", "dft", "airydisk", "moffat", "gaussian"):
             raise ValueError(f"Registration method not recognized: {self.method}")
+        if self.dft_ref not in ("com", "peak"):
+            raise ValueError(f"Registration method not recognized: {self.dft_ref}")
 
     def to_toml(self) -> str:
         obj = {"register": self}
@@ -468,7 +473,7 @@ class DiffOptions(OutputDirectory):
     """DIfference imaging options.
 
     Difference images are made by taking camera 1 - camera 2.
-    
+
     .. admonition:: Outputs
 
         Each pair of camera 1 / camera 2 inputs will be subtracted and added. The difference image is stored in the first slice of the output file and the sum image is stored in the second slice.
@@ -480,7 +485,6 @@ class DiffOptions(OutputDirectory):
     force : bool
         If true, will force this processing step to occur.
     """
-    pass
 
 
 @serialize
