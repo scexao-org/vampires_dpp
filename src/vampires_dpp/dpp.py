@@ -178,9 +178,9 @@ def back(ctx, filenames, collapse, force):
         filenames,
         collapse=collapse,
         force=force,
-        output_directory=ctx["outdir"],
-        quiet=ctx["quiet"],
-        num_proc=ctx["num_proc"],
+        output_directory=ctx.obj["outdir"],
+        quiet=ctx.obj["quiet"],
+        num_proc=ctx.obj["num_proc"],
     )
 
 
@@ -198,7 +198,7 @@ def back(ctx, filenames, collapse, force):
     "--back",
     "-b",
     type=click.Path(exists=True, path_type=Path),
-    help="Background file to subtract from each flat-field. If a directory, will match the background files in that directory to the exposure times, EM gains, and frame sizes.",
+    help="Background file to subtract from each flat-field. If a directory, will match the background files in that directory to the exposure times, EM gains, and frame sizes. Note: will search the output directory for background files if none are given.",
 )
 @click.option(
     "--collapse",
@@ -213,8 +213,12 @@ def back(ctx, filenames, collapse, force):
 def flat(ctx, filenames, back, collapse, force):
     # if directory, filter non-FITS files and sort for background files
     background_files = []
+    if back is None:
+        back = ctx.obj["outdir"]
     if back.is_dir():
-        fits_files = back.rglob("*.fits.*") + back.rglob("*.fts.*") + back.rglob("*.fit.*")
+        fits_files = (
+            list(back.rglob("*.fits.*")) + list(back.rglob("*.fts.*")) + list(back.rglob("*.fit.*"))
+        )
         background_files.extend(
             filter(lambda f: fits.getkey(f, "CAL_TYPE") == "BACKGROUND", fits_files)
         )
@@ -222,9 +226,9 @@ def flat(ctx, filenames, back, collapse, force):
         filenames,
         collapse=collapse,
         force=force,
-        output_directory=ctx["outdir"],
-        quiet=ctx["quiet"],
-        num_proc=ctx["num_proc"],
+        output_directory=ctx.obj["outdir"],
+        quiet=ctx.obj["quiet"],
+        num_proc=ctx.obj["num_proc"],
     )
 
 
@@ -584,17 +588,24 @@ def _parse_cam_center(input_string):
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option("--ext", "-e", default=0, help="HDU extension")
+@click.option(
+    "--quiet",
+    "-q",
+    is_flag=True,
+    help="Silence progress bars and extraneous logging.",
+)
 def check(filenames, num_proc, quiet):
     filenames = np.asarray(filenames, dtype=str)
     valid_files = check_files(filenames, num_proc=num_proc, quiet=quiet)
     cnt_valid = np.sum(valid_files)
     cnt_invalid = len(valid_files) - cnt_valid
     if cnt_invalid == 0:
-        print("No invalid files found.")
+        click.echo("No invalid files found.")
         return
 
-    print(f"{cnt_invalid} invalid files found (either couldn't be opened or have empty slices)")
+    click.echo(
+        f"{cnt_invalid} invalid files found (either couldn't be opened or have empty slices)"
+    )
     mask = np.asarray(valid_files, dtype=bool)
     accept_files = filenames[mask]
     accept_path = Path.cwd() / "files_select.txt"
@@ -606,8 +617,8 @@ def check(filenames, num_proc, quiet):
     with reject_path.open("w") as fh:
         fh.writelines("\n".join(str(f) for f in reject_files))
 
-    print(str(accept_path))
-    print(str(reject_path))
+    click.echo(str(accept_path))
+    click.echo(str(reject_path))
 
 
 ########## run ##########
@@ -676,26 +687,20 @@ def run(config, filenames, num_proc, quiet):
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option("--ext", "-e", default=0, help="HDU extension")
 @click.option(
     "--quiet",
     "-q",
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def table(filenames, output, ext, num_proc, quiet):
+def table(filenames, output, num_proc, quiet):
     # handle name clashes
     outpath = Path(output).resolve()
     if outpath.is_file():
-        resp = input(f"{outpath.name} already exists in the output directory. Overwrite? [y/N]: ")
-        if resp.strip().lower() != "y":
-            return
-    # tryparse ext as int
-    try:
-        ext = int(ext)
-    except ValueError:
-        pass
-    df = header_table(filenames, ext=ext, num_proc=num_proc, quiet=quiet)
+        click.confirm(
+            f"{outpath.name} already exists in the output directory. Overwrite?", abort=True
+        )
+    df = header_table(filenames, num_proc=num_proc, quiet=quiet)
     df.to_csv(outpath)
 
 
@@ -715,17 +720,17 @@ def table(filenames, output, ext, num_proc, quiet):
     "--output",
     "-o",
     type=click.Path(dir_okay=False, writable=True, path_type=Path),
-    callback=abort_if_false,
-    prompt="Are you sure you want to modify your configuration in-place?",
     help="Output path.",
 )
 def upgrade(config, output):
+    if output is None:
+        click.confirm("Are you sure you want to modify your configuration in-place?", abort=True)
+        output = config
     with open(config, "rb") as fh:
         input_toml = tomli.load(fh)
     output_config = upgrade_config(input_toml)
-    outpath = config if output is None else output
-    output_config.to_file(outpath)
-    return outpath
+    output_config.to_file(output)
+    return output
 
 
 ########## main ##########

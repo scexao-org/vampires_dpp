@@ -48,4 +48,10 @@ def upgrade_to_0p7(config_dict):
 
 
 def upgrade_to_0p8(config_dict):
+    # switch from "darks" to "backgrounds"
+    if "calibrate" in config_dict:
+        config_dict["calibrate"]["master_backgrounds"] = config_dict["calibrate"].pop(
+            "master_darks"
+        )
+
     return config_dict

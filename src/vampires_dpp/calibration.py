@@ -229,14 +229,14 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     return outpath
 
 
-def sort_calib_files(filenames: list[PathLike], backs=False, ext=0) -> dict[Tuple, Path]:
+def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dict[Tuple, Path]:
     file_dict = {}
     for filename in filenames:
         path = Path(filename)
         header = fits.getheader(path, ext=ext)
         sz = header["NAXIS1"], header["NAXIS2"]
         key = (header["U_CAMERA"], header["U_EMGAIN"], header["U_AQTINT"], sz, header["U_FILTER"])
-        if backs:
+        if backgrounds:
             key = key[:-1]
         if key in file_dict:
             file_dict[key].append(path)
