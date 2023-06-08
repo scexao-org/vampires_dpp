@@ -310,10 +310,6 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-steps">Processing steps</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-options">General Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.pipeline.Pipeline"><code class="docutils literal notranslate"><span class="pre">Pipeline</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.pipeline.Pipeline.run"><code class="docutils literal notranslate"><span class="pre">Pipeline.run()</span></code></a></li>
-</ul>
-</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CoordinateOptions"><code class="docutils literal notranslate"><span class="pre">CoordinateOptions</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.ProductOptions"><code class="docutils literal notranslate"><span class="pre">ProductOptions</span></code></a></li>
 </ul>
@@ -408,94 +404,6 @@ tail config_debug.log
 <p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, so there are certain guarantees about the backwards compatibility of the pipeline, which means you don’t have to have the exact same version of <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> as in the configuration- merely a version that is compatible.</p>
 <section id="general-options">
 <h3>General Options<a class="headerlink" href="#general-options" title="Permalink to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.pipeline.Pipeline">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.pipeline.</span></span><span class="sig-name descname"><span class="pre">Pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_centers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coronagraph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">satspots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calibrate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_select</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">register</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collapse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarimetry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">products</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0.8.0'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.pipeline.Pipeline" title="Permalink to this definition">#</a></dt>
-<dd><p>Data Processing Pipeline options</p>
-<p>The processing configuration is all done through this class, which can easily be converted to and from TOML. The options will set the processing steps in the pipeline. An important paradigm in the processing pipeline is skipping unnecessary operations. That means if a file already exists, the pipeline will only reprocess it if the <cite>force</cite> flag is set, which will reprocess all files for that step (and subsequent steps), or if the input file or files are newer. You can try this out by deleting one calibrated file from a processed output and re-running the pipeline.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – filename-friendly name used for outputs from this pipeline. For example “20230101_ABAur”</p></li>
-<li><p><strong>coordinate</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CoordinateOptions" title="vampires_dpp.pipeline.config.CoordinateOptions"><em>CoordinateOptions</em></a><em>]</em>) – </p></li>
-<li><p><strong>frame_centers</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>list</em><em>]</em><em>]</em><em>]</em>) – Estimates of the star position in pixels (x, y) for each camera provided as a dict with “cam1” and “cam2” keys. If not provided, will use the geometric frame center, by default None.</p></li>
-<li><p><strong>coronagraph</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CoronagraphOptions" title="vampires_dpp.pipeline.config.CoronagraphOptions"><em>CoronagraphOptions</em></a><em>]</em>) – If provided, sets coronagraph-specific options and processing</p></li>
-<li><p><strong>satspots</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.SatspotOptions" title="vampires_dpp.pipeline.config.SatspotOptions"><em>SatspotOptions</em></a><em>]</em>) – If provided, sets satellite-spot specific options and enable satellite spot processing for frame selection and image registration</p></li>
-<li><p><strong>calibrate</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CalibrateOptions" title="vampires_dpp.pipeline.config.CalibrateOptions"><em>CalibrateOptions</em></a><em>]</em>) – If set, provides options for basic image calibration</p></li>
-<li><p><strong>frame_select</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.FrameSelectOptions" title="vampires_dpp.pipeline.config.FrameSelectOptions"><em>FrameSelectOptions</em></a><em>]</em>) – If set, provides options for frame selection</p></li>
-<li><p><strong>register</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.RegisterOptions" title="vampires_dpp.pipeline.config.RegisterOptions"><em>RegisterOptions</em></a><em>]</em>) – If set, provides options for image registration</p></li>
-<li><p><strong>collapse</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.CollapseOptions" title="vampires_dpp.pipeline.config.CollapseOptions"><em>CollapseOptions</em></a><em>]</em>) – If set, provides options for collapsing image cubes</p></li>
-<li><p><strong>diff</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.DiffOptions" title="vampires_dpp.pipeline.config.DiffOptions"><em>DiffOptions</em></a><em>]</em>) – If set, provides options for creating difference images</p></li>
-<li><p><strong>polarimetry</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.PolarimetryOptions" title="vampires_dpp.pipeline.config.PolarimetryOptions"><em>PolarimetryOptions</em></a><em>]</em>) – If set, provides options for polarimetric differential imaging (PDI)</p></li>
-<li><p><strong>products</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.ProductOptions" title="vampires_dpp.pipeline.config.ProductOptions"><em>ProductOptions</em></a><em>]</em>) – If set, provides options for saving metadata, ADI, and PDI outputs.</p></li>
-<li><p><strong>version</strong> (<em>str</em>) – The version of vampires_dpp that this configuration file is valid with. Typically not set by user.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p><strong>Frame Centers</strong></p>
-<p>Frame centers need to be given as a dictionary of x, y pairs, like</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">frame_centers</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;cam1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">127.5</span><span class="p">,</span> <span class="mf">127.5</span><span class="p">),</span>
-    <span class="s2">&quot;cam2&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">127.5</span><span class="p">,</span> <span class="mf">127.5</span><span class="p">)</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>It is important to note that these frame centers are in the <em>raw</em> frames. If you open up the frames in DS9 and set the cross on the image center, you can copy the x, y coordinates directly into the configuration. We recommend doing this, especially for coronagraphic data since the satellite spot cutout indices depend on the frame centers and any off-center data may not register appropriately.</p>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">PipelineOptions</span><span class="p">(</span>
-<span class="go">        name=&quot;test_config&quot;,</span>
-<span class="go">        coronagraph=dict(iwa=55),</span>
-<span class="go">        satspots=dict(radius=11.2),</span>
-<span class="go">        calibrate=dict(output_directory=&quot;calibrated&quot;),</span>
-<span class="go">        collapse=dict(output_directory=&quot;collapsed&quot;),</span>
-<span class="go">        polarimetry=dict(output_directory=&quot;pdi&quot;),</span>
-<span class="go">    )</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;test_config&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.4.0&quot;</span>
-
-<span class="k">[coronagraph]</span>
-<span class="n">iwa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">55</span>
-
-<span class="k">[satspots]</span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">11.2</span>
-<span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">84.6</span>
-<span class="n">amp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50</span>
-
-<span class="k">[calibrate]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
-
-<span class="k">[calibrate.master_backgrounds]</span>
-
-<span class="k">[calibrate.master_flats]</span>
-
-<span class="k">[collapse]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
-
-<span class="k">[polarimetry]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pdi&quot;</span>
-</pre></div>
-</div>
-<dl class="py method">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.pipeline.Pipeline.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.pipeline.Pipeline.run" title="Permalink to this definition">#</a></dt>
-<dd><p>Run the pipeline</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filenames</strong> (<em>Iterable</em><em>[</em><em>PathLike</em><em>]</em>) – Input filenames to process</p></li>
-<li><p><strong>num_proc</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Number of processes to use for multi-processing, by default None.</p></li>
-<li><p><strong>quiet</strong> (<em>bool</em>) – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CoordinateOptions">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoordinateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_ra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J2016'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoordinateOptions" title="Permalink to this definition">#</a></dt>
@@ -739,7 +647,7 @@ tail config_debug.log
 <h3>Image Registration Options<a class="headerlink" href="#image-registration-options" title="Permalink to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.RegisterOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">RegisterOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.RegisterOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">RegisterOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.RegisterOptions" title="Permalink to this definition">#</a></dt>
 <dd><p>Image registration options</p>
 <p>Image registration can be done on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The registration methods are</p>
 <ul class="simple">
@@ -761,6 +669,7 @@ tail config_debug.log
 <li><p><strong>window_size</strong> (<em>int</em>) – The window size (in pixels) to cut out around PSFs before measuring the centroid, by default 30.</p></li>
 <li><p><strong>smooth</strong> (<em>bool</em>) – If true, will Gaussian smooth the input frames before measuring offsets, by default false.</p></li>
 <li><p><strong>dft_factor</strong> (<em>int</em>) – If using the DFT method, the upsampling factor (inverse of centroid precision), by default 1.</p></li>
+<li><p><strong>dft_ref</strong> (<em>str</em>) – If using the DFT method, the reference method, one of “com”, “peak”.</p></li>
 <li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The PSF offsets and aligned files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
 <li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save the registered FITS files in the output directory. WARNING this can lead to extremely large data volumes.</p></li>
 <li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
@@ -936,6 +845,7 @@ tail config_debug.log
 <span class="k">[register]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 <span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+<span class="n">dft_ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
 
 <span class="k">[collapse]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
@@ -972,6 +882,7 @@ tail config_debug.log
 <span class="k">[register]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 <span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+<span class="n">dft_ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
 
 <span class="k">[collapse]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
@@ -1004,6 +915,7 @@ tail config_debug.log
 <span class="k">[register]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
 <span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
+<span class="n">dft_ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
 
 <span class="k">[collapse]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
@@ -1116,10 +1028,6 @@ tail config_debug.log
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-steps">Processing steps</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-options">General Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.pipeline.Pipeline"><code class="docutils literal notranslate"><span class="pre">Pipeline</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.pipeline.Pipeline.run"><code class="docutils literal notranslate"><span class="pre">Pipeline.run()</span></code></a></li>
-</ul>
-</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CoordinateOptions"><code class="docutils literal notranslate"><span class="pre">CoordinateOptions</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.ProductOptions"><code class="docutils literal notranslate"><span class="pre">ProductOptions</span></code></a></li>
 </ul>
