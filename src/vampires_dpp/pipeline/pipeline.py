@@ -350,13 +350,13 @@ class Pipeline(PipelineOptions):
             print(f"Saved ADI cube (cam2) to: {outname2}")
             print(f"Saved derotation angles (cam2) to: {outname2_angles}")
 
-    def make_diff_images(self, tripwire=False):
+    def make_diff_images(self, force=False):
         self.logger.info("Making difference frames")
         if self.diff.output_directory is not None:
             outdir = self.diff.output_directory
         outdir.mkdir(parents=True, exist_ok=True)
         self.logger.debug(f"saving difference images to {outdir.absolute()}")
-        tripwire |= self.diff.force
+        force |= self.diff.force
         # table should still be sorted by MJD
         groups = self.output_table.groupby("MJD")
         # filter groups without full camera/FLC states
