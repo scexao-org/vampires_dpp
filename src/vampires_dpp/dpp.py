@@ -1,16 +1,15 @@
 import glob
-import logging
 import os
 import readline
-from argparse import ArgumentParser
-from pathlib import Path
 from multiprocessing import cpu_count
+from pathlib import Path
 
-from astropy.io import fits
 import astropy.units as u
+import click
 import numpy as np
 import tomli
-import click
+from astropy.io import fits
+from trogon import tui
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import make_master_background, make_master_flat
@@ -22,11 +21,11 @@ from vampires_dpp.pipeline.config import (
     CollapseOptions,
     CoordinateOptions,
     CoronagraphOptions,
-    FrameSelectOptions,
     DiffOptions,
+    FrameSelectOptions,
+    IPOptions,
     RegisterOptions,
     SatspotOptions,
-    IPOptions,
 )
 from vampires_dpp.pipeline.deprecation import upgrade_config
 from vampires_dpp.pipeline.pipeline import Pipeline
@@ -39,7 +38,6 @@ from vampires_dpp.pipeline.templates import (
 )
 from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
-from trogon import tui
 
 
 # callback that will confirm if a flag is false
@@ -368,7 +366,7 @@ def new_config(ctx, config, edit):
         cam2_path = None
         if template != "singlecam":
             if cam1_path is not None:
-                cam2_default = cam1_path.replace("cam1", "cam2")
+                cam2_default = str(cam1_path).replace("cam1", "cam2")
                 cam2_path = click.prompt(
                     f"Enter path to cam2 background",
                     default=cam2_default,

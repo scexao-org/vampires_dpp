@@ -381,7 +381,7 @@ class Pipeline(PipelineOptions):
                 outname = outdir / stem.replace(".fits", "_diff.fits")
                 self.logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
                 self.logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
-                kwds = dict(outname=outname, force=tripwire)
+                kwds = dict(outname=outname, force=force)
                 jobs.append(
                     pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
                 )
