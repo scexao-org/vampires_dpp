@@ -30,7 +30,9 @@ VAMPIRES_SINGLECAM = PipelineOptions(
     register=RegisterOptions(method="peak", output_directory=DEFAULT_DIRS[RegisterOptions]),
     collapse=CollapseOptions(method="median", output_directory=DEFAULT_DIRS[CollapseOptions]),
     analysis=AnalysisOptions(
-        model="gaussian", aper_rad=10, output_directory=DEFAULT_DIRS[AnalysisOptions]
+        model="gaussian",
+        photometry=dict(aper_rad=10),
+        output_directory=DEFAULT_DIRS[AnalysisOptions],
     ),
     products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
 )
@@ -43,7 +45,9 @@ VAMPIRES_PDI = PipelineOptions(
     register=RegisterOptions(method="peak", output_directory=DEFAULT_DIRS[RegisterOptions]),
     collapse=CollapseOptions(method="median", output_directory=DEFAULT_DIRS[CollapseOptions]),
     analysis=AnalysisOptions(
-        model="gaussian", aper_rad=10, output_directory=DEFAULT_DIRS[AnalysisOptions]
+        model="gaussian",
+        photometry=dict(aper_rad=10),
+        output_directory=DEFAULT_DIRS[AnalysisOptions],
     ),
     polarimetry=PolarimetryOptions(
         output_directory=DEFAULT_DIRS[PolarimetryOptions], ip=IPOptions()
@@ -60,7 +64,9 @@ VAMPIRES_SDI = PipelineOptions(
     register=RegisterOptions(method="peak", output_directory=DEFAULT_DIRS[RegisterOptions]),
     collapse=CollapseOptions(method="median", output_directory=DEFAULT_DIRS[CollapseOptions]),
     analysis=AnalysisOptions(
-        model="gaussian", aper_rad=10, output_directory=DEFAULT_DIRS[AnalysisOptions]
+        model="gaussian",
+        photometry=dict(aper_rad=10),
+        output_directory=DEFAULT_DIRS[AnalysisOptions],
     ),
     diff=DiffOptions(output_directory=DEFAULT_DIRS[DiffOptions]),
     products=ProductOptions(output_directory=DEFAULT_DIRS[ProductOptions]),
