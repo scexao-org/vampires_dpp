@@ -1,6 +1,6 @@
-from pathlib import Path
-from typing import Optional, Sequence
 import warnings
+from pathlib import Path
+from typing import Sequence
 
 import numpy as np
 import tqdm.auto as tqdm
@@ -9,10 +9,8 @@ from numpy.typing import ArrayLike, NDArray
 from photutils import aperture_photometry
 from scipy.optimize import minimize_scalar
 
-from vampires_dpp.image_processing import (
-    combine_frames_headers,
-    derotate_frame,
-)
+from vampires_dpp.analysis import safe_aperture_sum
+from vampires_dpp.image_processing import combine_frames_headers, derotate_frame
 from vampires_dpp.image_registration import offset_centroid
 from vampires_dpp.indexing import cutout_slice, frame_angles, frame_radii, window_slices
 from vampires_dpp.mueller_matrices import mueller_matrix_from_header
@@ -90,14 +88,6 @@ def measure_instpol_satellite_spots(
     return np.mean(fluxes) - expected
 
 
-def safe_aperture_sum(frame, r):
-    weights = np.ones_like(frame)
-    rs = frame_radii(frame)
-    # only keep values inside aperture
-    weights[rs > r] = 0
-    return np.nansum(frame * weights) / np.nansum(weights)
-
-
 def instpol_correct(stokes_cube: ArrayLike, pQ=0, pU=0):
     """
     Apply instrument polarization correction to stokes cube.
@@ -123,12 +113,6 @@ def instpol_correct(stokes_cube: ArrayLike, pQ=0, pU=0):
             stokes_cube[2] - pU * stokes_cube[0],
         )
     )
-
-
-def background_subtracted_photometry(frame, aps, anns):
-    ap_sums = aperture_photometry(frame, aps)["aperture_sum"]
-    ann_sums = aperture_photometry(frame, anns)["aperture_sum"]
-    return ap_sums - aps.area / anns.area * ann_sums
 
 
 def radial_stokes(stokes_cube: ArrayLike, phi: float = 0) -> NDArray:

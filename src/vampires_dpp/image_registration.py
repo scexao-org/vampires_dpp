@@ -16,6 +16,7 @@ from vampires_dpp.indexing import (
     lamd_to_pixel,
     window_slices,
 )
+from vampires_dpp.psf_models import fit_model
 from vampires_dpp.util import get_paths
 
 
@@ -168,39 +169,11 @@ def offset_peak(frame, inds):
     return ctr
 
 
-def offset_modelfit(frame, inds, method, fitter=fitting.LevMarLSQFitter()):
-    view = frame[inds[0], inds[1]]
-    y, x = np.mgrid[0 : view.shape[0], 0 : view.shape[1]]
-    view_center = frame_center(view)
-    peak = np.quantile(view.ravel(), 0.9)
-    if method == "moffat":
-        # bounds = {"amplitude": (0, peak), "gamma": (1, 15), "alpha": }
-        model = models.Moffat2D(
-            amplitude=peak, x_0=view_center[1], y_0=view_center[0], gamma=2, alpha=2
-        )
-    elif method == "gaussian":
-        model = models.Gaussian2D(
-            amplitude=peak,
-            x_mean=view_center[1],
-            y_mean=view_center[0],
-            x_stddev=2,
-            y_stddev=2,
-        )
-    elif method == "airydisk":
-        model = models.AiryDisk2D(amplitude=peak, x_0=view_center[1], y_0=view_center[0], radius=2)
-
-    model_fit = fitter(model, x, y, view)
-
+def offset_modelfit(frame, inds, model, **kwargs):
+    model_fit = fit_model(frame, inds, model, **kwargs)
     # normalize outputs
-    if method == "moffat" or method == "airydisk":
-        offset = np.array((model_fit.y_0.value, model_fit.x_0.value))
-    elif method == "gaussian":
-        offset = np.array((model_fit.y_mean.value, model_fit.x_mean.value))
-
-    offset[0] += inds[0].start
-    offset[1] += inds[1].start
-
-    return offset
+    ctr = np.array((model_fit["y"], model_fit["x"]))
+    return ctr
 
 
 def measure_offsets_file(filename, method="peak", coronagraphic=False, force=False, **kwargs):

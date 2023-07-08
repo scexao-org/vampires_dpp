@@ -10,10 +10,16 @@ from multiprocessing_logging import install_mp_handler
 from tqdm.auto import tqdm
 
 import vampires_dpp as dpp
+from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calibration import calibrate_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET
 from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
-from vampires_dpp.image_processing import FileSet, combine_frames_files, make_diff_image
+from vampires_dpp.image_processing import (
+    FileSet,
+    combine_frames_files,
+    make_diff_image,
+    shift_frame,
+)
 from vampires_dpp.image_registration import (
     lucky_image_file,
     measure_offsets_file,
@@ -136,6 +142,13 @@ class Pipeline(PipelineOptions):
                 offsets_file=offsets_file,
             )
 
+        ## Step 5: PSF analysis
+        if self.analysis is not None:
+            path, tripwire = self.analyze_one(
+                path,
+                fileinfo,
+                tripwire=tripwire,
+            )
         return path, tripwire
 
     def get_frame_centers(self):
@@ -314,9 +327,31 @@ class Pipeline(PipelineOptions):
         self.logger.info("Data calibration completed")
         return calib_file, tripwire
 
+    def analyze_one(self, path, fileinfo, tripwire=False):
+        self.logger.info("Starting PSF analysis")
+        config = self.analysis
+
+        if config.output_directory is not None:
+            outdir = config.output_directory
+        else:
+            outdir = self.output_directory
+        outdir.mkdir(parents=True, exist_ok=True)
+        self.logger.debug(f"Saving analyzed data to {outdir.absolute()}")
+        tripwire |= config.force
+
+        outpath = analyze_file(
+            path,
+            aper_rad=config.photometry.aper_rad,
+            ann_rad=config.photometry.ann_rad,
+            model=config.model,
+            output_directory=outdir,
+            force=tripwire,
+        )
+        return outpath, tripwire
+
     def save_adi_cubes(self, force: bool = False) -> Tuple[Optional[Path], Optional[Path]]:
         # preset values
-        outname1 = outname2 = None
+        self.cam1_cube_path = self.cam2_cube_path = None
 
         # save cubes for each camera
         if "U_FLCSTT" in self.output_table.keys():
@@ -325,30 +360,34 @@ class Pipeline(PipelineOptions):
             sort_keys = "MJD"
         cam1_table = self.output_table.query("U_CAMERA == 1").sort_values(sort_keys)
         if len(cam1_table) > 0:
-            outname1 = self.products.output_directory / f"{self.name}_adi_cube_cam1.fits"
-            outname1_angles = outname1.with_stem(f"{outname1.stem}_angles")
-            combine_frames_files(cam1_table["path"], output=outname1, force=force)
-            derot_angles1 = np.asarray(cam1_table["PARANG"])
+            self.cam1_cube_path = self.products.output_directory / f"{self.name}_adi_cube_cam1.fits"
+            self.cam1_angles_path = self.cam1_cube_path.with_stem(
+                f"{self.cam1_cube_path.stem}_angles"
+            )
+            combine_frames_files(cam1_table["path"], output=self.cam1_cube_path, force=force)
+            self.cam1_angles = np.asarray(cam1_table["PARANG"])
             fits.writeto(
-                outname1_angles,
-                derot_angles1.astype("f4"),
+                self.cam1_angles_path,
+                self.cam1_angles.astype("f4"),
                 overwrite=True,
             )
-            print(f"Saved ADI cube (cam1) to: {outname1}")
-            print(f"Saved derotation angles (cam1) to: {outname1_angles}")
+            print(f"Saved ADI cube (cam1) to: {self.cam1_cube_path}")
+            print(f"Saved derotation angles (cam1) to: {self.cam1_angles_path}")
         cam2_table = self.output_table.query("U_CAMERA == 2").sort_values(["MJD", "U_FLCSTT"])
         if len(cam2_table) > 0:
-            outname2 = self.products.output_directory / f"{self.name}_adi_cube_cam2.fits"
-            outname2_angles = outname2.with_stem(f"{outname2.stem}_angles")
-            combine_frames_files(cam2_table["path"], output=outname2, force=force)
-            derot_angles2 = np.asarray(cam2_table["PARANG"])
+            self.cam2_cube_path = self.products.output_directory / f"{self.name}_adi_cube_cam2.fits"
+            self.cam2_angles_path = self.cam2_cube_path.with_stem(
+                f"{self.cam2_cube_path.stem}_angles"
+            )
+            combine_frames_files(cam2_table["path"], output=self.cam2_cube_path, force=force)
+            self.cam2_angles = np.asarray(cam2_table["PARANG"])
             fits.writeto(
-                outname2_angles,
-                derot_angles2.astype("f4"),
+                self.cam2_angles_path,
+                self.cam2_angles.astype("f4"),
                 overwrite=True,
             )
-            print(f"Saved ADI cube (cam2) to: {outname2}")
-            print(f"Saved derotation angles (cam2) to: {outname2_angles}")
+            print(f"Saved ADI cube (cam2) to: {self.cam2_cube_path}")
+            print(f"Saved derotation angles (cam2) to: {self.cam2_angles_path}")
 
     def make_diff_images(self, force=False):
         self.logger.info("Making difference frames")

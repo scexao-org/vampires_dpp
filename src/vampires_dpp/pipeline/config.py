@@ -486,6 +486,76 @@ class DiffOptions(OutputDirectory):
         If true, will force this processing step to occur.
     """
 
+    def to_toml(self) -> str:
+        obj = {"diff": self}
+        return to_toml(obj)
+
+
+@serialize
+@dataclass
+class PhotometryOptions:
+    """ """
+
+    aper_rad: float = 10
+    ann_rad: Optional[list[float, float]] = field(default=None, skip_if_default=True)
+
+    def to_toml(self) -> str:
+        obj = {"analysis": {"photometry": self}}
+        return to_toml(obj)
+
+
+@serialize
+@dataclass
+class AnalysisOptions(OutputDirectory):
+    """PSF modeling and analysis options.
+
+    .. admonition:: Outputs
+
+
+    Parameters
+    ----------
+    model
+    strehl
+    recenter
+    subtract_radprof
+    output_directory : Optional[Path]
+        The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.
+    force : bool
+        If true, will force this processing step to occur.
+
+    Examples
+    --------
+    >>> conf = AnalysisOptions()
+    >>> print(conf.to_toml())
+
+    .. code-block:: toml
+
+        [analysis]
+        output_directory = "analysis"
+        recenter = true
+        subtract_radprof = true
+        strehl = false
+    """
+
+    model: str = "gaussian"
+    strehl: bool = False
+    recenter: bool = True
+    subtract_radprof: bool = True
+    photometry: Optional[PhotometryOptions] = field(default=None, skip_if_default=True)
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.model.strip().lower() not in ("gaussian", "moffat", "airydisk"):
+            raise ValueError(f"PSF model not recognized: {self.model}")
+        if self.strehl:
+            raise NotImplementedError()
+        if self.photometry is not None and isinstance(self.photometry, dict):
+            self.photometry = PhotometryOptions(**self.photometry)
+
+    def to_toml(self) -> str:
+        obj = {"analysis": self}
+        return to_toml(obj)
+
 
 @serialize
 @dataclass
@@ -700,6 +770,8 @@ class PipelineOptions:
         If set, provides options for image registration
     collapse : Optional[CollapseOptions]
         If set, provides options for collapsing image cubes
+    analysis : Optional[AnalysisOptions]
+        If set, provides options for PSF/flux analysis in collapsed data
     diff : Optional[DiffOptions]
         If set, provides options for creating difference images
     polarimetry : Optional[PolarimetryOptions]
@@ -772,6 +844,7 @@ class PipelineOptions:
     frame_select: Optional[FrameSelectOptions] = field(default=None, skip_if_default=True)
     register: Optional[RegisterOptions] = field(default=None, skip_if_default=True)
     collapse: Optional[CollapseOptions] = field(default=None, skip_if_default=True)
+    analysis: Optional[AnalysisOptions] = field(default=None, skip_if_default=True)
     diff: Optional[DiffOptions] = field(default=None, skip_if_default=True)
     polarimetry: Optional[PolarimetryOptions] = field(default=None, skip_if_default=True)
     products: Optional[ProductOptions] = field(default=None, skip_if_default=True)
@@ -794,6 +867,8 @@ class PipelineOptions:
             self.register = RegisterOptions(**self.register)
         if self.collapse is not None and isinstance(self.collapse, dict):
             self.collapse = CollapseOptions(**self.collapse)
+        if self.analysis is not None and isinstance(self.analysis, dict):
+            self.analysis = AnalysisOptions(**self.analysis)
         if self.diff is not None and isinstance(self.diff, dict):
             self.diff = DiffOptions(**self.diff)
         if self.polarimetry is not None and isinstance(self.polarimetry, dict):

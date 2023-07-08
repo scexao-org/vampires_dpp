@@ -14,6 +14,7 @@ dependencies = [
     "astropy",
     "astroquery",
     "astroscrappy",
+    "click",
     "numpy",
     "opencv-python",
     "pandas",
@@ -21,11 +22,11 @@ dependencies = [
     "pyserde",
     "scikit-image",
     "scipy",
+    "sep",
     "tomli",
     "tomli-w",
     "tqdm",
-    "click",
-    "trogon"
+    "trogon",
 ]
 
 [project.urls]
