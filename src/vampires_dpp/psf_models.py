@@ -41,5 +41,4 @@ def fit_model(frame, inds, model, fitter=fitting.LevMarLSQFitter()):
     elif model == "gaussian":
         model_dict["y"] = model_fit.y_mean.value + inds[0].start
         model_dict["x"] = model_fit.x_mean.value + inds[1].start
-
     return model_dict

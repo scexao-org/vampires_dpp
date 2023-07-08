@@ -161,3 +161,4 @@ _test
 md5sums.txt
 docs/**/data
 *.tmp
+.vscode

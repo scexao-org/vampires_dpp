@@ -42,7 +42,7 @@ def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, expected=0, window=30, **kw
     x = X / I
     sl = cutout_slice(x, window=window, **kwargs)
     cutout = x[sl[0], sl[1]]
-    pX = safe_aperture_sum(cutout, r=r)
+    pX = safe_aperture_sum(cutout, r=r) / (np.pi * r**2)
     return pX - expected
 
 
@@ -84,7 +84,7 @@ def measure_instpol_satellite_spots(
         # use refined window
         sl = cutout_slice(x, window=window, center=ap_center)
         cutout = x[sl[0], sl[1]]
-        fluxes.append(safe_aperture_sum(cutout, r=r))
+        fluxes.append(safe_aperture_sum(cutout, r=r) / (np.pi * r**2))
     return np.mean(fluxes) - expected
 
 

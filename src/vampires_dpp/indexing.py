@@ -119,7 +119,7 @@ def window_centers(center, radius, theta=SATSPOT_ANGLE, n=4, **kwargs):
     return list(zip(ys, xs))
 
 
-def cutout_slice(frame, window, center=None):
+def cutout_slice(frame, window, center=None, **kwargs):
     """
     Get the index slices for a window with size `window` at `center`, clipped to the boundaries of `frame`
 

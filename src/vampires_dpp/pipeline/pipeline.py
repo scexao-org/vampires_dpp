@@ -339,14 +339,30 @@ class Pipeline(PipelineOptions):
         self.logger.debug(f"Saving analyzed data to {outdir.absolute()}")
         tripwire |= config.force
 
-        outpath = analyze_file(
-            path,
-            aper_rad=config.photometry.aper_rad,
-            ann_rad=config.photometry.ann_rad,
-            model=config.model,
-            output_directory=outdir,
-            force=tripwire,
-        )
+        if self.coronagraph is None:
+            outpath = analyze_file(
+                path,
+                aper_rad=config.photometry.aper_rad,
+                ann_rad=config.photometry.ann_rad,
+                model=config.model,
+                output_directory=outdir,
+                force=tripwire,
+                window=config.window_size,
+            )
+        else:
+            outpath = analyze_file(
+                path,
+                aper_rad=config.photometry.aper_rad,
+                ann_rad=config.photometry.ann_rad,
+                model=config.model,
+                output_directory=outdir,
+                force=tripwire,
+                coronagraphic=True,
+                radius=self.satspots.radius,
+                theta=self.satspots.angle,
+                window=config.window_size,
+            )
+
         return outpath, tripwire
 
     def save_adi_cubes(self, force: bool = False) -> Tuple[Optional[Path], Optional[Path]]:

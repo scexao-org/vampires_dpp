@@ -431,8 +431,8 @@ CAL_DICT = {
 def mueller_matrix_from_header(header, adi_sync=True):
     filt = header["U_FILTER"]
     if filt in CAL_DICT:
-        filt_dict = CAL_DICT["ideal"]
-        # filt_dict = CAL_DICT[filt]
+        # filt_dict = CAL_DICT["ideal"]
+        filt_dict = CAL_DICT[filt]
     else:
         filt_dict = CAL_DICT["ideal"]
     pa_theta = np.deg2rad(header["PA"])

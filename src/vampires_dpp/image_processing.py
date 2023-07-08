@@ -1,6 +1,7 @@
+import re
+import warnings
 from pathlib import Path
 from typing import Optional, Tuple
-import warnings
 
 import astropy.units as u
 import cv2
@@ -11,10 +12,9 @@ from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
 
-from vampires_dpp.indexing import frame_center
+from vampires_dpp.indexing import frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.util import any_file_newer, get_paths
-import re
 
 
 def shift_frame(data: ArrayLike, shift: list | Tuple, **kwargs) -> NDArray:
@@ -274,6 +274,12 @@ def combine_frames_headers(headers, wcs=False):
 
     # sum exposure times
     output_header["TINT"] = table["TINT"].sum(), "[s] total exposure time"
+    # median PSF models
+    if "MODEL" in table.keys():
+        output_header["MOD_AMP"] = table["MOD_AMP"].mean(), "[adu] PSF model amplitude"
+        output_header["MOD_X"] = table["MOD_X"].mean(), "[px] PSF model x"
+        output_header["MOD_Y"] = table["MOD_Y"].mean(), "[px] PSF model y"
+        output_header["PHOTFLUX"] = table["PHOTFLUX"].mean(), "[adu] Aperture photometry flux"
     # get PA rotation
     if "PA" in table.keys():
         output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
@@ -555,3 +561,16 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
 
     fits.writeto(outname, stack, header=header, overwrite=True)
     return outname
+
+
+def radial_profile_image(frame, fwhm=3):
+    rs = frame_radii(frame)
+    bins = np.arange(rs.min(), rs.max())
+    output = np.zeros_like(frame)
+    for r in bins:
+        mask = (rs >= r - fwhm / 2) & (rs < r + fwhm / 2)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            output[mask] = np.nanmedian(frame[mask])
+
+    return output
