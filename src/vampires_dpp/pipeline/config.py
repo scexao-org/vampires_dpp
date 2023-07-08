@@ -541,7 +541,7 @@ class AnalysisOptions(OutputDirectory):
     strehl: bool = False
     recenter: bool = True
     subtract_radprof: bool = True
-    window_size: int = field(default=30, skip_if_default=True)
+    window_size: int = field(default=40, skip_if_default=True)
     photometry: Optional[PhotometryOptions] = field(default=None, skip_if_default=True)
 
     def __post_init__(self):

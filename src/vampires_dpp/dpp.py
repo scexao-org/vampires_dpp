@@ -16,6 +16,7 @@ from vampires_dpp.calibration import make_master_background, make_master_flat
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import check_files, header_table, sort_files
 from vampires_dpp.pipeline.config import (
+    AnalysisOptions,
     CamCtrOption,
     CamFileInput,
     CollapseOptions,
@@ -24,6 +25,7 @@ from vampires_dpp.pipeline.config import (
     DiffOptions,
     FrameSelectOptions,
     IPOptions,
+    PhotometryOptions,
     RegisterOptions,
     SatspotOptions,
 )
@@ -536,11 +538,60 @@ def new_config(ctx, config, edit):
     else:
         tpl.diff = None
 
+    if click.confirm("Would you like to do PSF analysis?", default=tpl.analysis is not None):
+        model = click.prompt(
+            "Choose a PSF model",
+            type=click.Choice(["gaussian", "moffat", "airydisk"]),
+            default="gaussian",
+        )
+        subtract_radprof = False
+        if tpl.coronagraph is not None:
+            subtract_radprof = click.confirm(
+                "Would you like to subtract a radial profile?", default=True
+            )
+
+        aper_rad = click.prompt("  Enter aperture radius (px)", type=float, default=10)
+        window_size = click.prompt("  Enter window size (px)", type=float, default=40)
+        if aper_rad > window_size / 2:
+            aper_rad = window_size / 2
+            click.echo(f"Reducing aperture radius to match window size ({aper_rad:.0f} px)")
+        ann_rad = None
+        if click.confirm("  Would you like to subtract background annulus?", default=False):
+            resp = click.prompt(
+                "Enter comma-separated inner and outer radius (px)",
+                default=f"{aper_rad+5}, {aper_rad+10}",
+            )
+            ann_rad = list(_parse_cam_center(resp))
+            if ann_rad[1] > window_size / 2:
+                ann_rad[1] = window_size / 2
+                click.echo(
+                    f"Reducing annulus outer radius to match window size ({ann_rad[1]:.0f} px)"
+                )
+
+            if ann_rad[0] > ann_rad[1]:
+                ann_rad[0] = ann_rad[1] - 1
+                click.echo(
+                    f"Reducing annulus inner radius to less than outer radius ({ann_rad[0]:.0f} px)"
+                )
+
+            if aper_rad > ann_rad[0]:
+                aper_rad = ann_rad[0]
+                click.echo(
+                    f"Reducing aperture radius to less than annulus radius ({aper_rad:.0f} px)"
+                )
+
+        tpl.analysis = AnalysisOptions(
+            model=model,
+            window_size=window_size,
+            subtract_radprof=subtract_radprof,
+            photometry=PhotometryOptions(aper_rad=aper_rad, ann_rad=ann_rad),
+            output_directory=DEFAULT_DIRS[AnalysisOptions],
+        )
+    else:
+        tpl.analysis = None
+
     ## Polarization
-    do_polar = click.confirm(
-        "Would you like to do polarimetry?", default=tpl.polarimetry is not None
-    )
-    if do_polar:
+    if click.confirm("Would you like to do polarimetry?", default=tpl.polarimetry is not None):
         calib_choices = ["difference", "leastsq"]
         readline.set_completer(createListCompleter(calib_choices))
         tpl.polarimetry.method = click.prompt(

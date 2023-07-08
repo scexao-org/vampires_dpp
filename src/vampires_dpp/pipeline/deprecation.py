@@ -1,9 +1,9 @@
+import click
 from packaging.version import Version
 
 from vampires_dpp import __version__
 from vampires_dpp.pipeline.config import *
 from vampires_dpp.pipeline.pipeline import Pipeline
-import click
 
 
 def upgrade_config(config_dict: dict) -> Pipeline:
@@ -61,5 +61,8 @@ def upgrade_to_0p8(config_dict):
     add_diff = click.confirm("Would you like to make difference images?", default=False)
     if add_diff:
         config_dict["diff"] = dict(output_directory="diff")
+    add_diff = click.confirm("Would you like to do PSF analysis?", default=True)
+    if add_diff:
+        config_dict["analysis"] = dict(output_directory="analysis", photometry=dict(aper_rad=10))
 
     return config_dict
