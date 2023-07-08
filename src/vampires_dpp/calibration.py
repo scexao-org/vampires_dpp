@@ -17,7 +17,7 @@ from astroscrappy import detect_cosmics
 from tqdm.auto import tqdm
 
 from vampires_dpp.constants import DEFAULT_NPROC, PA_OFFSET, READNOISE, SUBARU_LOC
-from vampires_dpp.headers import fix_header, parallactic_angle
+from vampires_dpp.headers import parallactic_angle
 from vampires_dpp.image_processing import (
     collapse_cube,
     collapse_frames_files,
@@ -51,23 +51,15 @@ def calibrate_file(
     transform_filename: Optional[str] = None,
     force: bool = False,
     bpfix: bool = False,
-    deinterleave: bool = False,
     coord: Optional[SkyCoord] = None,
     **kwargs,
 ):
     path, outpath = get_paths(filename, suffix="calib", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    # have to also check if deinterleaving
-    if deinterleave:
-        outpath_FLC1 = outpath.with_stem(f"{outpath.stem}_FLC1")
-        outpath_FLC2 = outpath.with_stem(f"{outpath.stem}_FLC2")
-        if not force and outpath_FLC1.is_file() and outpath_FLC2.is_file():
-            return outpath_FLC1, outpath_FLC2
 
     raw_cube, header = fits.getdata(path, ext=hdu, header=True)
     # fix header
-    header = fix_header(header)
     time_str = Time(header["MJD-STR"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time_end = Time(header["MJD-END"], format="mjd", scale="ut1", location=SUBARU_LOC)
@@ -91,11 +83,6 @@ def calibrate_file(
     header["PARANG"] = parang, "[deg] derotation angle for North up"
     header = apply_wcs(header, parang=parang)
 
-    # Discard frames in OG VAMPIRES
-    if "U_FLCSTT" in header:
-        cube = raw_cube.astype("f4")
-    else:
-        cube = raw_cube[2:].astype("f4")
     # remove empty and NaN frames
     cube = filter_empty_frames(cube)
     # background subtraction
@@ -114,9 +101,9 @@ def calibrate_file(
     if bpfix:
         mask, _ = detect_cosmics(
             cube.mean(0),
-            gain=header.get("DETGAIN", 4.5),
-            readnoise=READNOISE,
-            satlevel=2**15 * header.get("DETGAIN", 4.5),
+            gain=header.get("GAIN", 0.11),
+            readnoise=READNOISE[header["U_DETMOD"].lower()],
+            satlevel=2**15 * header.get("GAIN", 0.11),
             niter=1,
         )
         cube_copy = cube.copy()
@@ -133,29 +120,6 @@ def calibrate_file(
         params = distort_coeffs.loc[f"cam{header['U_CAMERA']:.0f}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
 
-    # deinterleave
-    if deinterleave:
-        header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
-        header["U_FLCANG"] = 0, "[deg] VAMPIRES FLC angle"
-        header["TINT"] /= 2
-        fits.writeto(
-            outpath_FLC1,
-            cube[::2],
-            header=header,
-            overwrite=True,
-        )
-
-        header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
-        header["U_FLCANG"] = 45, "[deg] VAMPIRES FLC angle"
-
-        fits.writeto(
-            outpath_FLC2,
-            cube[1::2],
-            header=header,
-            overwrite=True,
-        )
-        return outpath_FLC1, outpath_FLC2
-
     fits.writeto(outpath, cube, header=header, overwrite=True)
     return outpath
 
@@ -164,27 +128,24 @@ def make_background_file(filename: str, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    raw_cube, header = fits.getdata(
+    cube, header = fits.getdata(
         path,
         ext=0,
         header=True,
     )
-    if "U_FLCSTT" in header:
-        cube = raw_cube.astype("f4")
-    else:
-        cube = raw_cube[1:].astype("f4")
     master_background, header = collapse_cube(cube, header=header, **kwargs)
-    header = fix_header(header)
     header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
-    # _, clean_background = detect_cosmics(
-    #     master_background,
-    #     gain=header.get("DETGAIN", 4.5),
-    #     readnoise=READNOISE,
-    #     satlevel=2**16 * header.get("DETGAIN", 4.5),
-    # )
+    bkg = np.full_like(master_background, header.get("BIAS", 200))
+    _, clean_background = detect_cosmics(
+        master_background,
+        inbkg=bkg,
+        gain=header.get("GAIN", 0.11),
+        readnoise=READNOISE[header["U_DETMOD"].lower()],
+        satlevel=2**16 * header.get("GAIN", 0.11),
+    )
     fits.writeto(
         outpath,
-        master_background,
+        clean_background,
         header=header,
         overwrite=True,
     )
@@ -195,17 +156,12 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    raw_cube, header = fits.getdata(
+    cube, header = fits.getdata(
         path,
         ext=0,
         header=True,
     )
-    header = fix_header(header)
     header["CAL_TYPE"] = "FLATFIELD", "DPP calibration file type"
-    if "U_FLCSTT" in header:
-        cube = raw_cube.astype("f4")
-    else:
-        cube = raw_cube[1:].astype("f4")
     if back_filename is not None:
         back_path = Path(back_filename)
         header["DPP_BACK"] = (back_path.name, "DPP file used for background subtraction")
@@ -214,17 +170,19 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
         )
         cube = cube - master_back
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
-    # _, clean_flat = detect_cosmics(
-    #     master_flat,
-    #     gain=header.get("DETGAIN", 4.5),
-    #     readnoise=READNOISE,
-    #     satlevel=2**16 * header.get("DETGAIN", 4.5),
-    # )
-    master_flat /= np.nanmedian(master_flat)
+    bkg = np.full_like(master_flat, header.get("BIAS", 200))
+    _, clean_flat = detect_cosmics(
+        master_flat,
+        inbkg=bkg,
+        gain=header.get("GAIN", 0.11),
+        readnoise=READNOISE[header["U_DETMOD"].lower()],
+        satlevel=2**16 * header.get("GAIN", 0.11),
+    )
+    clean_flat /= np.nanmedian(clean_flat)
 
     fits.writeto(
         outpath,
-        master_flat,
+        clean_flat,
         header=header,
         overwrite=True,
     )
@@ -237,9 +195,9 @@ def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dic
         path = Path(filename)
         header = fits.getheader(path, ext=ext)
         sz = header["NAXIS1"], header["NAXIS2"]
-        key = (header["U_CAMERA"], header["U_EMGAIN"], header["U_AQTINT"], sz, header["U_FILTER"])
+        key = (header["U_CAMERA"], header["EXPTIME"], sz, header["FILTER01"], header["FILTER02"])
         if backgrounds:
-            key = key[:-1]
+            key = key[:-2]
         if key in file_dict:
             file_dict[key].append(path)
         else:
@@ -271,10 +229,9 @@ def make_master_background(
     with mp.Pool(num_proc) as pool:
         jobs = []
         for key, filelist in file_inputs.items():
-            cam, gain, exptime, sz = key
+            cam, exptime, sz = key
             outname = (
-                outdir
-                / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
+                outdir / f"{name}_{exptime*1e6:09.0f}us_{sz[0]:04d}x{sz[1]:04d}_cam{cam:.0f}.fits"
             )
             outnames[key] = outname
             if not force and outname.is_file():
@@ -322,7 +279,7 @@ def make_master_flat(
         back_inputs = sort_calib_files(master_backgrounds, backs=True)
         for key in file_inputs.keys():
             # don't need to match filter for backs
-            back_key = key[:-1]
+            back_key = key[:-2]
             # input should be list with one file in it
             if back_key in back_inputs:
                 master_back_dict[key] = back_inputs[back_key][0]
@@ -339,10 +296,10 @@ def make_master_flat(
     with mp.Pool(num_proc) as pool:
         jobs = []
         for key, filelist in file_inputs.items():
-            cam, gain, exptime, sz, filt = key
+            cam, exptime, sz, filt1, filt2 = key
             outname = (
                 outdir
-                / f"{name}_{filt}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
+                / f"{name}_{filt1}_{filt2}_{exptime*1e6:09.0f}us_{sz[0]:04d}x{sz[1]:04d}_cam{cam:.0f}.fits"
             )
             outnames[key] = outname
             if not force and outname.is_file():

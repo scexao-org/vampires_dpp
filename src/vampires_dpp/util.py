@@ -1,10 +1,7 @@
 import re
-from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 
 import numpy as np
-from astropy.io import fits
 from numpy.typing import ArrayLike
 from packaging import version
 from scipy.stats import circmean
@@ -96,33 +93,3 @@ def any_file_newer(filenames, outpath):
     out_mt = Path(outpath).stat().st_mtime
     gen = (Path(f).stat().st_mtime > out_mt for f in filenames)
     return any(gen)
-
-
-class FileType(Enum):
-    GEN2 = 0
-    OG = 1
-
-
-@dataclass(frozen=True)
-class FileInfo:
-    file_type: FileType
-    camera: int
-
-    def __post_init__(self):
-        if not (self.camera == 1 or self.camera == 2):
-            raise ValueError(f"Invalid camera number {self.camera}")
-
-    @classmethod
-    def from_hdr(cls, header):
-        if "U_FLCSTT" in header:
-            filetype = FileType.GEN2
-        else:
-            filetype = FileType.OG
-        camera = header["U_CAMERA"]
-        return cls(filetype, camera)
-
-    @classmethod
-    def from_file(cls, filename, ext: int | str = 0):
-        with fits.open(filename) as hdus:
-            hdu = hdus[ext]
-            return cls.from_hdr(hdu.header)

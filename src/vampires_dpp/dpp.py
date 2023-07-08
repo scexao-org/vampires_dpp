@@ -21,13 +21,11 @@ from vampires_dpp.pipeline.config import (
     CamFileInput,
     CollapseOptions,
     CoordinateOptions,
-    CoronagraphOptions,
     DiffOptions,
     FrameSelectOptions,
     IPOptions,
     PhotometryOptions,
     RegisterOptions,
-    SatspotOptions,
 )
 from vampires_dpp.pipeline.deprecation import upgrade_config
 from vampires_dpp.pipeline.pipeline import Pipeline
@@ -417,24 +415,8 @@ def new_config(ctx, config, edit):
         readline.set_completer()
         tpl.calibrate.master_flats = CamFileInput(cam1=cam1_path, cam2=cam2_path)
 
-    ## Coronagraph
-    iwa_choices = ["36", "55", "92", "129"]
-
-    readline.set_completer(createListCompleter(iwa_choices))
-    have_coro = click.confirm("Did you use a coronagraph?", default=False)
-    if have_coro:
-        iwa = click.prompt("  Enter coronagraph IWA (mas)", type=click.Choice(iwa_choices))
-        tpl.coronagraph = CoronagraphOptions(iwa=float(iwa))
-        readline.set_completer()
-
     ## Satellite spots
-    have_satspot = click.confirm(
-        "Did you use satellite spots?", default=tpl.coronagraph is not None
-    )
-    if have_satspot:
-        spotrad = click.prompt("  Enter satspot radius (lam/D)", default=15.8, type=float)
-        spotamp = click.prompt("  Enter satspot amplitude (nm)", default=50, type=float)
-        tpl.satspots = SatspotOptions(radius=spotrad, amp=spotamp)
+    tpl.use_satspots = click.confirm("Did you use satellite spots?", default=tpl.use_satspots)
 
     ## Frame centers
     set_frame_centers = click.confirm("Do you want to specify frame centers?", default=False)

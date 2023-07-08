@@ -353,66 +353,6 @@ def instrumental(pQ=0, pU=0, pV=0):
 
 # filter: hwp_phi, imr_phi, flc1_phi, flc2_phi, flc1_theta, flc2_theta, dp
 CAL_DICT = {
-    "775-50": {
-        "hwp_delta": 2 * np.pi * 0.463,
-        "hwp_offset": np.deg2rad(-7.145),
-        "imr_delta": 2 * np.pi * 0.5,
-        "imr_offset": np.deg2rad(12.106),
-        "optics_delta": 2 * np.pi * -0.209,
-        "optics_diatt": 0.004,
-        "optics_theta": np.deg2rad(-23.116),
-        "flc_delta": 2 * np.pi * 0.389,
-        "flc_offset": np.deg2rad(-15.277),
-        "pbs_throughput": 0.548,
-    },
-    "750-50": {
-        "hwp_delta": 2 * np.pi * 0.476,
-        "hwp_offset": np.deg2rad(1.77),
-        "imr_delta": 2 * np.pi * 0.479,
-        "imr_offset": np.deg2rad(4.441),
-        "optics_delta": 2 * np.pi * -0.205,
-        "optics_diatt": 0.004,
-        "optics_theta": np.deg2rad(-27.46),
-        "flc_delta": 2 * np.pi * 0.261,
-        "flc_offset": np.deg2rad(-8.118),
-        "pbs_throughput": 0.48,
-    },
-    "725-50": {
-        "hwp_delta": 2 * np.pi * 0.465,
-        "hwp_offset": np.deg2rad(-3.279),
-        "imr_delta": 2 * np.pi * 0.446,
-        "imr_offset": np.deg2rad(1.696),
-        "optics_delta": 2 * np.pi * -0.098,
-        "optics_diatt": 0.011,
-        "optics_theta": np.deg2rad(-30.441),
-        "flc_delta": 2 * np.pi * 0.285,
-        "flc_offset": np.deg2rad(5.027),
-        "pbs_throughput": 0.446,
-    },
-    "675-50": {
-        "hwp_delta": 2 * np.pi * 0.451,
-        "hwp_offset": np.deg2rad(0.996),
-        "imr_delta": 2 * np.pi * 0.321,
-        "imr_offset": np.deg2rad(2.769),
-        "optics_delta": 2 * np.pi * -0.254,
-        "optics_diatt": 0.05,
-        "optics_theta": np.deg2rad(-17.143),
-        "flc_delta": 2 * np.pi * 0.237,
-        "flc_offset": np.deg2rad(-12.957),
-        "pbs_throughput": 0.416,
-    },
-    "625-50": {
-        "hwp_delta": 2 * np.pi * 0.433,
-        "hwp_offset": np.deg2rad(1.083),
-        "imr_delta": 2 * np.pi * 0.225,
-        "imr_offset": np.deg2rad(-0.336),
-        "optics_delta": 2 * np.pi * 0.002,
-        "optics_diatt": 0.015,
-        "optics_theta": np.deg2rad(55.617),
-        "flc_delta": 2 * np.pi * 0.289,
-        "flc_offset": np.deg2rad(-4.313),
-        "pbs_throughput": 0.426,
-    },
     "ideal": {
         "hwp_delta": np.pi,
         "hwp_offset": 0,
@@ -428,26 +368,13 @@ CAL_DICT = {
 }
 
 
-def mueller_matrix_from_header(header, adi_sync=True):
-    filt = header["U_FILTER"]
-    if filt in CAL_DICT:
-        # filt_dict = CAL_DICT["ideal"]
-        filt_dict = CAL_DICT[filt]
-    else:
-        filt_dict = CAL_DICT["ideal"]
+def mueller_matrix_from_header(header):
+    filt_dict = CAL_DICT["ideal"]
     pa_theta = np.deg2rad(header["PA"])
     alt = np.deg2rad(header["ALTITUDE"])
-    az = np.deg2rad(header["AZIMUTH"] - 180)
-    if adi_sync:
-        lat = SUBARU_LOC.lat.rad
-        hwp_offset = (
-            0.5 * np.arctan2(np.sin(az), np.sin(alt) * np.cos(az) + np.cos(alt) * np.tan(lat)) + alt
-        )
-    else:
-        hwp_offset = 0
-    hwp_theta = np.deg2rad(header["U_HWPANG"]) + filt_dict["hwp_offset"] + hwp_offset
+    hwp_theta = np.deg2rad(header["ROT-POS1"]) + filt_dict["hwp_offset"]
     imr_theta = np.deg2rad(header["D_IMRANG"]) + filt_dict["imr_offset"]
-    flc_ang = 0 if header["U_FLCSTT"] == 1 else np.pi / 4
+    flc_ang = 0 if header["U_FLCSTT"] == 1 else -np.pi / 4
     flc_theta = flc_ang + filt_dict["flc_offset"]
 
     M = np.linalg.multi_dot(

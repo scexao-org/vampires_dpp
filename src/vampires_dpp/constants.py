@@ -5,7 +5,7 @@ import numpy as np
 from astropy.coordinates import EarthLocation
 
 # important parameters
-PIXEL_SCALE = 6.24  # mas / px
+PIXEL_SCALE = 5.64  # mas / px
 PUPIL_OFFSET = 140.4  # deg
 PA_OFFSET = PUPIL_OFFSET - 180 - 39  # deg
 SATSPOT_ANGLE = (45 - PUPIL_OFFSET) % 90  # deg
@@ -25,4 +25,4 @@ FILTER_ANGULAR_SIZE = {
 # throttled by file I/O
 DEFAULT_NPROC = min(cpu_count(), 8)
 
-READNOISE = 82  # e-
+READNOISE = {"slow": 0.25, "fast": 0.45}  # e-

@@ -169,8 +169,6 @@ class CalibrateOptions(OutputDirectory):
         (Advanced) Options for geometric distortion correction. By default None.
     fix_bad_pixels: bool
         If true, will run LACosmic algorithm for one iteration on each frame and correct bad pixels. By default false.
-    deinterleave: bool
-        **(Advanced)** If true, will deinterleave every other file into the two FLC states. By default false.
     output_directory : Optional[Path]
         The calibrated files will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
@@ -206,7 +204,6 @@ class CalibrateOptions(OutputDirectory):
     master_flats: Optional[CamFileInput] = field(default=CamFileInput())
     distortion: Optional[DistortionOptions] = field(default=None, skip_if_default=True)
     fix_bad_pixels: bool = field(default=False, skip_if_default=True)
-    deinterleave: bool = field(default=False, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()
@@ -219,72 +216,6 @@ class CalibrateOptions(OutputDirectory):
 
     def to_toml(self) -> str:
         obj = {"calibrate": self}
-        return to_toml(obj)
-
-
-@serialize
-@dataclass(frozen=True)
-class CoronagraphOptions:
-    """Coronagraph options
-
-    The IWAs for the masks are listed on the `VAMPIRES website <https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html>`_.
-
-    Parameters
-    ----------
-    iwa : float
-        Coronagraph inner working angle (IWA) in mas.
-
-    Examples
-    --------
-    >>> conf = CoronagraphOptions(iwa=55)
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        [coronagraph]
-        iwa = 55
-    """
-
-    iwa: float
-
-    def to_toml(self) -> str:
-        obj = {"coronagraph": self}
-        return to_toml(obj)
-
-
-@serialize
-@dataclass(frozen=True)
-class SatspotOptions:
-    """Satellite spot options
-
-    Parameters
-    ----------
-    radius : float
-        Satellite spot radius in lambda/D, by default 15.9. If doing PDI with CHARIS this should be 11.2.
-    angle : float
-        Satellite spot position angle (in degrees), by default 45 - `PUPIL_OFFSET`.
-    amp : float
-        Satellite spot modulation amplitude (in nm), by default 50.
-
-    Examples
-    --------
-    >>> conf = SatspotOptions(radius=11.2, amp=25)
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        [satspots]
-        radius = 11.2
-        angle = 84.6
-        amp = 25
-    """
-
-    radius: float = field(default=15.9)
-    angle: float = field(default=SATSPOT_ANGLE)
-    amp: float = field(default=50)
-
-    def to_toml(self) -> str:
-        obj = {"satspots": self}
         return to_toml(obj)
 
 
@@ -759,10 +690,8 @@ class PipelineOptions:
     coordinate : Optional[CoordinateOptions]
     frame_centers : Optional[dict[str, Optional[list]]]
         Estimates of the star position in pixels (x, y) for each camera provided as a dict with "cam1" and "cam2" keys. If not provided, will use the geometric frame center, by default None.
-    coronagraph : Optional[CoronagraphOptions]
-        If provided, sets coronagraph-specific options and processing
-    satspots : Optional[SatspotOptions]
-        If provided, sets satellite-spot specific options and enable satellite spot processing for frame selection and image registration
+    use_satspots : bool
+        If True, uses satellite spot-specific options and processing, by default False.
     calibrate : Optional[CalibrateOptions]
         If set, provides options for basic image calibration
     frame_select : Optional[FrameSelectOptions]
@@ -800,8 +729,7 @@ class PipelineOptions:
     --------
     >>> conf = PipelineOptions(
             name="test_config",
-            coronagraph=dict(iwa=55),
-            satspots=dict(radius=11.2),
+            use_satspots=True,
             calibrate=dict(output_directory="calibrated"),
             collapse=dict(output_directory="collapsed"),
             polarimetry=dict(output_directory="pdi"),
@@ -815,11 +743,6 @@ class PipelineOptions:
 
         [coronagraph]
         iwa = 55
-
-        [satspots]
-        radius = 11.2
-        angle = 84.6
-        amp = 50
 
         [calibrate]
         output_directory = "calibrated"
@@ -839,8 +762,7 @@ class PipelineOptions:
     name: str
     coordinate: Optional[CoordinateOptions] = field(default=None, skip_if_default=True)
     frame_centers: Optional[CamCtrOption] = field(default=None, skip_if_default=True)
-    coronagraph: Optional[CoronagraphOptions] = field(default=None, skip_if_default=True)
-    satspots: Optional[SatspotOptions] = field(default=None, skip_if_default=True)
+    use_satspots: bool = field(default=False, skip_if_default=True)
     calibrate: Optional[CalibrateOptions] = field(default=None, skip_if_default=True)
     frame_select: Optional[FrameSelectOptions] = field(default=None, skip_if_default=True)
     register: Optional[RegisterOptions] = field(default=None, skip_if_default=True)
@@ -854,10 +776,6 @@ class PipelineOptions:
     def __post_init__(self):
         if self.coordinate is not None and isinstance(self.coordinate, dict):
             self.coordinate = CoordinateOptions(**self.coordinate)
-        if self.coronagraph is not None and isinstance(self.coronagraph, dict):
-            self.coronagraph = CoronagraphOptions(**self.coronagraph)
-        if self.satspots is not None and isinstance(self.satspots, dict):
-            self.satspots = SatspotOptions(**self.satspots)
         if self.frame_centers is not None and isinstance(self.frame_centers, dict):
             self.frame_centers = CamCtrOption(**self.frame_centers)
         if self.calibrate is not None and isinstance(self.calibrate, dict):
