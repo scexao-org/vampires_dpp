@@ -141,28 +141,27 @@ def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs
 
 
 def foldername_new(outdir: PathLike, header: fits.Header):
-    filt = header["U_FILTER"]
-    gain = header["U_EMGAIN"]
-    exptime = header["U_AQTINT"] / 1e3  # ms
+    filt = f"{header['FILTER01']}_{header['FILTER02']}"
+    exptime = header["EXPTIME"] * 1e3  # ms
     sz = f"{header['NAXIS1']:03d}x{header['NAXIS2']:03d}"
     match header["DATA-TYP"]:
         case "OBJECT":
-            # subsort based on filter, EM gain, and exposure time
-            subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
+            # subsort based on filter and exposure time
+            subdir = f"{filt}_{exptime:05.0f}ms_{sz}"
             foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
         case "DARK":
-            subdir = f"em{gain:.0f}_{exptime:05.0f}ms_{sz}"
+            subdir = f"{exptime:05.0f}ms_{sz}"
             foldname = outdir / "darks" / subdir
         # put sky flats separately because they are usually
         # background frames, not flats
         case "SKYFLAT":
-            subdir = f"em{gain:.0f}_{exptime:05.0f}ms_{sz}"
+            subdir = f"{exptime:05.0f}ms_{sz}"
             foldname = outdir / "skies" / subdir
         case "FLAT" | "DOMEFLAT":
-            subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
+            subdir = f"{filt}_{exptime:05.0f}ms_{sz}"
             foldname = outdir / "flats" / subdir
         case "COMPARISON":
-            subdir = f"{filt}_em{gain:.0f}_{exptime:05.0f}ms_{sz}"
+            subdir = f"{filt}_{exptime:05.0f}ms_{sz}"
             foldname = outdir / "pinholes" / subdir
         case _:
             foldname = outdir
@@ -213,10 +212,8 @@ def check_file(filename) -> bool:
     ext = 1 if ".fits.fz" in path.name else 0
     try:
         with fits.open(filename) as hdus:
-            hdr = hdus[ext].header
+            hdus[ext].header
             data = hdus[ext].data
-            if "U_FLCSTT" not in hdr:
-                data = data[2:]
             return np.any(data, axis=(-2, -1)).all()
     except:
         return False
