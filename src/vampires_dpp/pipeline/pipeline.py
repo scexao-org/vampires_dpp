@@ -366,7 +366,7 @@ class Pipeline(PipelineOptions):
                 f"{self.cam1_cube_path.stem}_angles"
             )
             combine_frames_files(cam1_table["path"], output=self.cam1_cube_path, force=force)
-            self.cam1_angles = np.asarray(cam1_table["PARANG"])
+            self.cam1_angles = np.asarray(cam1_table["DEROTANG"])
             fits.writeto(
                 self.cam1_angles_path,
                 self.cam1_angles.astype("f4"),
@@ -381,7 +381,7 @@ class Pipeline(PipelineOptions):
                 f"{self.cam2_cube_path.stem}_angles"
             )
             combine_frames_files(cam2_table["path"], output=self.cam2_cube_path, force=force)
-            self.cam2_angles = np.asarray(cam2_table["PARANG"])
+            self.cam2_angles = np.asarray(cam2_table["DEROTANG"])
             fits.writeto(
                 self.cam2_angles_path,
                 self.cam2_angles.astype("f4"),

@@ -273,7 +273,7 @@ def combine_frames_headers(headers, wcs=False):
         output_header[key] = val, test_header.comments[key]
 
     # sum exposure times
-    output_header["EXPTIME"] = table["EXPTIME"].sum(), "[s] total exposure time"
+    output_header["TINT"] = table["TINT"].sum(), "[s] total exposure time"
     # median PSF models
     if "MODEL" in table.keys():
         output_header["MOD_AMP"] = table["MOD_AMP"].mean(), "[adu] PSF model amplitude"

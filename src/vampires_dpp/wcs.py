@@ -19,12 +19,13 @@ def apply_wcs(header, pxscale=PIXEL_SCALE, parang=0):
         Angle(header["DEC"], u.degree).degree,
     ]
     w.wcs.cunit = ["deg", "deg"]
-    w.wcs.cdelt = [-pxscale / 3.6e6, pxscale / 3.6e6]
+    cdelt = [-pxscale / 3.6e6, pxscale / 3.6e6]
+    w.wcs.cdelt = cdelt
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     ang = np.deg2rad(-parang)
     cosang = np.cos(ang)
     sinang = np.sin(ang)
-    w.wcs.pc = [[cosang, -sinang], [sinang, cosang]]
+    w.wcs.cd = [[cdelt[0] * cosang, -cdelt[1] * sinang], [cdelt[0] * sinang, cdelt[1] * cosang]]
     header.update(w.to_header())
     return header
 

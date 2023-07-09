@@ -6,7 +6,8 @@ from astropy.coordinates import EarthLocation
 
 # important parameters
 PIXEL_SCALE = 5.64  # mas / px
-PUPIL_OFFSET = 140.4  # deg
+PUPIL_OFFSET = -39.6  # deg
+# PUPIL_OFFSET = 140.4  # deg
 PA_OFFSET = PUPIL_OFFSET - 180 - 39  # deg
 SATSPOT_ANGLE = (45 - PUPIL_OFFSET) % 90  # deg
 # Subaru location - DO NOT CHANGE!

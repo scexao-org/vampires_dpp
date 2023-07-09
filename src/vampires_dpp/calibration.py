@@ -61,6 +61,7 @@ def calibrate_file(
     raw_cube, header = fits.getdata(path, ext=hdu, header=True)
     cube = raw_cube.astype("f4")
     # fix header
+    header["TINT"] = header["EXPTIME"]
     time_str = Time(header["MJD-STR"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time_end = Time(header["MJD-END"], format="mjd", scale="ut1", location=SUBARU_LOC)
@@ -80,9 +81,9 @@ def calibrate_file(
     header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
     pa = parallactic_angle(time, coord_now)
     header["PA"] = pa, "[deg] parallactic angle of target"
-    parang = wrap_angle(pa + PA_OFFSET)
-    header["PARANG"] = parang, "[deg] derotation angle for North up"
-    header = apply_wcs(header, parang=parang)
+    derotang = wrap_angle(pa + PA_OFFSET)
+    header["DEROTANG"] = derotang, "[deg] derotation angle for North up"
+    header = apply_wcs(header, parang=derotang)
 
     # remove empty and NaN frames
     cube = filter_empty_frames(cube)
@@ -104,7 +105,7 @@ def calibrate_file(
             cube.mean(0),
             gain=header.get("GAIN", 0.11),
             readnoise=READNOISE[header["U_DETMOD"].lower()],
-            satlevel=2**15 * header.get("GAIN", 0.11),
+            satlevel=2**16 * header.get("GAIN", 0.11),
             niter=1,
         )
         cube_copy = cube.copy()
@@ -136,10 +137,9 @@ def make_background_file(filename: str, force=False, **kwargs):
     )
     master_background, header = collapse_cube(cube, header=header, **kwargs)
     header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
-    bkg = np.full_like(master_background, header.get("BIAS", 200))
     _, clean_background = detect_cosmics(
         master_background,
-        inbkg=bkg,
+        inbkg=header.get("BIAS", 200),
         gain=header.get("GAIN", 0.11),
         readnoise=READNOISE[header["U_DETMOD"].lower()],
         satlevel=2**16 * header.get("GAIN", 0.11),
@@ -171,10 +171,10 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
         )
         cube = cube - master_back
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
-    bkg = np.full_like(master_flat, header.get("BIAS", 200))
+    np.full_like(master_flat, header.get("BIAS", 200))
     _, clean_flat = detect_cosmics(
         master_flat,
-        inbkg=bkg,
+        inbkg=header.get("BIAS", 200),
         gain=header.get("GAIN", 0.11),
         readnoise=READNOISE[header["U_DETMOD"].lower()],
         satlevel=2**16 * header.get("GAIN", 0.11),
