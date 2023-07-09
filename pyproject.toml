@@ -8,13 +8,14 @@ description = "VAMPIRES Data Processing Pipeline"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.11"
 dynamic = ["version"]
 dependencies = [
     "astropy",
     "astroquery",
     "astroscrappy",
     "click",
+    "multiprocessing-logging",
     "numpy",
     "opencv-python",
     "pandas",
@@ -23,8 +24,8 @@ dependencies = [
     "scikit-image",
     "scipy",
     "sep",
-    "tomli",
     "tomli-w",
+    "tomli",
     "tqdm",
     "trogon",
 ]
