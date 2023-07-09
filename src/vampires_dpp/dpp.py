@@ -527,7 +527,7 @@ def new_config(ctx, config, edit):
             default="gaussian",
         )
         subtract_radprof = False
-        if tpl.coronagraph is not None:
+        if tpl.use_satspots:
             subtract_radprof = click.confirm(
                 "Would you like to subtract a radial profile?", default=True
             )

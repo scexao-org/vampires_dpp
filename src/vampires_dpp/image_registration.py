@@ -189,7 +189,7 @@ def measure_offsets_file(filename, method="peak", coronagraphic=False, force=Fal
     else:
         refidx = np.nanargmax(np.nanmax(cube, axis=(-2, -1)))
     if coronagraphic:
-        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["U_FILTER"])
+        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["FILTER01"])
         offsets = satellite_spot_offsets(cube, method=method, refidx=refidx, **kwargs)
     else:
         offsets = psf_offsets(cube, method=method, refidx=refidx, **kwargs)
@@ -249,7 +249,7 @@ def lucky_image_file(
         path,
         header=True,
     )
-
+    cube = np.atleast_3d(cube)
     ## Step 1: Frame select
     mask = np.ones(cube.shape[0], dtype=bool)
     if metric_file is not None:
@@ -259,7 +259,7 @@ def lucky_image_file(
 
     ## Step 2: Register
     if offsets_file is not None:
-        offsets = np.loadtxt(offsets_file, delimiter=",")
+        offsets = np.atleast_2d(np.loadtxt(offsets_file, delimiter=","))
         # mask offsets with selected metrics
         offsets_masked = offsets[mask]
         # determine maximum padding, with sqrt(2)

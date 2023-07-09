@@ -59,6 +59,7 @@ def calibrate_file(
         return outpath
 
     raw_cube, header = fits.getdata(path, ext=hdu, header=True)
+    cube = raw_cube.astype("f4")
     # fix header
     time_str = Time(header["MJD-STR"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)

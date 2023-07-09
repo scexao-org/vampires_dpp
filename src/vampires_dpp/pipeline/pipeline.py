@@ -111,32 +111,22 @@ class Pipeline(PipelineOptions):
 
         # self.console.print("Finished running pipeline")
 
-    def process_one(self, fileinfo):
+    def process_one(self, row):
         # fix headers and calibrate
         if self.calibrate is not None:
-            cur_file, tripwire = self.calibrate_one(fileinfo["path"], fileinfo)
-            if not isinstance(cur_file, Path):
-                file_flc1, file_flc2 = cur_file
-                path1, tripwire = self.process_post_calib(file_flc1, fileinfo, tripwire)
-                path2, tripwire = self.process_post_calib(file_flc2, fileinfo, tripwire)
-                return (path1, path2), tripwire
-            else:
-                path, tripwire = self.process_post_calib(cur_file, fileinfo, tripwire)
-                return path, tripwire
+            path, tripwire = self.calibrate_one(row["path"], row)
 
-    def process_post_calib(self, path, fileinfo, tripwire=False):
         metric_file = offsets_file = None
         ## Step 2: Frame selection
         if self.frame_select is not None:
-            metric_file, tripwire = self.frame_select_one(path, fileinfo, tripwire=tripwire)
+            metric_file, tripwire = self.frame_select_one(path, row, tripwire=tripwire)
         ## 3: Image registration
         if self.register is not None:
-            offsets_file, tripwire = self.register_one(path, fileinfo, tripwire=tripwire)
+            offsets_file, tripwire = self.register_one(path, row, tripwire=tripwire)
         ## Step 4: collapsing
         if self.collapse is not None:
             path, tripwire = self.collapse_one(
                 path,
-                fileinfo,
                 tripwire=tripwire,
                 metric_file=metric_file,
                 offsets_file=offsets_file,
@@ -146,7 +136,6 @@ class Pipeline(PipelineOptions):
         if self.analysis is not None:
             path, tripwire = self.analyze_one(
                 path,
-                fileinfo,
                 tripwire=tripwire,
             )
         return path, tripwire
@@ -204,7 +193,6 @@ class Pipeline(PipelineOptions):
             back_filename=back_filename,
             flat_filename=flat_filename,
             transform_filename=transform_filename,
-            deinterleave=config.deinterleave,
             bpfix=config.fix_bad_pixels,
             coord=self.coord,
             output_directory=outdir,
@@ -225,14 +213,14 @@ class Pipeline(PipelineOptions):
         outdir.mkdir(parents=True, exist_ok=True)
         self.logger.debug(f"Saving selected data to {outdir.absolute()}")
         ctr = self.get_center(fileinfo)
-        if self.coronagraph is not None:
+        if self.use_satspots:
             metric_file = measure_metric_file(
                 path,
                 center=ctr,
                 coronagraphic=True,
                 window=config.window_size,
-                radius=self.satspots.radius,
-                theta=self.satspots.angle,
+                radius=fileinfo["X_GRDSEP"],
+                theta=-4,
                 metric=config.metric,
                 output_directory=outdir,
                 force=tripwire,
@@ -266,7 +254,7 @@ class Pipeline(PipelineOptions):
         self.logger.debug(f"Saving registered data to {outdir.absolute()}")
         tripwire |= config.force
         ctr = self.get_center(fileinfo)
-        if self.coronagraph is not None:
+        if self.use_satspots:
             offsets_file = measure_offsets_file(
                 path,
                 method=config.method,
@@ -277,8 +265,8 @@ class Pipeline(PipelineOptions):
                 coronagraphic=True,
                 upample_factor=config.dft_factor,
                 refmethod=config.dft_ref,
-                radius=self.satspots.radius,
-                theta=self.satspots.angle,
+                radius=fileinfo["X_GRDSEP"],
+                theta=-4,
             )
         else:
             offsets_file = measure_offsets_file(
@@ -302,7 +290,7 @@ class Pipeline(PipelineOptions):
         self.logger.info("Image registration completed")
         return offsets_file, tripwire
 
-    def collapse_one(self, path, fileinfo, metric_file=None, offsets_file=None, tripwire=False):
+    def collapse_one(self, path, metric_file=None, offsets_file=None, tripwire=False):
         self.logger.info("Starting data calibration")
         config = self.collapse
         if config.output_directory is not None:
@@ -339,7 +327,7 @@ class Pipeline(PipelineOptions):
         self.logger.debug(f"Saving analyzed data to {outdir.absolute()}")
         tripwire |= config.force
 
-        if self.coronagraph is None:
+        if not self.use_satspots:
             outpath = analyze_file(
                 path,
                 aper_rad=config.photometry.aper_rad,
@@ -358,8 +346,8 @@ class Pipeline(PipelineOptions):
                 output_directory=outdir,
                 force=tripwire,
                 coronagraphic=True,
-                radius=self.satspots.radius,
-                theta=self.satspots.angle,
+                radius=fileinfo["X_GRDSEP"],
+                theta=-4,
                 window=config.window_size,
             )
 
@@ -370,10 +358,7 @@ class Pipeline(PipelineOptions):
         self.cam1_cube_path = self.cam2_cube_path = None
 
         # save cubes for each camera
-        if "U_FLCSTT" in self.output_table.keys():
-            sort_keys = ["MJD", "U_FLCSTT"]
-        else:
-            sort_keys = "MJD"
+        sort_keys = ["MJD"]
         cam1_table = self.output_table.query("U_CAMERA == 1").sort_values(sort_keys)
         if len(cam1_table) > 0:
             self.cam1_cube_path = self.products.output_directory / f"{self.name}_adi_cube_cam1.fits"
@@ -389,7 +374,7 @@ class Pipeline(PipelineOptions):
             )
             print(f"Saved ADI cube (cam1) to: {self.cam1_cube_path}")
             print(f"Saved derotation angles (cam1) to: {self.cam1_angles_path}")
-        cam2_table = self.output_table.query("U_CAMERA == 2").sort_values(["MJD", "U_FLCSTT"])
+        cam2_table = self.output_table.query("U_CAMERA == 2").sort_values(sort_keys)
         if len(cam2_table) > 0:
             self.cam2_cube_path = self.products.output_directory / f"{self.name}_adi_cube_cam2.fits"
             self.cam2_angles_path = self.cam2_cube_path.with_stem(

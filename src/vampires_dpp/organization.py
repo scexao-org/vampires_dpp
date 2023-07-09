@@ -139,8 +139,9 @@ def foldername_new(outdir: PathLike, header: fits.Header):
     filt = f"{header['FILTER01']}_{header['FILTER02']}"
     exptime = header["EXPTIME"] * 1e6  # us
     sz = f"{header['NAXIS1']:04d}x{header['NAXIS2']:04d}"
+    print(header["DATA-TYP"])
     match header["DATA-TYP"]:
-        case "OBJECT":
+        case "OBJECT" | "TEST":
             # subsort based on filter and exposure time
             subdir = f"{filt}_{exptime:09.0f}us_{sz}"
             foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir

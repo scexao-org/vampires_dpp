@@ -58,7 +58,7 @@ def measure_metric_file(
         header=True,
     )
     if coronagraphic:
-        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["U_FILTER"])
+        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["FILTER01"])
         metrics = measure_satellite_spot_metrics(cube, metric=metric, **kwargs)
     else:
         metrics = measure_metric(cube, metric=metric, **kwargs)

@@ -480,7 +480,7 @@ class FileSet:
                 prim_hdu = hdus[ext]
                 header = prim_hdu.header
             cam = header["U_CAMERA"]
-            flc = header.get("U_FLCSTT", None)
+            flc = header.get("U_FLC", None)
             key = (cam, flc)
             self.paths[key] = path
             self.headers[key] = header
@@ -491,7 +491,9 @@ class FileSet:
             if N > 4:
                 raise ValueError(f"Too many input files, should be 4 at max, got {N}")
             if N == 3:
-                missing = set((1, 1), (1, 2), (2, 1), (2, 2)) - set(self.paths.keys())
+                missing = set((1, "RELAXED"), (1, "ACTIVE"), (2, "RELAXED"), (2, "ACTIVE")) - set(
+                    self.paths.keys()
+                )
                 print(
                     f"Expected set of 4 files, one for each camera and FLC state combination. Missing camera {missing[0][0]} FLC state {missing[0][1]}"
                 )

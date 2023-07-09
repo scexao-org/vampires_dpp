@@ -119,7 +119,7 @@ def analyze_file(filename, aper_rad, coronagraphic=False, force=False, **kwargs)
     frame, header = fits.getdata(path, header=True)
 
     if coronagraphic:
-        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["U_FILTER"])
+        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["FILTER01"])
         frame, header = analyze_satspots_frame(frame, aper_rad, header=header, **kwargs)
     else:
         frame, header = analyze_frame(frame, aper_rad, header=header, **kwargs)
