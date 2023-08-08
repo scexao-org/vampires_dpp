@@ -29,7 +29,7 @@ def upgrade_config(config_dict: dict) -> Pipeline:
     ## start with version 0.7, first breaking changes
     if config_version < Version("0.7"):
         config_dict = upgrade_to_0p7(config_dict)
-    elif config_version < Version("0.8"):
+    if config_version < Version("0.8"):
         config_dict = upgrade_to_0p8(config_dict)
     config_dict["version"] = __version__
     pipeline = Pipeline(**config_dict)
@@ -58,11 +58,9 @@ def upgrade_to_0p8(config_dict):
         config_dict["calibrate"]["master_backgrounds"] = config_dict["calibrate"].pop(
             "master_darks"
         )
-    add_diff = click.confirm("Would you like to make difference images?", default=False)
-    if add_diff:
+    if click.confirm("Would you like to make difference images?", default=False):
         config_dict["diff"] = dict(output_directory="diff")
-    add_diff = click.confirm("Would you like to do PSF analysis?", default=True)
-    if add_diff:
+    if click.confirm("Would you like to do PSF analysis?", default=True):
         config_dict["analysis"] = dict(output_directory="analysis", photometry=dict(aper_rad=10))
 
     return config_dict
