@@ -88,7 +88,7 @@ def frame_angles_astro(frame, center):
 
 
 def lamd_to_pixel(ld, filter="Open", pxscale=PIXEL_SCALE):
-    dist = FILTER_ANGULAR_SIZE[filter.strip().lower()]
+    dist = FILTER_ANGULAR_SIZE[filter.strip().upper()]
     return ld * dist / pxscale
 
 
@@ -117,6 +117,45 @@ def window_centers(center, radius, theta=SATSPOT_ANGLE, n=4, **kwargs):
     xs = radius * np.cos(theta) + center[1]
     ys = radius * np.sin(theta) + center[0]
     return list(zip(ys, xs))
+
+
+def mbi_centers(obs_mode, camera_num, flip=False):
+    # centers are (y, x)
+    if camera_num == 1:
+        centers = np.array(
+            (
+                (280, 277),  # 620
+                (845, 290),  # 670
+                (842, 852),  # 720
+                (821, 1977),  # 770
+            )
+        )
+        if flip:
+            centers[:, 0] = 1108 - centers[:, 0]
+    elif camera_num == 2:
+        centers = np.array(
+            (
+                (826, 280),  # 620
+                (260, 301),  # 670
+                (272, 865),  # 720
+                (310, 1983),  # 770
+            )
+        )
+    else:
+        raise ValueError(f"Did not recognize camera number {camera_num}")
+
+    # remove 620 field from reduced crop
+    if obs_mode.upper().endswith("MBIR"):
+        centers = centers[1:]
+    return centers
+
+
+def mbi_slices(frame, header, camera=None, window=500, **kwargs):
+    if camera is None:
+        camera = header["U_CAMERA"]
+    centers = mbi_centers(header["OBS-MOD"], camera)
+    slices = [cutout_slice(frame, center=cent, window=window) for cent in centers]
+    return slices
 
 
 def cutout_slice(frame, window, center=None, **kwargs):

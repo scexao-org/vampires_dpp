@@ -13,7 +13,10 @@ from vampires_dpp.analysis import safe_aperture_sum
 from vampires_dpp.image_processing import combine_frames_headers, derotate_frame
 from vampires_dpp.image_registration import offset_centroid
 from vampires_dpp.indexing import cutout_slice, frame_angles, frame_radii, window_slices
-from vampires_dpp.mueller_matrices import mueller_matrix_from_header
+from vampires_dpp.mueller_matrices import (
+    mbi_mueller_matrix_from_header,
+    mueller_matrix_from_header,
+)
 from vampires_dpp.util import any_file_newer, average_angle
 from vampires_dpp.wcs import apply_wcs
 
@@ -167,7 +170,7 @@ def collapse_stokes_cube(stokes_cube, header=None):
 
 
 def polarization_calibration_triplediff(
-    filenames: Sequence[str], outname, force=False, N_per_hwp=1, adi_sync=True
+    filenames: Sequence[str], outname, force=False, N_per_hwp=1
 ) -> NDArray:
     """
     Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
@@ -217,11 +220,14 @@ def polarization_calibration_triplediff(
             # derotate frame - necessary for crosstalk correction
             frame_derot = derotate_frame(frame, hdr["DEROTANG"])
             # get row vector for mueller matrix of each file
-            mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
+            if "MBI" in hdr:
+                mueller_mats = np.array([h[0] for h in mueller_matrix_from_header(hdr)])
+            else:
+                mueller_mats = mueller_matrix_from_header(hdr)[0]
             # store into dictionaries
-            key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
+            key = hdr["RET-ANG1"], hdr["U_FLC"], hdr["U_CAMERA"]
             frame_dict[key] = frame_derot
-            mm_dict[key] = mueller_mat
+            mm_dict[key] = mueller_mats
 
         I, Q, U = triple_diff_dict(frame_dict)
         _, mmQ, mmU = triple_diff_dict(mm_dict)
@@ -236,8 +242,104 @@ def polarization_calibration_triplediff(
         res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
 
         stokes_cube[0, i] = I
-        stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-2:])
-        stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-2:])
+        if "MBI" in hdr:
+            stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-3:])
+            stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-3:])
+        else:
+            stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-2:])
+            stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-2:])
+
+    headers = [fits.getheader(f) for f in filenames]
+    stokes_hdr = combine_frames_headers(headers)
+    # reduce exptime by 2 because cam1 and cam2 are simultaneous
+    stokes_hdr["EXPTIME"] /= 2
+
+    return write_stokes_products(stokes_cube, stokes_hdr, outname=outname, force=force)
+
+
+def polarization_calibration_doublediff(
+    filenames: Sequence[str], outname, force=False, N_per_hwp=1
+) -> NDArray:
+    """
+    Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
+
+    .. admonition:: Pupil-tracking mode
+        :class: tip
+
+        For each of these 16 image sets, it is important to consider the apparant sky rotation when in pupil-tracking mode (which is the default for most VAMPIRES observations). With this naive triple-differential subtraction, if there is significant sky motion, the output Stokes frame will be smeared.
+
+        The parallactic angles for each set of 16 frames should be averaged (``average_angle``) and stored to construct the final derotation angle vector
+
+    Parameters
+    ----------
+    filenames : Sequence[str]
+        list of input filenames to construct Stokes frames from
+
+    Raises
+    ------
+    ValueError:
+        If the input filenames are not a clean multiple of 16. To ensure you have proper 16 frame sets, use ``pol_inds`` with a sorted observation table.
+
+    Returns
+    -------
+    NDArray
+        (4, t, y, x) Stokes cube from all 16 frame sets.
+    """
+
+    # now do triple-differential calibration
+    # only load 8 files at a time to avoid running out of memory on large datasets
+    N_hwp_sets = len(filenames) // 8
+    with fits.open(filenames.iloc[0]) as hdus:
+        if "MBI" in hdus[0].header["OBS-MOD"]:
+            stokes_cube = np.zeros(
+                shape=(4, N_hwp_sets, *hdus[0].shape[-3:]), dtype=hdus[0].data.dtype
+            )
+        else:
+            stokes_cube = np.zeros(
+                shape=(4, N_hwp_sets, *hdus[0].shape[-2:]), dtype=hdus[0].data.dtype
+            )
+    iter = tqdm.trange(N_hwp_sets, desc="Double-differential calibration")
+    for i in iter:
+        # prepare input frames
+        ix = i * 8  # offset index
+        frame_dict = {}
+        mm_dict = {}
+        for file in filenames.iloc[ix : ix + 8]:
+            frame, hdr = fits.getdata(
+                file,
+                header=True,
+            )
+            # derotate frame - necessary for crosstalk correction
+            frame_derot = derotate_frame(frame, hdr["DEROTANG"])
+            # get row vector for mueller matrix of each file
+            if "MBI" in hdr:
+                mueller_mats = np.array([h[0] for h in mbi_mueller_matrix_from_header(hdr)])
+            else:
+                mueller_mats = mueller_matrix_from_header(hdr)[0]
+            # store into dictionaries
+            key = hdr["RET-ANG1"], hdr["U_CAMERA"]
+            frame_dict[key] = frame_derot
+            mm_dict[key] = mueller_mats
+
+        I, Q, U = double_diff_dict(frame_dict)
+        _, mmQ, mmU = double_diff_dict(mm_dict)
+
+        # correct IP
+        Q -= mmQ[0] * I
+        U -= mmU[0] * I
+
+        # correct cross-talk
+        Sarr = np.array((Q.ravel(), U.ravel()))
+        Marr = np.array((mmQ[1:3], mmU[1:3]))
+        res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
+
+        stokes_cube[0, i] = I
+        if "MBI" in hdr:
+            stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-3:])
+            stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-3:])
+        else:
+            stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-2:])
+            stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-2:])
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
@@ -292,6 +394,31 @@ def triple_diff_dict(input_dict):
     return I, Q, U
 
 
+def double_diff_dict(input_dict):
+    ## make difference images
+    # single diff (cams)
+    pQ = input_dict[(0, 1)] - input_dict[(0, 2)]
+    pIQ = input_dict[(0, 1)] + input_dict[(0, 2)]
+
+    mQ = input_dict[(45, 1)] - input_dict[(45, 2)]
+    mIQ = input_dict[(45, 1)] + input_dict[(45, 2)]
+
+    pU = input_dict[(22.5, 1)] - input_dict[(22.5, 2)]
+    pIU = input_dict[(22.5, 1)] + input_dict[(22.5, 2)]
+
+    mU = input_dict[(67.5, 1)] - input_dict[(67.5, 2)]
+    mIU = input_dict[(67.5, 1)] + input_dict[(67.5, 2)]
+
+    # triple difference (HWP1 - HWP2)
+    Q = 0.5 * (pQ - mQ)
+    IQ = 0.5 * (pIQ + mIQ)
+    U = 0.5 * (pU - mU)
+    IU = 0.5 * (pIU + mIU)
+    I = 0.5 * (IQ + IU)
+
+    return I, Q, U
+
+
 def triplediff_average_angles(filenames):
     if len(filenames) % 16 != 0:
         raise ValueError(
@@ -304,6 +431,22 @@ def triplediff_average_angles(filenames):
     for i in range(pas.shape[0]):
         ix = i * 16
         pas[i] = average_angle(derot_angles[ix : ix + 16])
+
+    return pas
+
+
+def doublediff_average_angles(filenames):
+    if len(filenames) % 8 != 0:
+        raise ValueError(
+            "Cannot do triple-differential calibration without exact sets of 8 frames for each HWP cycle"
+        )
+    # make sure we get data in correct order using FITS headers
+    derot_angles = np.asarray([fits.getval(f, "DEROTANG") for f in filenames])
+    N_hwp_sets = len(filenames) // 8
+    pas = np.zeros(N_hwp_sets, dtype="f4")
+    for i in range(pas.shape[0]):
+        ix = i * 8
+        pas[i] = average_angle(derot_angles[ix : ix + 8])
 
     return pas
 
@@ -335,6 +478,7 @@ def pol_inds(hwp_angs: ArrayLike, n=4, order="QQUU"):
     inds = []
     idx = 0
     while idx <= len(hwp_angs) - N_cycle:
+        # print(states[idx : idx + N_cycle])
         if np.all(states[idx : idx + N_cycle] == ang_list):
             inds.extend(range(idx, idx + N_cycle))
             idx += N_cycle
@@ -345,16 +489,26 @@ def pol_inds(hwp_angs: ArrayLike, n=4, order="QQUU"):
 
 
 def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:
-    stokes_cube = np.zeros_like(cube, shape=(mueller_matrices.shape[-1], *cube.shape[-2:]))
     # go pixel-by-pixel
-    for i in range(cube.shape[-2]):
-        for j in range(cube.shape[-1]):
-            stokes_cube[:, i, j] = np.linalg.lstsq(mueller_matrices, cube[:, i, j], rcond=None)[0]
-
+    if cube.ndims == 3:
+        stokes_cube = np.zeros_like(cube, shape=(mueller_matrices.shape[-1], *cube.shape[-2:]))
+        for i in range(cube.shape[-2]):
+            for j in range(cube.shape[-1]):
+                stokes_cube[:, i, j] = np.linalg.lstsq(mueller_matrices, cube[:, i, j], rcond=None)[
+                    0
+                ]
+    elif cube.ndims == 4:
+        stokes_cube = np.zeros_like(cube, shape=(mueller_matrices.shape[-1], *cube.shape[-3:]))
+        for w in range(cube.shape[-3]):
+            for i in range(cube.shape[-2]):
+                for j in range(cube.shape[-1]):
+                    stokes_cube[:, w, i, j] = np.linalg.lstsq(
+                        mueller_matrices[:, w], cube[:, w, i, j], rcond=None
+                    )[0]
     return stokes_cube[:3]
 
 
-def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=False):
+def polarization_calibration_leastsq(filenames, outname, force=False):
     path = Path(outname)
     if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
@@ -365,12 +519,15 @@ def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=Fa
     for file in tqdm.tqdm(filenames, desc="Least-squares calibration"):
         frame, hdr = fits.getdata(file, header=True)
         # rotate to N up E left
-        frame_derot = derotate_frame(frame, hdr["PARANG"])
+        frame_derot = derotate_frame(frame, hdr["DEROTANG"])
         # get row vector for mueller matrix of each file
-        mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
+        if "MBI" in hdr["OBS-MOD"].upper():
+            mueller_mats = [h[0] for h in mbi_mueller_matrix_from_header(hdr)]
+        else:
+            mueller_mats = mueller_matrix_from_header(hdr)[0]
         frames.append(frame_derot)
         headers.append(hdr)
-        mueller_mats.append(mueller_mat)
+        mueller_mats.append(mueller_mats)
 
     mueller_mat_cube = np.array(mueller_mats)
     cube = np.array(frames)

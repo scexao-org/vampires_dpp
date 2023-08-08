@@ -23,6 +23,7 @@ from vampires_dpp.image_processing import (
     collapse_frames_files,
     correct_distortion_cube,
 )
+from vampires_dpp.indexing import mbi_slices
 from vampires_dpp.util import get_paths, wrap_angle
 from vampires_dpp.wcs import apply_wcs, get_coord_header
 
@@ -122,8 +123,8 @@ def calibrate_file(
         params = distort_coeffs.loc[f"cam{header['U_CAMERA']:.0f}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
 
-    fits.writeto(outpath, cube, header=header, overwrite=True)
-    return outpath
+    # fits.writeto(outpath, cube, header=header, overwrite=True)
+    return cube, header
 
 
 def make_background_file(filename: str, force=False, **kwargs):
@@ -137,9 +138,10 @@ def make_background_file(filename: str, force=False, **kwargs):
     )
     master_background, header = collapse_cube(cube, header=header, **kwargs)
     header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
+    header["TINT"] = header["EXPTIME"]
     _, clean_background = detect_cosmics(
         master_background,
-        inbkg=header.get("BIAS", 200),
+        inbkg=np.full_like(master_background, header.get("BIAS", 200)),
         gain=header.get("GAIN", 0.11),
         readnoise=READNOISE[header["U_DETMOD"].lower()],
         satlevel=2**16 * header.get("GAIN", 0.11),
@@ -163,6 +165,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
         header=True,
     )
     header["CAL_TYPE"] = "FLATFIELD", "DPP calibration file type"
+    header["TINT"] = header["EXPTIME"]
     if back_filename is not None:
         back_path = Path(back_filename)
         header["DPP_BACK"] = (back_path.name, "DPP file used for background subtraction")
@@ -171,15 +174,19 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
         )
         cube = cube - master_back
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
-    np.full_like(master_flat, header.get("BIAS", 200))
-    _, clean_flat = detect_cosmics(
-        master_flat,
-        inbkg=header.get("BIAS", 200),
-        gain=header.get("GAIN", 0.11),
-        readnoise=READNOISE[header["U_DETMOD"].lower()],
-        satlevel=2**16 * header.get("GAIN", 0.11),
-    )
-    clean_flat /= np.nanmedian(clean_flat)
+    clean_flat = master_flat
+    # _, clean_flat = detect_cosmics(
+    #     master_flat,
+    #     gain=header.get("GAIN", 0.11),
+    #     readnoise=READNOISE[header["U_DETMOD"].lower()],
+    #     satlevel=2**16 * header.get("GAIN", 0.11),
+    # )
+    # for MBI images, normalize in each field
+    if "MBI" in header["OBS-MOD"].upper():
+        clean_flat = normalize_mbi_flats(clean_flat, header)
+    else:  # for normal images, normalize whole field
+        clean_flat /= np.nanmedian(clean_flat)
+    # for MBI images
 
     fits.writeto(
         outpath,
@@ -196,9 +203,17 @@ def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dic
         path = Path(filename)
         header = fits.getheader(path, ext=ext)
         sz = header["NAXIS1"], header["NAXIS2"]
-        key = (header["U_CAMERA"], header["EXPTIME"], sz, header["FILTER01"], header["FILTER02"])
+        exptime = np.round(header["EXPTIME"], decimals=5)
+        key = (
+            header["U_CAMERA"],
+            exptime,
+            sz,
+            header["FILTER01"],
+            header["FILTER02"],
+            header["U_FLDSTP"],
+        )
         if backgrounds:
-            key = key[:-2]
+            key = key[:-3]
         if key in file_dict:
             file_dict[key].append(path)
         else:
@@ -277,14 +292,13 @@ def make_master_flat(
     file_inputs = sort_calib_files(filenames)
     master_back_dict = {key: None for key in file_inputs.keys()}
     if master_backgrounds is not None:
-        back_inputs = sort_calib_files(master_backgrounds, backs=True)
+        back_inputs = sort_calib_files(master_backgrounds, backgrounds=True)
         for key in file_inputs.keys():
             # don't need to match filter for backs
             back_key = key[:-2]
             # input should be list with one file in it
             if back_key in back_inputs:
                 master_back_dict[key] = back_inputs[back_key][0]
-
     if output_directory is not None:
         outdir = Path(output_directory)
         outdir.mkdir(parents=True, exist_ok=True)
@@ -297,10 +311,10 @@ def make_master_flat(
     with mp.Pool(num_proc) as pool:
         jobs = []
         for key, filelist in file_inputs.items():
-            cam, exptime, sz, filt1, filt2 = key
+            cam, exptime, sz, filt1, filt2, fldstp = key
             outname = (
                 outdir
-                / f"{name}_{filt1}_{filt2}_{exptime*1e6:09.0f}us_{sz[0]:04d}x{sz[1]:04d}_cam{cam:.0f}.fits"
+                / f"{name}_{filt1}_{filt2}_{exptime*1e6:09.0f}us_{fldstp}_{sz[0]:04d}x{sz[1]:04d}_cam{cam:.0f}.fits"
             )
             outnames[key] = outname
             if not force and outname.is_file():
@@ -330,3 +344,29 @@ def make_master_flat(
         [job.get() for job in iter]
 
     return outnames
+
+
+def normalize_mbi_flats(frame, header, buffer=4000):
+    slices = mbi_slices(frame, header, window=400)
+    medvals = [np.nanmedian(frame[sl[0], sl[1]]) for sl in slices]
+    stdvals = [np.nanstd(frame[sl[0], sl[1]]) for sl in slices]
+    # normalize by pixel value thresholding
+    outframe = np.full_like(frame, np.nan)
+    leftframe = np.full_like(frame, np.nan)
+    # left half; 50px buffer for safety
+    leftinds = np.s_[:, 0 : outframe.shape[1] // 2 + 50]
+    leftframe[leftinds] = frame[leftinds]
+
+    rightframe = np.full_like(frame, np.nan)
+    rightinds = np.s_[:, outframe.shape[1] // 2 + 50 :]
+    rightframe[rightinds] = frame[rightinds]
+
+    # do left-side fields first
+    for med, std in zip(medvals[:-1], stdvals[:-1]):
+        pxs = np.abs(leftframe - med) < buffer
+        outframe[pxs] = frame[pxs] / med
+    # finally do 770 field
+    pxs = np.abs(rightframe - medvals[-1]) < buffer
+    outframe[pxs] = frame[pxs] / medvals[-1]
+
+    return outframe

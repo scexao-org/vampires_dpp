@@ -31,18 +31,25 @@ def safe_aperture_sum(frame, r, center=None, ann_rad=None):
 
 
 def analyze_frame(
-    frame, aper_rad, header=None, ann_rad=None, model="gaussian", recenter=True, **kwargs
+    frame,
+    aper_rad,
+    header=None,
+    ann_rad=None,
+    model="gaussian",
+    recenter=True,
+    header_key="",
+    **kwargs,
 ):
     ## fit PSF to center
     inds = cutout_slice(frame, **kwargs)
     model_fit = fit_model(frame, inds, model)
-    phot = safe_aperture_sum(frame, r=aper_rad, center=ctr, ann_rad=ann_rad)
 
     old_ctr = frame_center(frame)
     ctr = np.array((model_fit["y"], model_fit["x"]))
     if any(np.abs(old_ctr - ctr) > 10):
         ctr = old_ctr
 
+    phot = safe_aperture_sum(frame, r=aper_rad, center=ctr, ann_rad=ann_rad)
     ## use PSF centers to recenter
     if recenter:
         offsets = frame_center(frame) - ctr
@@ -50,12 +57,12 @@ def analyze_frame(
 
     # update header
     if header is not None:
-        header["MODEL"] = model, "PSF model name"
-        header["MOD_AMP"] = model_fit["amplitude"], "[adu] PSF model amplitude"
-        header["MOD_X"] = model_fit["x"], "[px] PSF model x"
-        header["MOD_Y"] = model_fit["y"], "[px] PSF model y"
-        header["PHOTFLUX"] = phot, "[adu] Aperture photometry flux"
-        header["PHOTRAD"] = aper_rad, "[px] Aperture photometry radius"
+        header[f"MODEL"] = model, "PSF model name"
+        header[f"MOD_AMP{header_key:1s}"] = model_fit["amplitude"], "[adu] PSF model amplitude"
+        header[f"MOD_X{header_key:1s}"] = model_fit["x"], "[px] PSF model x"
+        header[f"MOD_Y{header_key:1s}"] = model_fit["y"], "[px] PSF model y"
+        header[f"FLUX{header_key:1s}"] = phot, "[adu] Aperture photometry flux"
+        header[f"PHOTRAD{header_key:1s}"] = aper_rad, "[px] Aperture photometry radius"
 
     return frame, header
 
@@ -68,6 +75,7 @@ def analyze_satspots_frame(
     ann_rad=None,
     model="gaussian",
     recenter=True,
+    header_key="",
     **kwargs,
 ):
     ## subtract radial profile
@@ -93,36 +101,57 @@ def analyze_satspots_frame(
     ctr = np.array((ave_y, ave_x))
     if any(np.abs(old_ctr - ctr) > 10):
         ctr = old_ctr
+        ave_flux = 0
 
     ## use PSF centers to recenter
     if recenter:
-        offsets = frame_center(frame) - ctr
+        offsets = np.array(frame_center(frame)) - np.array(ctr)
         frame = shift_frame(frame, offsets)
 
     # update header
     if header is not None:
-        header["MODEL"] = model, "PSF model name"
-        header["MOD_AMP"] = ave_amp, "[adu] PSF model amplitude"
-        header["MOD_X"] = ave_x, "[px] PSF model x"
-        header["MOD_Y"] = ave_y, "[px] PSF model y"
-        header["PHOTFLUX"] = ave_flux, "[adu] Aperture photometry flux"
-        header["PHOTRAD"] = aper_rad, "[px] Aperture photometry radius"
+        header[f"MODEL"] = model, "PSF model name"
+        header[f"MOD_AMP{header_key:1s}"] = ave_amp, "[adu] PSF model amplitude"
+        header[f"MOD_X{header_key:1s}"] = ave_x, "[px] PSF model x"
+        header[f"MOD_Y{header_key:1s}"] = ave_y, "[px] PSF model y"
+        header[f"FLUX{header_key:1s}"] = ave_flux, "[adu] Aperture photometry flux"
+        header[f"PHOTRAD{header_key:1s}"] = aper_rad, "[px] Aperture photometry radius"
 
     return frame, header
 
 
-def analyze_file(filename, aper_rad, coronagraphic=False, force=False, **kwargs):
+def analyze_file(
+    frame, header, filename, aper_rad, radius, coronagraphic=False, force=False, **kwargs
+):
     path, outpath = get_paths(filename, suffix="analyzed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
-        return outpath
-
-    frame, header = fits.getdata(path, header=True)
-
-    if coronagraphic:
-        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["FILTER01"])
-        frame, header = analyze_satspots_frame(frame, aper_rad, header=header, **kwargs)
+        frame, header = fits.getdata(path, header=True)
+        return frame, header
+    if "MBI" in header["OBS-MOD"].upper():
+        for i, k in zip(range(frame.shape[0]), ("A", "B", "C", "D")):
+            if coronagraphic:
+                frame[i], header = analyze_satspots_frame(
+                    frame[i],
+                    aper_rad,
+                    header=header,
+                    header_key=k,
+                    radius=lamd_to_pixel(radius, header["FILTER01"]),
+                    **kwargs,
+                )
+            else:
+                frame[i], header = analyze_frame(
+                    frame[i], aper_rad, header=header, header_key=k, **kwargs
+                )
     else:
-        frame, header = analyze_frame(frame, aper_rad, header=header, **kwargs)
+        if coronagraphic:
+            frame, header = analyze_satspots_frame(
+                frame,
+                aper_rad,
+                header=header,
+                radius=lamd_to_pixel(radius, header["FILTER01"]),
+                **kwargs,
+            )
+        else:
+            frame, header = analyze_frame(frame, aper_rad, header=header, **kwargs)
 
-    fits.writeto(outpath, frame, header=header, overwrite=True)
-    return outpath
+    return frame, header

@@ -123,6 +123,8 @@ def sort_files(
 def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs) -> Path:
     path = Path(filename)
     header = fits.getheader(path, **kwargs)
+    if header["EXPTIME"] is None:
+        return None
 
     foldname = foldername_new(outdir, header)
 
@@ -137,7 +139,7 @@ def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs
 
 def foldername_new(outdir: PathLike, header: fits.Header):
     filt = f"{header['FILTER01']}_{header['FILTER02']}"
-    exptime = header["EXPTIME"] * 1e6  # us
+    exptime = np.round(header["EXPTIME"], decimals=5) * 1e6  # us
     sz = f"{header['NAXIS1']:04d}x{header['NAXIS2']:04d}"
     match header["DATA-TYP"]:
         case "OBJECT" | "TEST":

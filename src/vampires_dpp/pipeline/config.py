@@ -472,7 +472,7 @@ class AnalysisOptions(OutputDirectory):
     strehl: bool = False
     recenter: bool = True
     subtract_radprof: bool = True
-    window_size: int = field(default=40, skip_if_default=True)
+    window_size: int = field(default=30, skip_if_default=True)
     photometry: Optional[PhotometryOptions] = field(default=None, skip_if_default=True)
 
     def __post_init__(self):
@@ -554,8 +554,6 @@ class PolarimetryOptions(OutputDirectory):
         Instrumental polarization (IP) correction options, by default None.
     order : str
         HWP iteration order, one of `"QQUU"` or `"QUQU"`. By default `"QQUU"`.
-    adi_sync : bool
-        If true, will assume the HWP is in pupil-tracking mode. By default, True.
     output_directory : Optional[Path]
         The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.
     force : bool
@@ -580,7 +578,6 @@ class PolarimetryOptions(OutputDirectory):
     ip: Optional[IPOptions] = field(default=None, skip_if_default=True)
     N_per_hwp: int = field(default=1, skip_if_default=True)
     order: str = field(default="QQUU", skip_if_default=True)
-    adi_sync: bool = field(default=True, skip_if_default=True)
 
     def __post_init__(self):
         super().__post_init__()

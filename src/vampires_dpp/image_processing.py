@@ -14,7 +14,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.indexing import frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header, header_table
-from vampires_dpp.util import any_file_newer, get_paths
+from vampires_dpp.util import any_file_newer, average_angle, get_paths
 
 
 def shift_frame(data: ArrayLike, shift: list | Tuple, **kwargs) -> NDArray:
@@ -91,8 +91,15 @@ def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
         "borderValue": np.nan,
     }
     default_kwargs.update(**kwargs)
-    shape = (data.shape[1], data.shape[0])
-    return cv2.warpAffine(data.astype("f4"), matrix, shape, **default_kwargs)
+    shape = (data.shape[-1], data.shape[-2])
+    data = data.astype("f4")
+    out = np.empty_like(data)
+    if data.ndim == 2:
+        out = cv2.warpAffine(data, matrix, shape, **default_kwargs)
+    elif data.ndim == 3:
+        for i in range(out.shape[0]):
+            out[i] = cv2.warpAffine(data[i], matrix, shape, **default_kwargs)
+    return out
 
 
 def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArray:
@@ -140,8 +147,8 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs) -> NDArray:
         Shifted cube
     """
     out = np.empty_like(cube)
-    for i in range(cube.shape[0]):
-        out[i] = shift_frame(cube[i], shifts[i], **kwargs)
+    for idx in range(out.shape[0]):
+        out[idx] = shift_frame(cube[idx], shifts[idx], **kwargs)
     return out
 
 
@@ -274,6 +281,10 @@ def combine_frames_headers(headers, wcs=False):
 
     # sum exposure times
     output_header["TINT"] = table["TINT"].sum(), "[s] total exposure time"
+    output_header["DEROTANG"] = (
+        average_angle(table["DEROTANG"]),
+        "[deg] derotation angle for North up",
+    )
     # median PSF models
     if "MODEL" in table.keys():
         output_header["MOD_AMP"] = table["MOD_AMP"].mean(), "[adu] PSF model amplitude"
@@ -300,6 +311,14 @@ def combine_frames_headers(headers, wcs=False):
         Angle(ave_dec * u.rad).to_string(unit=u.deg, sep=":"),
         test_header.comments["DEC"],
     )
+    # these average angles are needed for PDI, so calculate them
+    ave_pa = average_angle(table["PA"])
+    output_header["PA"] = ave_pa, "[deg] average parallactic angle"
+    ave_alt = average_angle(table["ALTITUDE"])
+    output_header["ALTITUDE"] = ave_alt, "[deg] average altitude"
+    ave_imrang = average_angle(table["D_IMRANG"])
+    output_header["D_IMRANG"] = ave_imrang
+
     if wcs:
         # need to get average CRVALs and PCs
         output_header["CRVAL1"] = np.rad2deg(ave_ra)

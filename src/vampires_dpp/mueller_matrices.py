@@ -368,19 +368,34 @@ CAL_DICT = {
 }
 
 
-def mueller_matrix_from_header(header):
-    filt_dict = CAL_DICT["ideal"]
+def get_mueller_caldict(filt="ideal"):
+    match filt:
+        case _:
+            return CAL_DICT["ideal"]
+
+
+def mueller_matrix_from_header(header, filt=None):
+    filt_dict = get_mueller_caldict(filt)
     pa_theta = np.deg2rad(header["PA"])
     alt = np.deg2rad(header["ALTITUDE"])
-    hwp_theta = np.deg2rad(header["ROT-POS1"]) + filt_dict["hwp_offset"]
+    hwp_theta = np.deg2rad(header["RET-POS1"]) + filt_dict["hwp_offset"]
     imr_theta = np.deg2rad(header["D_IMRANG"]) + filt_dict["imr_offset"]
-    flc_ang = 0 if header["U_FLCSTT"] == 1 else -np.pi / 4
-    flc_theta = flc_ang + filt_dict["flc_offset"]
+    flc_MM = np.eye(4)
+    if header["U_FLC"]:
+        match header["U_FLC"].upper():
+            case "RELAXED":
+                flc_ang = 0
+            case "EXCITED":
+                flc_ang = np.pi / 4
+            case _:
+                flc_ang = 0
+        flc_theta = flc_ang + filt_dict["flc_offset"]
+        flc_MM = waveplate(-flc_theta, filt_dict["flc_delta"])
 
     M = np.linalg.multi_dot(
         (
             wollaston(header["U_CAMERA"] == 1),
-            waveplate(flc_theta, filt_dict["flc_delta"]),
+            flc_MM,
             generic(
                 filt_dict["optics_theta"], filt_dict["optics_diatt"], filt_dict["optics_delta"]
             ),
@@ -393,3 +408,8 @@ def mueller_matrix_from_header(header):
     )
 
     return M
+
+
+def mbi_mueller_matrix_from_header(header):
+    fields = reversed(f for f, _ in zip(("F770", "F720", "F670", "F620"), range(header["NAXIS3"])))
+    return [mueller_matrix_from_header(header, filt=f) for f in fields]

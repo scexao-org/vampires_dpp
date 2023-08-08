@@ -206,11 +206,17 @@ def flat(ctx, filenames, back, collapse, force):
         back = ctx.obj["outdir"]
     if back.is_dir():
         fits_files = (
-            list(back.rglob("*.fits.*")) + list(back.rglob("*.fts.*")) + list(back.rglob("*.fit.*"))
+            list(back.glob("[!._]*.fits"))
+            + list(back.glob("[!._]*.fts"))
+            + list(back.glob("[!._]*.fit"))
+            + list(back.glob("[!._]*.fits.fz"))
+            + list(back.glob("[!._].fts.fz"))
+            + list(back.glob("[!._]*.fit.fz"))
         )
         background_files.extend(
-            filter(lambda f: fits.getkey(f, "CAL_TYPE") == "BACKGROUND", fits_files)
+            filter(lambda f: fits.getval(f, "CAL_TYPE") == "BACKGROUND", fits_files)
         )
+
     make_master_flat(
         filenames,
         collapse=collapse,
@@ -218,6 +224,7 @@ def flat(ctx, filenames, back, collapse, force):
         output_directory=ctx.obj["outdir"],
         quiet=ctx.obj["quiet"],
         num_proc=ctx.obj["num_proc"],
+        master_backgrounds=background_files,
     )
 
 
@@ -396,7 +403,7 @@ def new_config(ctx, config, edit):
         cam2_path = None
         if template != "singlecam" or cam1_path is None:
             if cam1_path is not None:
-                cam2_default = cam1_path.replace("cam1", "cam2")
+                cam2_default = str(cam1_path).replace("cam1", "cam2")
                 cam2_path = click.prompt(
                     "Enter path to cam2 flat",
                     default=cam2_default,
@@ -533,7 +540,7 @@ def new_config(ctx, config, edit):
             )
 
         aper_rad = click.prompt("  Enter aperture radius (px)", type=float, default=10)
-        window_size = click.prompt("  Enter window size (px)", type=float, default=40)
+        window_size = click.prompt("  Enter window size (px)", type=float, default=30)
         if aper_rad > window_size / 2:
             aper_rad = window_size / 2
             click.echo(f"Reducing aperture radius to match window size ({aper_rad:.0f} px)")

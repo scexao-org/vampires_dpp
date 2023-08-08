@@ -1,7 +1,12 @@
 import numpy as np
 from astropy.io import fits
 
-from vampires_dpp.indexing import cutout_slice, lamd_to_pixel, window_slices
+from vampires_dpp.indexing import (
+    cutout_slice,
+    lamd_to_pixel,
+    mbi_centers,
+    window_slices,
+)
 from vampires_dpp.util import get_paths
 
 
@@ -42,6 +47,8 @@ def measure_satellite_spot_metrics(cube, metric="l2norm", **kwargs):
 
 
 def measure_metric_file(
+    cube,
+    header,
     filename,
     metric="l2norm",
     coronagraphic=False,
@@ -53,15 +60,30 @@ def measure_metric_file(
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
-    cube, header = fits.getdata(
-        path,
-        header=True,
-    )
     if coronagraphic:
-        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["FILTER01"])
-        metrics = measure_satellite_spot_metrics(cube, metric=metric, **kwargs)
+        base_rad = kwargs.pop("radius")
+
+    if "MBI" in header["OBS-MOD"]:
+        ctrs = mbi_centers(header["OBS-MOD"], header["U_CAMERA"], flip=True)
+        metrics = []
+        if coronagraphic:
+            for field, ctr in zip(("F770", "F720", "F670", "F620"), reversed(ctrs)):
+                radius = lamd_to_pixel(base_rad, field)
+                kwargs["center"] = ctr
+                metrics.append(
+                    measure_satellite_spot_metrics(cube, metric=metric, radius=radius, **kwargs)
+                )
+        else:
+            for field, ctr in zip(("F770", "F720", "F670", "F620"), reversed(ctrs)):
+                radius = lamd_to_pixel(base_rad, field)
+                kwargs["center"] = ctr
+                metrics.append(measure_metric(cube, metric=metric, radius=radius, **kwargs))
     else:
-        metrics = measure_metric(cube, metric=metric, **kwargs)
+        if coronagraphic:
+            radius = lamd_to_pixel(base_rad, header["FILTER01"])
+            metrics = measure_satellite_spot_metrics(cube, metric=metric, **kwargs)
+        else:
+            metrics = measure_metric(cube, metric=metric, **kwargs)
 
     np.savetxt(outpath, metrics, delimiter=",")
     return outpath
@@ -77,8 +99,10 @@ def frame_select_cube(cube, metrics, q=0, header=None, **kwargs):
 
 
 def frame_select_file(
-    filename,
+    cube,
+    header,
     metric_file,
+    filename,
     force=False,
     **kwargs,
 ):
@@ -87,11 +111,8 @@ def frame_select_file(
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
-    cube, header = fits.getdata(
-        path,
-        header=True,
-    )
-    metrics = np.loadtxt(metric_file, delimiter=",")
+    metrics = np.atleast_2d(np.loadtxt(metric_file, delimiter=","))
+    metrics = np.median(metrics, axis=0)
     selected, header = frame_select_cube(cube, metrics, header=header, **kwargs)
 
     fits.writeto(outpath, selected, header=header, overwrite=True)

@@ -14,6 +14,7 @@ from vampires_dpp.indexing import (
     cutout_slice,
     frame_center,
     lamd_to_pixel,
+    mbi_centers,
     window_slices,
 )
 from vampires_dpp.psf_models import fit_model
@@ -176,28 +177,47 @@ def offset_modelfit(frame, inds, model, **kwargs):
     return ctr
 
 
-def measure_offsets_file(filename, method="peak", coronagraphic=False, force=False, **kwargs):
+def measure_offsets_file(
+    cube, header, filename, method="peak", coronagraphic=False, force=False, **kwargs
+):
     path, outpath = get_paths(filename, suffix="offsets", filetype=".csv", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    cube, header = fits.getdata(
-        path,
-        header=True,
-    )
     if "DPP_REF" in header:
         refidx = header["DPP_REF"]
     else:
         refidx = np.nanargmax(np.nanmax(cube, axis=(-2, -1)))
-    if coronagraphic:
-        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["FILTER01"])
-        offsets = satellite_spot_offsets(cube, method=method, refidx=refidx, **kwargs)
+    if "MBI" in header["OBS-MOD"]:
+        ctrs = mbi_centers(header["OBS-MOD"], header["U_CAMERA"], flip=True)
+        offsets = []
+        base_rad = kwargs.pop("radius")
+        if coronagraphic:
+            for field, ctr in zip(("F770", "F720", "F670", "F620"), ctrs[::-1]):
+                radius = lamd_to_pixel(base_rad, field)
+                kwargs["center"] = ctr
+                offsets.append(
+                    satellite_spot_offsets(
+                        cube, method=method, refidx=refidx, radius=radius, **kwargs
+                    )
+                )
+        else:
+            for field, ctr in zip(("F770", "F720", "F670", "F620"), ctrs[::-1]):
+                kwargs["center"] = ctr
+                offsets.append(psf_offsets(cube, method=method, refidx=refidx, **kwargs))
+        # flatten offsets
+        # this puts them in (y1, x1, y2, x2, y3, x3, ...) order
+        offsets = np.swapaxes(offsets, 0, 1)
     else:
-        offsets = psf_offsets(cube, method=method, refidx=refidx, **kwargs)
+        if coronagraphic:
+            kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["FILTER01"])
+            offsets = satellite_spot_offsets(cube, method=method, refidx=refidx, **kwargs)
+        else:
+            offsets = psf_offsets(cube, method=method, refidx=refidx, **kwargs)
 
-    # flatten offsets
-    # this puts them in (y1, x1, y2, x2, y3, x3, ...) order
+        # flatten offsets
+        # this puts them in (y1, x1, y2, x2, y3, x3, ...) order
+
     offsets_flat = offsets.reshape(len(offsets), -1)
-
     np.savetxt(outpath, offsets_flat, delimiter=",")
     return outpath
 
@@ -210,7 +230,28 @@ def register_cube(cube, offsets, header=None, **kwargs):
     return shifted, header
 
 
-def register_file(filename, offset_file, force=False, **kwargs):
+def register_mbi_cube(cube, offsets, header=None, **kwargs):
+    # reshape offsets into a single average
+    stack = []
+    cube = np.atleast_3d(cube)
+    offsets = np.atleast_3d(offsets)
+    for i in range(offsets.shape[1]):
+        offs = offsets[:, i]
+        mean_offsets = np.mean(offs.reshape(len(offs), -1, 2), axis=1)
+        shifted = shift_cube(cube, -mean_offsets)
+        stack.append(shifted)
+
+    stack = np.swapaxes(stack, 0, 1)
+    ## crop
+    crop_size = 500
+    rad_factor = (np.sqrt(2) - 1) * crop_size / 2
+    window = np.ceil(rad_factor + 1) + crop_size
+    cropinds = cutout_slice(stack, window=window)
+    stack = np.flip(stack[..., cropinds[0], cropinds[1]], axis=1)
+    return stack, header
+
+
+def register_file(cube, header, offset_file, filename, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="aligned", **kwargs)
 
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
@@ -221,7 +262,11 @@ def register_file(filename, offset_file, force=False, **kwargs):
         header=True,
     )
     offsets = np.loadtxt(offset_file, delimiter=",")
-    shifted, header = register_cube(cube, offsets, header=header, **kwargs)
+    if offsets.shape[1] > 8:
+        offsets = offsets.reshape(offsets.shape[0], -1, 8)
+        shifted, header = register_mbi_cube(cube, offsets, header=header, **kwargs)
+    else:
+        shifted, header = register_cube(cube, offsets, header=header, **kwargs)
 
     fits.writeto(outpath, shifted, header=header, overwrite=True)
     return outpath
@@ -239,21 +284,18 @@ def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
 
 
 def lucky_image_file(
-    filename, metric_file=None, offsets_file=None, force: bool = False, q=0, **kwargs
+    cube, header, filename, metric_file=None, offsets_file=None, force: bool = False, q=0, **kwargs
 ) -> Path:
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
-        return outpath
-
-    cube, header = fits.getdata(
-        path,
-        header=True,
-    )
+        frame, header = fits.getdata(path, header=True)
+        return frame, header
     cube = np.atleast_3d(cube)
     ## Step 1: Frame select
     mask = np.ones(cube.shape[0], dtype=bool)
     if metric_file is not None:
-        metrics = np.loadtxt(metric_file, delimiter=",")
+        metrics = np.atleast_2d(np.loadtxt(metric_file, delimiter=","))
+        metrics = np.median(metrics, axis=0)
         cube, header = frame_select_cube(cube, metrics, header=header, q=q, **kwargs)
         mask &= metrics >= np.quantile(metrics, q)
 
@@ -262,15 +304,27 @@ def lucky_image_file(
         offsets = np.atleast_2d(np.loadtxt(offsets_file, delimiter=","))
         # mask offsets with selected metrics
         offsets_masked = offsets[mask]
-        # determine maximum padding, with sqrt(2)
-        # for radial coverage
-        rad_factor = (np.sqrt(2) - 1) * np.max(cube.shape[-2:]) / 2
-        npad = np.ceil(rad_factor + 1)
-        cube_padded, header = pad_cube(cube, int(npad), header=header)
-        cube, header = register_cube(cube_padded, offsets_masked, header=header, **kwargs)
+        if "MBI" in header["OBS-MOD"].upper():
+            offsets_masked = offsets_masked.reshape(offsets_masked.shape[0], 4, -1)
+            cube, header = register_mbi_cube(cube, offsets_masked, header=header, **kwargs)
+        else:
+            # determine maximum padding, with sqrt(2)
+            # for radial coverage
+            rad_factor = (np.sqrt(2) - 1) * np.max(cube.shape[-2:]) / 2
+            npad = np.ceil(rad_factor + 1)
+            cube_padded, header = pad_cube(cube, int(npad), header=header)
+            cube, header = register_cube(cube_padded, offsets_masked, header=header, **kwargs)
+    elif "MBI" in header["OBS-MOD"].upper():
+        # need to align MBI into cuts
+        ctrs = mbi_centers(header["OBS-MOD"], header["U_CAMERA"], flip=True)
+        fctr = frame_center(cube)
+
+        offs = np.array([np.array(ctr) - np.array(fctr) for ctr in ctrs])
+        offs = np.tile(offs, (len(cube), 1, 1))
+        cube, header = register_mbi_cube(cube, offs, header=header, **kwargs)
 
     ## Step 3: Collapse
     frame, header = collapse_cube(cube, header=header, **kwargs)
-
-    fits.writeto(outpath, frame, header=header, overwrite=True)
-    return outpath
+    return frame, header
+    # fits.writeto(outpath, frame, header=header, overwrite=True)
+    # return outpath
