@@ -104,6 +104,8 @@ class Pipeline(PipelineOptions):
         ## diff images
         if self.diff is not None:
             self.make_diff_images(force=tripwire)
+        if self.products is not None:
+            self.save_sdi_products(force=tripwire)
         ## polarimetry
         if self.polarimetry:
             # self.console.print("Doing PDI")
@@ -405,6 +407,42 @@ class Pipeline(PipelineOptions):
             print(f"Saved ADI cube (cam2) to: {self.cam2_cube_path}")
             print(f"Saved derotation angles (cam2) to: {self.cam2_angles_path}")
 
+    def save_sdi_products(self, force: bool = False):
+        # preset values
+        sdi_frames = []
+        derot_angs = []
+        headers = []
+        for filename in self.diff_files:
+            frames, hdr = fits.getdata(filename, header=True)
+            diff_frame, summ_frame = frames
+            sdi_frames.append(diff_frame)
+            headers.append(hdr)
+            if hdr["U_PLSTIT"] == 2:
+                # mask state 2: Cont / Halpha
+                diff_frame *= -1
+            sdi_frames.append(diff_frame)
+            derot_angs.append(hdr["PARANG"])
+
+        output_header_cube = combine_frames_headers(headers)
+        sdi_frames = np.array(sdi_frames).astype("f4")
+
+        outname = self.products.output_directory / f"{self.name}_sdi_cube.fits"
+        outname_angles = self.products.output_directory / f"{self.name}_sdi_angles.fits"
+        outname_frame = self.products.output_directory / f"{self.name}_sdi_frame.fits"
+
+        fits.writeto(outname, sdi_frames, overwrite=True, header=output_header_cube)
+        fits.writeto(
+            outname_angles,
+            np.array(derot_angs).astype("f4"),
+            overwrite=True,
+        )
+        print(f"Saved SDI cube to: {outname}")
+        print(f"Saved SDI derotation angles to: {outname_angles}")
+
+        collapsed_frame, frame_header = collapse_frames(sdi_frames, headers=headers)
+        fits.writeto(outname_frame, collapsed_frame, header=frame_header, overwrite=True)
+        print(f"Saved collapsed SDI frame to: {outname_frame}")
+
     def make_diff_images(self, force=False):
         self.logger.info("Making difference frames")
         if self.diff.output_directory is not None:
@@ -413,21 +451,14 @@ class Pipeline(PipelineOptions):
         self.logger.debug(f"saving difference images to {outdir.absolute()}")
         force |= self.diff.force
         # table should still be sorted by MJD
-        groups = self.output_table.groupby("MJD")
-        # filter groups without full camera/FLC states
-        filesets = []
+        groups = self.output_table.groupby(["MJD", "U_CAMERA"])
         cam1_paths = []
         cam2_paths = []
-        for _, group in groups:
-            fileset = FileSet(group["path"])
-            if len(group) == 4:
-                filesets.append(fileset)
-                for flc in (1, 2):
-                    cam1_paths.append(fileset.paths[(1, flc)])
-                    cam2_paths.append(fileset.paths[(2, flc)])
-                continue
-            miss = set([(1, 1), (1, 2), (2, 1), (2, 2)]) - set(fileset.keys)
-            self.logger.warn(f"Discarding group for missing {miss} camera, FLC state pairs")
+        for key, group in groups:
+            if key[1] == 1:
+                cam1_paths.append(group["path"].iloc[0])
+            elif key[1] == 2:
+                cam2_paths.append(group["path"].iloc[0])
 
         with mp.Pool(self.num_proc) as pool:
             jobs = []

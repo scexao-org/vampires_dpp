@@ -102,6 +102,8 @@ def fix_header(header):
         header["RETPLAT1"] = "HWP(NIR)", "Identifier of first retarder plate"
     if "U_FLCSTT" in header:
         header["U_FLCANG"] = 0 if header["U_FLCSTT"] == 0 else 45, "[deg] VAMPIRES FLC angle"
+    else:
+        header["U_FLCSTT"] = -1, "VAMPIRES FLC state"
 
     header["EXPTIME"] = header["U_AQTINT"] / 1e6, "[s] exposure time"
     header["TINT"] = header["U_AQTINT"] * header["NAXIS3"] / 1e6, "[s] total integration time"
