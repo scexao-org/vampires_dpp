@@ -36,12 +36,13 @@ def analyze_frame(
     ## fit PSF to center
     inds = cutout_slice(frame, **kwargs)
     model_fit = fit_model(frame, inds, model)
-    phot = safe_aperture_sum(frame, r=aper_rad, center=ctr, ann_rad=ann_rad)
 
     old_ctr = frame_center(frame)
     ctr = np.array((model_fit["y"], model_fit["x"]))
     if any(np.abs(old_ctr - ctr) > 10):
         ctr = old_ctr
+
+    phot = safe_aperture_sum(frame, r=aper_rad, center=ctr, ann_rad=ann_rad)
 
     ## use PSF centers to recenter
     if recenter:
