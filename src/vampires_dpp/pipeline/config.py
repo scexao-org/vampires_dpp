@@ -540,7 +540,7 @@ class AnalysisOptions(OutputDirectory):
     model: str = "gaussian"
     strehl: bool = False
     recenter: bool = True
-    subtract_radprof: bool = True
+    subtract_radprof: bool = False
     window_size: int = field(default=40, skip_if_default=True)
     photometry: Optional[PhotometryOptions] = field(default=None, skip_if_default=True)
 
@@ -565,6 +565,8 @@ class IPOptions:
 
     There are three main IP correction techniques
 
+    * Calibrated correction using Mueller calculus
+        In each HWP cycle a combined Mueller matrix is used to correct the instrument polarization and crosstalk.
     * Ad-hoc correction using PSF photometry
         In each diff image, the partial polarization of the central PSF is measured and removed, presuming there should be no polarized stellar signal. In coronagraphic data, this uses the light penetrating the partially transmissive focal plane masks (~0.06%).
     * Ad-hoc correction using PSF photometry of calibration speckles (satellite spots)
@@ -613,12 +615,14 @@ class PolarimetryOptions(OutputDirectory):
 
         If using the `difference` method, a cube of Stokes frames for each HWP set and a derotated and collapsed Stokes frame will be saved in the products directory with the suffixes `_stokes_cube` and `_stokes_cube_collapsed`, respectively.
 
-        If using the `mueller` method, a Stokes frame will be saved in the products directory with the suffix `_stokes_frame`.
+        If using the `leastsq` method, a Stokes frame will be saved in the products directory with the suffix `_stokes_frame`.
 
     Parameters
     ----------
     method: Optional[str]
         Determines the polarization calibration method, either the double/triple-difference method (`difference`) or using the inverse least-squares solution from Mueller calculus (`leastsq`). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.
+    mm_correct : bool
+        Apply Mueller-matrix correction (only applicable to data reduced using the `"difference"` method). By default, True.
     ip : Optional[IPOptions]
         Instrumental polarization (IP) correction options, by default None.
     order : str
@@ -646,6 +650,7 @@ class PolarimetryOptions(OutputDirectory):
     """
 
     method: str = "difference"
+    mm_correct: bool = True
     ip: Optional[IPOptions] = field(default=None, skip_if_default=True)
     N_per_hwp: int = field(default=1, skip_if_default=True)
     order: str = field(default="QQUU", skip_if_default=True)

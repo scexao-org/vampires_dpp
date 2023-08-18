@@ -499,6 +499,7 @@ class Pipeline(PipelineOptions):
                 N_per_hwp=config.N_per_hwp,
                 order=config.order,
                 adi_sync=config.adi_sync,
+                mm_correct=config.mm_correct,
             )
         elif config.method == "leastsq":
             self.polarimetry_leastsq(force=tripwire, adi_sync=config.adi_sync)

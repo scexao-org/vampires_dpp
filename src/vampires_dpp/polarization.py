@@ -167,7 +167,7 @@ def collapse_stokes_cube(stokes_cube, header=None):
 
 
 def polarization_calibration_triplediff(
-    filenames: Sequence[str], outname, force=False, N_per_hwp=1, adi_sync=True
+    filenames: Sequence[str], outname, force=False, N_per_hwp=1, adi_sync=True, mm_correct=True
 ) -> NDArray:
     """
     Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
@@ -224,20 +224,23 @@ def polarization_calibration_triplediff(
             mm_dict[key] = mueller_mat
 
         I, Q, U = triple_diff_dict(frame_dict)
-        _, mmQ, mmU = triple_diff_dict(mm_dict)
+        if mm_correct:
+            _, mmQ, mmU = triple_diff_dict(mm_dict)
 
-        # correct IP
-        Q -= mmQ[0] * I
-        U -= mmU[0] * I
+            # correct IP
+            Q -= mmQ[0] * I
+            U -= mmU[0] * I
 
-        # correct cross-talk
-        Sarr = np.array((Q.ravel(), U.ravel()))
-        Marr = np.array((mmQ[1:3], mmU[1:3]))
-        res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
+            # correct cross-talk
+            Sarr = np.array((Q.ravel(), U.ravel()))
+            Marr = np.array((mmQ[1:3], mmU[1:3]))
+            res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
+            Q = res[0].reshape(*stokes_cube.shape[-2:])
+            U = res[1].reshape(*stokes_cube.shape[-2:])
 
         stokes_cube[0, i] = I
-        stokes_cube[1, i] = res[0].reshape(*stokes_cube.shape[-2:])
-        stokes_cube[2, i] = res[1].reshape(*stokes_cube.shape[-2:])
+        stokes_cube[1, i] = Q
+        stokes_cube[2, i] = U
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)

@@ -540,15 +540,13 @@ def new_config(ctx, config, edit):
 
     if click.confirm("Would you like to do PSF analysis?", default=tpl.analysis is not None):
         model = click.prompt(
-            "Choose a PSF model",
+            "  Choose a PSF model",
             type=click.Choice(["gaussian", "moffat", "airydisk"]),
             default="gaussian",
         )
-        subtract_radprof = False
-        if tpl.coronagraph is not None:
-            subtract_radprof = click.confirm(
-                "Would you like to subtract a radial profile?", default=True
-            )
+        subtract_radprof = click.confirm(
+            "  Would you like to subtract a radial profile?", default=tpl.coronagraph is not None
+        )
 
         aper_rad = click.prompt("  Enter aperture radius (px)", type=float, default=10)
         window_size = click.prompt("  Enter window size (px)", type=float, default=40)
@@ -558,7 +556,7 @@ def new_config(ctx, config, edit):
         ann_rad = None
         if click.confirm("  Would you like to subtract background annulus?", default=False):
             resp = click.prompt(
-                "Enter comma-separated inner and outer radius (px)",
+                "  Enter comma-separated inner and outer radius (px)",
                 default=f"{aper_rad+5}, {aper_rad+10}",
             )
             ann_rad = list(_parse_cam_center(resp))
@@ -600,7 +598,11 @@ def new_config(ctx, config, edit):
             default="difference",
         )
         readline.set_completer()
-
+        if tpl.polarimetry.method == "difference":
+            tpl.polarimetry.mm_correct = click.confirm(
+                "  Would you like to to Mueller-matrix correction?",
+                default=True,
+            )
         ip_touchup = click.confirm(
             "  Would you like to do IP touchup?", default=tpl.polarimetry.ip is not None
         )
