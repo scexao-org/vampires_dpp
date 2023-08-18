@@ -57,6 +57,8 @@ def analyze_frame(
         header["MOD_Y"] = model_fit["y"], "[px] PSF model y"
         header["PHOTFLUX"] = phot, "[adu] Aperture photometry flux"
         header["PHOTRAD"] = aper_rad, "[px] Aperture photometry radius"
+        header["MEDFLUX"] = np.nanmedian(frame), "[adu] Median frame flux"
+        header["SUMFLUX"] = np.nansum(frame), "[adu] Total frame flux"
 
     return frame, header
 
