@@ -8,7 +8,7 @@ from astroquery.vizier import Vizier
 from vampires_dpp.constants import PIXEL_SCALE, SUBARU_LOC
 
 
-def apply_wcs(header, pxscale=PIXEL_SCALE, parang=0):
+def apply_wcs(header, pxscale=PIXEL_SCALE, angle=0):
     nx = header["NAXIS1"]
     ny = header["NAXIS2"]
 
@@ -21,7 +21,7 @@ def apply_wcs(header, pxscale=PIXEL_SCALE, parang=0):
     w.wcs.cunit = ["deg", "deg"]
     w.wcs.cdelt = [-pxscale / 3.6e6, pxscale / 3.6e6]
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-    ang = np.deg2rad(-parang)
+    ang = np.deg2rad(-angle)
     cosang = np.cos(ang)
     sinang = np.sin(ang)
     w.wcs.pc = [[cosang, -sinang], [sinang, cosang]]
