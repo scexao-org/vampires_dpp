@@ -215,7 +215,7 @@ def polarization_calibration_triplediff(
                 header=True,
             )
             # derotate frame - necessary for crosstalk correction
-            frame_derot = derotate_frame(frame, hdr["PARANG"])
+            frame_derot = derotate_frame(frame, hdr["DEROTANG"])
             # get row vector for mueller matrix of each file
             mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
             # store into dictionaries
@@ -298,7 +298,7 @@ def triplediff_average_angles(filenames):
             "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
         )
     # make sure we get data in correct order using FITS headers
-    derot_angles = np.asarray([fits.getval(f, "PARANG") for f in filenames])
+    derot_angles = np.asarray([fits.getval(f, "DEROTANG") for f in filenames])
     N_hwp_sets = len(filenames) // 16
     pas = np.zeros(N_hwp_sets, dtype="f4")
     for i in range(pas.shape[0]):
@@ -365,7 +365,7 @@ def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=Fa
     for file in tqdm.tqdm(filenames, desc="Least-squares calibration"):
         frame, hdr = fits.getdata(file, header=True)
         # rotate to N up E left
-        frame_derot = derotate_frame(frame, hdr["PARANG"])
+        frame_derot = derotate_frame(frame, hdr["DEROTANG"])
         # get row vector for mueller matrix of each file
         mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
         frames.append(frame_derot)

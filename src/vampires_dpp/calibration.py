@@ -87,9 +87,9 @@ def calibrate_file(
     header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
     pa = parallactic_angle(time, coord_now)
     header["PA"] = pa, "[deg] parallactic angle of target"
-    parang = wrap_angle(pa + PA_OFFSET)
-    header["PARANG"] = parang, "[deg] derotation angle for North up"
-    header = apply_wcs(header, parang=parang)
+    derotang = wrap_angle(pa + PA_OFFSET)
+    header["DEROTANG"] = derotang, "[deg] derotation angle for North up"
+    header = apply_wcs(header, angle=derotang)
 
     # Discard frames in OG VAMPIRES
     if "U_FLCSTT" in header:
