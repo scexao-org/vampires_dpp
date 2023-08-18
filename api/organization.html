@@ -36,9 +36,9 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=778c84bf"></script>
+    <script src="../_static/documentation_options.js?v=5e211cb2"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -329,11 +329,11 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.organization">
-<span id="organization"></span><h1>Organization<a class="headerlink" href="#module-vampires_dpp.organization" title="Permalink to this heading">#</a></h1>
-<dl class="py function">
+  <section class="tex2jax_ignore mathjax_ignore" id="organization">
+<h1>Organization<a class="headerlink" href="#organization" title="Link to this heading">#</a></h1>
+<dl class="py function" id="module-vampires_dpp.organization">
 <dt class="sig sig-object py" id="vampires_dpp.organization.check_file">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">check_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.check_file" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">check_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.check_file" title="Link to this definition">#</a></dt>
 <dd><p>Checks if file can be loaded and if there are empty slices</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -350,7 +350,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.organization.dict_from_header">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header" title="Link to this definition">#</a></dt>
 <dd><p>Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like <code class="docutils literal notranslate"><span class="pre">COMMENTS</span></code> and <code class="docutils literal notranslate"><span class="pre">HISTORY</span></code> will be combined with commas. The resolved path will be inserted with the <code class="docutils literal notranslate"><span class="pre">path</span></code> key.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -364,7 +364,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.organization.dict_from_header_file">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header_file" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header_file" title="Link to this definition">#</a></dt>
 <dd><p>Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like <code class="docutils literal notranslate"><span class="pre">COMMENTS</span></code> and <code class="docutils literal notranslate"><span class="pre">HISTORY</span></code> will be combined with commas. The resolved path will be inserted with the <code class="docutils literal notranslate"><span class="pre">path</span></code> key.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -381,7 +381,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.organization.header_table">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">header_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.header_table" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">header_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.header_table" title="Link to this definition">#</a></dt>
 <dd><p>Generate a pandas dataframe from the FITS headers parsed from the given files.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -397,12 +397,12 @@ document.write(`
 </dl>
 </dd></dl>
 
-<span class="target" id="module-vampires_dpp.headers"></span><dl class="py function">
+<dl class="py function" id="module-vampires_dpp.headers">
 <dt class="sig sig-object py" id="vampires_dpp.headers.fix_header_file">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_header_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_header_file" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_header_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_header_file" title="Link to this definition">#</a></dt>
 <dd><p>Apply fixes to headers based on known bugs</p>
 <section id="fixes">
-<h2>Fixes<a class="headerlink" href="#fixes" title="Permalink to this heading">#</a></h2>
+<h2>Fixes<a class="headerlink" href="#fixes" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
 <li><dl class="simple">
 <dt>“backpack” header (should be fixed as of 2020??)</dt><dd><ul class="simple">
@@ -461,7 +461,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.headers.fix_typical_time_iso">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_iso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_iso" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_iso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_iso" title="Link to this definition">#</a></dt>
 <dd><p>Return the middle point of the exposure for ISO-based timestamps</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -481,7 +481,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.headers.fix_typical_time_mjd">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_mjd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_mjd" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_mjd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_mjd" title="Link to this definition">#</a></dt>
 <dd><p>Return the middle point of the exposure for MJD timestamps</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -498,7 +498,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_altaz">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_altaz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">az</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.825504000000002</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_altaz" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_altaz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">az</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.825504000000002</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_altaz" title="Link to this definition">#</a></dt>
 <dd><p>Calculate parallactic angle using the altitude/elevation and azimuth directly</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -519,7 +519,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_hadec">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_hadec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.825504000000002</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_hadec" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_hadec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.825504000000002</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_hadec" title="Link to this definition">#</a></dt>
 <dd><p>Calculate parallactic angle using the hour-angle and declination directly</p>
 <div class="math notranslate nohighlight">
 \[\theta_\mathrm{PA} = \arctan2{\frac{\sin\theta_\mathrm{HA}}{\tan\theta_\mathrm{lat}\cos\delta - \sin\delta \cos\theta_\mathrm{HA}}}\]</div>

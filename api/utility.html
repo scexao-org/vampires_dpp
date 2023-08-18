@@ -36,9 +36,9 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=778c84bf"></script>
+    <script src="../_static/documentation_options.js?v=5e211cb2"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/utility';</script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -330,11 +330,11 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.constants">
-<span id="utility"></span><h1>Utility<a class="headerlink" href="#module-vampires_dpp.constants" title="Permalink to this heading">#</a></h1>
-<span class="target" id="module-vampires_dpp.indexing"></span><dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.indexing.cutout_slice">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">cutout_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.cutout_slice" title="Permalink to this definition">#</a></dt>
+  <section class="tex2jax_ignore mathjax_ignore" id="utility">
+<h1>Utility<a class="headerlink" href="#utility" title="Link to this heading">#</a></h1>
+<dl class="py function" id="module-vampires_dpp.indexing">
+<span id="module-vampires_dpp.constants"></span><dt class="sig sig-object py" id="vampires_dpp.indexing.cutout_slice">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">cutout_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.cutout_slice" title="Link to this definition">#</a></dt>
 <dd><p>Get the index slices for a window with size <cite>window</cite> at <cite>center</cite>, clipped to the boundaries of <cite>frame</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -355,7 +355,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.indexing.frame_angles">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">frame_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.frame_angles" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">frame_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'image'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.frame_angles" title="Link to this definition">#</a></dt>
 <dd><p>Return the angles of pixels around <code class="docutils literal notranslate"><span class="pre">center</span></code> in the image</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -376,7 +376,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.indexing.frame_center">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">frame_center</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.frame_center" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">frame_center</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.frame_center" title="Link to this definition">#</a></dt>
 <dd><p>Find the center of the frame or cube in pixel coordinates</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -393,7 +393,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.indexing.frame_radii">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">frame_radii</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.frame_radii" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">frame_radii</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.frame_radii" title="Link to this definition">#</a></dt>
 <dd><p>Return the radii of pixels around <code class="docutils literal notranslate"><span class="pre">center</span></code> in the image</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -413,7 +413,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.indexing.window_centers">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">window_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">84.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.window_centers" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">window_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">84.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.window_centers" title="Link to this definition">#</a></dt>
 <dd><p>Get the centers (y, x) for each point <cite>radius</cite> away from <cite>center</cite> along <cite>n</cite> branches starting <cite>theta</cite> degrees CCW from the x-axis</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -435,7 +435,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.indexing.window_indices">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">window_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.window_indices" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">window_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.window_indices" title="Link to this definition">#</a></dt>
 <dd><p>Get the linear indices for each satellite spot</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -457,7 +457,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.indexing.window_slices">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">window_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.window_slices" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">window_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.window_slices" title="Link to this definition">#</a></dt>
 <dd><p>Get the linear indices for each satellite spot</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -477,9 +477,9 @@ document.write(`
 </dl>
 </dd></dl>
 
-<span class="target" id="module-vampires_dpp.util"></span><dl class="py class">
+<dl class="py class" id="module-vampires_dpp.util">
 <dt class="sig sig-object py" id="vampires_dpp.util.FileInfo">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">FileInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#vampires_dpp.util.FileType" title="vampires_dpp.util.FileType"><span class="pre">vampires_dpp.util.FileType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.FileInfo" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">FileInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#vampires_dpp.util.FileType" title="vampires_dpp.util.FileType"><span class="pre">vampires_dpp.util.FileType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.FileInfo" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -492,13 +492,13 @@ document.write(`
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.util.FileType">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">FileType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.FileType" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">FileType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.FileType" title="Link to this definition">#</a></dt>
 <dd><p>An enumeration.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.util.average_angle">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">average_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.average_angle" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">average_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.average_angle" title="Link to this definition">#</a></dt>
 <dd><p>Return the circular mean of the given angles in degrees.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -515,7 +515,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.util.check_version">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">check_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.check_version" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">check_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.check_version" title="Link to this definition">#</a></dt>
 <dd><p>Checks compatibility between versions following semantic versioning.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -532,7 +532,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.util.wrap_angle">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">wrap_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.wrap_angle" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">wrap_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.wrap_angle" title="Link to this definition">#</a></dt>
 <dd><p>Wraps an angle into the range [-180, 180]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

@@ -36,9 +36,9 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=778c84bf"></script>
+    <script src="../_static/documentation_options.js?v=5e211cb2"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/image_registration';</script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -323,10 +323,10 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="image-registration">
-<h1>Image Registration<a class="headerlink" href="#image-registration" title="Permalink to this heading">#</a></h1>
+<h1>Image Registration<a class="headerlink" href="#image-registration" title="Link to this heading">#</a></h1>
 <p>This notebook explores the results of different image registration algorithms for both normal images and coronagraphic images with satellite spots. This notebook can be downloaded as <strong><a class="reference download internal" download="" href="../_downloads/920c7dd5ebe7f6ae9630fc515fb25267/image_registration.ipynb"><code class="xref download myst-nb docutils literal notranslate"><span class="pre">image_registration.ipynb</span></code></a></strong>.</p>
 <section id="setup-and-imports">
-<h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Permalink to this heading">#</a></h2>
+<h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Link to this heading">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
@@ -352,7 +352,7 @@ document.write(`
 </div>
 </section>
 <section id="example-1-speckle-imaging-non-coronagraphic">
-<h2>Example 1: Speckle Imaging (Non-coronagraphic)<a class="headerlink" href="#example-1-speckle-imaging-non-coronagraphic" title="Permalink to this heading">#</a></h2>
+<h2>Example 1: Speckle Imaging (Non-coronagraphic)<a class="headerlink" href="#example-1-speckle-imaging-non-coronagraphic" title="Link to this heading">#</a></h2>
 <p>This example uses non-coronagraphic data of AB Aurigae from 2019/03/20. This data was taken in polarimetric imaging mode, but we will ignore that. This data has high signal-to-noise ratio (S/N), but suffers from low wind effect (LWE) causing PSF splitting. This means we have to be careful about which frame we use a reference for the cross-correlation method.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -585,7 +585,7 @@ document.write(`
 </div>
 </section>
 <section id="example-2-coronagraphic-data-with-satellite-spots">
-<h2>Example 2: Coronagraphic data with Satellite Spots<a class="headerlink" href="#example-2-coronagraphic-data-with-satellite-spots" title="Permalink to this heading">#</a></h2>
+<h2>Example 2: Coronagraphic data with Satellite Spots<a class="headerlink" href="#example-2-coronagraphic-data-with-satellite-spots" title="Link to this heading">#</a></h2>
 <p>This example uses coronagraphic data of AB Aurigae from 2022/02/24. These data are also polarimetric but we will ignore that, again. These data are taking in poor seeing conditions with long exposure times (0.3 s) and have much lower S/N than the non-coronagraphic data above.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -751,7 +751,7 @@ document.write(`
 </div>
 </section>
 <section id="test-3-coronagraphic-satellite-spots-high-s-n">
-<h2>Test 3: Coronagraphic Satellite Spots - High S/N<a class="headerlink" href="#test-3-coronagraphic-satellite-spots-high-s-n" title="Permalink to this heading">#</a></h2>
+<h2>Test 3: Coronagraphic Satellite Spots - High S/N<a class="headerlink" href="#test-3-coronagraphic-satellite-spots-high-s-n" title="Link to this heading">#</a></h2>
 <p>Test using bench data from 2022/06/29</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">

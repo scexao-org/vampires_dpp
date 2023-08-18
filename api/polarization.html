@@ -36,9 +36,9 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=778c84bf"></script>
+    <script src="../_static/documentation_options.js?v=5e211cb2"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -314,7 +314,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.polarization.pol_inds"><code class="docutils literal notranslate"><span class="pre">pol_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.polarization.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.polarization.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.mueller_matrices">Mueller calculus</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mueller-calculus">Mueller calculus</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.generic"><code class="docutils literal notranslate"><span class="pre">generic()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.hwp"><code class="docutils literal notranslate"><span class="pre">hwp()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.linear_polarizer"><code class="docutils literal notranslate"><span class="pre">linear_polarizer()</span></code></a></li>
@@ -335,11 +335,11 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.polarization">
-<span id="polarization"></span><h1>Polarization<a class="headerlink" href="#module-vampires_dpp.polarization" title="Permalink to this heading">#</a></h1>
-<dl class="py function">
+  <section class="tex2jax_ignore mathjax_ignore" id="polarization">
+<h1>Polarization<a class="headerlink" href="#polarization" title="Link to this heading">#</a></h1>
+<dl class="py function" id="module-vampires_dpp.polarization">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.instpol_correct">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">instpol_correct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pQ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.instpol_correct" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">instpol_correct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pQ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.instpol_correct" title="Link to this definition">#</a></dt>
 <dd><p>Apply instrument polarization correction to stokes cube.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -360,7 +360,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.measure_instpol">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">measure_instpol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.measure_instpol" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">measure_instpol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.measure_instpol" title="Link to this definition">#</a></dt>
 <dd><p>Use aperture photometry to estimate the instrument polarization.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -384,7 +384,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.measure_instpol_satellite_spots">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">measure_instpol_satellite_spots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.measure_instpol_satellite_spots" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">measure_instpol_satellite_spots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.measure_instpol_satellite_spots" title="Link to this definition">#</a></dt>
 <dd><p>Use aperture photometry on satellite spots to estimate the instrument polarization.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -409,7 +409,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.pol_inds">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">pol_inds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hwp_angs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'QQUU'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.pol_inds" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">pol_inds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hwp_angs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'QQUU'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.pol_inds" title="Link to this definition">#</a></dt>
 <dd><p>Find consistent runs of FLC and HWP states.</p>
 <p>A consistent run will have either 2 or 4 files per HWP state, and will have exactly 4 HWP states per cycle. Sometimes when VAMPIRES is syncing with CHARIS a HWP state will get skipped, creating partial HWP cycles. This function will return the indices which create consistent HWP cycles from the given list of FLC states, which should already be sorted by time.</p>
 <dl class="field-list simple">
@@ -430,7 +430,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.polarization_calibration_triplediff">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">polarization_calibration_triplediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_per_hwp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.polarization_calibration_triplediff" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">polarization_calibration_triplediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_per_hwp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm_correct</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.polarization_calibration_triplediff" title="Link to this definition">#</a></dt>
 <dd><p>Return a Stokes cube using the <em>bona fide</em> triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.</p>
 <div class="tip admonition">
 <p class="admonition-title">Pupil-tracking mode</p>
@@ -455,7 +455,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.polarization.radial_stokes">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">radial_stokes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.radial_stokes" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.polarization.</span></span><span class="sig-name descname"><span class="pre">radial_stokes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.polarization.radial_stokes" title="Link to this definition">#</a></dt>
 <dd><p>Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}Q_\phi = -Q\cos(2\theta) - U\sin(2\theta) \\
@@ -476,11 +476,11 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 </dl>
 </dd></dl>
 
-<section id="module-vampires_dpp.mueller_matrices">
-<span id="mueller-calculus"></span><h2>Mueller calculus<a class="headerlink" href="#module-vampires_dpp.mueller_matrices" title="Permalink to this heading">#</a></h2>
-<dl class="py function">
+<section id="mueller-calculus">
+<h2>Mueller calculus<a class="headerlink" href="#mueller-calculus" title="Link to this heading">#</a></h2>
+<dl class="py function" id="module-vampires_dpp.mueller_matrices">
 <dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.generic">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">generic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.generic" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">generic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.generic" title="Link to this definition">#</a></dt>
 <dd><p>Return a generic optic with diattenuation <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> and phase retardance <code class="docutils literal notranslate"><span class="pre">delta</span></code> oriented at angle <code class="docutils literal notranslate"><span class="pre">theta</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -516,7 +516,7 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.hwp">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">hwp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.hwp" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">hwp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.hwp" title="Link to this definition">#</a></dt>
 <dd><p>Return the Mueller matrix for an ideal half-wave plate (HWP) with fast-axis oriented to the given angle, in radians.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -548,7 +548,7 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.linear_polarizer">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">linear_polarizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.linear_polarizer" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">linear_polarizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.linear_polarizer" title="Link to this definition">#</a></dt>
 <dd><p>Return the Mueller matrix for an ideal linear polarizer oriented at the given angle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -580,7 +580,7 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.qwp">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">qwp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.qwp" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">qwp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.qwp" title="Link to this definition">#</a></dt>
 <dd><p>Return the Mueller matrix for an ideal quarter-wave plate (QWP) with fast-axis oriented to the given angle, in radians.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -612,7 +612,7 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.rotator">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">rotator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.rotator" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">rotator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.rotator" title="Link to this definition">#</a></dt>
 <dd><p>Return the Mueller matrix for rotation clockwise about the optical axis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -644,7 +644,7 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.waveplate">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">waveplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.waveplate" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">waveplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.waveplate" title="Link to this definition">#</a></dt>
 <dd><p>Return the Mueller matrix for a waveplate with arbitrary phase retardance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -679,7 +679,7 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.wollaston">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">wollaston</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ordinary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.wollaston" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">wollaston</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ordinary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.wollaston" title="Link to this definition">#</a></dt>
 <dd><p>Return the Mueller matrix for a Wollaston prism or polarizing beamsplitter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -760,7 +760,7 @@ U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.polarization.pol_inds"><code class="docutils literal notranslate"><span class="pre">pol_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.polarization.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.polarization.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.mueller_matrices">Mueller calculus</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mueller-calculus">Mueller calculus</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.generic"><code class="docutils literal notranslate"><span class="pre">generic()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.hwp"><code class="docutils literal notranslate"><span class="pre">hwp()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.linear_polarizer"><code class="docutils literal notranslate"><span class="pre">linear_polarizer()</span></code></a></li>

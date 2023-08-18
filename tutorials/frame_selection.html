@@ -36,9 +36,9 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=778c84bf"></script>
+    <script src="../_static/documentation_options.js?v=5e211cb2"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/frame_selection';</script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -322,10 +322,10 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="frame-selection">
-<h1>Frame Selection<a class="headerlink" href="#frame-selection" title="Permalink to this heading">#</a></h1>
+<h1>Frame Selection<a class="headerlink" href="#frame-selection" title="Link to this heading">#</a></h1>
 <p>This notebook explores the effects of frame selection in lucky imaging. This notebook can be downloaded as <strong><a class="reference download internal" download="" href="../_downloads/15f36662ae6c85f55533a1b46d0b3fda/frame_selection.ipynb"><code class="xref download myst-nb docutils literal notranslate"><span class="pre">frame_selection.ipynb</span></code></a></strong>.</p>
 <section id="setup-and-imports">
-<h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Permalink to this heading">#</a></h2>
+<h2>Setup and Imports<a class="headerlink" href="#setup-and-imports" title="Link to this heading">#</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
@@ -377,23 +377,74 @@ Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_02
 Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits   size: 100.0 MB
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checksum is correct. (c7cf42d5ef0575e6b355bf74341633d9)
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">KeyboardInterrupt</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">2</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1"># download example data</span>
+<span class="ne">----&gt; </span><span class="mi">2</span> <span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
 
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/hd32297_20220225_headers.csv   size: 0.8 MB
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checksum is correct. (8319111d4234772db4372d1a568038e5)
-All files have been downloaded.
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/zenodo_get/zget.py:360,</span> in <span class="ni">zenodo_get</span><span class="nt">(argv)</span>
+<span class="g g-Whitespace">    </span><span class="mi">358</span> <span class="k">try</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">359</span>     <span class="n">link</span> <span class="o">=</span> <span class="n">url</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
+<span class="ne">--&gt; </span><span class="mi">360</span>     <span class="n">filename</span> <span class="o">=</span> <span class="n">wget</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">link</span><span class="si">}</span><span class="s2">?access_token=</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">361</span> <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">362</span>     <span class="n">eprint</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Download error. Original link: </span><span class="si">{</span><span class="n">link</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/wget.py:526,</span> in <span class="ni">download</span><span class="nt">(url, out, bar)</span>
+<span class="g g-Whitespace">    </span><span class="mi">524</span> <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">525</span>     <span class="n">binurl</span> <span class="o">=</span> <span class="n">url</span>
+<span class="ne">--&gt; </span><span class="mi">526</span> <span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span> <span class="o">=</span> <span class="n">ulib</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">binurl</span><span class="p">,</span> <span class="n">tmpfile</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">527</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">detect_filename</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">528</span> <span class="k">if</span> <span class="n">outdir</span><span class="p">:</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/urllib/request.py:270,</span> in <span class="ni">urlretrieve</span><span class="nt">(url, filename, reporthook, data)</span>
+<span class="g g-Whitespace">    </span><span class="mi">267</span>     <span class="n">reporthook</span><span class="p">(</span><span class="n">blocknum</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">269</span> <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<span class="ne">--&gt; </span><span class="mi">270</span>     <span class="n">block</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">271</span>     <span class="k">if</span> <span class="ow">not</span> <span class="n">block</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">272</span>         <span class="k">break</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/http/client.py:466,</span> in <span class="ni">HTTPResponse.read</span><span class="nt">(self, amt)</span>
+<span class="g g-Whitespace">    </span><span class="mi">463</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">amt</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">464</span>     <span class="c1"># clip the read to the &quot;end of response&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">465</span>     <span class="n">amt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span>
+<span class="ne">--&gt; </span><span class="mi">466</span> <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">amt</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">467</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">amt</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">468</span>     <span class="c1"># Ideally, we would raise IncompleteRead if the content-length</span>
+<span class="g g-Whitespace">    </span><span class="mi">469</span>     <span class="c1"># wasn&#39;t satisfied, but it might break compatibility.</span>
+<span class="g g-Whitespace">    </span><span class="mi">470</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_close_conn</span><span class="p">()</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/socket.py:705,</span> in <span class="ni">SocketIO.readinto</span><span class="nt">(self, b)</span>
+<span class="g g-Whitespace">    </span><span class="mi">703</span> <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">704</span>     <span class="k">try</span><span class="p">:</span>
+<span class="ne">--&gt; </span><span class="mi">705</span>         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">recv_into</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">706</span>     <span class="k">except</span> <span class="n">timeout</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">707</span>         <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_occurred</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/ssl.py:1274,</span> in <span class="ni">SSLSocket.recv_into</span><span class="nt">(self, buffer, nbytes, flags)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1270</span>     <span class="k">if</span> <span class="n">flags</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+<span class="g g-Whitespace">   </span><span class="mi">1271</span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<span class="g g-Whitespace">   </span><span class="mi">1272</span>           <span class="s2">&quot;non-zero flags not allowed in calls to recv_into() on </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+<span class="g g-Whitespace">   </span><span class="mi">1273</span>           <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
+<span class="ne">-&gt; </span><span class="mi">1274</span>     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">nbytes</span><span class="p">,</span> <span class="n">buffer</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1275</span> <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">   </span><span class="mi">1276</span>     <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">recv_into</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">nbytes</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/ssl.py:1130,</span> in <span class="ni">SSLSocket.read</span><span class="nt">(self, len, buffer)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1128</span> <span class="k">try</span><span class="p">:</span>
+<span class="g g-Whitespace">   </span><span class="mi">1129</span>     <span class="k">if</span> <span class="n">buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="ne">-&gt; </span><span class="mi">1130</span>         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sslobj</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">buffer</span><span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1131</span>     <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">   </span><span class="mi">1132</span>         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sslobj</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">len</span><span class="p">)</span>
+
+<span class="ne">KeyboardInterrupt</span>: 
 </pre></div>
 </div>
 </div>
 </div>
 </section>
 <section id="example-1-speckle-imaging-non-coronagraphic">
-<h2>Example 1: Speckle Imaging (Non-coronagraphic)<a class="headerlink" href="#example-1-speckle-imaging-non-coronagraphic" title="Permalink to this heading">#</a></h2>
+<h2>Example 1: Speckle Imaging (Non-coronagraphic)<a class="headerlink" href="#example-1-speckle-imaging-non-coronagraphic" title="Link to this heading">#</a></h2>
 <p>This example uses non-coronagraphic data of AB Aurigae from 2019/03/20. This data was taken in polarimetric imaging mode, but we will ignore that. This data has high signal-to-noise ratio (S/N), but suffers from low wind effect (LWE) causing PSF splitting. This means we have to be careful about which frame we use a reference for the cross-correlation method.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -419,7 +470,7 @@ All files have been downloaded.
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/ac6830bbe0dd97fea15e41e679b1a274a3618b3f1e2df743609c8b28ed6141df.png" src="../_images/ac6830bbe0dd97fea15e41e679b1a274a3618b3f1e2df743609c8b28ed6141df.png" />
+<img alt="../_images/8ede21121ca026c568ad18218dc986519d544647d2e231bfaa0f1bdb2038270f.png" src="../_images/8ede21121ca026c568ad18218dc986519d544647d2e231bfaa0f1bdb2038270f.png" />
 </div>
 </div>
 <div class="cell tag_remove-output docutils container">
@@ -455,79 +506,7 @@ All files have been downloaded.
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">ValueError</span><span class="g g-Whitespace">                                </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">line</span> <span class="mi">13</span>
-<span class="g g-Whitespace">     </span><span class="mi">11</span>     <span class="n">handles</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qs</span><span class="p">,</span> <span class="n">ls</span><span class="p">)]</span>
-<span class="g g-Whitespace">     </span><span class="mi">12</span>     <span class="n">ax</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
-<span class="ne">---&gt; </span><span class="mi">13</span> <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;25%&quot;</span><span class="p">,</span> <span class="s2">&quot;Median&quot;</span><span class="p">,</span> <span class="s2">&quot;75%&quot;</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;AB Aurigae 2019/03/20 Non-coronagraphic&quot;</span><span class="p">);</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/proplot/figure.py:1677,</span> in <span class="ni">Figure.legend</span><span class="nt">(self, handles, labels, loc, location, row, col, rows, cols, span, space, pad, width, **kwargs)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1672</span> <span class="n">loc</span> <span class="o">=</span> <span class="n">_not_none</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1673</span> <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_figure_panel</span><span class="p">(</span>
-<span class="g g-Whitespace">   </span><span class="mi">1674</span>     <span class="n">loc</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">span</span><span class="o">=</span><span class="n">span</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">1675</span>     <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">space</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">,</span>
-<span class="g g-Whitespace">   </span><span class="mi">1676</span> <span class="p">)</span>
-<span class="ne">-&gt; </span><span class="mi">1677</span> <span class="k">return</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;fill&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/proplot/axes/base.py:2910,</span> in <span class="ni">Axes.legend</span><span class="nt">(self, handles, labels, loc, location, queue, **kwargs)</span>
-<span class="g g-Whitespace">   </span><span class="mi">2908</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_register_guide</span><span class="p">(</span><span class="s1">&#39;legend&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="n">labels</span><span class="p">),</span> <span class="n">loc</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">2909</span> <span class="k">else</span><span class="p">:</span>
-<span class="ne">-&gt; </span><span class="mi">2910</span>     <span class="n">leg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">2911</span>     <span class="k">return</span> <span class="n">leg</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/proplot/axes/base.py:2816,</span> in <span class="ni">Axes._draw_legend</span><span class="nt">(self, handles, labels, loc, width, pad, space, align, frame, frameon, ncol, ncols, alphabetize, center, order, label, title, fontsize, fontweight, fontcolor, titlefontsize, titlefontweight, titlefontcolor, handle_kw, handler_map, **kwargs)</span>
-<span class="nn">   2814     kwargs.update({key: kw_frame.pop(key) for key</span> in <span class="nt">(&#39;shadow&#39;, &#39;fancybox&#39;)})</span>
-<span class="g g-Whitespace">   </span><span class="mi">2815</span>     <span class="n">objs</span> <span class="o">=</span> <span class="p">[</span><span class="n">lax</span><span class="o">.</span><span class="n">_parse_ordinary_legend</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="n">ncol</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span>
-<span class="ne">-&gt; </span><span class="mi">2816</span>     <span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legendPatch</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kw_frame</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">2817</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">2818</span>     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">lax</span><span class="p">,</span> <span class="s1">&#39;legend_&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">lax</span><span class="o">.</span><span class="n">legend_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/matplotlib/artist.py:1064,</span> in <span class="ni">Artist.update</span><span class="nt">(self, props)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1061</span>             <span class="k">if</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-<span class="g g-Whitespace">   </span><span class="mi">1062</span>                 <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> object &quot;</span>
-<span class="g g-Whitespace">   </span><span class="mi">1063</span>                                      <span class="sa">f</span><span class="s2">&quot;has no property </span><span class="si">{</span><span class="n">k</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="ne">-&gt; </span><span class="mi">1064</span>             <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-<span class="g g-Whitespace">   </span><span class="mi">1065</span> <span class="k">if</span> <span class="n">ret</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1066</span>     <span class="bp">self</span><span class="o">.</span><span class="n">pchanged</span><span class="p">()</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/matplotlib/patches.py:368,</span> in <span class="ni">Patch.set_facecolor</span><span class="nt">(self, color)</span>
-<span class="g g-Whitespace">    </span><span class="mi">360</span><span class="w"> </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">361</span><span class="sd"> Set the patch face color.</span>
-<span class="g g-Whitespace">    </span><span class="mi">362</span><span class="sd"> </span>
-<span class="sd">   (...)</span>
-<span class="g g-Whitespace">    </span><span class="mi">365</span><span class="sd"> color : color or None</span>
-<span class="g g-Whitespace">    </span><span class="mi">366</span><span class="sd"> &quot;&quot;&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">367</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_facecolor</span> <span class="o">=</span> <span class="n">color</span>
-<span class="ne">--&gt; </span><span class="mi">368</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_facecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/matplotlib/patches.py:356,</span> in <span class="ni">Patch._set_facecolor</span><span class="nt">(self, color)</span>
-<span class="g g-Whitespace">    </span><span class="mi">354</span>     <span class="n">color</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;patch.facecolor&#39;</span><span class="p">]</span>
-<span class="g g-Whitespace">    </span><span class="mi">355</span> <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fill</span> <span class="k">else</span> <span class="mi">0</span>
-<span class="ne">--&gt; </span><span class="mi">356</span> <span class="bp">self</span><span class="o">.</span><span class="n">_facecolor</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">357</span> <span class="bp">self</span><span class="o">.</span><span class="n">stale</span> <span class="o">=</span> <span class="kc">True</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/matplotlib/colors.py:206,</span> in <span class="ni">to_rgba</span><span class="nt">(c, alpha)</span>
-<span class="g g-Whitespace">    </span><span class="mi">204</span>     <span class="n">rgba</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="g g-Whitespace">    </span><span class="mi">205</span> <span class="k">if</span> <span class="n">rgba</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Suppress exception chaining of cache lookup failure.</span>
-<span class="ne">--&gt; </span><span class="mi">206</span>     <span class="n">rgba</span> <span class="o">=</span> <span class="n">_to_rgba_no_colorcycle</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">207</span>     <span class="k">try</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">208</span>         <span class="n">_colors_full_map</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="n">alpha</span><span class="p">]</span> <span class="o">=</span> <span class="n">rgba</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.12/x64/lib/python3.10/site-packages/matplotlib/colors.py:277,</span> in <span class="ni">_to_rgba_no_colorcycle</span><span class="nt">(c, alpha)</span>
-<span class="g g-Whitespace">    </span><span class="mi">273</span>             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">274</span>                 <span class="sa">f</span><span class="s2">&quot;Invalid string grayscale value </span><span class="si">{</span><span class="n">orig_c</span><span class="si">!r}</span><span class="s2">. &quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">275</span>                 <span class="sa">f</span><span class="s2">&quot;Value must be within 0-1 range&quot;</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">276</span>         <span class="k">return</span> <span class="n">c</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">alpha</span> <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.</span>
-<span class="ne">--&gt; </span><span class="mi">277</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid RGBA argument: </span><span class="si">{</span><span class="n">orig_c</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">278</span> <span class="c1"># turn 2-D array into 1-D array</span>
-<span class="g g-Whitespace">    </span><span class="mi">279</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-
-<span class="ne">ValueError</span>: Invalid RGBA argument: &#39;inherit&#39;
-</pre></div>
-</div>
-<img alt="../_images/49eaad1415abf7eaf2e9879ee26663cdc6cfbd8ed41f75ba7921f68376c52173.png" src="../_images/49eaad1415abf7eaf2e9879ee26663cdc6cfbd8ed41f75ba7921f68376c52173.png" />
+<img alt="../_images/c8c878da00ec9f98c858ec1ad9f7bd99447da62b81b86ed51860af818dfbafe4.png" src="../_images/c8c878da00ec9f98c858ec1ad9f7bd99447da62b81b86ed51860af818dfbafe4.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -582,7 +561,7 @@ All files have been downloaded.
 </div>
 </section>
 <section id="example-2-coronagraphic-data-with-satellite-spots">
-<h2>Example 2: Coronagraphic data with Satellite Spots<a class="headerlink" href="#example-2-coronagraphic-data-with-satellite-spots" title="Permalink to this heading">#</a></h2>
+<h2>Example 2: Coronagraphic data with Satellite Spots<a class="headerlink" href="#example-2-coronagraphic-data-with-satellite-spots" title="Link to this heading">#</a></h2>
 <p>This example uses coronagraphic data of AB Aurigae from 2022/02/24. These data are also polarimetric but we will ignore that, again. These data are taking in poor seeing conditions with long exposure times (0.3 s) and have much lower S/N than the non-coronagraphic data above.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">

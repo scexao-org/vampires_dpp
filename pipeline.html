@@ -36,9 +36,9 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=778c84bf"></script>
+    <script src="_static/documentation_options.js?v=5e211cb2"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'pipeline';</script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -371,11 +371,11 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="pipeline">
-<h1>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this heading">#</a></h1>
+<h1>Pipeline<a class="headerlink" href="#pipeline" title="Link to this heading">#</a></h1>
 <p>The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">run</span></code> script</p>
 <p>or create a <code class="docutils literal notranslate"><span class="pre">Pipeline</span></code> object and call the <code class="docutils literal notranslate"><span class="pre">run</span></code> method.</p>
 <section id="processing-steps">
-<h2>Processing steps<a class="headerlink" href="#processing-steps" title="Permalink to this heading">#</a></h2>
+<h2>Processing steps<a class="headerlink" href="#processing-steps" title="Link to this heading">#</a></h2>
 <p>The pipeline will reduce the data in the following order</p>
 <ol class="arabic simple">
 <li><p>Calibration</p></li>
@@ -399,14 +399,14 @@ tail config_debug.log
 </div>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">#</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
 <p>The configuration file uses the <a class="reference external" href="https://toml.io">TOML</a> format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., <code class="docutils literal notranslate"><span class="pre">[calibration]</span></code>, <code class="docutils literal notranslate"><span class="pre">[frame_selection]</span></code>) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.</p>
 <p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, so there are certain guarantees about the backwards compatibility of the pipeline, which means you don’t have to have the exact same version of <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> as in the configuration- merely a version that is compatible.</p>
 <section id="general-options">
-<h3>General Options<a class="headerlink" href="#general-options" title="Permalink to this heading">#</a></h3>
+<h3>General Options<a class="headerlink" href="#general-options" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CoordinateOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoordinateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_ra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J2016'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoordinateOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoordinateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_ra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J2016'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoordinateOptions" title="Link to this definition">#</a></dt>
 <dd><p>Astronomical coordinate options</p>
 <div class="tip admonition">
 <p class="admonition-title">Tip: GAIA</p>
@@ -430,7 +430,7 @@ tail config_debug.log
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.ProductOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">ProductOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdi_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.ProductOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">ProductOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdi_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.ProductOptions" title="Link to this definition">#</a></dt>
 <dd><p>The output products from the processing pipeline.</p>
 <div class="admonition-outputs admonition">
 <p class="admonition-title">Outputs</p>
@@ -474,10 +474,10 @@ tail config_debug.log
 
 </section>
 <section id="coronagraph-options">
-<h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Permalink to this heading">#</a></h3>
+<h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CoronagraphOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoronagraphOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iwa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoronagraphOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoronagraphOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iwa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoronagraphOptions" title="Link to this definition">#</a></dt>
 <dd><p>Coronagraph options</p>
 <p>The IWAs for the masks are listed on the <a class="reference external" href="https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html">VAMPIRES website</a>.</p>
 <dl class="field-list simple">
@@ -498,7 +498,7 @@ tail config_debug.log
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.SatspotOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">SatspotOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">84.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.SatspotOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">SatspotOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">84.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.SatspotOptions" title="Link to this definition">#</a></dt>
 <dd><p>Satellite spot options</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -524,10 +524,10 @@ tail config_debug.log
 
 </section>
 <section id="calibration-options">
-<h3>Calibration Options<a class="headerlink" href="#calibration-options" title="Permalink to this heading">#</a></h3>
+<h3>Calibration Options<a class="headerlink" href="#calibration-options" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CalibrateOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CalibrateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_backgrounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CamFileInput(cam1=None,</span> <span class="pre">cam2=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">master_flats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CamFileInput(cam1=None,</span> <span class="pre">cam2=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distortion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_bad_pixels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deinterleave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CalibrateOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CalibrateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_backgrounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CamFileInput(cam1=None,</span> <span class="pre">cam2=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">master_flats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CamFileInput(cam1=None,</span> <span class="pre">cam2=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distortion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_bad_pixels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deinterleave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CalibrateOptions" title="Link to this definition">#</a></dt>
 <dd><p>Options for general image calibration</p>
 <p>The calibration strategy is generally</p>
 <ol class="arabic simple">
@@ -587,7 +587,7 @@ tail config_debug.log
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.DistortionOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">DistortionOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.DistortionOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">DistortionOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.DistortionOptions" title="Link to this definition">#</a></dt>
 <dd><p>Geometric distortion correction options</p>
 <div class="warning admonition">
 <p class="admonition-title">Advanced Usage</p>
@@ -602,10 +602,10 @@ tail config_debug.log
 
 </section>
 <section id="frame-selection-options">
-<h3>Frame Selection Options<a class="headerlink" href="#frame-selection-options" title="Permalink to this heading">#</a></h3>
+<h3>Frame Selection Options<a class="headerlink" href="#frame-selection-options" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.FrameSelectOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">FrameSelectOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'normvar'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.FrameSelectOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">FrameSelectOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'normvar'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.FrameSelectOptions" title="Link to this definition">#</a></dt>
 <dd><p>Frame selection options</p>
 <p>Frame selection metrics can be measured on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The quality metrics are</p>
 <ul class="simple">
@@ -644,10 +644,10 @@ tail config_debug.log
 
 </section>
 <section id="image-registration-options">
-<h3>Image Registration Options<a class="headerlink" href="#image-registration-options" title="Permalink to this heading">#</a></h3>
+<h3>Image Registration Options<a class="headerlink" href="#image-registration-options" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.RegisterOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">RegisterOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.RegisterOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">RegisterOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.RegisterOptions" title="Link to this definition">#</a></dt>
 <dd><p>Image registration options</p>
 <p>Image registration can be done on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The registration methods are</p>
 <ul class="simple">
@@ -690,10 +690,10 @@ tail config_debug.log
 
 </section>
 <section id="collapsing-options">
-<h3>Collapsing Options<a class="headerlink" href="#collapsing-options" title="Permalink to this heading">#</a></h3>
+<h3>Collapsing Options<a class="headerlink" href="#collapsing-options" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CollapseOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CollapseOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CollapseOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CollapseOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CollapseOptions" title="Link to this definition">#</a></dt>
 <dd><p>Cube collapse options</p>
 <ul class="simple">
 <li><p>median - Pixel-by-pixel median</p></li>
@@ -727,10 +727,10 @@ tail config_debug.log
 
 </section>
 <section id="difference-image-options">
-<h3>Difference Image Options<a class="headerlink" href="#difference-image-options" title="Permalink to this heading">#</a></h3>
+<h3>Difference Image Options<a class="headerlink" href="#difference-image-options" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.DiffOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">DiffOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.DiffOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">DiffOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.DiffOptions" title="Link to this definition">#</a></dt>
 <dd><p>DIfference imaging options.</p>
 <p>Difference images are made by taking camera 1 - camera 2.</p>
 <div class="admonition-outputs admonition">
@@ -749,10 +749,10 @@ tail config_debug.log
 
 </section>
 <section id="polarimetry-options">
-<h3>Polarimetry Options<a class="headerlink" href="#polarimetry-options" title="Permalink to this heading">#</a></h3>
+<h3>Polarimetry Options<a class="headerlink" href="#polarimetry-options" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.PolarimetryOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">PolarimetryOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'difference'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_per_hwp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'QQUU'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PolarimetryOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">PolarimetryOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'difference'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm_correct</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_per_hwp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'QQUU'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PolarimetryOptions" title="Link to this definition">#</a></dt>
 <dd><p>Polarimetric differential imaging (PDI) options</p>
 <div class="warning admonition">
 <p class="admonition-title">Warning: experimental</p>
@@ -762,12 +762,13 @@ tail config_debug.log
 <div class="admonition-outputs admonition">
 <p class="admonition-title">Outputs</p>
 <p>If using the <cite>difference</cite> method, a cube of Stokes frames for each HWP set and a derotated and collapsed Stokes frame will be saved in the products directory with the suffixes <cite>_stokes_cube</cite> and <cite>_stokes_cube_collapsed</cite>, respectively.</p>
-<p>If using the <cite>mueller</cite> method, a Stokes frame will be saved in the products directory with the suffix <cite>_stokes_frame</cite>.</p>
+<p>If using the <cite>leastsq</cite> method, a Stokes frame will be saved in the products directory with the suffix <cite>_stokes_frame</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>method</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Determines the polarization calibration method, either the double/triple-difference method (<cite>difference</cite>) or using the inverse least-squares solution from Mueller calculus (<cite>leastsq</cite>). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.</p></li>
+<li><p><strong>mm_correct</strong> (<em>bool</em>) – Apply Mueller-matrix correction (only applicable to data reduced using the <cite>“difference”</cite> method). By default, True.</p></li>
 <li><p><strong>ip</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.IPOptions" title="vampires_dpp.pipeline.config.IPOptions"><em>IPOptions</em></a><em>]</em>) – Instrumental polarization (IP) correction options, by default None.</p></li>
 <li><p><strong>order</strong> (<em>str</em>) – HWP iteration order, one of <cite>“QQUU”</cite> or <cite>“QUQU”</cite>. By default <cite>“QQUU”</cite>.</p></li>
 <li><p><strong>adi_sync</strong> (<em>bool</em>) – If true, will assume the HWP is in pupil-tracking mode. By default, True.</p></li>
@@ -794,10 +795,15 @@ tail config_debug.log
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.IPOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">IPOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'photometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aper_rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.IPOptions" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">IPOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'photometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aper_rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.IPOptions" title="Link to this definition">#</a></dt>
 <dd><p>Instrumental polarization (IP) correction options.</p>
 <p>There are three main IP correction techniques</p>
 <ul class="simple">
+<li><dl class="simple">
+<dt>Calibrated correction using Mueller calculus</dt><dd><p>In each HWP cycle a combined Mueller matrix is used to correct the instrument polarization and crosstalk.</p>
+</dd>
+</dl>
+</li>
 <li><dl class="simple">
 <dt>Ad-hoc correction using PSF photometry</dt><dd><p>In each diff image, the partial polarization of the central PSF is measured and removed, presuming there should be no polarized stellar signal. In coronagraphic data, this uses the light penetrating the partially transmissive focal plane masks (~0.06%).</p>
 </dd>
@@ -827,13 +833,13 @@ tail config_debug.log
 </section>
 </section>
 <section id="templates">
-<h2>Templates<a class="headerlink" href="#templates" title="Permalink to this heading">#</a></h2>
+<h2>Templates<a class="headerlink" href="#templates" title="Link to this heading">#</a></h2>
 <section id="polarimetric-differential-imaging-pdi">
-<h3>Polarimetric Differential Imaging (PDI)<a class="headerlink" href="#polarimetric-differential-imaging-pdi" title="Permalink to this heading">#</a></h3>
+<h3>Polarimetric Differential Imaging (PDI)<a class="headerlink" href="#polarimetric-differential-imaging-pdi" title="Link to this heading">#</a></h3>
 <details>
 <summary>PDI example</summary>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.1&quot;</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.2&quot;</span>
 
 <span class="k">[calibrate]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
@@ -855,7 +861,7 @@ tail config_debug.log
 <span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gaussian&quot;</span>
 <span class="n">strehl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 <span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 
 <span class="k">[analysis.photometry]</span>
 <span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
@@ -863,6 +869,7 @@ tail config_debug.log
 <span class="k">[polarimetry]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pdi&quot;</span>
 <span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;difference&quot;</span>
+<span class="n">mm_correct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 
 <span class="k">[polarimetry.ip]</span>
 <span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;photometry&quot;</span>
@@ -875,12 +882,12 @@ tail config_debug.log
 </details>
 </section>
 <section id="single-cam">
-<h3>Single-cam<a class="headerlink" href="#single-cam" title="Permalink to this heading">#</a></h3>
+<h3>Single-cam<a class="headerlink" href="#single-cam" title="Link to this heading">#</a></h3>
 <p>For single-cam data you can elude all of the <code class="docutils literal notranslate"><span class="pre">cam2</span></code> keys in the configuration.</p>
 <details>
 <summary>Single-cam example</summary>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.1&quot;</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.2&quot;</span>
 
 <span class="k">[calibrate]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
@@ -902,7 +909,7 @@ tail config_debug.log
 <span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gaussian&quot;</span>
 <span class="n">strehl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 <span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 
 <span class="k">[analysis.photometry]</span>
 <span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
@@ -914,7 +921,7 @@ tail config_debug.log
 </details>
 </section>
 <section id="spectral-differential-imaging-sdi">
-<h3>Spectral Differential Imaging (SDI)<a class="headerlink" href="#spectral-differential-imaging-sdi" title="Permalink to this heading">#</a></h3>
+<h3>Spectral Differential Imaging (SDI)<a class="headerlink" href="#spectral-differential-imaging-sdi" title="Link to this heading">#</a></h3>
 <div class="warning admonition">
 <p class="admonition-title">Warning: WIP</p>
 <p>The full functionality for SDI is not implemented, but the difference images can be used as inputs to manual reductions, for now.</p>
@@ -923,7 +930,7 @@ tail config_debug.log
 <details>
 <summary>H-alpha example</summary>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.1&quot;</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.2&quot;</span>
 
 <span class="k">[calibrate]</span>
 <span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
@@ -945,7 +952,7 @@ tail config_debug.log
 <span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gaussian&quot;</span>
 <span class="n">strehl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 <span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 
 <span class="k">[analysis.photometry]</span>
 <span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
@@ -961,9 +968,9 @@ tail config_debug.log
 </section>
 </section>
 <section id="frequently-asked-questions-faq">
-<h2>Frequently Asked Questions (FAQ)<a class="headerlink" href="#frequently-asked-questions-faq" title="Permalink to this heading">#</a></h2>
+<h2>Frequently Asked Questions (FAQ)<a class="headerlink" href="#frequently-asked-questions-faq" title="Link to this heading">#</a></h2>
 <section id="pipeline-and-configuration-version-mismatch">
-<h3>Pipeline and Configuration version mismatch<a class="headerlink" href="#pipeline-and-configuration-version-mismatch" title="Permalink to this heading">#</a></h3>
+<h3>Pipeline and Configuration version mismatch<a class="headerlink" href="#pipeline-and-configuration-version-mismatch" title="Link to this heading">#</a></h3>
 <blockquote>
 <div><p>I can’t run the pipeline because it says my TOML file has a version mismatch?</p>
 </div></blockquote>
@@ -974,7 +981,7 @@ tail config_debug.log
 </ol>
 </section>
 <section id="older-data-and-pdi">
-<h3>Older data and PDI<a class="headerlink" href="#older-data-and-pdi" title="Permalink to this heading">#</a></h3>
+<h3>Older data and PDI<a class="headerlink" href="#older-data-and-pdi" title="Link to this heading">#</a></h3>
 <blockquote>
 <div><p>I downloaded some archival VAMPIRES data and I keep getting errors during PDI that say the HWP indices can’t be ordered.</p>
 </div></blockquote>
@@ -986,7 +993,7 @@ tail config_debug.log
 </div>
 </section>
 <section id="performance">
-<h3>Performance<a class="headerlink" href="#performance" title="Permalink to this heading">#</a></h3>
+<h3>Performance<a class="headerlink" href="#performance" title="Link to this heading">#</a></h3>
 <blockquote>
 <div><p>It’s slow. It’s so, so slow. Help.</p>
 </div></blockquote>
