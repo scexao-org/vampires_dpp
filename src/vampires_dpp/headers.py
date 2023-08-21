@@ -106,7 +106,7 @@ def fix_header(header):
         header["U_FLCSTT"] = -1, "VAMPIRES FLC state"
 
     header["EXPTIME"] = header["U_AQTINT"] / 1e6, "[s] exposure time"
-    header["TINT"] = header["U_AQTINT"] * header["NAXIS3"] / 1e6, "[s] total integration time"
+    header["TINT"] = header["EXPTIME"] * header["NAXIS3"], "[s] total integration time"
     return header
 
 
