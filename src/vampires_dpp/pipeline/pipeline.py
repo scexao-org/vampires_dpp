@@ -616,6 +616,7 @@ class Pipeline(PipelineOptions):
                 force=True,
                 N_per_hwp=N_per_hwp,
                 adi_sync=adi_sync,
+                mm_correct=self.polarimetry.mm_correct,
             )
             self.logger.debug(f"saved Stokes cube to {self.stokes_cube_file.absolute()}")
             print(f"Saved Stokes cube to: {self.stokes_cube_file}")
