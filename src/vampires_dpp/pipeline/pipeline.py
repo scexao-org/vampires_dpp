@@ -56,6 +56,7 @@ class Pipeline(PipelineOptions):
         stream_handler.setLevel(logging.INFO)
         self.logger.addHandler(stream_handler)
         install_mp_handler(self.logger)
+        self.diff_files = None
 
     def run(self, filenames, num_proc: int = None, quiet: bool = False):
         """Run the pipeline
@@ -412,6 +413,9 @@ class Pipeline(PipelineOptions):
         sdi_frames = []
         derot_angs = []
         headers = []
+        if self.diff_files is None:
+            print("Skipping SDI products because no difference images were made.")
+            return
         for filename in self.diff_files:
             frames, hdr = fits.getdata(filename, header=True)
             diff_frame, summ_frame = frames
