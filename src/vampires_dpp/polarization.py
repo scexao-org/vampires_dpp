@@ -311,7 +311,7 @@ def triplediff_average_angles(filenames):
     return pas
 
 
-def pol_inds(hwp_angs: ArrayLike, n=4, order="QQUU"):
+def pol_inds(hwp_angs: ArrayLike, n=4, order="QQUU", **kwargs):
     """
     Find consistent runs of FLC and HWP states.
 
