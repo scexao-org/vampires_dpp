@@ -59,6 +59,7 @@ def analyze_frame(
         header["PHOTRAD"] = aper_rad, "[px] Aperture photometry radius"
         header["MEDFLUX"] = np.nanmedian(frame), "[adu] Median frame flux"
         header["SUMFLUX"] = np.nansum(frame), "[adu] Total frame flux"
+        header["PEAKFLUX"] = np.nanmax(frame), "[adu] Peak frame flux"
 
     return frame, header
 

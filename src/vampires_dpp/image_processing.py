@@ -282,6 +282,7 @@ def combine_frames_headers(headers, wcs=False):
         output_header["PHOTFLUX"] = table["PHOTFLUX"].mean(), "[adu] Aperture photometry flux"
         output_header["MEDFLUX"] = table["MEDFLUX"].mean(), "[adu] Median frame flux"
         output_header["SUMFLUX"] = table["SUMFLUX"].mean(), "[adu] Total frame flux"
+        output_header["PEAKFLUX"] = table["PEAKFLUX"].mean(), "[adu] Peak frame flux"
     # get PA rotation
     if "PA" in table.keys():
         output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
