@@ -94,8 +94,12 @@ def get_paths(
 
 def any_file_newer(filenames, outpath):
     out_mt = Path(outpath).stat().st_mtime
-    gen = (Path(f).stat().st_mtime > out_mt for f in filenames)
-    return any(gen)
+    # check if input is only a single file
+    if isinstance(filenames, Path) or isinstance(filenames, str):
+        return Path(filenames).stat().st_mtime > out_mt
+    else:
+        gen = (Path(f).stat().st_mtime > out_mt for f in filenames)
+        return any(gen)
 
 
 class FileType(Enum):
