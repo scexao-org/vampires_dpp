@@ -279,9 +279,13 @@ def combine_frames_headers(headers, wcs=False):
         output_header["MOD_AMP"] = table["MOD_AMP"].mean(), "[adu] PSF model amplitude"
         output_header["MOD_X"] = table["MOD_X"].mean(), "[px] PSF model x"
         output_header["MOD_Y"] = table["MOD_Y"].mean(), "[px] PSF model y"
+    if "PHOTFLUX" in table.keys():
         output_header["PHOTFLUX"] = table["PHOTFLUX"].mean(), "[adu] Aperture photometry flux"
+    if "MEDFLUX" in table.keys():
         output_header["MEDFLUX"] = table["MEDFLUX"].mean(), "[adu] Median frame flux"
+    if "SUMFLUX" in table.keys():
         output_header["SUMFLUX"] = table["SUMFLUX"].mean(), "[adu] Total frame flux"
+    if "PEAKFLUX" in table.keys():
         output_header["PEAKFLUX"] = table["PEAKFLUX"].mean(), "[adu] Peak frame flux"
     # get PA rotation
     if "PA" in table.keys():
