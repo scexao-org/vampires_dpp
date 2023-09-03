@@ -131,9 +131,12 @@ def make_background_file(filename: str, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
+    ext = 0
+    if path.name.endswith(".fits.fz"):
+        ext = 1
     cube, header = fits.getdata(
         path,
-        ext=0,
+        ext=ext,
         header=True,
     )
     master_background, header = collapse_cube(cube, header=header, **kwargs)
@@ -197,10 +200,13 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     return outpath
 
 
-def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dict[Tuple, Path]:
+def sort_calib_files(filenames: list[PathLike], backgrounds=False) -> dict[Tuple, Path]:
     file_dict = {}
     for filename in filenames:
         path = Path(filename)
+        ext = 0
+        if path.name.endswith(".fits.fz"):
+            ext = 1
         header = fits.getheader(path, ext=ext)
         sz = header["NAXIS1"], header["NAXIS2"]
         exptime = np.round(header["EXPTIME"], decimals=5)

@@ -458,11 +458,15 @@ class Pipeline(PipelineOptions):
             fileset = FileSet(group["path"])
             if len(group) == 4:
                 filesets.append(fileset)
-                for flc in (1, 2):
+                for flc in ("A", "B"):
                     cam1_paths.append(fileset.paths[(1, flc)])
                     cam2_paths.append(fileset.paths[(2, flc)])
                 continue
-            miss = set([(1, 1), (1, 2), (2, 1), (2, 2)]) - set(fileset.keys)
+            elif len(group) == 2:
+                cam1_paths.extend(fileset.cam1_paths)
+                cam2_paths.extend(fileset.cam2_paths)
+                continue
+            miss = set([(1, "A"), (1, "B"), (2, "A"), (2, "B")]) - set(fileset.keys)
             self.logger.warn(f"Discarding group for missing {miss} camera, FLC state pairs")
 
         with mp.Pool(self.num_proc) as pool:
@@ -500,7 +504,7 @@ class Pipeline(PipelineOptions):
         # 1. Make Stokes cube
         if config.method == "difference":
             # see if FLC value has been set, if not do doublediff
-            if self.output_table["U_FLC"].iloc[0] is None:
+            if self.output_table["U_FLC"].iloc[0] == "NA":
                 self.polarimetry_doublediff(
                     force=tripwire,
                     N_per_hwp=config.N_per_hwp,

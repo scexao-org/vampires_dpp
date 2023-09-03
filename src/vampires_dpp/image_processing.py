@@ -281,10 +281,11 @@ def combine_frames_headers(headers, wcs=False):
 
     # sum exposure times
     output_header["TINT"] = table["TINT"].sum(), "[s] total exposure time"
-    output_header["DEROTANG"] = (
-        average_angle(table["DEROTANG"]),
-        "[deg] derotation angle for North up",
-    )
+    if "DEROTANG" in table.keys():
+        output_header["DEROTANG"] = (
+            average_angle(table["DEROTANG"]),
+            "[deg] derotation angle for North up",
+        )
     # median PSF models
     if "MODEL" in table.keys():
         output_header["MOD_AMP"] = table["MOD_AMP"].mean(), "[adu] PSF model amplitude"
@@ -297,6 +298,8 @@ def combine_frames_headers(headers, wcs=False):
         output_header["PA-END"] = table["PA-END"].iloc[-1], "[deg] par. angle at end"
         total_rot = delta_angle(output_header["PA-END"], output_header["PA-STR"])
         output_header["PA-ROT"] = total_rot, "[deg] total par. angle rotation"
+        ave_pa = average_angle(table["PA"])
+        output_header["PA"] = ave_pa, "[deg] average parallactic angle"
 
     # average position using average angle formula
     ras = Angle(table["RA"], unit=u.hourangle)
@@ -312,8 +315,6 @@ def combine_frames_headers(headers, wcs=False):
         test_header.comments["DEC"],
     )
     # these average angles are needed for PDI, so calculate them
-    ave_pa = average_angle(table["PA"])
-    output_header["PA"] = ave_pa, "[deg] average parallactic angle"
     ave_alt = average_angle(table["ALTITUDE"])
     output_header["ALTITUDE"] = ave_alt, "[deg] average altitude"
     ave_imrang = average_angle(table["D_IMRANG"])
@@ -510,7 +511,7 @@ class FileSet:
             if N > 4:
                 raise ValueError(f"Too many input files, should be 4 at max, got {N}")
             if N == 3:
-                missing = set((1, "RELAXED"), (1, "ACTIVE"), (2, "RELAXED"), (2, "ACTIVE")) - set(
+                missing = set((1, "A"), (1, "B"), (2, "A"), (2, "B")) - set(
                     self.paths.keys()
                 )
                 print(
@@ -567,10 +568,9 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
     if header["MJD"] != header2["MJD"]:
         msg = f"{cam1_file.name} has MJD {header['MJD']}\n{cam2_file.name} has MJD {header2['MJD']}"
         raise ValueError(msg)
-    if "U_FLCSTT" in header:
-        if header["U_FLCSTT"] != header2["U_FLCSTT"]:
-            msg = f"{cam1_file.name} has FLC state {header['U_FLCSTT']}\n{cam2_file.name} has FLC state {header2['U_FLCSTT']}"
-            raise ValueError(msg)
+    if header["U_FLC"] != header2["U_FLC"]:
+        msg = f"{cam1_file.name} has FLC state {header['U_FLC']}\n{cam2_file.name} has FLC state {header2['U_FLC']}"
+        raise ValueError(msg)
 
     diff = cam1_frame - cam2_frame
     summ = cam1_frame + cam2_frame
