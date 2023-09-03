@@ -365,17 +365,17 @@ CAL_DICT = {
         "flc_offset": np.deg2rad(-15.277),
         "pbs_throughput": 0.548,
     },
-    "750-50": {
-        "hwp_delta": 2 * np.pi * 0.476,
-        "hwp_offset": np.deg2rad(1.77),
+    "750-50": {  # rebecca's new coeffs 08/29
+        "hwp_delta": 2 * np.pi * 0.48,
+        "hwp_offset": np.deg2rad(-2.062),
         "imr_delta": 2 * np.pi * 0.479,
-        "imr_offset": np.deg2rad(4.441),
-        "optics_delta": 2 * np.pi * -0.205,
-        "optics_diatt": 0.004,
-        "optics_theta": np.deg2rad(-27.46),
-        "flc_delta": 2 * np.pi * 0.261,
-        "flc_offset": np.deg2rad(-8.118),
-        "pbs_throughput": 0.48,
+        "imr_offset": np.deg2rad(0.174),
+        "optics_delta": 2 * np.pi * -0.157,
+        "optics_diatt": 0.001,
+        "optics_theta": np.deg2rad(-26.953),
+        "flc_delta": 2 * np.pi * 0.24,
+        "flc_offset": np.deg2rad(-1.523),
+        "pbs_throughput": 0.489,
     },
     "725-50": {
         "hwp_delta": 2 * np.pi * 0.465,
@@ -431,8 +431,8 @@ CAL_DICT = {
 def mueller_matrix_from_header(header, adi_sync=True):
     filt = header["U_FILTER"]
     if filt in CAL_DICT:
-        # filt_dict = CAL_DICT["ideal"]
-        filt_dict = CAL_DICT[filt]
+        filt_dict = CAL_DICT["ideal"]
+        # filt_dict = CAL_DICT[filt]
     else:
         filt_dict = CAL_DICT["ideal"]
     pa_theta = np.deg2rad(header["PA"])
