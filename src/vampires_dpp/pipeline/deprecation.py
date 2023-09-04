@@ -13,7 +13,7 @@ def upgrade_config(config_dict: dict) -> Pipeline:
     .. admonition::
         :class: tip
 
-        In some cases (e.g. pre v0.6) it is necessary to recreate a configuration using `dpp create` because this function is not able to convert those version ranges.
+        In some cases (e.g. pre v0.6) it is necessary to recreate a configuration using `dpp new` because this function is not able to convert those version ranges.
 
     Parameters
     ----------
@@ -30,6 +30,8 @@ def upgrade_config(config_dict: dict) -> Pipeline:
     if config_version < Version("0.7"):
         config_dict = upgrade_to_0p7(config_dict)
     if config_version < Version("0.8"):
+        config_dict = upgrade_to_0p8(config_dict)
+    if config_version < Version("0.9"):
         config_dict = upgrade_to_0p8(config_dict)
     config_dict["version"] = __version__
     pipeline = Pipeline(**config_dict)
@@ -63,4 +65,8 @@ def upgrade_to_0p8(config_dict):
     if click.confirm("Would you like to do PSF analysis?", default=True):
         config_dict["analysis"] = dict(output_directory="analysis", photometry=dict(aper_rad=10))
 
+    return config_dict
+
+
+def upgrade_to_0p9(config_dict):
     return config_dict

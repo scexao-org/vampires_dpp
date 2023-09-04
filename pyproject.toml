@@ -26,7 +26,6 @@ dependencies = [
     "tomli",
     "tomli-w",
     "tqdm",
-    "trogon",
 ]
 
 [project.urls]

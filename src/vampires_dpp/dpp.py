@@ -9,7 +9,6 @@ import click
 import numpy as np
 import tomli
 from astropy.io import fits
-from trogon import tui
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import make_master_background, make_master_flat
@@ -53,10 +52,19 @@ def abort_if_true(ctx, param, value):
         ctx.abort()
 
 
+########## main ##########
+
+
+@click.group(name="main", no_args_is_help=True)
+@click.version_option(dpp.__version__, "--version", "-v", prog_name="vampires_dpp")
+def main():
+    pass
+
+
 ########## sort ##########
 
 
-@click.command(
+@main.command(
     name="sort",
     short_help="Sort raw data",
     help="Sorts raw data based on the data type. This will either use the `DATA-TYP` header value or the `U_OGFNAM` header, depending on when your data was taken.",
@@ -263,7 +271,7 @@ def createListCompleter(items):
     return listCompleter
 
 
-@click.command(name="new", help="Generate configuration files")
+@main.command(name="new", help="Generate configuration files")
 @click.argument(
     "config",
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
@@ -631,7 +639,7 @@ def _parse_cam_center(input_string):
 ########## check ##########
 
 
-@click.command(
+@main.command(
     name="check",
     short_help="Check raw data for problems",
     help="Checks each file to see if it can be opened (by calling fits.open) and whether there are any empty slices. Creates two text files with the selected and rejected filenames if any bad files are found.",
@@ -682,10 +690,10 @@ def check(filenames, num_proc, quiet):
     click.echo(str(reject_path))
 
 
-########## run ##########
+########## process ##########
 
 
-@click.command(name="run", help="Run the data processing pipeline")
+@main.command(name="process", help="Run the data processing pipeline")
 @click.argument(
     "config",
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
@@ -709,7 +717,7 @@ def check(filenames, num_proc, quiet):
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def run(config, filenames, num_proc, quiet):
+def process(config, filenames, num_proc, quiet):
     # make sure versions match within SemVar
     pipeline = Pipeline.from_file(config)
     if not check_version(pipeline.version, dpp.__version__):
@@ -719,10 +727,47 @@ def run(config, filenames, num_proc, quiet):
     pipeline.run(filenames, num_proc=num_proc, quiet=quiet)
 
 
+########## pdi ##########
+
+
+@main.command(name="pdi", help="Run the polarimetric differential imaging pipeline")
+@click.argument(
+    "config",
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.argument(
+    "filenames",
+    nargs=-1,
+    default=None,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option(
+    "--num-proc",
+    "-j",
+    default=DEFAULT_NPROC,
+    type=click.IntRange(1, cpu_count()),
+    help="Number of processes to use.",
+    show_default=True,
+)
+@click.option(
+    "--quiet",
+    "-q",
+    is_flag=True,
+    help="Silence progress bars and extraneous logging.",
+)
+def pdi(config, filenames, num_proc, quiet):
+    # make sure versions match within SemVar
+    pipeline = Pipeline.from_file(config)
+    # get filenames from expected outputs
+    if filenames is None:
+        pass
+    pipeline._polarimetry()
+
+
 ########## table ##########
 
 
-@click.command(
+@main.command(
     name="table",
     short_help="Create CSV from headers",
     help="Go through each file and combine the header information into a single CSV.",
@@ -768,7 +813,7 @@ def table(filenames, output, num_proc, quiet):
 ########## upgrade ##########
 
 
-@click.command(
+@main.command(
     name="upgrade",
     short_help="Upgrade configuration file",
     help=f"Tries to automatically upgrade a configuration file to the current version ({dpp.__version__}), prompting where necessary.",
@@ -801,25 +846,6 @@ def upgrade(config, output, edit):
     if edit:
         click.edit(filename=output)
 
-
-########## main ##########
-
-
-@tui()
-@click.group(name="main")
-@click.version_option(dpp.__version__, "--version", "-v", prog_name="vampires_dpp")
-def main():
-    pass
-
-
-# add sub-commands
-main.add_command(sort_raw)
-main.add_command(prep)
-main.add_command(check)
-main.add_command(table)
-main.add_command(upgrade)
-main.add_command(run)
-main.add_command(new_config)
 
 if __name__ == "__main__":
     main()
