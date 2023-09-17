@@ -101,13 +101,13 @@ def calibrate_file(
     # background subtraction
     if back_filename is not None:
         back_path = Path(back_filename)
-        header["DPP_BACK"] = back_path.name
+        header["BACKFILE"] = back_path.name
         background = fits.getdata(back_path).astype("f4")
         cube -= background
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
-        header["DPP_FLAT"] = flat_path.name
+        header["FLATFILE"] = flat_path.name
         flat = fits.getdata(flat_path).astype("f4")
         cube /= flat
     # bad pixel correction

@@ -36,7 +36,7 @@ def average_angle(angles: ArrayLike):
     Parameters
     ----------
     angles : ArrayLike
-        Angles in degrees, between [180, -180]
+        Angles in degrees, between [-180, 180]
 
     Returns
     -------
