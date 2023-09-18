@@ -2,61 +2,21 @@ from pathlib import Path
 
 import pytest
 import tomli
-from serde.toml import to_toml
 
-from vampires_dpp.pipeline.config import *
-
-
-class TestOutputDirectory:
-    def test_default_creation(self):
-        conf = OutputDirectory()
-        assert conf.output_directory is None
-
-    def test_creation(self, tmp_path):
-        conf = OutputDirectory(output_directory=tmp_path)
-        assert conf.output_directory == tmp_path
-
-    def test_default_serialize(self):
-        conf = OutputDirectory()
-        s = to_toml(conf)
-        assert s == ""
-
-    def test_serialize(self, tmp_path):
-        conf = OutputDirectory(output_directory=tmp_path)
-        toml_conf = OutputDirectory(**tomli.loads(to_toml(conf)))
-        assert conf == toml_conf
-
-
-class TestFileInput:
-    def test_default_creation(self):
-        with pytest.raises(TypeError):
-            conf = FileInput()
-
-    def test_creation(self, tmp_path):
-        filenames = tmp_path / "VMPA*.fits"
-        conf = FileInput(filenames=filenames)
-        assert conf.filenames == filenames
-
-    def test_serialize(self, tmp_path):
-        conf = FileInput(filenames=tmp_path / "VMPA*.fits")
-        toml_conf = FileInput(**tomli.loads(to_toml(conf)))
-        assert conf == toml_conf
-
-
-class TestDistortionOptions:
-    def test_default_creation(self):
-        with pytest.raises(TypeError):
-            conf = DistortionOptions()
-
-    def test_creation(self, tmp_path):
-        filename = tmp_path / "transforms.csv"
-        conf = DistortionOptions(transform_filename=filename)
-        assert conf.transform_filename == filename
-
-    def test_serialize(self, tmp_path):
-        conf = DistortionOptions(transform_filename=tmp_path / "transforms.csv")
-        toml_conf = DistortionOptions(**tomli.loads(to_toml(conf)))
-        assert conf == toml_conf
+from vampires_dpp.pipeline.config import (
+    CalibrateOptions,
+    CamFileInput,
+    CollapseOptions,
+    CoronagraphOptions,
+    DistortionOptions,
+    FrameSelectOptions,
+    IPOptions,
+    PipelineOptions,
+    PolarimetryOptions,
+    RegisterOptions,
+    SatspotOptions,
+    to_toml,
+)
 
 
 class TestCalibrateOptions:
@@ -102,7 +62,7 @@ class TestCalibrateOptions:
 class TestCoronagraphOptions:
     def test_error_creation(self):
         with pytest.raises(TypeError):
-            conf = CoronagraphOptions()
+            CoronagraphOptions()
 
     def test_default_creation(self):
         conf = CoronagraphOptions(iwa=55)
@@ -132,7 +92,7 @@ class TestSatspotOptions:
 class TestFrameSelectOptions:
     def test_error_creation(self):
         with pytest.raises(TypeError):
-            conf = FrameSelectOptions()
+            FrameSelectOptions()
 
     def test_default_creation(self):
         conf = FrameSelectOptions(cutoff=0.2)
@@ -234,7 +194,7 @@ class TestIPOptions:
 class TestPipelineOptions:
     def test_error_creation(self):
         with pytest.raises(TypeError):
-            conf = PipelineOptions()
+            PipelineOptions()
 
     def test_default_creation(self, tmp_path):
         conf = PipelineOptions(filenames=tmp_path / "VMPA*.fits", name="test")
