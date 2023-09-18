@@ -26,7 +26,7 @@ from vampires_dpp.image_registration import (
     register_file,
 )
 from vampires_dpp.organization import header_table
-from vampires_dpp.pipeline.config import PipelineOptions
+from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.polarization import (
     collapse_stokes_cube,
     instpol_correct,
@@ -41,10 +41,8 @@ from vampires_dpp.polarization import (
 from vampires_dpp.util import any_file_newer
 
 
-class Pipeline(PipelineOptions):
-    __doc__ = PipelineOptions.__doc__
-
-    def __post_init__(self):
+class Pipeline:
+    def __init__(self, config: PipelineConfig):
         super().__post_init__()
         self.master_backgrounds = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}

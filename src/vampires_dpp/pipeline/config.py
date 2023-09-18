@@ -18,7 +18,7 @@ class CamFileInput(BaseModel):
     cam2: Optional[Path] = None
 
 
-class CoordinateConfig(BaseModel):
+class ObjectConfig(BaseModel):
     """Astronomical coordinate options
 
     .. admonition:: Tip: GAIA
@@ -54,6 +54,9 @@ class CoordinateConfig(BaseModel):
     pm_dec: float = 0
     frame: str = "icrs"
     obstime: str = "J2016"
+    sptype: Optional[str] = None
+    mag: Optional[float] = None
+    mag_band: Optional[str] = None
 
     def model_post_init(self):
         if isinstance(self.ra, str):
@@ -349,7 +352,7 @@ class AnalysisConfig(BaseModel):
     window_size: int = 40
     photometry: bool = True
     aper_rad: float | Literal["auto"] = 10
-    ann_rad: Optional[tuple[float, float]] = field(default=None, skip_if_default=True)
+    ann_rad: Optional[tuple[float, float]] = None
 
     # def __post_init__(self):
     #     if not isinstance(self.aper_rad, str) and self.aper_rad > self.window_size / 2:
@@ -506,15 +509,15 @@ class PipelineConfig(BaseModel):
 
     """
 
-    dpp_version: str = dpp.__version__
     name: str = ""
+    make_diff_images: bool = False
+    save_adi_cubes: bool = True
+    coronagraphic: bool = False
+    dpp_version: str = dpp.__version__
+    object: Optional[ObjectConfig] = None
     fields: Optional[CamFileInput] = CamFileInput()
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
-    coronagraphic: bool = False
-    make_diff_images: bool = False
-    save_adi_cubes: bool = True
-    coordinate: Optional[CoordinateConfig] = None
     frame_select: Optional[FrameSelectConfig] = None
     register: Optional[RegisterConfig] = None
     collapse: Optional[CollapseConfig] = None
@@ -545,7 +548,7 @@ class PipelineConfig(BaseModel):
 
     def to_toml(self):
         # get serializable output using pydantic
-        model_dict = self.model_dump(exclude_none=True)
+        model_dict = self.model_dump(exclude_none=True, mode="json", round_trip=True)
         return tomli_w.dumps(model_dict)
 
     def save(self, filename: Path):

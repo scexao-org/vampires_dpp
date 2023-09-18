@@ -21,6 +21,7 @@ dependencies = [
     "pandas",
     "photutils",
     "pydantic",
+    "pysynphot",
     "scikit-image",
     "scipy",
     "sep",
