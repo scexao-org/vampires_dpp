@@ -1,6 +1,8 @@
 import glob
+import multiprocessing as mp
 import os
 import readline
+import shutil
 from multiprocessing import cpu_count
 from pathlib import Path
 
@@ -8,25 +10,25 @@ import astropy.units as u
 import click
 import numpy as np
 import tomli
+import tqdm.auto as tqdm
 from astropy.io import fits
 
 import vampires_dpp as dpp
-from vampires_dpp.calibration import make_master_background, make_master_flat
+from vampires_dpp.calibration import (
+    make_master_background,
+    make_master_flat,
+    normalize_file,
+)
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import check_files, header_table, sort_files
 from vampires_dpp.pipeline.config import (
-    AnalysisOptions,
-    CamCtrOption,
+    AnalysisConfig,
     CamFileInput,
-    CollapseOptions,
-    CoordinateOptions,
-    CoronagraphOptions,
-    DiffOptions,
-    FrameSelectOptions,
-    IPOptions,
-    PhotometryOptions,
-    RegisterOptions,
-    SatspotOptions,
+    CollapseConfig,
+    FrameSelectConfig,
+    ObjectConfig,
+    PipelineConfig,
+    RegisterConfig,
 )
 from vampires_dpp.pipeline.deprecation import upgrade_config
 from vampires_dpp.pipeline.pipeline import Pipeline
@@ -39,6 +41,8 @@ from vampires_dpp.pipeline.templates import (
 )
 from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
+
+from .cli.frame_centers import centroid
 
 
 # callback that will confirm if a flag is false
@@ -350,7 +354,7 @@ def new_config(ctx, config, edit):
                         obj = _input
 
         if coord is not None:
-            tpl.coordinate = CoordinateOptions(
+            tpl.coordinate = ObjectConfig(
                 object=obj,
                 ra=coord.ra.to_string("hour", sep=":", pad=True),
                 dec=coord.dec.to_string("deg", sep=":", pad=True),
@@ -429,46 +433,7 @@ def new_config(ctx, config, edit):
     iwa_choices = ["36", "55", "92", "129"]
 
     readline.set_completer(createListCompleter(iwa_choices))
-    have_coro = click.confirm("Did you use a coronagraph?", default=False)
-    if have_coro:
-        iwa = click.prompt("  Enter coronagraph IWA (mas)", type=click.Choice(iwa_choices))
-        tpl.coronagraph = CoronagraphOptions(iwa=float(iwa))
-        readline.set_completer()
-
-    ## Satellite spots
-    have_satspot = click.confirm(
-        "Did you use satellite spots?", default=tpl.coronagraph is not None
-    )
-    if have_satspot:
-        spotrad = click.prompt("  Enter satspot radius (lam/D)", default=15.8, type=float)
-        spotamp = click.prompt("  Enter satspot amplitude (nm)", default=50, type=float)
-        tpl.satspots = SatspotOptions(radius=spotrad, amp=spotamp)
-
-    ## Frame centers
-    set_frame_centers = click.confirm("Do you want to specify frame centers?", default=False)
-    if set_frame_centers:
-        cam1_ctr = cam2_ctr = None
-        cam1_ctr_input = click.prompt(
-            "Enter comma-separated center for cam1 (x, y) (optional)", default=""
-        )
-        if cam1_ctr_input != "":
-            cam1_ctr = _parse_cam_center(cam1_ctr_input)
-        if template != "singlecam" or cam1_ctr is None:
-            if cam1_ctr is not None:
-                cam2_ctr_input = click.prompt(
-                    "Enter comma-separated center for cam1 (x, y) (optional)",
-                    default=cam1_ctr_input,
-                )
-                cam2_ctr = _parse_cam_center(cam2_ctr_input)
-            else:
-                cam2_ctr_input = click.prompt(
-                    "Enter comma-separated center for cam2 (x, y) (optional)", default=""
-                )
-                if cam2_ctr_input == "":
-                    cam2_ctr = None
-                else:
-                    cam2_ctr = _parse_cam_center(cam2_ctr_input)
-        tpl.frame_centers = CamCtrOption(cam1=cam1_ctr, cam2=cam2_ctr)
+    tpl.coronagraphic = click.confirm("Did you use a coronagraph?", default=False)
 
     ## Frame selection
     do_frame_select = click.confirm(
@@ -487,10 +452,9 @@ def new_config(ctx, config, edit):
             default="normvar",
         )
         readline.set_completer()
-        tpl.frame_select = FrameSelectOptions(
+        tpl.frame_select = FrameSelectConfig(
             cutoff=cutoff,
             metric=frame_select_metric,
-            output_directory=DEFAULT_DIRS[FrameSelectOptions],
         )
     else:
         tpl.frame_select = None
@@ -508,9 +472,7 @@ def new_config(ctx, config, edit):
             default="com",
         )
         readline.set_completer()
-        opts = RegisterOptions(
-            method=register_method, output_directory=DEFAULT_DIRS[RegisterOptions]
-        )
+        opts = RegisterConfig(method=register_method)
         if register_method == "dft":
             opts.dft_factor = click.prompt("    Enter DFT upsample factor", default=1, type=int)
 
@@ -532,19 +494,13 @@ def new_config(ctx, config, edit):
             default="median",
         )
         readline.set_completer()
-        tpl.collapse = CollapseOptions(
-            collapse_method, output_directory=DEFAULT_DIRS[CollapseOptions]
-        )
+        tpl.collapse = CollapseConfig(collapse_method)
     else:
         tpl.collapse = None
 
-    do_diff = click.confirm(
+    tpl.make_diff_images = click.confirm(
         "Would you like to make difference images?", default=tpl.diff is not None
     )
-    if do_diff:
-        tpl.diff = DiffOptions(output_directory=DEFAULT_DIRS[DiffOptions])
-    else:
-        tpl.diff = None
 
     if click.confirm("Would you like to do PSF analysis?", default=tpl.analysis is not None):
         model = click.prompt(
@@ -586,12 +542,12 @@ def new_config(ctx, config, edit):
                     f"Reducing aperture radius to less than annulus radius ({aper_rad:.0f} px)"
                 )
 
-        tpl.analysis = AnalysisOptions(
+        tpl.analysis = AnalysisConfig(
             model=model,
             window_size=window_size,
             subtract_radprof=subtract_radprof,
-            photometry=PhotometryOptions(aper_rad=aper_rad, ann_rad=ann_rad),
-            output_directory=DEFAULT_DIRS[AnalysisOptions],
+            aper_rad=aper_rad,
+            ann_rad=ann_rad,
         )
     else:
         tpl.analysis = None
@@ -611,13 +567,10 @@ def new_config(ctx, config, edit):
                 "  Would you like to to Mueller-matrix correction?",
                 default=True,
             )
-        ip_touchup = click.confirm(
+        tpl.polarimetry.ip_correct = click.confirm(
             "  Would you like to do IP touchup?", default=tpl.polarimetry.ip is not None
         )
-        if ip_touchup:
-            tpl.polarimetry.ip = IPOptions(
-                aper_rad=click.prompt("    Enter IP aperture radius (px)", default=10, type=float)
-            )
+
     else:
         tpl.polarimetry = None
 
@@ -636,18 +589,27 @@ def _parse_cam_center(input_string):
     return ctr
 
 
-########## check ##########
+########## normalize ##########
 
 
-@main.command(
-    name="check",
-    short_help="Check raw data for problems",
-    help="Checks each file to see if it can be opened (by calling fits.open) and whether there are any empty slices. Creates two text files with the selected and rejected filenames if any bad files are found.",
-)
+@main.command(name="norm", help="Normalize VAMPIRES data files")
 @click.argument(
     "filenames",
     nargs=-1,
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option("-o", "--outdir", type=Path, default=Path.cwd() / "prep", help="Output directory")
+@click.option(
+    "-d/-nd",
+    "--deint/--no-deint",
+    default=False,
+    help="Deinterleave files into FLC states (WARNING: only apply this to old VAMPIRES data downloaded directly from `sonne`)",
+)
+@click.option(
+    "-f/-nf",
+    "--filter-empty/--no-filter-empty",
+    default=True,
+    help="Filter empty frames from data (post deinterleaving, if applicable)",
 )
 @click.option(
     "--num-proc",
@@ -663,31 +625,19 @@ def _parse_cam_center(input_string):
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def check(filenames, num_proc, quiet):
-    filenames = np.asarray(filenames, dtype=str)
-    valid_files = check_files(filenames, num_proc=num_proc, quiet=quiet)
-    cnt_valid = np.sum(valid_files)
-    cnt_invalid = len(valid_files) - cnt_valid
-    if cnt_invalid == 0:
-        click.echo("No invalid files found.")
-        return
+def norm(
+    filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool, output_directory: Path
+):
+    jobs = []
+    kwargs = dict(deinterleave=deint, filter_empty=filter_empty, output_directory=output_directory)
+    with mp.Pool(num_proc) as pool:
+        for filename in filenames:
+            jobs.append(pool.apply_async(normalize_file, args=(filename,), kwds=kwargs))
 
-    click.echo(
-        f"{cnt_invalid} invalid files found (either couldn't be opened or have empty slices)"
-    )
-    mask = np.asarray(valid_files, dtype=bool)
-    accept_files = filenames[mask]
-    accept_path = Path.cwd() / "files_select.txt"
-    with accept_path.open("w") as fh:
-        fh.writelines("\n".join(str(f) for f in accept_files))
+        iter = jobs if quiet else tqdm.tqdm(jobs, desc="Normalizing files")
+        results = [job.get() for job in iter]
 
-    reject_files = filenames[~mask]
-    reject_path = Path.cwd() / "files_reject.txt"
-    with reject_path.open("w") as fh:
-        fh.writelines("\n".join(str(f) for f in reject_files))
-
-    click.echo(str(accept_path))
-    click.echo(str(reject_path))
+    return results
 
 
 ########## process ##########
@@ -703,6 +653,7 @@ def check(filenames, num_proc, quiet):
     nargs=-1,
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
 )
+@click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
     "--num-proc",
     "-j",
@@ -711,20 +662,15 @@ def check(filenames, num_proc, quiet):
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
-def process(config, filenames, num_proc, quiet):
+def process(config: Path, filenames, num_proc, outdir):
     # make sure versions match within SemVar
-    pipeline = Pipeline.from_file(config)
-    if not check_version(pipeline.version, dpp.__version__):
+    pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
+    if not check_version(pipeline.config.dpp_version, dpp.__version__):
         raise ValueError(
-            f"Input pipeline version ({pipeline.version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
+            f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
         )
-    pipeline.run(filenames, num_proc=num_proc, quiet=quiet)
+    shutil.copyfile(config, pipeline.product_dir / config.name.replace(".toml", ".bak.toml"))
+    pipeline.run(filenames, num_proc=num_proc)
 
 
 ########## pdi ##########

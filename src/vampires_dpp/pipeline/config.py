@@ -67,10 +67,6 @@ class ObjectConfig(BaseModel):
         self.dec_ang = Angle(self.dec, "deg")
         self.dec = self.dec_ang.to_string(pad=True, sep=":")
 
-    def to_toml(self) -> str:
-        obj = {"coordinate": self}
-        return to_toml(obj)
-
     def get_coord(self) -> SkyCoord:
         return SkyCoord(
             ra=self.ra_ang,
@@ -151,7 +147,6 @@ class CalibrateConfig(BaseModel):
     master_flats: Optional[CamFileInput] = CamFileInput()
     distortion_file: Optional[Path] = None
     fix_bad_pixels: bool = False
-    deinterleave: bool = False
     save_intermediate: bool = False
     output_directory: ClassVar[Path] = Path("calib")
 
@@ -205,13 +200,6 @@ class FrameSelectConfig(BaseModel):
 
     cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     metric: Literal["peak", "l2norm", "normvar"] = "normvar"
-    output_directory: ClassVar[Path] = Path("metrics")
-
-    def get_output_path(self, filename: Path):
-        # replace any .fits.fz with .fits
-        name = filename.name.split(".fits")[0]
-        # take input filename and append '_metrics'
-        return self.output_directory / f"{name}_metrics.npz"
 
 
 class RegisterConfig(BaseModel):
@@ -267,13 +255,6 @@ class RegisterConfig(BaseModel):
     smooth_kernel: int = 3
     dft_factor: int = 5
     dft_ref: Literal["centroid", "peak"] | Path = "centroid"
-    output_directory: ClassVar[Path] = Path("offsets")
-
-    def get_output_path(self, filename: Path):
-        # replace any .fits.fz with .fits
-        name = filename.name.split(".fits")[0]
-        # take input filename and append '_metrics'
-        return self.output_directory / f"{name}_offsets.npz"
 
 
 class CollapseConfig(BaseModel):
@@ -312,6 +293,14 @@ class CollapseConfig(BaseModel):
     """
 
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
+
+    output_directory: ClassVar[Path] = Path("collapsed")
+
+    def get_output_path(self, filename: Path):
+        # replace any .fits.fz with .fits
+        name = filename.name.split(".fits")[0]
+        # take input filename and append '_coll'
+        return self.output_directory / f"{name}_coll.npz"
 
 
 class AnalysisConfig(BaseModel):
@@ -353,6 +342,14 @@ class AnalysisConfig(BaseModel):
     photometry: bool = True
     aper_rad: float | Literal["auto"] = 10
     ann_rad: Optional[tuple[float, float]] = None
+
+    output_directory: ClassVar[Path] = Path("metrics")
+
+    def get_output_path(self, filename: Path):
+        # replace any .fits.fz with .fits
+        name = filename.name.split(".fits")[0]
+        # take input filename and append '_metrics'
+        return self.output_directory / f"{name}_metrics.npz"
 
     # def __post_init__(self):
     #     if not isinstance(self.aper_rad, str) and self.aper_rad > self.window_size / 2:
@@ -418,6 +415,11 @@ class PolarimetryConfig(BaseModel):
     ip_method: Literal["aperture", "annulus", "satspots"] = "aperture"
     ip_radius: float = 15
     output_directory: ClassVar[Path] = Path("pdi")
+
+    def get_output_path(self, filename: Path, mode: Literal["mm", "stokes"]):
+        # replace any .fits.fz with .fits
+        name = filename.name.split(".fits")[0]
+        return self.output_directory / f"{name}_mm.npz"
 
 
 class PipelineConfig(BaseModel):
@@ -515,13 +517,14 @@ class PipelineConfig(BaseModel):
     coronagraphic: bool = False
     dpp_version: str = dpp.__version__
     object: Optional[ObjectConfig] = None
-    fields: Optional[CamFileInput] = CamFileInput()
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
     frame_select: Optional[FrameSelectConfig] = None
     register: Optional[RegisterConfig] = None
     collapse: Optional[CollapseConfig] = None
     polarimetry: Optional[PolarimetryConfig] = None
+    preproc_directory: ClassVar[Path] = Path("preproc")
+    product_directory: ClassVar[Path] = Path("product")
 
     @classmethod
     def from_file(cls, filename: PathLike):

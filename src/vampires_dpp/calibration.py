@@ -3,7 +3,7 @@
 import multiprocessing as mp
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 import astropy.units as u
 import cv2
@@ -23,10 +23,11 @@ from vampires_dpp.image_processing import (
     collapse_frames_files,
     correct_distortion_cube,
 )
-from vampires_dpp.util import get_paths, wrap_angle
+from vampires_dpp.util import get_paths, load_fits, wrap_angle
 from vampires_dpp.wcs import apply_wcs, get_coord_header
 
 __all__ = [
+    "normalize_file",
     "calibrate_file",
     "make_background_file",
     "make_flat_file",
@@ -35,39 +36,92 @@ __all__ = [
 ]
 
 
-def filter_empty_frames(cube):
+def normalize_file(
+    filename: str,
+    deinterleave: bool = False,
+    discard_empty: bool = True,
+    **kwargs,
+):
+    if deinterleave:
+        # determine if files already exist
+        path, outpath1 = get_paths(filename, suffix="_FLC1_fix", **kwargs)
+        _, outpath2 = get_paths(filename, suffix="_FLC2_fix", **kwargs)
+        if outpath1.exists() and outpath2.exists():
+            return outpath1, outpath2
+    else:
+        path, outpath = get_paths(filename, suffix="_fix", **kwargs)
+        if outpath.exists():
+            return outpath
+
+    data, header = load_fits(path, header=True)
+    # determine how many frames to discard
+    ndiscard = 0 if "U_FLCSTT" in header else 2
+    data_filt = data[ndiscard:]
+    if deinterleave:
+        hdu1, hdu2 = deinterleave_cube(data_filt, header, discard_empty=discard_empty)
+        if hdu1 is not None:
+            hdu1.writeto(outpath1, overwrite=True)
+        if hdu2 is not None:
+            hdu2.writeto(outpath2, overwrite=True)
+    else:
+        if discard_empty:
+            data_filt = filter_empty_frames(data_filt)
+        if data_filt is not None:
+            fits.writeto(outpath, data_filt, header=fix_header(header), overwrite=True)
+
+
+def deinterleave_cube(
+    data: np.ndarray, header: fits.Header, discard_empty: bool = True
+) -> tuple[Optional[fits.PrimaryHDU], Optional[fits.PrimaryHDU]]:
+    flc1_filt = data[::2]
+    if discard_empty:
+        flc1_filt = filter_empty_frames(flc1_filt)
+    hdu1 = None
+    if flc1_filt is not None:
+        hdu1 = fits.PrimaryHDU(flc1_filt, header=header.copy())
+        hdu1.header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
+        fix_header(hdu1.header)
+
+    flc2_filt = data[1::2]
+    if discard_empty:
+        flc2_filt = filter_empty_frames(flc2_filt)
+    hdu2 = None
+    if flc2_filt is not None:
+        hdu2 = fits.PrimaryHDU(flc2_filt, header=header.copy())
+        hdu2.header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
+        fix_header(hdu2.header)
+
+    return hdu1, hdu2
+
+
+def filter_empty_frames(cube) -> Optional[np.ndarray]:
     finite_mask = np.isfinite(cube)
     nonzero_mask = cube != 0
     combined = finite_mask & nonzero_mask
-    inds = np.any(combined, axis=(1, 2))
+    inds = np.any(combined, axis=(-2, -1))
+    if not np.any(inds):
+        return None
+
     return cube[inds]
 
 
 def calibrate_file(
     filename: str,
-    hdu: int = 0,
     back_filename: Optional[str] = None,
     flat_filename: Optional[str] = None,
     transform_filename: Optional[str] = None,
     force: bool = False,
     bpfix: bool = False,
-    deinterleave: bool = False,
     coord: Optional[SkyCoord] = None,
     **kwargs,
-):
+) -> fits.PrimaryHDU:
     path, outpath = get_paths(filename, suffix="calib", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
-        return outpath
-    # have to also check if deinterleaving
-    if deinterleave:
-        outpath_FLC1 = outpath.with_stem(f"{outpath.stem}_FLC1")
-        outpath_FLC2 = outpath.with_stem(f"{outpath.stem}_FLC2")
-        if not force and outpath_FLC1.is_file() and outpath_FLC2.is_file():
-            return outpath_FLC1, outpath_FLC2
+        with fits.open(outpath) as hdul:
+            return hdul[0]
 
-    raw_cube, header = fits.getdata(path, ext=hdu, header=True)
-    # fix header
-    header = fix_header(header)
+    raw_cube, header = load_fits(path, header=True)
+    cube = raw_cube.astype("f4")
     time_str = Time(header["MJD-STR"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time_end = Time(header["MJD-END"], format="mjd", scale="ut1", location=SUBARU_LOC)
@@ -91,19 +145,12 @@ def calibrate_file(
     header["DEROTANG"] = derotang, "[deg] derotation angle for North up"
     header = apply_wcs(header, angle=derotang)
 
-    # Discard frames in OG VAMPIRES
-    if "U_FLCSTT" in header:
-        cube = raw_cube.astype("f4")
-    else:
-        cube = raw_cube[2:].astype("f4")
-    # remove empty and NaN frames
-    cube = filter_empty_frames(cube)
     # background subtraction
     if back_filename is not None:
         back_path = Path(back_filename)
         header["BACKFILE"] = back_path.name
         background = fits.getdata(back_path).astype("f4")
-        cube -= background
+        cube -= -background
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
@@ -114,9 +161,9 @@ def calibrate_file(
     if bpfix:
         mask, _ = detect_cosmics(
             cube.mean(0),
-            gain=header.get("DETGAIN", 4.5),
+            gain=header.get("DETGAIN", 4.5) * max(1, header.get("U_EMGAIN", 1)),
             readnoise=READNOISE,
-            satlevel=2**15 * header.get("DETGAIN", 4.5),
+            satlevel=2**15 * header.get("DETGAIN", 4.5) * max(1, header.get("U_EMGAIN", 1)),
             niter=1,
         )
         cube_copy = cube.copy()
@@ -133,49 +180,17 @@ def calibrate_file(
         params = distort_coeffs.loc[f"cam{header['U_CAMERA']:.0f}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
 
-    # deinterleave
-    if deinterleave:
-        header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
-        header["U_FLCANG"] = 0, "[deg] VAMPIRES FLC angle"
-        header["TINT"] /= 2
-        fits.writeto(
-            outpath_FLC1,
-            cube[::2],
-            header=header,
-            overwrite=True,
-        )
-
-        header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
-        header["U_FLCANG"] = 45, "[deg] VAMPIRES FLC angle"
-
-        fits.writeto(
-            outpath_FLC2,
-            cube[1::2],
-            header=header,
-            overwrite=True,
-        )
-        return outpath_FLC1, outpath_FLC2
-
-    fits.writeto(outpath, cube, header=header, overwrite=True)
-    return outpath
+    return fits.PrimaryHDU(cube, header=header)
 
 
 def make_background_file(filename: str, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    raw_cube, header = fits.getdata(
-        path,
-        ext=0,
-        header=True,
-    )
-    if "U_FLCSTT" in header:
-        cube = raw_cube.astype("f4")
-    else:
-        cube = raw_cube[1:].astype("f4")
-    master_background, header = collapse_cube(cube, header=header, **kwargs)
-    header = fix_header(header)
+    raw_cube, header = load_fits(path, header=True)
+    master_background, header = collapse_cube(raw_cube.astype("f4"), header=header, **kwargs)
     header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
+    ## TODO add bad-pixel mask creation
     # _, clean_background = detect_cosmics(
     #     master_background,
     #     gain=header.get("DETGAIN", 4.5),
@@ -195,31 +210,15 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    raw_cube, header = fits.getdata(
-        path,
-        ext=0,
-        header=True,
-    )
-    header = fix_header(header)
+    raw_cube, header = load_fits(path, header=True)
+    cube = raw_cube.astype("f4")
     header["CAL_TYPE"] = "FLATFIELD", "DPP calibration file type"
-    if "U_FLCSTT" in header:
-        cube = raw_cube.astype("f4")
-    else:
-        cube = raw_cube[1:].astype("f4")
     if back_filename is not None:
         back_path = Path(back_filename)
         header["DPP_BACK"] = (back_path.name, "DPP file used for background subtraction")
-        master_back = fits.getdata(
-            back_path,
-        )
-        cube = cube - master_back
+        master_back = load_fits(back_path)
+        cube -= master_back
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
-    # _, clean_flat = detect_cosmics(
-    #     master_flat,
-    #     gain=header.get("DETGAIN", 4.5),
-    #     readnoise=READNOISE,
-    #     satlevel=2**16 * header.get("DETGAIN", 4.5),
-    # )
     master_flat /= np.nanmedian(master_flat)
 
     fits.writeto(
@@ -231,7 +230,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     return outpath
 
 
-def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dict[Tuple, Path]:
+def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dict[tuple, Path]:
     file_dict = {}
     for filename in filenames:
         path = Path(filename)
@@ -319,7 +318,7 @@ def make_master_flat(
     file_inputs = sort_calib_files(filenames)
     master_back_dict = {key: None for key in file_inputs.keys()}
     if master_backgrounds is not None:
-        back_inputs = sort_calib_files(master_backgrounds, backs=True)
+        back_inputs = sort_calib_files(master_backgrounds, backgrounds=True)
         for key in file_inputs.keys():
             # don't need to match filter for backs
             back_key = key[:-1]

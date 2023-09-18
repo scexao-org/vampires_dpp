@@ -29,7 +29,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     path = Path(filename)
     summary = OrderedDict()
     # add path to row before the FITS header keys
-    summary["path"] = path.resolve()
+    summary["path"] = path.resolve().absolute()
     ext = 1 if ".fits.fz" in path.name else 0
     header = fits.getheader(filename, ext=ext, **kwargs)
     summary.update(dict_from_header(header))

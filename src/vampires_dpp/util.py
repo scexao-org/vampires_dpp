@@ -98,3 +98,10 @@ def any_file_newer(filenames, outpath):
     else:
         gen = (Path(f).stat().st_mtime > out_mt for f in filenames)
         return any(gen)
+
+
+def load_fits(filename, ext=0, **kwargs):
+    path = Path(filename)
+    if ".fits.fz" in path.name:
+        ext = 1
+    return fits.getdata(path, ext=ext, **kwargs)

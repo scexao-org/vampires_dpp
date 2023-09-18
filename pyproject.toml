@@ -16,6 +16,7 @@ dependencies = [
     "astroquery",
     "astroscrappy",
     "click",
+    "loguru",
     "numpy",
     "opencv-python",
     "pandas",
@@ -57,7 +58,7 @@ docs = [
 ]
 
 [project.scripts]
-dpp = "vampires_dpp.cli.dpp:main"
+dpp = "vampires_dpp.dpp:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "vampires_dpp.__version__"}

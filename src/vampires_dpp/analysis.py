@@ -4,7 +4,7 @@ from astropy.io import fits
 
 from vampires_dpp.image_processing import radial_profile_image, shift_frame
 from vampires_dpp.indexing import (
-    cutout_slice,
+    cutout_inds,
     frame_center,
     frame_radii,
     lamd_to_pixel,
@@ -34,7 +34,7 @@ def analyze_frame(
     frame, aper_rad, header=None, ann_rad=None, model="gaussian", recenter=True, **kwargs
 ):
     ## fit PSF to center
-    inds = cutout_slice(frame, **kwargs)
+    inds = cutout_inds(frame, **kwargs)
     model_fit = fit_model(frame, inds, model)
 
     old_ctr = frame_center(frame)
