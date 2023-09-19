@@ -105,23 +105,7 @@ def filter_empty_frames(cube) -> Optional[np.ndarray]:
     return cube[inds]
 
 
-def calibrate_file(
-    filename: str,
-    back_filename: Optional[str] = None,
-    flat_filename: Optional[str] = None,
-    transform_filename: Optional[str] = None,
-    force: bool = False,
-    bpfix: bool = False,
-    coord: Optional[SkyCoord] = None,
-    **kwargs,
-) -> fits.PrimaryHDU:
-    path, outpath = get_paths(filename, suffix="calib", **kwargs)
-    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
-        with fits.open(outpath) as hdul:
-            return hdul[0]
-
-    raw_cube, header = load_fits(path, header=True)
-    cube = raw_cube.astype("f4")
+def apply_coordinate(header, coord: Optional[SkyCoord] = None):
     time_str = Time(header["MJD-STR"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time_end = Time(header["MJD-END"], format="mjd", scale="ut1", location=SUBARU_LOC)
@@ -143,7 +127,30 @@ def calibrate_file(
     header["PA"] = pa, "[deg] parallactic angle of target"
     derotang = wrap_angle(pa + PA_OFFSET)
     header["DEROTANG"] = derotang, "[deg] derotation angle for North up"
-    header = apply_wcs(header, angle=derotang)
+    return apply_wcs(header, angle=derotang)
+
+
+def calibrate_file(
+    filename: str,
+    back_filename: Optional[str] = None,
+    flat_filename: Optional[str] = None,
+    transform_filename: Optional[str] = None,
+    force: bool = False,
+    bpfix: bool = False,
+    coord: Optional[SkyCoord] = None,
+    **kwargs,
+) -> fits.PrimaryHDU:
+    path, outpath = get_paths(filename, suffix="calib", **kwargs)
+    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
+        with fits.open(outpath) as hdul:
+            return hdul[0]
+
+    # load data and mask saturated pixels
+    raw_cube, header = load_fits(path, header=True)
+    cube = np.where(raw_cube >= 65535, np.nan, raw_cube.astype("f4"))
+
+    # apply proper motion correction to coordinate
+    header = apply_coordinate(header, coord)
 
     # background subtraction
     if back_filename is not None:
@@ -188,7 +195,8 @@ def make_background_file(filename: str, force=False, **kwargs):
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     raw_cube, header = load_fits(path, header=True)
-    master_background, header = collapse_cube(raw_cube.astype("f4"), header=header, **kwargs)
+    cube = np.where(raw_cube >= 65535, np.nan, raw_cube.astype("f4"))
+    master_background, header = collapse_cube(cube, header=header, **kwargs)
     header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
     ## TODO add bad-pixel mask creation
     # _, clean_background = detect_cosmics(
@@ -211,7 +219,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     raw_cube, header = load_fits(path, header=True)
-    cube = raw_cube.astype("f4")
+    cube = np.where(raw_cube >= 65535, np.nan, raw_cube.astype("f4"))
     header["CAL_TYPE"] = "FLATFIELD", "DPP calibration file type"
     if back_filename is not None:
         back_path = Path(back_filename)

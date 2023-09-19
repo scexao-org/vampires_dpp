@@ -1,82 +1,16 @@
 from pathlib import Path
 
-import cv2
 import numpy as np
 from astropy.io import fits
 from astropy.modeling import fitting, models
 from numpy.typing import ArrayLike
-from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 
 from vampires_dpp.frame_selection import frame_select_cube
 from vampires_dpp.image_processing import collapse_cube, shift_cube
-from vampires_dpp.indexing import (
-    cutout_slice,
-    frame_center,
-    lamd_to_pixel,
-    window_slices,
-)
+from vampires_dpp.indexing import frame_center
 from vampires_dpp.psf_models import fit_model
 from vampires_dpp.util import get_paths
-
-
-def satellite_spot_offsets(
-    cube: ArrayLike,
-    method="com",
-    refmethod="peak",
-    refidx=0,
-    upsample_factor=1,
-    center=None,
-    smooth: bool = False,
-    **kwargs,
-):
-    slices = window_slices(cube[0], center=center, **kwargs)
-    center = frame_center(cube)
-
-    if smooth:
-        for i in range(cube.shape[0]):
-            cube[i] = cv2.GaussianBlur(cube[i], (0, 0), 3)
-
-    offsets = np.zeros((cube.shape[0], len(slices), 2))
-
-    if method == "com":
-        for i, frame in enumerate(cube):
-            for j, sl in enumerate(slices):
-                offsets[i, j] = offset_centroid(frame, sl) - center
-    elif method == "dft":
-        refframe = cube[refidx]
-        # measure peak index from each
-        refshift = 0
-        for sl in slices:
-            if refmethod == "com":
-                refshift += offset_centroid(refframe, sl)
-            elif refmethod == "peak":
-                refshift += offset_peak(refframe, sl)
-        refoffset = refshift / len(slices) - center
-
-        for i in range(cube.shape[0]):
-            if i == refidx:
-                offsets[i] = refoffset
-                continue
-            frame = cube[i]
-            for j, sl in enumerate(slices):
-                refview = refframe[sl[0], sl[1]]
-                view = frame[sl[0], sl[1]]
-                dft_offset = phase_cross_correlation(
-                    refview, view, return_error=False, upsample_factor=upsample_factor
-                )
-                offsets[i, j] = refoffset - dft_offset
-    elif method == "peak":
-        for i, frame in enumerate(cube):
-            for j, sl in enumerate(slices):
-                offsets[i, j] = offset_peak(frame, sl) - center
-    elif method in ("moffat", "airydisk", "gaussian"):
-        fitter = fitting.LevMarLSQFitter()
-        for i, frame in enumerate(cube):
-            for j, sl in enumerate(slices):
-                offsets[i, j] += offset_modelfit(frame, sl, method, fitter) - center
-
-    return offsets
 
 
 def model_background(cube, slices, center):
@@ -100,72 +34,38 @@ def model_background(cube, slices, center):
     return bestfit_model(X, Y)
 
 
-def psf_offsets(
-    cube: ArrayLike,
-    method="peak",
-    refmethod="peak",
-    refidx=0,
-    center=None,
-    window=None,
-    upsample_factor=1,
-    **kwargs,
-):
-    if window is not None:
-        inds = cutout_slice(cube[0], center=center, window=window)
-    else:
-        inds = (
-            slice(0, cube.shape[-2]),
-            slice(0, cube.shape[-1]),
-        )
-    center = frame_center(cube)
-    offsets = np.zeros((cube.shape[0], 1, 2))
-
-    if method == "com":
-        for i, frame in enumerate(cube):
-            offsets[i, 0] = offset_centroid(frame, inds) - center
-    elif method == "dft":
-        refframe = cube[refidx]
-        if refmethod == "com":
-            refoffset = offset_centroid(refframe, inds) - center
-        elif refmethod == "peak":
-            refoffset = offset_peak(refframe, inds) - center
-        refview = refframe[inds[0], inds[1]]
-
-        for i, frame in enumerate(cube):
-            if i == refidx:
-                offsets[i] = refoffset
-                continue
-            view = frame[inds[0], inds[1]]
-            dft_offset = phase_cross_correlation(
-                refview, view, return_error=False, upsample_factor=upsample_factor
-            )
-            offsets[i, 0] = refoffset - dft_offset
-    elif method == "peak":
-        for i, frame in enumerate(cube):
-            offsets[i, 0] = offset_peak(frame, inds) - center
-    elif method in ("moffat", "airydisk", "gaussian"):
-        fitter = fitting.LevMarLSQFitter()
-        for i, frame in enumerate(cube):
-            offsets[i, 0] = offset_modelfit(frame, inds, method, fitter) - center
-
-    return offsets
+def offset_dft(frame, inds, psf, upsample_factor=5):
+    cutout = frame[inds]
+    dft_offset = phase_cross_correlation(
+        psf, cutout, return_error=False, upsample_factor=upsample_factor
+    )
+    ctr = np.array(frame_center(psf)) - dft_offset
+    # offset based on indices
+    ctr[-2] += inds[-2].start
+    ctr[-1] += inds[-1].start
+    return ctr
 
 
 def offset_centroid(frame, inds):
-    view = frame[inds[0], inds[1]]
-    ctr = centroid(view)
+    """NaN-friendly centroid"""
+    wy, wx = np.ogrid[inds[-2], inds[-1]]
+    cutout = frame[inds]
+    mask = np.isfinite(cutout)
+    cy = np.sum(wy * cutout, where=mask)
+    cx = np.sum(wx * cutout, where=mask)
+    ctr = np.asarray((cy, cx)) / np.sum(cutout, where=mask)
     # offset based on indices
-    ctr[0] += inds[0].start
-    ctr[1] += inds[1].start
+    ctr[-2] += inds[-2].start
+    ctr[-1] += inds[-1].start
     return ctr
 
 
 def offset_peak(frame, inds):
     view = frame[inds]
-    ctr = np.asarray(np.unravel_index(view.argmax(), view.shape))
+    ctr = np.asarray(np.unravel_index(np.nanargmax(view), view.shape))
     # offset based on indices
-    ctr[0] += inds[0].start
-    ctr[1] += inds[1].start
+    ctr[-2] += inds[-2].start
+    ctr[-1] += inds[-1].start
     return ctr
 
 
@@ -174,32 +74,6 @@ def offset_modelfit(frame, inds, model, **kwargs):
     # normalize outputs
     ctr = np.array((model_fit["y"], model_fit["x"]))
     return ctr
-
-
-def measure_offsets_file(filename, method="peak", coronagraphic=False, force=False, **kwargs):
-    path, outpath = get_paths(filename, suffix="offsets", filetype=".csv", **kwargs)
-    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
-        return outpath
-    cube, header = fits.getdata(
-        path,
-        header=True,
-    )
-    if "DPP_REF" in header:
-        refidx = header["DPP_REF"]
-    else:
-        refidx = np.nanargmax(np.nanmax(cube, axis=(-2, -1)))
-    if coronagraphic:
-        kwargs["radius"] = lamd_to_pixel(kwargs["radius"], header["U_FILTER"])
-        offsets = satellite_spot_offsets(cube, method=method, refidx=refidx, **kwargs)
-    else:
-        offsets = psf_offsets(cube, method=method, refidx=refidx, **kwargs)
-
-    # flatten offsets
-    # this puts them in (y1, x1, y2, x2, y3, x3, ...) order
-    offsets_flat = offsets.reshape(len(offsets), -1)
-
-    np.savetxt(outpath, offsets_flat, delimiter=",")
-    return outpath
 
 
 def register_cube(cube, offsets, header=None, **kwargs):

@@ -6,13 +6,11 @@ import numpy as np
 import tqdm.auto as tqdm
 from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
-from photutils import aperture_photometry
-from scipy.optimize import minimize_scalar
 
 from vampires_dpp.analysis import safe_aperture_sum
 from vampires_dpp.image_processing import combine_frames_headers, derotate_frame
 from vampires_dpp.image_registration import offset_centroid
-from vampires_dpp.indexing import cutout_slice, frame_angles, frame_radii, window_slices
+from vampires_dpp.indexing import frame_angles
 from vampires_dpp.mueller_matrices import mueller_matrix_from_header
 from vampires_dpp.util import any_file_newer, average_angle
 from vampires_dpp.wcs import apply_wcs

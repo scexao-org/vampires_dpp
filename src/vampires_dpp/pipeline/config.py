@@ -157,106 +157,6 @@ class CalibrateConfig(BaseModel):
         return self.output_directory / f"{name}_calib.fits"
 
 
-class FrameSelectConfig(BaseModel):
-    """Frame selection options
-
-    Frame selection metrics can be measured on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the `satspots` option is set in the pipeline. The quality metrics are
-
-    * normvar - The variance normalized by the mean.
-    * l2norm - The L2-norm, roughly equivalent to the RMS value
-    * peak - maximum value
-
-    .. admonition:: Outputs
-
-        For each input file, a CSV with frame selection metrics for each slice will be saved in the output directory with the "_metrics" suffix. If `save_intermediate` is true, a cube with bad frames discarded will be saved with the "_selected" suffix.
-
-    Parameters
-    ----------
-    cutoff : float
-        The cutoff quantile for frame selection where 0 means no frame selection and 1 would discard all frames.
-    metric : str
-        The frame selection metric, one of `"peak"`, `"l2norm"`, and `"normvar"`, by default `"normvar"`.
-    window_size : int
-        The window size (in pixels) to cut out around PSFs before measuring the frame selection metric, by default 30.
-    output_directory : Optional[Path]
-        The trimmed files will be saved to the output directory. If not provided, will use the current working directory. By default None.
-    save_intermediate : bool
-        If true, will save the frame-selected FITS files in the output directory. WARNING this can lead to extremely large data volumes.
-    force : bool
-        If true, will force this processing step to occur.
-
-    Examples
-    --------
-    >>> conf = FrameSelectConfig(cutoff=0.7, output_directory="selected")
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        [frame_select]
-        output_directory = "selected"
-        cutoff = 0.7
-        metric = "normvar"
-    """
-
-    cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
-    metric: Literal["peak", "l2norm", "normvar"] = "normvar"
-
-
-class RegisterConfig(BaseModel):
-    """Image registration options
-
-    Image registration can be done on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the `satspots` option is set in the pipeline. The registration methods are
-
-    * com - centroid
-    * peak - pixel at highest value
-    * dft - Cross-correlation between frames using discrete Fourier transform (DFT) upsampling for subpixel accuracy
-    * gaussian - Model fit using a Gaussian PSF
-    * airydisk - Model fit using a Moffat PSF
-    * moffat - Model fit using an Airy disk PSF
-
-    .. admonition:: Outputs
-
-        For each input file, a CSV with PSF centroids (or centroids for each satellite spot) will be saved in the output directory with the "_offsets" suffix. If `save_intermediate` is true, a registered cube will be saved with the "_aligned" suffix.
-
-    Parameters
-    ----------
-    method : str
-        The image registration method, one of `"com"`, `"peak"`, `"dft"`, `"airydisk"`, `"moffat"`, or `"gaussian"`. By default `"com"`.
-    window_size : int
-        The window size (in pixels) to cut out around PSFs before measuring the centroid, by default 30.
-    smooth : bool
-        If true, will Gaussian smooth the input frames before measuring offsets, by default false.
-    dft_factor : int
-        If using the DFT method, the upsampling factor (inverse of centroid precision), by default 1.
-    dft_ref : str
-        If using the DFT method, the reference method, one of "com", "peak".
-    output_directory : Optional[Path]
-        The PSF offsets and aligned files will be saved to the output directory. If not provided, will use the current working directory. By default None.
-    save_intermediate : bool
-        If true, will save the registered FITS files in the output directory. WARNING this can lead to extremely large data volumes.
-    force : bool
-        If true, will force this processing step to occur.
-
-    Examples
-    --------
-    >>> conf = RegisterConfig(method="com", output_directory="registered")
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        [register]
-        output_directory = "registered"
-        method = "com"
-    """
-
-    method: Literal["centroid", "peak", "dft", "psf"] = "centroid"
-    window_size: int = 30
-    smooth: bool = False
-    smooth_kernel: int = 3
-    dft_factor: int = 5
-    dft_ref: Literal["centroid", "peak"] | Path = "centroid"
-
-
 class CollapseConfig(BaseModel):
     """
     Cube collapse options
@@ -293,7 +193,9 @@ class CollapseConfig(BaseModel):
     """
 
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
-
+    frame_select: Optional[Literal["peak", "l2norm", "normvar"]] = "normvar"
+    centroid: Optional[Literal["com", "peak", "dft", "psf"]] = "com"
+    select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     output_directory: ClassVar[Path] = Path("collapsed")
 
     def get_output_path(self, filename: Path):
@@ -338,11 +240,12 @@ class AnalysisConfig(BaseModel):
     model: Literal["gaussian", "moffat", "airydisk"] = "gaussian"
     strehl: bool = True
     subtract_radprof: bool = False
-    window_size: int = 40
     photometry: bool = True
     aper_rad: float | Literal["auto"] = 10
-    ann_rad: Optional[tuple[float, float]] = None
-
+    ann_rad: Optional[list[float, float]] = None
+    window_size: int = 40
+    # dft_factor: int = 5
+    # dft_ref: Literal["centroid", "peak"] | Path = "centroid"
     output_directory: ClassVar[Path] = Path("metrics")
 
     def get_output_path(self, filename: Path):
@@ -519,8 +422,6 @@ class PipelineConfig(BaseModel):
     object: Optional[ObjectConfig] = None
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
-    frame_select: Optional[FrameSelectConfig] = None
-    register: Optional[RegisterConfig] = None
     collapse: Optional[CollapseConfig] = None
     polarimetry: Optional[PolarimetryConfig] = None
     preproc_directory: ClassVar[Path] = Path("preproc")

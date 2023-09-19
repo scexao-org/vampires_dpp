@@ -16,19 +16,13 @@ import vampires_dpp as dpp
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calibration import calibrate_file
 from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET
-from vampires_dpp.frame_selection import frame_select_file, measure_metric_file
 from vampires_dpp.image_processing import (
     FileSet,
     collapse_frames_files,
     combine_frames_files,
     make_diff_image,
-    shift_frame,
 )
-from vampires_dpp.image_registration import (
-    lucky_image_file,
-    measure_offsets_file,
-    register_file,
-)
+from vampires_dpp.image_registration import lucky_image_file
 from vampires_dpp.organization import header_table
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.polarization import (
@@ -264,6 +258,23 @@ class Pipeline:
         if self.coordinate is not None:
             self.coord = self.coordinate.get_coord()
 
+    def collapse_one(self, hdu, fileinfo, force=False):
+        logger.info("Starting data calibration")
+        config = self.config.collapse
+
+        kwargs = dict(
+            method=config.method,
+            frame_select=config.frame_select,
+            select_cutoff=config.select_cutoff,
+            register=config.register,
+            metric_file=fileinfo["metrics_file"],
+            outpath=fileinfo["collapse_file"],
+            force=force,
+        )
+        calib_file = lucky_image_file(hdu, **kwargs)
+        logger.info("Data calibration completed")
+        return calib_file
+
     def calibrate_one(self, path, fileinfo, tripwire=False):
         logger.info("Starting data calibration")
         config = self.config.calibrate
@@ -288,38 +299,6 @@ class Pipeline:
         logger.info("Data calibration completed")
         return calib_hdu
 
-    def collapse_one(self, hdu, fileinfo, force=False):
-        logger.info("Starting data calibration")
-        config = self.config.collapse
-
-        kwargs = dict(
-            method=config.method,
-            metric_file=fileinfo["metrics_file"],
-            outpath=fileinfo["collapse_file"],
-            force=force,
-        )
-        if self.frame_select is not None:
-            kwargs["q"] = self.frame_select.cutoff
-
-        calib_file = lucky_image_file(hdu, **kwargs)
-        logger.info("Data calibration completed")
-        return calib_file
-
-    # def reanalyze_one(self, hdu, fileinfo, force=False):
-    #     config = self.config.analysis
-
-    #     key = f"cam{fileinfo['U_CAMERA']}"
-    #     outpath = analyze_file(
-    #         hdu,
-    #         centroids=self.centroids[key],
-    #         aper_rad=config.aper_rad,
-    #         ann_rad=config.ann_rad,
-    #         model=config.model,
-    #         outpath=fileinfo["metric_file"],
-    #         force=force,
-    #         window=config.window_size,
-    #     )
-
     def analyze_one(self, hdu: fits.PrimaryHDU, fileinfo, force=False):
         logger.info("Starting frame analysis")
         config = self.config.analysis
@@ -337,6 +316,21 @@ class Pipeline:
         )
         return outpath
 
+    # def reanalyze_one(self, hdu, fileinfo, force=False):
+    #     config = self.config.analysis
+
+    #     key = f"cam{fileinfo['U_CAMERA']}"
+    #     outpath = analyze_file(
+    #         hdu,
+    #         centroids=self.centroids[key],
+    #         aper_rad=config.aper_rad,
+    #         ann_rad=config.ann_rad,
+    #         model=config.model,
+    #         outpath=fileinfo["metric_file"],
+    #         force=force,
+    #         window=config.window_size,
+    #     )
+
     def save_output_header(self):
         outpath = self.workdir / self.config.product_directory / f"{self.config.name}_table.csv"
         df = pd.read_sql("main", self.conn)
@@ -351,75 +345,54 @@ class Pipeline:
             sort_keys = ["MJD", "U_FLCSTT"]
         else:
             sort_keys = "MJD"
-        cam1_table = self.output_table.query("U_CAMERA == 1").sort_values(sort_keys)
-        if len(cam1_table) > 0:
-            self.cam1_cube_path = self.products.output_directory / f"{self.name}_adi_cube_cam1.fits"
-            self.cam1_angles_path = self.cam1_cube_path.with_stem(
-                f"{self.cam1_cube_path.stem}_angles"
-            )
-            combine_frames_files(cam1_table["path"], output=self.cam1_cube_path, force=force)
-            self.cam1_angles = np.asarray(cam1_table["DEROTANG"])
-            fits.writeto(
-                self.cam1_angles_path,
-                self.cam1_angles.astype("f4"),
-                overwrite=True,
-            )
-            print(f"Saved ADI cube (cam1) to: {self.cam1_cube_path}")
-            print(f"Saved derotation angles (cam1) to: {self.cam1_angles_path}")
-        cam2_table = self.output_table.query("U_CAMERA == 2").sort_values(["MJD", "U_FLCSTT"])
-        if len(cam2_table) > 0:
-            self.cam2_cube_path = self.products.output_directory / f"{self.name}_adi_cube_cam2.fits"
-            self.cam2_angles_path = self.cam2_cube_path.with_stem(
-                f"{self.cam2_cube_path.stem}_angles"
-            )
-            combine_frames_files(cam2_table["path"], output=self.cam2_cube_path, force=force)
-            self.cam2_angles = np.asarray(cam2_table["DEROTANG"])
-            fits.writeto(
-                self.cam2_angles_path,
-                self.cam2_angles.astype("f4"),
-                overwrite=True,
-            )
-            print(f"Saved ADI cube (cam2) to: {self.cam2_cube_path}")
-            print(f"Saved derotation angles (cam2) to: {self.cam2_angles_path}")
 
-    def save_sdi_products(self, force: bool = False):
-        # preset values
-        sdi_frames = []
-        derot_angs = []
-        headers = []
-        if self.diff_files is None:
-            print("Skipping SDI products because no difference images were made.")
-            return
-        for filename in self.diff_files:
-            frames, hdr = fits.getdata(filename, header=True)
-            diff_frame, summ_frame = frames
-            sdi_frames.append(diff_frame)
-            headers.append(hdr)
-            if hdr["U_PLSTIT"] == 2:
-                # mask state 2: Cont / Halpha
-                diff_frame *= -1
-            sdi_frames.append(diff_frame)
-            derot_angs.append(hdr["DEROTANG"])
+        for cam_num, group in self.output_table.sort_values(sort_keys).groupby("U_CAMERA"):
+            cube_path = self.products.output_directory / f"{self.name}_adi_cube_cam{cam_num}.fits"
+            combine_frames_files(group["path"], output=cube_path, force=force)
+            logger.info(f"Saved cam {cam_num} ADI cube to {cube_path}")
+            angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
+            angles = np.asarray(group["DEROTANG"], dtype="f4")
+            fits.writeto(angles_path, angles, overwrite=True)
+            logger.info(f"Saved cam {cam_num} ADI angles to {angles_path}")
 
-        output_header_cube = combine_frames_headers(headers)
-        sdi_frames = np.array(sdi_frames).astype("f4")
+    # def save_sdi_products(self, force: bool = False):
+    #     # preset values
+    #     sdi_frames = []
+    #     derot_angs = []
+    #     headers = []
+    #     if self.diff_files is None:
+    #         print("Skipping SDI products because no difference images were made.")
+    #         return
+    #     for filename in self.diff_files:
+    #         frames, hdr = fits.getdata(filename, header=True)
+    #         diff_frame, summ_frame = frames
+    #         sdi_frames.append(diff_frame)
+    #         headers.append(hdr)
+    #         if hdr["U_PLSTIT"] == 2:
+    #             # mask state 2: Cont / Halpha
+    #             diff_frame *= -1
+    #         sdi_frames.append(diff_frame)
+    #         derot_angs.append(hdr["DEROTANG"])
 
-        outname = self.products.output_directory / f"{self.name}_sdi_cube.fits"
-        outname_angles = self.products.output_directory / f"{self.name}_sdi_angles.fits"
-        outname_frame = self.products.output_directory / f"{self.name}_sdi_frame.fits"
+    #     output_header_cube = combine_frames_headers(headers)
+    #     sdi_frames = np.array(sdi_frames).astype("f4")
 
-        fits.writeto(outname, sdi_frames, overwrite=True, header=output_header_cube)
-        fits.writeto(
-            outname_angles,
-            np.array(derot_angs).astype("f4"),
-            overwrite=True,
-        )
-        print(f"Saved SDI cube to: {outname}")
-        print(f"Saved SDI derotation angles to: {outname_angles}")
+    #     outname = self.products.output_directory / f"{self.name}_sdi_cube.fits"
+    #     outname_angles = self.products.output_directory / f"{self.name}_sdi_angles.fits"
+    #     outname_frame = self.products.output_directory / f"{self.name}_sdi_frame.fits"
 
-        collapsed_frame, frame_header = collapse_frames(sdi_frames, headers=headers)
-        fits.writeto(outname_frame, collapsed_frame, header=frame_header, overwrite=True)
-        print(f"Saved collapsed SDI frame to: {outname_frame}")
+    #     fits.writeto(outname, sdi_frames, overwrite=True, header=output_header_cube)
+    #     fits.writeto(
+    #         outname_angles,
+    #         np.array(derot_angs).astype("f4"),
+    #         overwrite=True,
+    #     )
+    #     print(f"Saved SDI cube to: {outname}")
+    #     print(f"Saved SDI derotation angles to: {outname_angles}")
+
+    #     collapsed_frame, frame_header = collapse_frames(sdi_frames, headers=headers)
+    #     fits.writeto(outname_frame, collapsed_frame, header=frame_header, overwrite=True)
+    #     print(f"Saved collapsed SDI frame to: {outname_frame}")
 
     def make_diff_images(self, force=False):
         logger.info("Making difference frames")

@@ -8,7 +8,6 @@ from pathlib import Path
 
 import astropy.units as u
 import click
-import numpy as np
 import tomli
 import tqdm.auto as tqdm
 from astropy.io import fits
@@ -20,20 +19,18 @@ from vampires_dpp.calibration import (
     normalize_file,
 )
 from vampires_dpp.constants import DEFAULT_NPROC
-from vampires_dpp.organization import check_files, header_table, sort_files
+from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import (
     AnalysisConfig,
     CamFileInput,
     CollapseConfig,
-    FrameSelectConfig,
     ObjectConfig,
     PipelineConfig,
-    RegisterConfig,
+    PolarimetryConfig,
 )
 from vampires_dpp.pipeline.deprecation import upgrade_config
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.pipeline.templates import (
-    DEFAULT_DIRS,
     VAMPIRES_BLANK,
     VAMPIRES_PDI,
     VAMPIRES_SDI,
@@ -41,8 +38,6 @@ from vampires_dpp.pipeline.templates import (
 )
 from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
-
-from .cli.frame_centers import centroid
 
 
 # callback that will confirm if a flag is false
@@ -365,7 +360,7 @@ def new_config(ctx, config, edit):
                 obstime=str(coord.obstime),
             )
     if coord is None:
-        click.echo("  No coordinate information set; will only use header values.")
+        click.echo(" - No coordinate information set; will only use header values.")
 
     ## backgrounds
     have_backgrounds = click.confirm("Do you have background files?", default=True)
@@ -430,163 +425,130 @@ def new_config(ctx, config, edit):
         tpl.calibrate.master_flats = CamFileInput(cam1=cam1_path, cam2=cam2_path)
 
     ## Coronagraph
-    iwa_choices = ["36", "55", "92", "129"]
-
-    readline.set_completer(createListCompleter(iwa_choices))
     tpl.coronagraphic = click.confirm("Did you use a coronagraph?", default=False)
 
-    ## Frame selection
-    do_frame_select = click.confirm(
-        "Would you like to do frame selection?", default=tpl.frame_select is not None
+    ## Analysis
+    tpl.analysis.window_size = click.prompt("Enter analysis window size (px)", type=int, default=40)
+    tpl.analysis.subtract_radprof = click.confirm(
+        "Would you like to subtract a radial profile for analysis?", default=tpl.coronagraphic
     )
-    if do_frame_select:
-        cutoff = click.prompt(
-            "  Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
-        )
-
-        metric_choices = ["normvar", "l2norm", "peak"]
-        readline.set_completer(createListCompleter(metric_choices))
-        frame_select_metric = click.prompt(
-            "  Choose a frame selection metric",
-            type=click.Choice(metric_choices, case_sensitive=False),
-            default="normvar",
-        )
-        readline.set_completer()
-        tpl.frame_select = FrameSelectConfig(
-            cutoff=cutoff,
-            metric=frame_select_metric,
-        )
-    else:
-        tpl.frame_select = None
-
-    ## Registration
-    do_register = click.confirm(
-        f"Would you like to do frame registration?", default=tpl.register is not None
+    tpl.analysis.strehl = click.confirm(
+        "Would you like to estimate the Strehl ratio?", default=False
     )
-    if do_register:
-        method_choices = ["com", "peak", "dft", "moffat", "gaussian", "airy"]
-        readline.set_completer(createListCompleter(method_choices))
-        register_method = click.prompt(
-            "  Choose a registration method",
-            type=click.Choice(method_choices, case_sensitive=False),
-            default="com",
-        )
-        readline.set_completer()
-        opts = RegisterConfig(method=register_method)
-        if register_method == "dft":
-            opts.dft_factor = click.prompt("    Enter DFT upsample factor", default=1, type=int)
 
-        opts.smooth = click.confirm("  Smooth data before measurement?", default=False)
-        tpl.register = opts
-    else:
-        tpl.register = None
+    tpl.analysis.photometry = click.confirm("Would you like to do photometry?", default=True)
+    if tpl.analysis.photometry:
+        aper_rad = click.prompt(" - Enter aperture radius (px)", type=float, default=10)
+
+        if aper_rad > tpl.analysis.window_size / 2:
+            aper_rad = tpl.analysis.window_size / 2
+            click.echo(f"Reducing aperture radius to match window size ({aper_rad:.0f} px)")
+        tpl.analysis.aper_rad = aper_rad
+
+        ann_rad = None
+        if click.confirm(" - Would you like to subtract background annulus?", default=False):
+            resp = click.prompt(
+                " - Enter comma-separated inner and outer radius (px)",
+                default=f"{aper_rad + 5}, {aper_rad + 10}",
+            )
+            ann_rad = list(map(float, resp.replace(" ", "").split(",")))
+            if ann_rad[1] > tpl.analysis.window_size / 2:
+                ann_rad[1] = tpl.analysis.window_size / 2
+                click.echo(
+                    f"Reducing annulus outer radius to match window size ({ann_rad[1]:.0f} px)"
+                )
+            tpl.analysis.ann_rad = ann_rad
+
+    tpl.analysis.fit_model = click.confirm("Would you like to fit a PSF?", default=True)
+    if tpl.analysis.fit_model:
+        tpl.analysis.model = click.prompt(
+            " - Choose a PSF model",
+            type=click.Choice(["gaussian", "moffat", "airydisk"]),
+            default="gaussian",
+        )
 
     ## Collapsing
-    do_collapse = click.confirm(
-        "Would you like to collapse your data?", default=tpl.collapse is not None
-    )
-    if do_collapse:
+    if click.confirm("Would you like to collapse your data?", default=True is not None):
         collapse_choices = ["median", "mean", "varmean", "biweight"]
         readline.set_completer(createListCompleter(collapse_choices))
         collapse_method = click.prompt(
-            "  Choose a collapse method",
+            " - Choose a collapse method",
             type=click.Choice(collapse_choices, case_sensitive=False),
             default="median",
         )
         readline.set_completer()
-        tpl.collapse = CollapseConfig(collapse_method)
-    else:
-        tpl.collapse = None
+        tpl.collapse = CollapseConfig(method=collapse_method)
+
+        ## Frame selection
+        if click.confirm(
+            "Would you like to do frame selection?", default=tpl.collapse.frame_select is not None
+        ):
+            tpl.collapse.select_cutoff = click.prompt(
+                " - Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
+            )
+
+            metric_choices = ["normvar", "peak", "strehl"]
+            readline.set_completer(createListCompleter(metric_choices))
+            tpl.collapse.frame_select = click.prompt(
+                " - Choose a frame selection metric",
+                type=click.Choice(metric_choices, case_sensitive=False),
+                default="normvar",
+            )
+            readline.set_completer()
+        else:
+            tpl.collapse.frame_select = None
+
+        ## Registration
+        do_register = click.confirm(
+            f"Would you like to do frame registration?", default=tpl.collapse.centroid is not None
+        )
+        if do_register:
+            centroid_choices = ["com", "peak", "model", "psf"]
+            readline.set_completer(createListCompleter(centroid_choices))
+            tpl.collapse.centroid = click.prompt(
+                " - Choose a registration method",
+                type=click.Choice(centroid_choices, case_sensitive=False),
+                default="com",
+            )
+            readline.set_completer()
+            # if register_method == "dft":
+            #     dft_factor = click.prompt(" -   Enter DFT upsample factor", default=1, type=int)
+        else:
+            tpl.collapse.register = None
 
     tpl.make_diff_images = click.confirm(
-        "Would you like to make difference images?", default=tpl.diff is not None
+        "Would you like to make difference images?", default=tpl.make_diff_images
     )
-
-    if click.confirm("Would you like to do PSF analysis?", default=tpl.analysis is not None):
-        model = click.prompt(
-            "  Choose a PSF model",
-            type=click.Choice(["gaussian", "moffat", "airydisk"]),
-            default="gaussian",
-        )
-        subtract_radprof = click.confirm(
-            "  Would you like to subtract a radial profile?", default=tpl.coronagraph is not None
-        )
-
-        aper_rad = click.prompt("  Enter aperture radius (px)", type=float, default=10)
-        window_size = click.prompt("  Enter window size (px)", type=float, default=40)
-        if aper_rad > window_size / 2:
-            aper_rad = window_size / 2
-            click.echo(f"Reducing aperture radius to match window size ({aper_rad:.0f} px)")
-        ann_rad = None
-        if click.confirm("  Would you like to subtract background annulus?", default=False):
-            resp = click.prompt(
-                "  Enter comma-separated inner and outer radius (px)",
-                default=f"{aper_rad+5}, {aper_rad+10}",
-            )
-            ann_rad = list(_parse_cam_center(resp))
-            if ann_rad[1] > window_size / 2:
-                ann_rad[1] = window_size / 2
-                click.echo(
-                    f"Reducing annulus outer radius to match window size ({ann_rad[1]:.0f} px)"
-                )
-
-            if ann_rad[0] > ann_rad[1]:
-                ann_rad[0] = ann_rad[1] - 1
-                click.echo(
-                    f"Reducing annulus inner radius to less than outer radius ({ann_rad[0]:.0f} px)"
-                )
-
-            if aper_rad > ann_rad[0]:
-                aper_rad = ann_rad[0]
-                click.echo(
-                    f"Reducing aperture radius to less than annulus radius ({aper_rad:.0f} px)"
-                )
-
-        tpl.analysis = AnalysisConfig(
-            model=model,
-            window_size=window_size,
-            subtract_radprof=subtract_radprof,
-            aper_rad=aper_rad,
-            ann_rad=ann_rad,
-        )
-    else:
-        tpl.analysis = None
 
     ## Polarization
     if click.confirm("Would you like to do polarimetry?", default=tpl.polarimetry is not None):
         calib_choices = ["difference", "leastsq"]
         readline.set_completer(createListCompleter(calib_choices))
-        tpl.polarimetry.method = click.prompt(
-            "  Choose a polarimetric calibration method",
+        pol_method = click.prompt(
+            " - Choose a polarimetric calibration method",
             type=click.Choice(calib_choices, case_sensitive=False),
             default="difference",
         )
         readline.set_completer()
+        tpl.polarimetry = PolarimetryConfig(method=pol_method)
         if tpl.polarimetry.method == "difference":
             tpl.polarimetry.mm_correct = click.confirm(
-                "  Would you like to to Mueller-matrix correction?",
+                " - Would you like to to Mueller-matrix correction?",
                 default=True,
             )
         tpl.polarimetry.ip_correct = click.confirm(
-            "  Would you like to do IP touchup?", default=tpl.polarimetry.ip is not None
+            " - Would you like to do IP touchup?", default=tpl.polarimetry.ip_correct is not None
         )
-
     else:
         tpl.polarimetry = None
 
-    tpl.to_file(config)
+    tpl.save(config)
     click.echo(f"File saved to {config.name}")
     if not edit:
         edit |= click.confirm("Would you like to edit this config file now?")
 
     if edit:
         click.edit(filename=config)
-
-
-def _parse_cam_center(input_string):
-    toks = input_string.replace(" ", "").split(",")
-    ctr = list(map(float, toks))
-    return ctr
 
 
 ########## normalize ##########

@@ -9,21 +9,17 @@ VAMPIRES_BLANK = PipelineConfig(
 
 VAMPIRES_SINGLECAM = PipelineConfig(
     name="",
-    register=RegisterConfig(),
     collapse=CollapseConfig(),
 )
 
 VAMPIRES_PDI = PipelineConfig(
     name="",
-    register=RegisterConfig(),
     collapse=CollapseConfig(),
     polarimetry=PolarimetryConfig(),
 )
 
-
 VAMPIRES_SDI = PipelineConfig(
     name="",
-    register=RegisterConfig(),
     collapse=CollapseConfig(),
     make_diff_images=True,
 )
