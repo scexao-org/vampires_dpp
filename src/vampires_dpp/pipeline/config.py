@@ -1,6 +1,6 @@
 from os import PathLike
 from pathlib import Path
-from typing import Annotated, ClassVar, Literal, Optional
+from typing import Annotated, ClassVar, Literal, Optional, Sequence
 
 import astropy.units as u
 import tomli
@@ -58,14 +58,15 @@ class ObjectConfig(BaseModel):
     mag: Optional[float] = None
     mag_band: Optional[str] = None
 
-    def model_post_init(self):
-        if isinstance(self.ra, str):
-            self.ra_ang = Angle(self.ra, "hour")
-        else:
-            self.ra_ang = Angle(self.ra, "deg")
-        self.ra = self.ra_ang.to_string(pad=True, sep=":")
-        self.dec_ang = Angle(self.dec, "deg")
-        self.dec = self.dec_ang.to_string(pad=True, sep=":")
+    @property
+    def ra_ang(self):
+        ra_ang = Angle(self.ra, "hour")
+        return ra_ang
+
+    @property
+    def dec_ang(self):
+        dec_ang = Angle(self.dec, "deg")
+        return dec_ang
 
     def get_coord(self) -> SkyCoord:
         return SkyCoord(
@@ -193,16 +194,17 @@ class CollapseConfig(BaseModel):
     """
 
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
-    frame_select: Optional[Literal["peak", "l2norm", "normvar"]] = "normvar"
-    centroid: Optional[Literal["com", "peak", "dft", "psf"]] = "com"
+    frame_select: Optional[Literal["max", "l2norm", "normvar"]] = "normvar"
+    centroid: Optional[Literal["com", "peak", "psf", "model"]] = "com"
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
+    recenter: bool = True
     output_directory: ClassVar[Path] = Path("collapsed")
 
     def get_output_path(self, filename: Path):
         # replace any .fits.fz with .fits
         name = filename.name.split(".fits")[0]
         # take input filename and append '_coll'
-        return self.output_directory / f"{name}_coll.npz"
+        return self.output_directory / f"{name}_coll.fits"
 
 
 class AnalysisConfig(BaseModel):
@@ -238,12 +240,12 @@ class AnalysisConfig(BaseModel):
 
     fit_model: bool = True
     model: Literal["gaussian", "moffat", "airydisk"] = "gaussian"
-    strehl: bool = True
-    subtract_radprof: bool = False
+    strehl: Literal[False] = False
+    subtract_radprof: Literal[False] = False
     photometry: bool = True
     aper_rad: float | Literal["auto"] = 10
-    ann_rad: Optional[list[float, float]] = None
-    window_size: int = 40
+    ann_rad: Optional[Sequence[float]] = None
+    window_size: int = 25
     # dft_factor: int = 5
     # dft_ref: Literal["centroid", "peak"] | Path = "centroid"
     output_directory: ClassVar[Path] = Path("metrics")
@@ -422,7 +424,7 @@ class PipelineConfig(BaseModel):
     object: Optional[ObjectConfig] = None
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
-    collapse: Optional[CollapseConfig] = None
+    collapse: CollapseConfig = CollapseConfig()
     polarimetry: Optional[PolarimetryConfig] = None
     preproc_directory: ClassVar[Path] = Path("preproc")
     product_directory: ClassVar[Path] = Path("product")
@@ -448,6 +450,7 @@ class PipelineConfig(BaseModel):
         """
         with open(filename, "rb") as fh:
             config = tomli.load(fh)
+        cls.model_rebuild()
         return cls.model_validate(config)
 
     def to_toml(self):
@@ -465,7 +468,7 @@ class PipelineConfig(BaseModel):
             Output filename
         """
         # get serializable output using pydantic
-        model_dict = self.model_dump(exclude_none=True)
+        model_dict = self.model_dump(exclude_none=True, mode="json", round_trip=True)
         # save output TOML
         with Path(filename).open("wb") as fh:
             tomli_w.dump(model_dict, fh)

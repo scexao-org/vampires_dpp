@@ -4,9 +4,9 @@ import numpy as np
 from astropy.io import fits
 from astropy.modeling import fitting, models
 from numpy.typing import ArrayLike
+from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 
-from vampires_dpp.frame_selection import frame_select_cube
 from vampires_dpp.image_processing import collapse_cube, shift_cube
 from vampires_dpp.indexing import frame_center
 from vampires_dpp.psf_models import fit_model
@@ -50,10 +50,11 @@ def offset_centroid(frame, inds):
     """NaN-friendly centroid"""
     wy, wx = np.ogrid[inds[-2], inds[-1]]
     cutout = frame[inds]
-    mask = np.isfinite(cutout)
-    cy = np.sum(wy * cutout, where=mask)
-    cx = np.sum(wx * cutout, where=mask)
-    ctr = np.asarray((cy, cx)) / np.sum(cutout, where=mask)
+    ctr = centroid(cutout)
+    # mask = np.isfinite(cutout)
+    # cy = np.sum(wy * cutout, where=mask)
+    # cx = np.sum(wx * cutout, where=mask)
+    # ctr = np.asarray((cy, cx)) / np.sum(cutout, where=mask)
     # offset based on indices
     ctr[-2] += inds[-2].start
     ctr[-1] += inds[-1].start
@@ -78,9 +79,7 @@ def offset_modelfit(frame, inds, model, **kwargs):
 
 def register_cube(cube, offsets, header=None, **kwargs):
     # reshape offsets into a single average
-    mean_offsets = np.mean(offsets.reshape(len(offsets), -1, 2), axis=1)
-    shifted = shift_cube(cube, -mean_offsets)
-
+    shifted = shift_cube(cube, -offsets)
     return shifted, header
 
 
@@ -112,39 +111,67 @@ def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
     return output, header
 
 
+def frame_select_cube(cube, metrics, q=0, header=None, **kwargs):
+    mask = metrics >= np.nanquantile(metrics, q)
+    selected = cube[mask]
+    if header is not None:
+        header["DPP_REF"] = np.nanargmax(metrics[mask]) + 1, "Index of frame with highest metric"
+
+    return selected, header
+
+
 def lucky_image_file(
-    filename, metric_file=None, offsets_file=None, force: bool = False, q=0, **kwargs
+    hdu,
+    outpath,
+    method="median",
+    register="com",
+    frame_select=None,
+    metric_file=None,
+    force: bool = False,
+    select_cutoff=0,
+    **kwargs,
 ) -> Path:
-    path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
-    if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
-        return outpath
+    if (
+        not force
+        and outpath.is_file()
+        and Path(metric_file).stat().st_mtime < outpath.stat().st_mtime
+    ):
+        with fits.open(outpath) as hdul:
+            return hdul[0]
 
-    cube, header = fits.getdata(
-        path,
-        header=True,
-    )
+    cube, header = hdu.data, hdu.header
+    # load metrics
+    metrics = np.load(metric_file)
+    mask = None
+    if frame_select is not None and select_cutoff > 0:
+        values = metrics[frame_select]
+        if values.ndim == 2:
+            values = np.mean(values, axis=0)
+        mask = values > np.nanquantile(values, select_cutoff)
+        cube, header = frame_select_cube(cube, values, select_cutoff, header=header)
 
-    ## Step 1: Frame select
-    mask = np.ones(cube.shape[0], dtype=bool)
-    if metric_file is not None:
-        metrics = np.loadtxt(metric_file, delimiter=",")
-        cube, header = frame_select_cube(cube, metrics, header=header, q=q, **kwargs)
-        mask &= metrics >= np.quantile(metrics, q)
-
-    ## Step 2: Register
-    if offsets_file is not None:
-        offsets = np.loadtxt(offsets_file, delimiter=",")
-        # mask offsets with selected metrics
-        offsets_masked = offsets[mask]
+    if register is not None:
+        cx = metrics[f"{register}_x"]
+        cy = metrics[f"{register}_y"]
+        if cx.ndim == 2:
+            cx = np.mean(cx, axis=0)
+        if cy.ndim == 2:
+            cy = np.mean(cy, axis=0)
+        if mask is not None:
+            cx = cx[mask]
+            cy = cy[mask]
+        centroids = np.column_stack((cy, cx))
+        # print(centroids)
+        offsets = centroids - frame_center(cube)
         # determine maximum padding, with sqrt(2)
         # for radial coverage
         rad_factor = (np.sqrt(2) - 1) * np.max(cube.shape[-2:]) / 2
-        npad = np.ceil(rad_factor + 1)
-        cube_padded, header = pad_cube(cube, int(npad), header=header)
-        cube, header = register_cube(cube_padded, offsets_masked, header=header, **kwargs)
+        npad = np.ceil(rad_factor + 1).astype(int)
+        cube_padded, header = pad_cube(cube, npad, header=header)
+        cube, header = register_cube(cube_padded, offsets, header=header, **kwargs)
 
     ## Step 3: Collapse
-    frame, header = collapse_cube(cube, header=header, **kwargs)
-
-    fits.writeto(outpath, frame, header=header, overwrite=True)
-    return outpath
+    frame, header = collapse_cube(cube, method=method, header=header, **kwargs)
+    hdu = fits.PrimaryHDU(frame, header=header)
+    hdu.writeto(outpath, overwrite=True)
+    return hdu

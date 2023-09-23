@@ -349,7 +349,7 @@ def new_config(ctx, config, edit):
                         obj = _input
 
         if coord is not None:
-            tpl.coordinate = ObjectConfig(
+            tpl.object = ObjectConfig(
                 object=obj,
                 ra=coord.ra.to_string("hour", sep=":", pad=True),
                 dec=coord.dec.to_string("deg", sep=":", pad=True),
@@ -516,6 +516,10 @@ def new_config(ctx, config, edit):
         else:
             tpl.collapse.register = None
 
+        tpl.collapse.recenter = click.confirm(
+            " - Would you like to recenter the collapsed data after a model PSF fit?", default=True
+        )
+
     tpl.make_diff_images = click.confirm(
         "Would you like to make difference images?", default=tpl.make_diff_images
     )
@@ -587,11 +591,9 @@ def new_config(ctx, config, edit):
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def norm(
-    filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool, output_directory: Path
-):
+def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool, outdir: Path):
     jobs = []
-    kwargs = dict(deinterleave=deint, filter_empty=filter_empty, output_directory=output_directory)
+    kwargs = dict(deinterleave=deint, filter_empty=filter_empty, output_directory=outdir)
     with mp.Pool(num_proc) as pool:
         for filename in filenames:
             jobs.append(pool.apply_async(normalize_file, args=(filename,), kwds=kwargs))

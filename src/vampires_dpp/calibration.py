@@ -44,12 +44,12 @@ def normalize_file(
 ):
     if deinterleave:
         # determine if files already exist
-        path, outpath1 = get_paths(filename, suffix="_FLC1_fix", **kwargs)
-        _, outpath2 = get_paths(filename, suffix="_FLC2_fix", **kwargs)
+        path, outpath1 = get_paths(filename, suffix="FLC1_fix", **kwargs)
+        _, outpath2 = get_paths(filename, suffix="FLC2_fix", **kwargs)
         if outpath1.exists() and outpath2.exists():
             return outpath1, outpath2
     else:
-        path, outpath = get_paths(filename, suffix="_fix", **kwargs)
+        path, outpath = get_paths(filename, suffix="fix", **kwargs)
         if outpath.exists():
             return outpath
 
@@ -187,7 +187,7 @@ def calibrate_file(
         params = distort_coeffs.loc[f"cam{header['U_CAMERA']:.0f}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
 
-    return fits.PrimaryHDU(cube, header=header)
+    return fits.PrimaryHDU(cube.astype("f4"), header=header)
 
 
 def make_background_file(filename: str, force=False, **kwargs):

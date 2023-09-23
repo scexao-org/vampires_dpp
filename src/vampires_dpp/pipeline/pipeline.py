@@ -1,8 +1,7 @@
 import multiprocessing as mp
 import re
-import sqlite3
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -24,32 +23,36 @@ from vampires_dpp.image_processing import (
 )
 from vampires_dpp.image_registration import lucky_image_file
 from vampires_dpp.organization import header_table
-from vampires_dpp.pipeline.config import PipelineConfig
-from vampires_dpp.polarization import (
-    collapse_stokes_cube,
-    instpol_correct,
-    measure_instpol,
-    measure_instpol_satellite_spots,
+from vampires_dpp.pdi.processing import (
     pol_inds,
     polarization_calibration_leastsq,
     polarization_calibration_triplediff,
+)
+from vampires_dpp.pdi.utils import (
+    collapse_stokes_cube,
+    instpol_correct,
+    measure_instpol,
     triplediff_average_angles,
     write_stokes_products,
 )
+from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.util import any_file_newer
 
 from .modules import get_psf_centroids_mpl
 
+# logger.add(level="INFO")
+
 
 class Pipeline:
     def __init__(self, config: PipelineConfig, workdir=Path.cwd()):
-        super().__post_init__()
         self.master_backgrounds = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}
         self.diff_files = None
-        self.config = PipelineConfig.model_validate(config)
+        self.config = config
         self.workdir = Path(workdir)
+        self._conn = None
         self._prepare_directories()
+        self.db_file = self.workdir / f"{self.config.name}_db.csv"
 
     def _prepare_directories(self):
         if self.config.calibrate.save_intermediate:
@@ -61,6 +64,10 @@ class Pipeline:
         self.preproc_dir.mkdir(parents=True, exist_ok=True)
         self.product_dir = self.workdir / self.config.product_directory
         self.product_dir.mkdir(parents=True, exist_ok=True)
+
+        if self.config.collapse:
+            self.collapse_dir = self.workdir / self.config.collapse.output_directory
+            self.collapse_dir.mkdir(parents=True, exist_ok=True)
 
         if self.config.make_diff_images:
             self.diff_dir = self.workdir / "diff"
@@ -78,13 +85,6 @@ class Pipeline:
                 self.mm_dir = self.polarimetry_dir / "mm"
                 self.mm_dir.mkdir(parents=True, exist_ok=True)
 
-    @property
-    def conn(self):
-        if self._conn is None:
-            db_name = self.workdir / f"{self.config.name}.db"
-            self._conn = sqlite3.connect(db_name.absolute())
-        return self._conn
-
     def create_input_table(self, filenames) -> pd.DataFrame:
         input_table = header_table(filenames, quiet=True)
         table_path = self.preproc_dir / f"{self.config.name}_headers.csv"
@@ -93,13 +93,14 @@ class Pipeline:
         return input_table
 
     def merge_input_table_with_db(self, input_table: pd.DataFrame):
-        try:
-            self.working_db = pd.read_sql_table("headers", self.conn)
-        except:
-            input_table.to_sql("headers", self.conn)
+        if self.db_file.exists():
+            self.working_db = pd.read_csv(self.db_file, index_col=0)
+        else:
+            input_table.to_csv(self.db_file)
             self.working_db = input_table
 
-        self.working_db.merge(input_table, how="left", on="path")
+        mask = self.working_db["path"] == input_table["path"].values
+        self.working_db = self.working_db.loc[mask]
         return self.working_db
 
     def create_raw_input_psf(self, max_files=50) -> list[Path]:
@@ -110,23 +111,23 @@ class Pipeline:
             outpath = (
                 self.workdir
                 / self.config.preproc_directory
-                / f"{self.config.name}_raw_psf_cam{cam_num}.fits"
+                / f"{self.config.name}_raw_psf_cam{cam_num:.0f}.fits"
             )
             outfile = collapse_frames_files(paths, output=outpath)
-            outfiles[f"cam{cam_num}"] = outfile
-
+            outfiles[f"cam{cam_num:.0f}"] = outfile
+            logger.info(f"Saved raw PSF frame to {outpath.absolute()}")
         return outfiles
 
     def get_centroids(self):
         self.centroids = {"cam1": None, "cam2": None}
-        for key in zip(self.centroids.keys(), raw_psf_filenames):
+        for key in self.centroids.keys():
             path = self.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
             if path.exists():
                 with path.open("rb") as fh:
                     centroids = tomli.load(fh)
                 self.centroids[key] = {}
-                for field, ctrs in centroids:
-                    self.centroids[key][field] = np.atleast_2d(ctrs)[:, ::-1]
+                for field, ctrs in centroids.items():
+                    self.centroids[key][field] = np.fliplr(np.atleast_2d(ctrs))
             else:
                 raw_psf_filenames = self.create_raw_input_psf()
                 im = fits.getdata(raw_psf_filenames[key])
@@ -134,9 +135,9 @@ class Pipeline:
                 ctrs = get_psf_centroids_mpl(im, npsfs=npsfs)
                 field_keys = (f"field_{i}" for i in range(1))
                 ctrs_as_dict = dict(zip(field_keys, ctrs.tolist()))
-                with path.open("rb") as fh:
+                with path.open("wb") as fh:
                     tomli_w.dump(ctrs_as_dict, fh)
-                self.centroids[key] = dict(zip(field_keys, ctrs[:, ::-1]))
+                self.centroids[key] = dict(zip(field_keys, np.fliplr(ctrs)))
 
         logger.debug(f"Cam 1 frame center is {self.centroids['cam1']} (y, x)")
         logger.debug(f"Cam 2 frame center is {self.centroids['cam2']} (y, x)")
@@ -165,7 +166,7 @@ class Pipeline:
             ]
             self.working_db["calib_file"] = calib_files
 
-        self.working_db.to_sql("headers", self.conn, if_exists="replace")
+        self.working_db.to_csv(self.db_file)
 
     def determine_execution(self, force=False):
         if force:
@@ -180,7 +181,7 @@ class Pipeline:
         subset = self.working_db.loc[files_to_calibrate]
         return subset
 
-    def run(self, filenames, num_proc: int = None, force=False):
+    def run(self, filenames, num_proc: Optional[int] = None, force=False):
         """Run the pipeline
 
         Parameters
@@ -191,12 +192,14 @@ class Pipeline:
             Number of processes to use for multi-processing, by default None.
         """
         logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
+        conf_copy_path = self.preproc_dir / f"{self.config.name}.bak.toml"
+        self.config.save(conf_copy_path)
+        logger.debug(f"Saved copy of config to {conf_copy_path}")
 
         self.num_proc = num_proc
         input_table = self.create_input_table(filenames=filenames)
         self.merge_input_table_with_db(input_table)
         self.add_paths_to_db()
-        self.determine_execution()
         self.get_centroids()
         self.get_coordinate()
 
@@ -214,70 +217,44 @@ class Pipeline:
                 jobs.append(pool.apply_async(self.process_one, args=(row._asdict(),)))
 
             for job in tqdm(jobs, desc="Processing files"):
-                result, tripwire = job.get()
+                result = job.get()
                 self.output_files.append(result)
         self.output_table = header_table(self.output_files, quiet=True)
         ## products
         if self.config.save_adi_cubes:
-            self.save_adi_cubes(force=tripwire)
+            self.save_adi_cubes(force=force)
         ## diff images
         if self.config.make_diff_images:
-            self.make_diff_images(force=tripwire)
+            self.make_diff_images(force=force)
 
     def process_one(self, fileinfo):
         # fix headers and calibrate
         metric_file = offsets_file = None
         cur_hdu = self.calibrate_one(fileinfo["path"], fileinfo)
         ## Step 2: Frame analysis
-        metric_file = self.analyze_one(cur_hdu, fileinfo)
+        self.analyze_one(cur_hdu, fileinfo)
         ## Step 4: collapsing
-        if self.collapse is not None:
-            path, tripwire = self.collapse_one(
-                path,
-                fileinfo,
-                tripwire=tripwire,
-                metric_file=metric_file,
-                offsets_file=offsets_file,
-            )
-        return path, tripwire
-
-    def get_center(self, fileinfo):
-        if fileinfo["U_CAMERA"] == 2:
-            return self.centroids["cam2"]
-        if self.centroids["cam1"] is None:
-            return self.centroids["cam1"]
-        # for cam 1 data, need to flip coordinate about x-axis
-        Ny = fileinfo["NAXIS2"]
-        ctr = np.asarray((Ny - 1 - self.centroids["cam1"][0], self.centroids["cam1"][1]))
-        return ctr
+        path = self.collapse_one(
+            cur_hdu,
+            fileinfo,
+        )
+        return path
 
     def get_coordinate(self):
         self.pxscale = PIXEL_SCALE
         self.pupil_offset = PUPIL_OFFSET
         self.coord = None
-        if self.coordinate is not None:
-            self.coord = self.coordinate.get_coord()
+        if self.config.object is not None:
+            self.coord = self.config.object.get_coord()
 
-    def collapse_one(self, hdu, fileinfo, force=False):
-        logger.info("Starting data calibration")
-        config = self.config.collapse
-
-        kwargs = dict(
-            method=config.method,
-            frame_select=config.frame_select,
-            select_cutoff=config.select_cutoff,
-            register=config.register,
-            metric_file=fileinfo["metrics_file"],
-            outpath=fileinfo["collapse_file"],
-            force=force,
-        )
-        calib_file = lucky_image_file(hdu, **kwargs)
-        logger.info("Data calibration completed")
-        return calib_file
-
-    def calibrate_one(self, path, fileinfo, tripwire=False):
+    def calibrate_one(self, path, fileinfo, force=False):
         logger.info("Starting data calibration")
         config = self.config.calibrate
+        if config.save_intermediate:
+            outpath = Path(fileinfo["calib_file"])
+            if not force and outpath.exists():
+                hdul = fits.open(outpath)
+                return hdul[0]
         if fileinfo["U_CAMERA"] == 1:
             back_filename = config.master_backgrounds.cam1
             flat_filename = config.master_flats.cam1
@@ -291,7 +268,7 @@ class Pipeline:
             transform_filename=config.distortion_file,
             bpfix=config.fix_bad_pixels,
             coord=self.coord,
-            force=tripwire,
+            force=force,
         )
         if config.save_intermediate:
             calib_hdu.writeto(fileinfo["calib_file"], overwrite=True)
@@ -303,10 +280,11 @@ class Pipeline:
         logger.info("Starting frame analysis")
         config = self.config.analysis
 
-        key = f"cam{fileinfo['U_CAMERA']}"
+        key = f"cam{fileinfo['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdu,
             centroids=self.centroids[key],
+            subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
             ann_rad=config.ann_rad,
             model=config.model,
@@ -316,10 +294,28 @@ class Pipeline:
         )
         return outpath
 
+    def collapse_one(self, hdu, fileinfo, force=False):
+        logger.info("Starting data calibration")
+        config = self.config.collapse
+        outpath = Path(fileinfo["collapse_file"])
+        kwargs = dict(
+            method=config.method,
+            frame_select=config.frame_select,
+            select_cutoff=config.select_cutoff,
+            register=config.centroid,
+            metric_file=fileinfo["metric_file"],
+            outpath=outpath,
+            force=force,
+        )
+        lucky_image_file(hdu, **kwargs)
+        logger.info("Data calibration completed")
+        logger.debug(f"Saved collapsed data to {outpath}")
+        return outpath
+
     # def reanalyze_one(self, hdu, fileinfo, force=False):
     #     config = self.config.analysis
 
-    #     key = f"cam{fileinfo['U_CAMERA']}"
+    #     key = f"cam{fileinfo['U_CAMERA']:.0f}"
     #     outpath = analyze_file(
     #         hdu,
     #         centroids=self.centroids[key],
@@ -332,11 +328,11 @@ class Pipeline:
     #     )
 
     def save_output_header(self):
-        outpath = self.workdir / self.config.product_directory / f"{self.config.name}_table.csv"
-        df = pd.read_sql("main", self.conn)
-        df.to_csv(outpath)
+        outpath = self.product_dir / f"{self.config.name}_table.csv"
+        self.output_table.to_csv(outpath)
+        return outpath
 
-    def save_adi_cubes(self, force: bool = False) -> Tuple[Optional[Path], Optional[Path]]:
+    def save_adi_cubes(self, force: bool = False):
         # preset values
         self.cam1_cube_path = self.cam2_cube_path = None
 
@@ -347,7 +343,7 @@ class Pipeline:
             sort_keys = "MJD"
 
         for cam_num, group in self.output_table.sort_values(sort_keys).groupby("U_CAMERA"):
-            cube_path = self.products.output_directory / f"{self.name}_adi_cube_cam{cam_num}.fits"
+            cube_path = self.product_dir / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
             combine_frames_files(group["path"], output=cube_path, force=force)
             logger.info(f"Saved cam {cam_num} ADI cube to {cube_path}")
             angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
@@ -377,9 +373,9 @@ class Pipeline:
     #     output_header_cube = combine_frames_headers(headers)
     #     sdi_frames = np.array(sdi_frames).astype("f4")
 
-    #     outname = self.products.output_directory / f"{self.name}_sdi_cube.fits"
-    #     outname_angles = self.products.output_directory / f"{self.name}_sdi_angles.fits"
-    #     outname_frame = self.products.output_directory / f"{self.name}_sdi_frame.fits"
+    #     outname = self.product_dir / f"{self.config.name}_sdi_cube.fits"
+    #     outname_angles = self.product_dir / f"{self.config.name}_sdi_angles.fits"
+    #     outname_frame = self.product_dir / f"{self.config.name}_sdi_frame.fits"
 
     #     fits.writeto(outname, sdi_frames, overwrite=True, header=output_header_cube)
     #     fits.writeto(
@@ -542,10 +538,8 @@ class Pipeline:
             f"using {len(table_filt)}/{len(self.output_table)} files for triple-differential processing"
         )
 
-        self.stokes_cube_file = self.products.output_directory / f"{self.name}_stokes_cube.fits"
-        self.stokes_angles_file = (
-            self.products.output_directory / f"{self.name}_stokes_cube_angles.fits"
-        )
+        self.stokes_cube_file = self.product_dir / f"{self.config.name}_stokes_cube.fits"
+        self.stokes_angles_file = self.product_dir / f"{self.config.name}_stokes_cube_angles.fits"
         self.stokes_collapsed_file = self.stokes_cube_file.with_name(
             f"{self.stokes_cube_file.stem}_collapsed.fits"
         )
@@ -565,13 +559,11 @@ class Pipeline:
                 adi_sync=adi_sync,
                 mm_correct=self.polarimetry.mm_correct,
             )
-            logger.debug(f"saved Stokes cube to {self.stokes_cube_file.absolute()}")
-            print(f"Saved Stokes cube to: {self.stokes_cube_file}")
+            logger.info(f"saved Stokes cube to {self.stokes_cube_file.absolute()}")
             # get average angles for each HWP set, save to disk
             stokes_angles = triplediff_average_angles(table_filt["path"])
             fits.writeto(self.stokes_angles_file, stokes_angles, overwrite=True)
-            logger.debug(f"saved Stokes angles to {self.stokes_angles_file.absolute()}")
-            print(f"Saved derotation angles to: {self.stokes_angles_file}")
+            logger.info(f"saved Stokes angles to {self.stokes_angles_file.absolute()}")
             # collapse the stokes cube
             stokes_cube, header = fits.getdata(
                 self.stokes_cube_file,
@@ -584,12 +576,11 @@ class Pipeline:
                 header=header,
                 force=True,
             )
-            logger.debug(f"saved collapsed Stokes cube to {self.stokes_collapsed_file.absolute()}")
-            print(f"Saved collapsed Stokes cube to: {self.stokes_collapsed_file}")
+            logger.info(f"saved collapsed Stokes cube to {self.stokes_collapsed_file.absolute()}")
 
     def polarimetry_leastsq(self, force=False, adi_sync=True, **kwargs):
         self.stokes_collapsed_file = (
-            self.products.output_directory / f"{self.name}_stokes_cube_collapsed.fits"
+            self.product_dir / f"{self.config.name}_stokes_cube_collapsed.fits"
         )
         if (
             force

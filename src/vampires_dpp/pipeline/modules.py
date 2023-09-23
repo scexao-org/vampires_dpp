@@ -28,4 +28,6 @@ def get_psf_centroids_mpl(mean_image, npsfs=1, nfields=1, suptitle=None):
         ax.scatter(output[i, :, 1], output[i, :, 0], marker="+", c="green")
     plt.ioff()
     fig.show()
-    return output
+
+    # flip output so file is saved as (x, y)
+    return np.fliplr(output)

@@ -105,3 +105,10 @@ def load_fits(filename, ext=0, **kwargs):
     if ".fits.fz" in path.name:
         ext = 1
     return fits.getdata(path, ext=ext, **kwargs)
+
+
+def append_or_create(dict, key, value):
+    if key in dict:
+        dict[key].append(value)
+    else:
+        dict[key] = [value]

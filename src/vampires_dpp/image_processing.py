@@ -375,6 +375,9 @@ def collapse_frames_files(filenames, output, force=False, **kwargs):
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>
         frame, header = fits.getdata(filename, header=True, memmap=False)
+        # if frame secretly a cube (shh) randomly sample a frame
+        if frame.ndim == 3:
+            frame = frame[np.random.randint(0, frame.shape[0])]
         frames.append(frame)
         headers.append(header)
 
