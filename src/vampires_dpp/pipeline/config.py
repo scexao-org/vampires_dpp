@@ -241,11 +241,11 @@ class AnalysisConfig(BaseModel):
     fit_model: bool = True
     model: Literal["gaussian", "moffat", "airydisk"] = "gaussian"
     strehl: Literal[False] = False
-    subtract_radprof: Literal[False] = False
+    subtract_radprof: bool = False
     photometry: bool = True
     aper_rad: float | Literal["auto"] = 10
     ann_rad: Optional[Sequence[float]] = None
-    window_size: int = 25
+    window_size: int = 30
     # dft_factor: int = 5
     # dft_ref: Literal["centroid", "peak"] | Path = "centroid"
     output_directory: ClassVar[Path] = Path("metrics")
@@ -312,19 +312,18 @@ class PolarimetryConfig(BaseModel):
     """
 
     method: Literal["difference", "leastsq"] = "difference"
-    order: Literal["QQUU", "QUQU"] = "QQUU"
     mm_correct: bool = True
-    mm_method: Literal["calibrated", "ideal"] = "calibrated"
     hwp_adi_sync: bool = True
+    use_ideal_mm: bool = False
     ip_correct: bool = True
-    ip_method: Literal["aperture", "annulus", "satspots"] = "aperture"
+    ip_method: Literal["aperture"] = "aperture"
     ip_radius: float = 15
     output_directory: ClassVar[Path] = Path("pdi")
 
-    def get_output_path(self, filename: Path, mode: Literal["mm", "stokes"]):
+    def get_output_path(self, filename: Path):
         # replace any .fits.fz with .fits
         name = filename.name.split(".fits")[0]
-        return self.output_directory / f"{name}_mm.npz"
+        return self.output_directory / "mm" / f"{name}_mm.fits"
 
 
 class PipelineConfig(BaseModel):

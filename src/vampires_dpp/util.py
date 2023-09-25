@@ -48,6 +48,16 @@ def average_angle(angles: ArrayLike):
     return np.rad2deg(radmean)
 
 
+def delta_angle(alpha: float, beta: float) -> float:
+    """
+    Given two angles, determine the total rotation between them
+    """
+    alphar, betar = np.deg2rad(alpha), np.deg2rad(beta)
+    dy = np.sin(alphar) - np.sin(betar)
+    dx = np.cos(alphar) - np.cos(betar)
+    return np.abs(np.rad2deg(np.arctan2(dy, dx)))
+
+
 def check_version(config: str, dpp: str) -> bool:
     """
     Checks compatibility between versions following semantic versioning.

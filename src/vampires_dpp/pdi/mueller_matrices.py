@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import numpy as np
+from astropy.io import fits
 from numpy.typing import NDArray
 
-from vampires_dpp.constants import PUPIL_OFFSET, SUBARU_LOC
+from vampires_dpp.constants import SUBARU_LOC
 
 __all__ = (
     "hwp",
@@ -428,13 +431,15 @@ CAL_DICT = {
 }
 
 
-def mueller_matrix_from_header(header, adi_sync=True):
+def mueller_matrix_from_header(header, adi_sync=True, ideal=False):
     filt = header["U_FILTER"]
-    if filt in CAL_DICT:
+    if ideal:
         filt_dict = CAL_DICT["ideal"]
-        # filt_dict = CAL_DICT[filt]
+    elif filt in CAL_DICT:
+        filt_dict = CAL_DICT[filt]
     else:
-        filt_dict = CAL_DICT["ideal"]
+        raise RuntimeError(f"Could not find Mueller matrix coefficients for {filt} filter")
+
     pa_theta = np.deg2rad(header["PA"])
     alt = np.deg2rad(header["ALTITUDE"])
     az = np.deg2rad(header["AZIMUTH"] - 180)
@@ -445,6 +450,7 @@ def mueller_matrix_from_header(header, adi_sync=True):
         )
     else:
         hwp_offset = 0
+
     hwp_theta = np.deg2rad(header["U_HWPANG"]) + filt_dict["hwp_offset"] + hwp_offset
     imr_theta = np.deg2rad(header["D_IMRANG"]) + filt_dict["imr_offset"]
     flc_ang = 0 if header["U_FLCSTT"] == 1 else np.pi / 4
@@ -466,3 +472,16 @@ def mueller_matrix_from_header(header, adi_sync=True):
     )
 
     return M
+
+
+def mueller_matrix_from_file(filename, outpath, force=False, **kwargs):
+    if (
+        not force
+        and Path(outpath).exists()
+        and Path(filename).stat().st_mtime < Path(outpath).stat().st_mtime
+    ):
+        return outpath
+    header = fits.getheader(filename)
+    mm = mueller_matrix_from_header(header, **kwargs)
+    fits.writeto(outpath, mm, header=header, overwrite=True)
+    return outpath

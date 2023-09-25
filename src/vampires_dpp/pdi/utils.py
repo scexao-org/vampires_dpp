@@ -18,13 +18,13 @@ from .mueller_matrices import mueller_matrix_from_header
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
 
-def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, expected=0, window=30, **kwargs):
+def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0, window=30, **kwargs):
     """
     Use aperture photometry to estimate the instrument polarization.
 
     Parameters
     ----------
-    stokes_cube : ArrayLike
+    stokes_cube : NDArray
         Input Stokes cube (4, y, x)
     r : float, optional
         Radius of circular aperture in pixels, by default 5
@@ -40,17 +40,17 @@ def measure_instpol(I: ArrayLike, X: ArrayLike, r=5, expected=0, window=30, **kw
     x = X / I
     inds = cutout_inds(x, window=window, **kwargs)
     cutout = x[inds]
-    pX = safe_aperture_sum(cutout, r=r) / (np.pi * r**2)
-    return pX - expected
+    pX, _ = safe_aperture_sum(cutout, r=r)
+    return pX / (np.pi * r**2) - expected
 
 
-def instpol_correct(stokes_cube: ArrayLike, pQ=0, pU=0):
+def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
     """
     Apply instrument polarization correction to stokes cube.
 
     Parameters
     ----------
-    stokes_cube : ArrayLike
+    stokes_cube : NDArray
         (3, ...) array of stokes values
     pQ : float, optional
         I -> Q contribution, by default 0
@@ -120,22 +120,6 @@ def collapse_stokes_cube(stokes_cube, header=None):
         apply_wcs(header)
 
     return stokes_out, header
-
-
-def triplediff_average_angles(filenames):
-    if len(filenames) % 16 != 0:
-        raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
-        )
-    # make sure we get data in correct order using FITS headers
-    derot_angles = np.asarray([fits.getval(f, "DEROTANG") for f in filenames])
-    N_hwp_sets = len(filenames) // 16
-    pas = np.zeros(N_hwp_sets, dtype="f4")
-    for i in range(pas.shape[0]):
-        ix = i * 16
-        pas[i] = average_angle(derot_angles[ix : ix + 16])
-
-    return pas
 
 
 def write_stokes_products(stokes_cube, header=None, outname=None, force=False, phi=0):

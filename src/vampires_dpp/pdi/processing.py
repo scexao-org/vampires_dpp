@@ -1,18 +1,25 @@
-from typing import Sequence
+import itertools
+from pathlib import Path
+from typing import Optional, Sequence
 
 import numpy as np
 import tqdm.auto as tqdm
 from astropy.io import fits
-from numpy.typing import ArrayLike, NDArray
+from astropy.time import Time
+from numpy.typing import NDArray
 
 from vampires_dpp.image_processing import combine_frames_headers, derotate_frame
 
+from ..util import any_file_newer
 from .mueller_matrices import mueller_matrix_from_header
-from .utils import write_stokes_products
+from .utils import instpol_correct, measure_instpol, write_stokes_products
 
 
 def polarization_calibration_triplediff(
-    filenames: Sequence[str], outname, force=False, N_per_hwp=1, adi_sync=True, mm_correct=True
+    filenames: Sequence[str],
+    mm_filenames: Optional[Sequence[str]] = None,
+    adi_sync=True,
+    mm_correct=True,
 ) -> NDArray:
     """
     Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
@@ -44,54 +51,47 @@ def polarization_calibration_triplediff(
             f"Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
         )
     # now do triple-differential calibration
-    # only load 8 files at a time to avoid running out of memory on large datasets
-    N_hwp_sets = len(filenames) // 16
-    with fits.open(filenames.iloc[0]) as hdus:
-        stokes_cube = np.zeros(shape=(4, N_hwp_sets, *hdus[0].shape[-2:]), dtype=hdus[0].data.dtype)
-    for i in tqdm.trange(N_hwp_sets, desc="Triple-differential calibration"):
-        # prepare input frames
-        ix = i * 16  # offset index
-        frame_dict = {}
-        mm_dict = {}
-        for file in filenames.iloc[ix : ix + 16]:
-            frame, hdr = fits.getdata(
-                file,
-                header=True,
-            )
-            # derotate frame - necessary for crosstalk correction
-            frame_derot = derotate_frame(frame, hdr["DEROTANG"])
-            # get row vector for mueller matrix of each file
-            mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
-            # store into dictionaries
-            key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
-            frame_dict[key] = frame_derot
-            mm_dict[key] = mueller_mat
+    frame_dict = {}
+    for file in filenames:
+        frame, hdr = fits.getdata(
+            file,
+            header=True,
+        )
+        # derotate frame - necessary for crosstalk correction
+        frame_derot = derotate_frame(frame, hdr["DEROTANG"])
+        # store into dictionaries
+        key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
+        frame_dict[key] = frame_derot
 
-        I, Q, U = triple_diff_dict(frame_dict)
-        if mm_correct:
-            _, mmQ, mmU = triple_diff_dict(mm_dict)
+    I, Q, U = triple_diff_dict(frame_dict)
 
-            # correct IP
-            Q -= mmQ[0] * I
-            U -= mmU[0] * I
-
-            # correct cross-talk
-            Sarr = np.array((Q.ravel(), U.ravel()))
-            Marr = np.array((mmQ[1:3], mmU[1:3]))
-            res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
-            Q = res[0].reshape(*stokes_cube.shape[-2:])
-            U = res[1].reshape(*stokes_cube.shape[-2:])
-
-        stokes_cube[0, i] = I
-        stokes_cube[1, i] = Q
-        stokes_cube[2, i] = U
+    stokes_cube = np.array((I, Q, U))
 
     headers = [fits.getheader(f) for f in filenames]
     stokes_hdr = combine_frames_headers(headers)
     # reduce exptime by 2 because cam1 and cam2 are simultaneous
     stokes_hdr["TINT"] /= 2
 
-    return write_stokes_products(stokes_cube, stokes_hdr, outname=outname, force=force)
+    return fits.PrimaryHDU(stokes_cube, stokes_hdr)
+
+
+def make_triplediff_dict(filenames):
+    output = {}
+    for file in filenames:
+        data, hdr = fits.getdata(
+            file,
+            header=True,
+        )
+        # get row vector for mueller matrix of each file
+        # store into dictionaries
+        key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
+        output[key] = data
+    return output
+
+
+def mueller_matrix_correct(stokes_cube, filenames, header=None):
+    for file in filenames:
+        fits.getdata(file)
 
 
 def triple_diff_dict(input_dict):
@@ -139,43 +139,7 @@ def triple_diff_dict(input_dict):
     return I, Q, U
 
 
-def pol_inds(hwp_angs: ArrayLike, n=4, order="QQUU", **kwargs):
-    """
-    Find consistent runs of FLC and HWP states.
-
-    A consistent run will have either 2 or 4 files per HWP state, and will have exactly 4 HWP states per cycle. Sometimes when VAMPIRES is syncing with CHARIS a HWP state will get skipped, creating partial HWP cycles. This function will return the indices which create consistent HWP cycles from the given list of FLC states, which should already be sorted by time.
-
-    Parameters
-    ----------
-    hwp_angs : ArrayLike
-        The HWP states to sort through
-    n : int, optional
-        The number of files per HWP state, either 2 or 4. By default 4
-
-    Returns
-    -------
-    inds :
-        The indices for which `hwp_angs` forms consistent HWP cycles
-    """
-    states = np.asarray(hwp_angs)
-    N_cycle = n * 4
-    if order == "QQUU":
-        ang_list = np.repeat([0, 45, 22.5, 67.5], n)
-    elif order == "QUQU":
-        ang_list = np.repeat([0, 22.5, 45, 67.5], n)
-    inds = []
-    idx = 0
-    while idx <= len(hwp_angs) - N_cycle:
-        if np.all(states[idx : idx + N_cycle] == ang_list):
-            inds.extend(range(idx, idx + N_cycle))
-            idx += N_cycle
-        else:
-            idx += 1
-
-    return inds
-
-
-def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> NDArray:
+def mueller_matrix_calibration(mueller_matrices: NDArray, cube: NDArray) -> NDArray:
     stokes_cube = np.zeros_like(cube, shape=(mueller_matrices.shape[-1], *cube.shape[-2:]))
     # go pixel-by-pixel
     for i in range(cube.shape[-2]):
@@ -185,7 +149,7 @@ def mueller_matrix_calibration(mueller_matrices: ArrayLike, cube: ArrayLike) -> 
     return stokes_cube[:3]
 
 
-def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=False):
+def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=False):
     path = Path(outname)
     if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
@@ -193,12 +157,15 @@ def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=Fa
     frames = []
     headers = []
     mueller_mats = []
-    for file in tqdm.tqdm(filenames, desc="Least-squares calibration"):
-        frame, hdr = fits.getdata(file, header=True)
+    for file, mm_file in tqdm.tqdm(
+        zip(filenames, mm_filenames), total=len(filenames), desc="Least-squares calibration"
+    ):
+        frame, hdr = fits.getdata(file, header=True, memmap=False)
         # rotate to N up E left
         frame_derot = derotate_frame(frame, hdr["DEROTANG"])
         # get row vector for mueller matrix of each file
-        mueller_mat = mueller_matrix_from_header(hdr, adi_sync=adi_sync)[0]
+        mueller_mat = fits.getdata(mm_file, memmap=False)[0]
+
         frames.append(frame_derot)
         headers.append(hdr)
         mueller_mats.append(mueller_mat)
@@ -207,5 +174,90 @@ def polarization_calibration_leastsq(filenames, outname, adi_sync=True, force=Fa
     cube = np.array(frames)
     stokes_hdr = combine_frames_headers(headers, wcs=True)
     stokes_cube = mueller_matrix_calibration(mueller_mat_cube, cube)
+    return write_stokes_products(stokes_cube, stokes_hdr, outname=path, force=True)
 
-    return write_stokes_products(stokes_cube, stokes_hdr, outname=path, force=force)
+
+TRIPLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), (1, 2), (1, 2)))
+
+
+def get_triplediff_set(table, row):
+    time_arr = Time(table["MJD"], format="mjd")
+    row_time = Time(row["MJD"], format="mjd")
+    deltatime = np.abs(row_time - time_arr)
+    row_key = (row["U_HWPANG"], row["U_FLCSTT"], row["U_CAMERA"])
+    remaining_keys = TRIPLEDIFF_SETS - set(row_key)
+    output_set = {row_key: row["path"]}
+    for key in remaining_keys:
+        mask = (
+            (table["U_HWPANG"] == key[0])
+            & (table["U_FLCSTT"] == key[1])
+            & (table["U_CAMERA"] == key[2])
+        )
+        idx = deltatime[mask].argmin()
+
+        output_set[key] = table.loc[mask, "path"].iloc[idx]
+
+    return output_set
+
+
+def make_stokes_image(
+    path_set,
+    outpath: Path,
+    mm_paths=None,
+    method="triplediff",
+    mm_correct=True,
+    ip_correct=True,
+    ip_radius=8,
+    ip_method="photometry",
+    force=False,
+):
+    if not force and outpath.exists() and not any_file_newer(path_set, outpath):
+        return fits.getdata(outpath, header=True)
+
+    # create stokes cube
+
+    if method == "triplediff":
+        stokes_hdu = polarization_calibration_triplediff(path_set)
+        if mm_correct:
+            mm_dict = make_triplediff_dict(mm_paths)
+    else:
+        raise ValueError(f"Unrecognized method {method}")
+
+    stokes_data = stokes_hdu.data
+    stokes_header = stokes_hdu.header
+    I, Q, U = stokes_data
+    # mm correct
+    if mm_correct:
+        _, mmQ, mmU = triple_diff_dict(mm_dict)
+
+        # correct IP
+        Q -= mmQ[0, 0] * I
+        U -= mmU[0, 0] * I
+
+        # correct cross-talk
+        Sarr = np.array((Q.ravel(), U.ravel()))
+        Marr = np.array((mmQ[0, 1:3], mmU[0, 1:3]))
+        res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
+        Q = res[0].reshape(I.shape[-2:])
+        U = res[1].reshape(I.shape[-2:])
+        stokes_data = np.array((I, Q, U))
+    # second order IP correction
+    if ip_correct:
+        stokes_data, stokes_header = polarization_ip_correct(
+            stokes_data, phot_rad=ip_radius, header=stokes_header
+        )
+
+    fits.writeto(outpath, stokes_data, header=stokes_header, overwrite=True)
+    return stokes_data, stokes_header
+
+
+def polarization_ip_correct(stokes_data, phot_rad, header=None):
+    cQ = measure_instpol(stokes_data[0], stokes_data[1], r=phot_rad)
+    cU = measure_instpol(stokes_data[0], stokes_data[2], r=phot_rad)
+
+    stokes_data[:3] = instpol_correct(stokes_data[:3], cQ, cU)
+
+    if header is not None:
+        header["IP_PHOTQ"] = cQ, "I -> Q IP correction value"
+        header["IP_PHOTU"] = cU, "I -> U IP correction value"
+    return stokes_data, header

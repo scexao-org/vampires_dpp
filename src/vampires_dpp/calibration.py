@@ -157,7 +157,7 @@ def calibrate_file(
         back_path = Path(back_filename)
         header["BACKFILE"] = back_path.name
         background = fits.getdata(back_path).astype("f4")
-        cube -= -background
+        cube -= background
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)

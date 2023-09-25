@@ -1,71 +1,86 @@
 import numpy as np
 from astropy.modeling import fitting, models
+from skimage.measure import centroid
 
 from vampires_dpp.indexing import frame_center
 
 
-def fit_model(frame, inds, model, fitter=fitting.LevMarLSQFitter()):
-    model = model.lower()
-    view = frame[inds]
-    y, x = np.mgrid[0 : view.shape[-1], 0 : view.shape[-2]]
-    view_center = frame_center(view)
-    peak = np.quantile(view.ravel(), 0.9)
+def fit_model_gaussian(frame, fitter) -> dict[str, float]:
+    y, x = np.mgrid[0 : frame.shape[-1], 0 : frame.shape[-2]]
+    center = centroid(frame)
+    amp = np.nanmax(frame)
 
-    if model == "gaussian":
-        model_init = models.Gaussian2D(
-            amplitude=peak,
-            x_mean=view_center[-1],
-            y_mean=view_center[-2],
-            x_stddev=2,
-            y_stddev=2,
-            bounds=dict(
-                x_mean=(-0.5, view.shape[-1] - 0.5),
-                y_mean=(-0.5, view.shape[-2] - 0.5),
-                x_stddev=(2 / 2.355, view.shape[-1] / 2 / 2.355),
-                y_stddev=(2 / 2.355, view.shape[-2] / 2 / 2.355),
-            ),
-        )
-    elif model == "moffat":
-        # bounds = {"amplitude": (0, peak), "gamma": (1, 15), "alpha": }
-        model_init = models.Moffat2D(
-            amplitude=peak,
-            x_0=view_center[-1],
-            y_0=view_center[-2],
-            gamma=2,
-            alpha=2,
-            bounds=dict(
-                x_0=(-0.5, view.shape[-1] - 0.5),
-                y_0=(-0.5, view.shape[-2] - 0.5),
-                gamma=(1, view.shape[-1] / 4),
-            ),
-        )
-    elif model == "airydisk":
-        model_init = models.AiryDisk2D(
-            amplitude=peak,
-            x_0=view_center[-1],
-            y_0=view_center[-2],
-            radius=2,
-            bounds=dict(
-                x_0=(-0.5, view.shape[-1] - 0.5),
-                y_0=(-0.5, view.shape[-2] - 0.5),
-                radius=(2 / 0.8038, view.shape[-1] / 2 / 0.8038),
-            ),
-        )
+    model_init = models.Gaussian2D(
+        amplitude=amp,
+        x_mean=center[-1],
+        y_mean=center[-2],
+        x_stddev=2,
+        y_stddev=2,
+        bounds=dict(
+            x_mean=(-0.5, frame.shape[-1] - 0.5),
+            y_mean=(-0.5, frame.shape[-2] - 0.5),
+            x_stddev=(2 / 2.355, frame.shape[-1] / 2 / 2.355),
+            y_stddev=(2 / 2.355, frame.shape[-2] / 2 / 2.355),
+        ),
+    )
+    model_fit = fitter(model_init, x, y, frame, filter_non_finite=True)
+    model_dict = {
+        "amplitude": model_fit.amplitude.value,
+        "y": model_fit.y_mean.value,
+        "x": model_fit.x_mean.value,
+        "fwhm": 2.355 * np.hypot(model_fit.x_stddev.value, model_fit.y_stddev.value),
+    }
+    return model_dict
 
-    model_fit = fitter(model_init, x, y, view, filter_non_finite=True)
 
-    # offset the model centroids
-    model_dict = {"amplitude": model_fit.amplitude.value}
-    if model == "moffat":
-        model_dict["y"] = model_fit.y_0.value + inds[-2].start
-        model_dict["x"] = model_fit.x_0.value + inds[-1].start
-        model_dict["fwhm"] = 2 * model_fit.gamma.value
-    elif model == "airydisk":
-        model_dict["y"] = model_fit.y_0.value + inds[-2].start
-        model_dict["x"] = model_fit.x_0.value + inds[-1].start
-        model_dict["fwhm"] = 0.8038 * model_fit.radius
-    elif model == "gaussian":
-        model_dict["y"] = model_fit.y_mean.value + inds[-2].start
-        model_dict["x"] = model_fit.x_mean.value + inds[-1].start
-        model_dict["fwhm"] = 2.355 * np.hypot(model_fit.x_stddev.value, model_fit.y_stddev.value)
+def fit_model_moffat(frame, fitter) -> dict[str, float]:
+    y, x = np.mgrid[0 : frame.shape[-1], 0 : frame.shape[-2]]
+    center = centroid(frame)
+    amp = np.nanmax(frame)
+
+    model_init = models.Moffat2D(
+        amplitude=amp,
+        x_0=center[-1],
+        y_0=center[-2],
+        gamma=2,
+        alpha=2,
+        bounds=dict(
+            x_0=(-0.5, frame.shape[-1] - 0.5),
+            y_0=(-0.5, frame.shape[-2] - 0.5),
+            gamma=(1, frame.shape[-1] / 4),
+        ),
+    )
+    model_fit = fitter(model_init, x, y, frame, filter_non_finite=True)
+    model_dict = {
+        "amplitude": model_fit.amplitude.value,
+        "y": model_fit.y_0.value,
+        "x": model_fit.x_0.value,
+        "fwhm": 2 * model_fit.gamma.value,
+    }
+    return model_dict
+
+
+def fit_model_airy(frame, fitter) -> dict[str, float]:
+    y, x = np.mgrid[0 : frame.shape[-1], 0 : frame.shape[-2]]
+    center = centroid(frame)
+    amp = np.nanmax(frame)
+
+    model_init = models.AiryDisk2D(
+        amplitude=amp,
+        x_0=center[-1],
+        y_0=center[-2],
+        radius=2,
+        bounds=dict(
+            x_0=(-0.5, frame.shape[-1] - 0.5),
+            y_0=(-0.5, frame.shape[-2] - 0.5),
+            radius=(2 / 0.8038, frame.shape[-1] / 2 / 0.8038),
+        ),
+    )
+    model_fit = fitter(model_init, x, y, frame, filter_non_finite=True)
+    model_dict = {
+        "amplitude": model_fit.amplitude.value,
+        "y": model_fit.y_0.value,
+        "x": model_fit.x_0.value,
+        "fwhm": 0.8038 * model_fit.radius,
+    }
     return model_dict

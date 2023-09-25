@@ -36,7 +36,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     return summary
 
 
-def dict_from_header(header: fits.Header) -> OrderedDict:
+def dict_from_header(header: fits.Header, excluded=("COMMENT", "HISTORY")) -> OrderedDict:
     """
     Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
@@ -50,25 +50,15 @@ def dict_from_header(header: fits.Header) -> OrderedDict:
     OrderedDict
     """
     summary = OrderedDict()
-    multi_entry_keys = {"COMMENT": [], "HISTORY": []}
     for k, v in header.items():
-        if k == "":
+        if k == "" or k in excluded:
             continue
-        if k in multi_entry_keys:
-            multi_entry_keys[k].append(v.lstrip())
         summary[k] = v
-
-    for k, l in multi_entry_keys.items():
-        if len(l) > 0:
-            summary[k] = ", ".join(l)
-
     return summary
 
 
 def header_table(
-    filenames: list[PathLike],
-    num_proc: int = min(8, mp.cpu_count()),
-    quiet: bool = False,
+    filenames: list[PathLike], num_proc: int = min(8, mp.cpu_count()), quiet: bool = False, **kwargs
 ) -> pd.DataFrame:
     """
     Generate a pandas dataframe from the FITS headers parsed from the given files.
@@ -86,13 +76,11 @@ def header_table(
     pandas.DataFrame
     """
     with mp.Pool(num_proc) as pool:
-        jobs = [pool.apply_async(dict_from_header_file, args=(f,)) for f in filenames]
+        jobs = [pool.apply_async(dict_from_header_file, args=(f,), kwds=kwargs) for f in filenames]
         iter = jobs if quiet else tqdm(jobs, desc="Parsing FITS headers")
         rows = [job.get() for job in iter]
 
-    df = pd.DataFrame(rows)
-    df.sort_values("MJD", inplace=True)
-    return df
+    return pd.DataFrame(rows)
 
 
 # set up commands for parser to dispatch to

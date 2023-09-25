@@ -14,7 +14,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.indexing import frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header, header_table
-from vampires_dpp.util import any_file_newer, get_paths
+from vampires_dpp.util import any_file_newer, delta_angle, get_paths
 
 
 def shift_frame(data: ArrayLike, shift: list | Tuple, **kwargs) -> NDArray:
@@ -182,14 +182,14 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
 
 
 def collapse_cube(
-    cube: ArrayLike, method: str = "median", header: Optional[fits.Header] = None, **kwargs
+    cube: NDArray, method: str = "median", header: Optional[fits.Header] = None, **kwargs
 ) -> Tuple[NDArray, Optional[fits.Header]]:
     """
     Collapse a cube along its time axis
 
     Parameters
     ----------
-    cube : ArrayLike
+    cube : NDArray
         3D cube
     method : str, optional
         One of "median", "mean", "varmean", "biweight", by default "median"
@@ -252,13 +252,6 @@ def combine_frames(frames, headers=None, **kwargs):
     return cube, headers
 
 
-def delta_angle(alpha, beta):
-    alphar, betar = np.deg2rad(alpha), np.deg2rad(beta)
-    dy = np.sin(alphar) - np.sin(betar)
-    dx = np.cos(alphar) - np.cos(betar)
-    return np.abs(np.rad2deg(np.arctan2(dy, dx)))
-
-
 def combine_frames_headers(headers, wcs=False):
     output_header = fits.Header()
     # let's make this easier with tables
@@ -275,18 +268,7 @@ def combine_frames_headers(headers, wcs=False):
     # sum exposure times
     output_header["TINT"] = table["TINT"].sum(), "[s] total integrated exposure time"
     # median PSF models
-    if "MODEL" in table.keys():
-        output_header["MOD_AMP"] = table["MOD_AMP"].mean(), "[adu] PSF model amplitude"
-        output_header["MOD_X"] = table["MOD_X"].mean(), "[px] PSF model x"
-        output_header["MOD_Y"] = table["MOD_Y"].mean(), "[px] PSF model y"
-    if "PHOTFLUX" in table.keys():
-        output_header["PHOTFLUX"] = table["PHOTFLUX"].mean(), "[adu] Aperture photometry flux"
-    if "MEDFLUX" in table.keys():
-        output_header["MEDFLUX"] = table["MEDFLUX"].mean(), "[adu] Median frame flux"
-    if "SUMFLUX" in table.keys():
-        output_header["SUMFLUX"] = table["SUMFLUX"].mean(), "[adu] Total frame flux"
-    if "PEAKFLUX" in table.keys():
-        output_header["PEAKFLUX"] = table["PEAKFLUX"].mean(), "[adu] Peak frame flux"
+
     # get PA rotation
     if "PA" in table.keys():
         output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
@@ -431,7 +413,7 @@ def correct_distortion(
 
 
 def correct_distortion_cube(
-    cube: ArrayLike,
+    cube: NDArray,
     angle: float = 0,
     scale: float = 1,
     header=None,
@@ -443,7 +425,7 @@ def correct_distortion_cube(
 
     Parameters
     ----------
-    cube : ArrayLike
+    cube : NDArray
         Input cube to transform
     angle : float, optional
         Clockwise angle to rotate frames by, by default 0
@@ -584,3 +566,14 @@ def radial_profile_image(frame, fwhm=3):
             output[mask] = np.nanmedian(frame[mask])
 
     return output
+
+
+def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
+    new_shape = (cube.shape[0], cube.shape[1] + 2 * pad_width, cube.shape[2] + 2 * pad_width)
+    output = np.empty_like(cube, shape=new_shape)
+
+    for idx in range(cube.shape[0]):
+        output[idx] = np.pad(cube[idx], pad_width, constant_values=np.nan)
+    if header is not None:
+        pass  # TODO
+    return output, header

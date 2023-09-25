@@ -3,11 +3,9 @@ from typing import Sequence
 import numpy as np
 import sep
 
-from vampires_dpp.image_processing import radial_profile_image
-from vampires_dpp.indexing import cutout_inds, frame_center
-
+from .image_processing import radial_profile_image
 from .image_registration import offset_centroid, offset_modelfit, offset_peak
-from .psf_models import fit_model
+from .indexing import cutout_inds, frame_center
 from .util import append_or_create
 
 
@@ -47,11 +45,11 @@ def analyze_fields(
     output["max"] = np.nanmax(cutout, axis=(-2, -1))
     output["sum"] = np.nansum(cutout, axis=(-2, -1))
     output["mean"] = np.nanmean(cutout, axis=(-2, -1))
-    output["median"] = np.nanmedian(cutout, axis=(-2, -1))
+    output["med"] = np.nanmedian(cutout, axis=(-2, -1))
     output["var"] = np.nanvar(cutout, axis=(-2, -1))
-    output["normvar"] = output["var"] / output["mean"]
+    output["nvar"] = output["var"] / output["mean"]
     if model is not None:
-        output["psfmodel"] = np.full(cube.shape[0], model)
+        output["psfmod"] = np.full(cube.shape[0], model)
     ## Centroids
     for frame in cube:
         pk = offset_peak(frame, inds)
@@ -62,21 +60,21 @@ def analyze_fields(
             ctr_est = pk
         append_or_create(output, "com_x", com_ctr[1])
         append_or_create(output, "com_y", com_ctr[0])
-        append_or_create(output, "peak_x", pk[1])
-        append_or_create(output, "peak_y", pk[0])
+        append_or_create(output, "pk_x", pk[1])
+        append_or_create(output, "pk_y", pk[0])
         if aper_rad is not None:
-            append_or_create(output, "photrad", aper_rad)
+            append_or_create(output, "photr", aper_rad)
             phot, photerr = safe_aperture_sum(frame, r=aper_rad, center=ctr_est, ann_rad=ann_rad)
-            append_or_create(output, "photflux", phot)
-            append_or_create(output, "photerr", photerr)
+            append_or_create(output, "photf", phot)
+            append_or_create(output, "phote", photerr)
 
         ## fit PSF to center
         if model is not None:
-            model_fit = fit_model(frame, inds, model)
-            append_or_create(output, "model_x", model_fit["x"])
-            append_or_create(output, "model_y", model_fit["y"])
-            append_or_create(output, "model_fwhm", model_fit["fwhm"])
-            append_or_create(output, "model_amp", model_fit["amplitude"])
+            model_fit = offset_modelfit(frame, inds, model=model)
+            append_or_create(output, "mod_x", model_fit["x"])
+            append_or_create(output, "mod_y", model_fit["y"])
+            append_or_create(output, "mod_w", model_fit["fwhm"])
+            append_or_create(output, "mod_a", model_fit["amplitude"])
     return output
 
 
@@ -113,7 +111,8 @@ def analyze_file(
     ## subtract radial profile
     if subtract_radprof:
         mean_frame = np.nanmean(data, axis=0)
-        radial_profile_image(mean_frame)
+        data -= radial_profile_image(mean_frame)
+
     cam_num = hdu.header["U_CAMERA"]
     metrics: dict[str, Sequence[Sequence]] = {}
     for ctrs in centroids.values():

@@ -2,7 +2,6 @@ import glob
 import multiprocessing as mp
 import os
 import readline
-import shutil
 from multiprocessing import cpu_count
 from pathlib import Path
 
@@ -116,7 +115,7 @@ def sort_raw(filenames, outdir=Path.cwd(), num_proc=DEFAULT_NPROC, ext=0, copy=F
 ########## prep ##########
 
 
-@click.group(
+@main.group(
     name="prep",
     short_help="Prepare calibration files",
     help="Create calibration files from background files (darks or sky frames) and flats.",
@@ -228,6 +227,39 @@ def flat(ctx, filenames, back, collapse, force):
         quiet=ctx.obj["quiet"],
         num_proc=ctx.obj["num_proc"],
     )
+
+
+########## centroid ##########
+
+
+@prep.command(name="centroid", help="Fit the centroids")
+@click.argument(
+    "config",
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.argument(
+    "filenames",
+    nargs=-1,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
+@click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
+@click.option(
+    "--num-proc",
+    "-j",
+    default=DEFAULT_NPROC,
+    type=click.IntRange(1, cpu_count()),
+    help="Number of processes to use.",
+    show_default=True,
+)
+def centroid(config: Path, filenames, num_proc, outdir):
+    # make sure versions match within SemVar
+    pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
+    if not check_version(pipeline.config.dpp_version, dpp.__version__):
+        raise ValueError(
+            f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
+        )
+    table = header_table(filenames, num_proc=num_proc)
+    pipeline.save_centroids(table)
 
 
 ########## new ##########
@@ -405,7 +437,7 @@ def new_config(ctx, config, edit):
         cam2_path = None
         if template != "singlecam" or cam1_path is None:
             if cam1_path is not None:
-                cam2_default = cam1_path.replace("cam1", "cam2")
+                cam2_default = str(cam1_path).replace("cam1", "cam2")
                 cam2_path = click.prompt(
                     "Enter path to cam2 flat",
                     default=cam2_default,
@@ -424,11 +456,17 @@ def new_config(ctx, config, edit):
         readline.set_completer()
         tpl.calibrate.master_flats = CamFileInput(cam1=cam1_path, cam2=cam2_path)
 
+    tpl.calibrate.save_intermediate = click.confirm(
+        "Would you like to save calibrated files?", default=tpl.calibrate.save_intermediate
+    )
+
     ## Coronagraph
     tpl.coronagraphic = click.confirm("Did you use a coronagraph?", default=False)
 
     ## Analysis
-    tpl.analysis.window_size = click.prompt("Enter analysis window size (px)", type=int, default=40)
+    tpl.analysis.window_size = click.prompt(
+        "Enter analysis window size (px)", type=int, default=tpl.analysis.window_size
+    )
     tpl.analysis.subtract_radprof = click.confirm(
         "Would you like to subtract a radial profile for analysis?", default=tpl.coronagraphic
     )
@@ -436,9 +474,13 @@ def new_config(ctx, config, edit):
         "Would you like to estimate the Strehl ratio?", default=False
     )
 
-    tpl.analysis.photometry = click.confirm("Would you like to do photometry?", default=True)
+    tpl.analysis.photometry = click.confirm(
+        "Would you like to do photometry?", default=tpl.analysis.photometry is not None
+    )
     if tpl.analysis.photometry:
-        aper_rad = click.prompt(" - Enter aperture radius (px)", type=float, default=10)
+        aper_rad = click.prompt(
+            " - Enter aperture radius (px)", type=float, default=tpl.analysis.aper_rad
+        )
 
         if aper_rad > tpl.analysis.window_size / 2:
             aper_rad = tpl.analysis.window_size / 2
@@ -457,6 +499,9 @@ def new_config(ctx, config, edit):
                 click.echo(
                     f"Reducing annulus outer radius to match window size ({ann_rad[1]:.0f} px)"
                 )
+            if ann_rad[0] >= ann_rad[1]:
+                ann_rad[0] = max(aper_rad, ann_rad[0] - 5)
+                click.echo(f"Reducing annulus inner radius to ({ann_rad[0]:.0f} px)")
             tpl.analysis.ann_rad = ann_rad
 
     tpl.analysis.fit_model = click.confirm("Would you like to fit a PSF?", default=True)
@@ -464,11 +509,11 @@ def new_config(ctx, config, edit):
         tpl.analysis.model = click.prompt(
             " - Choose a PSF model",
             type=click.Choice(["gaussian", "moffat", "airydisk"]),
-            default="gaussian",
+            default=tpl.analysis.model,
         )
 
     ## Collapsing
-    if click.confirm("Would you like to collapse your data?", default=True is not None):
+    if click.confirm("Would you like to collapse your data?", default=tpl.collapse is not None):
         collapse_choices = ["median", "mean", "varmean", "biweight"]
         readline.set_completer(createListCompleter(collapse_choices))
         collapse_method = click.prompt(
@@ -503,7 +548,7 @@ def new_config(ctx, config, edit):
             f"Would you like to do frame registration?", default=tpl.collapse.centroid is not None
         )
         if do_register:
-            centroid_choices = ["com", "peak", "model", "psf"]
+            centroid_choices = ["com", "peak", "model"]
             readline.set_completer(createListCompleter(centroid_choices))
             tpl.collapse.centroid = click.prompt(
                 " - Choose a registration method",
@@ -540,6 +585,10 @@ def new_config(ctx, config, edit):
                 " - Would you like to to Mueller-matrix correction?",
                 default=True,
             )
+        tpl.polarimetry.use_ideal_mm = click.confirm(
+            " - Would you like to use an idealized Muller matrix?",
+            default=tpl.polarimetry.use_ideal_mm,
+        )
         tpl.polarimetry.ip_correct = click.confirm(
             " - Would you like to do IP touchup?", default=tpl.polarimetry.ip_correct is not None
         )
@@ -604,10 +653,10 @@ def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool,
     return results
 
 
-########## process ##########
+########## run ##########
 
 
-@main.command(name="process", help="Run the data processing pipeline")
+@main.command(name="run", help="Run the data processing pipeline")
 @click.argument(
     "config",
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
@@ -626,15 +675,15 @@ def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool,
     help="Number of processes to use.",
     show_default=True,
 )
-def process(config: Path, filenames, num_proc, outdir):
+def run(config: Path, filenames, num_proc, outdir):
     # make sure versions match within SemVar
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
     if not check_version(pipeline.config.dpp_version, dpp.__version__):
         raise ValueError(
             f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
         )
-    shutil.copyfile(config, pipeline.product_dir / config.name.replace(".toml", ".bak.toml"))
     pipeline.run(filenames, num_proc=num_proc)
+    pipeline.run_polarimetry(num_proc=num_proc)
 
 
 ########## pdi ##########
@@ -645,12 +694,7 @@ def process(config: Path, filenames, num_proc, outdir):
     "config",
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
 )
-@click.argument(
-    "filenames",
-    nargs=-1,
-    default=None,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
+@click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
     "--num-proc",
     "-j",
@@ -665,13 +709,14 @@ def process(config: Path, filenames, num_proc, outdir):
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def pdi(config, filenames, num_proc, quiet):
+def pdi(config, num_proc, quiet, outdir):
     # make sure versions match within SemVar
-    pipeline = Pipeline.from_file(config)
-    # get filenames from expected outputs
-    if filenames is None:
-        pass
-    pipeline._polarimetry()
+    pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
+    if not check_version(pipeline.config.dpp_version, dpp.__version__):
+        raise ValueError(
+            f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
+        )
+    pipeline.run_polarimetry(num_proc=num_proc)
 
 
 ########## table ##########
