@@ -61,3 +61,14 @@ def offset_modelfit(frame, inds, *, model="gaussian", fitter=fitting.LevMarLSQFi
     model_dict["y"] += inds[-2].start
     model_dict["x"] += inds[-1].start
     return model_dict
+
+
+def register_frame(frame, inds, *, method, **kwargs):
+    match method:
+        case "com":
+            return offset_centroid(frame, inds)
+        case "peak":
+            return offset_peak(frame, inds)
+        case "model":
+            mfit = offset_modelfit(frame, inds, **kwargs)
+            return np.array((mfit["y"], mfit["x"]))

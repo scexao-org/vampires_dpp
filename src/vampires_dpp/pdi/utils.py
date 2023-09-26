@@ -96,8 +96,8 @@ def radial_stokes(stokes_cube: ArrayLike, phi: float = 0) -> NDArray:
 
     cos2t = np.cos(2 * (thetas + phi))
     sin2t = np.sin(2 * (thetas + phi))
-    Qphi = -stokes_cube[1] * cos2t - stokes_cube[2] * sin2t
-    Uphi = stokes_cube[1] * sin2t - stokes_cube[2] * cos2t
+    Qphi = -stokes_cube[:, 1] * cos2t - stokes_cube[:, 2] * sin2t
+    Uphi = stokes_cube[:, 1] * sin2t - stokes_cube[:, 2] * cos2t
 
     return Qphi, Uphi
 
@@ -131,8 +131,8 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
     if not force and path.is_file():
         return path
 
-    pi = np.hypot(stokes_cube[2], stokes_cube[1])
-    aolp = np.arctan2(stokes_cube[2], stokes_cube[1])
+    pi = np.hypot(stokes_cube[:, 2], stokes_cube[:, 1])
+    aolp = np.arctan2(stokes_cube[:, 2], stokes_cube[:, 1])
     Qphi, Uphi = radial_stokes(stokes_cube, phi=phi)
 
     if header is None:
@@ -142,8 +142,10 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
     if phi is not None:
         header["DPP_PHI"] = phi, "deg, angle of linear polarization offset"
 
-    data = np.asarray((stokes_cube[0], stokes_cube[1], stokes_cube[2], Qphi, Uphi, pi, aolp))
-
+    data = np.asarray(
+        (stokes_cube[:, 0], stokes_cube[:, 1], stokes_cube[:, 2], Qphi, Uphi, pi, aolp)
+    )
+    np.swapaxes(data, 0, 1)
     fits.writeto(path, data, header=header, overwrite=True)
 
     return path

@@ -1,12 +1,10 @@
-from typing import Sequence
-
 import numpy as np
 import sep
 
 from .image_processing import radial_profile_image
 from .image_registration import offset_centroid, offset_modelfit, offset_peak
 from .indexing import cutout_inds, frame_center
-from .util import append_or_create
+from .util import append_or_create, get_center
 
 
 def safe_aperture_sum(frame, r, center=None, ann_rad=None):
@@ -78,19 +76,6 @@ def analyze_fields(
     return output
 
 
-def get_center(frame, centroid, cam_num):
-    # IMPORTANT we need to flip the centroids for cam1 since they
-    # are saved from raw data but we have y-flipped the data
-    # during calibration
-
-    if cam_num == 2:
-        return centroid
-    # for cam 1 data, need to flip coordinate about x-axis
-    Ny = frame.shape[-2]
-    ctr = np.asarray((Ny - 1 - centroid[0], centroid[1]))
-    return ctr
-
-
 def analyze_file(
     hdu,
     outpath,
@@ -114,8 +99,9 @@ def analyze_file(
         data -= radial_profile_image(mean_frame)
 
     cam_num = hdu.header["U_CAMERA"]
-    metrics: dict[str, Sequence[Sequence]] = {}
-    for ctrs in centroids.values():
+    metrics: dict[str, list[list[list]]] = {}
+    for field, ctrs in centroids.items():
+        field_metrics = {}
         for ctr in ctrs:
             inds = cutout_inds(data, center=get_center(data, ctr, cam_num), **kwargs)
             results = analyze_fields(
@@ -128,8 +114,12 @@ def analyze_file(
                 strehl=strehl,
                 refmethod=refmethod,
             )
+            # append psf result to this field's dictionary
             for k, v in results.items():
-                append_or_create(metrics, k, v)
+                append_or_create(field_metrics, k, v)
+        # append this field's results to the global output
+        for k, v in field_metrics.items():
+            append_or_create(metrics, k, v)
 
     np.savez_compressed(outpath, **metrics)
     return outpath

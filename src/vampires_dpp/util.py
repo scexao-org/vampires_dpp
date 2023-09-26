@@ -122,3 +122,16 @@ def append_or_create(dict, key, value):
         dict[key].append(value)
     else:
         dict[key] = [value]
+
+
+def get_center(frame, centroid, cam_num):
+    # IMPORTANT we need to flip the centroids for cam1 since they
+    # are saved from raw data but we have y-flipped the data
+    # during calibration
+
+    if cam_num == 2:
+        return centroid
+    # for cam 1 data, need to flip coordinate about x-axis
+    Ny = frame.shape[-2]
+    ctr = np.asarray((Ny - 1 - centroid[0], centroid[1]))
+    return ctr

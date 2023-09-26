@@ -2,6 +2,7 @@ import glob
 import multiprocessing as mp
 import os
 import readline
+import sys
 from multiprocessing import cpu_count
 from pathlib import Path
 
@@ -10,6 +11,7 @@ import click
 import tomli
 import tqdm.auto as tqdm
 from astropy.io import fits
+from loguru import logger
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import (
@@ -20,7 +22,6 @@ from vampires_dpp.calibration import (
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.config import (
-    AnalysisConfig,
     CamFileInput,
     CollapseConfig,
     ObjectConfig,
@@ -37,6 +38,10 @@ from vampires_dpp.pipeline.templates import (
 )
 from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
+
+logger.remove(0)
+logger.add(sys.stderr, level="INFO")
+logger.add("debug.log", level="DEBUG", enqueue=True, colorize=False)
 
 
 # callback that will confirm if a flag is false

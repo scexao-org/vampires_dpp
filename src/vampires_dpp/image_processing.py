@@ -252,6 +252,25 @@ def combine_frames(frames, headers=None, **kwargs):
     return cube, headers
 
 
+WCS_KEYS = {
+    "WCSAXES",
+    "CRPIX1",
+    "CRPIX2",
+    "CDELT1",
+    "CDELT2",
+    "CUNIT1",
+    "CUNIT2",
+    "CTYPE1",
+    "CTYPE2",
+    "CRVAL1",
+    "CRVAL2",
+    "PC1_1",
+    "PC1_2",
+    "PC2_1",
+    "PC2_2",
+}
+
+
 def combine_frames_headers(headers, wcs=False):
     output_header = fits.Header()
     # let's make this easier with tables
@@ -266,7 +285,8 @@ def combine_frames_headers(headers, wcs=False):
         output_header[key] = val, test_header.comments[key]
 
     # sum exposure times
-    output_header["TINT"] = table["TINT"].sum(), "[s] total integrated exposure time"
+    if "TINT" in table:
+        output_header["TINT"] = table["TINT"].sum(), "[s] total integrated exposure time"
     # median PSF models
 
     # get PA rotation
@@ -298,25 +318,11 @@ def combine_frames_headers(headers, wcs=False):
         output_header["PC2_1"] = table["PC2_1"].mean()
         output_header["PC2_2"] = table["PC2_2"].mean()
     else:
-        for k in (
-            "WCSAXES",
-            "CRPIX1",
-            "CRPIX2",
-            "CDELT1",
-            "CDELT2",
-            "CUNIT1",
-            "CUNIT2",
-            "CTYPE1",
-            "CTYPE2",
-            "CRVAL1",
-            "CRVAL2",
-            "PC1_1",
-            "PC1_2",
-            "PC2_1",
-            "PC2_2",
-        ):
-            if k in output_header:
-                del output_header[k]
+        wcskeys = filter(
+            lambda k: any(wcsk.startswith(k) for wcsk in WCS_KEYS), output_header.keys()
+        )
+        for k in wcskeys:
+            del output_header[k]
 
     return output_header
 
@@ -358,8 +364,6 @@ def collapse_frames_files(filenames, output, force=False, **kwargs):
         # another way would be to set ulimit -n <MAX_FILES>
         frame, header = fits.getdata(filename, header=True, memmap=False)
         # if frame secretly a cube (shh) randomly sample a frame
-        if frame.ndim == 3:
-            frame = frame[np.random.randint(0, frame.shape[0])]
         frames.append(frame)
         headers.append(header)
 
@@ -472,7 +476,7 @@ class FileSet:
                 prim_hdu = hdus[ext]
                 header = prim_hdu.header
             cam = header["U_CAMERA"]
-            flc = header.get("U_FLCSTT", None)
+            flc = header.get("U_FLC", None)
             key = (cam, flc)
             self.paths[key] = path
             self.headers[key] = header
@@ -483,7 +487,7 @@ class FileSet:
             if N > 4:
                 raise ValueError(f"Too many input files, should be 4 at max, got {N}")
             if N == 3:
-                missing = set((1, 1), (1, 2), (2, 1), (2, 2)) - set(self.paths.keys())
+                missing = set((1, "A"), (1, "B"), (2, "A"), (2, "B")) - set(self.paths.keys())
                 print(
                     f"Expected set of 4 files, one for each camera and FLC state combination. Missing camera {missing[0][0]} FLC state {missing[0][1]}"
                 )
@@ -538,9 +542,9 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
     if header["MJD"] != header2["MJD"]:
         msg = f"{cam1_file.name} has MJD {header['MJD']}\n{cam2_file.name} has MJD {header2['MJD']}"
         raise ValueError(msg)
-    if "U_FLCSTT" in header:
-        if header["U_FLCSTT"] != header2["U_FLCSTT"]:
-            msg = f"{cam1_file.name} has FLC state {header['U_FLCSTT']}\n{cam2_file.name} has FLC state {header2['U_FLCSTT']}"
+    if "U_FLC" in header:
+        if header["U_FLC"] != header2["U_FLC"]:
+            msg = f"{cam1_file.name} has FLC state {header['U_FLC']}\n{cam2_file.name} has FLC state {header2['U_FLC']}"
             raise ValueError(msg)
 
     diff = cam1_frame - cam2_frame

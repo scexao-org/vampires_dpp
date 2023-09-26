@@ -8,7 +8,11 @@ from astropy.io import fits
 from astropy.time import Time
 from numpy.typing import NDArray
 
-from vampires_dpp.image_processing import combine_frames_headers, derotate_frame
+from vampires_dpp.image_processing import (
+    combine_frames_headers,
+    derotate_cube,
+    derotate_frame,
+)
 
 from ..util import any_file_newer
 from .mueller_matrices import mueller_matrix_from_header
@@ -51,85 +55,110 @@ def polarization_calibration_triplediff(
             f"Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
         )
     # now do triple-differential calibration
-    frame_dict = {}
+    cube_dict = {}
+    headers = []
     for file in filenames:
-        frame, hdr = fits.getdata(
-            file,
-            header=True,
-        )
+        with fits.open(file) as hdul:
+            cube = hdul[0].data
+            prim_hdr = hdul[0].header
+            hdrs = (hdu.header for hdu in hdul[1:])
+            headers.append([prim_hdr, *hdrs])
         # derotate frame - necessary for crosstalk correction
-        frame_derot = derotate_frame(frame, hdr["DEROTANG"])
+        cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
         # store into dictionaries
-        key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
-        frame_dict[key] = frame_derot
+        key = prim_hdr["RET-ANG1"], prim_hdr["U_FLC"], prim_hdr["U_CAMERA"]
+        cube_dict[key] = cube_derot
 
-    I, Q, U = triple_diff_dict(frame_dict)
+    I, Q, U = triple_diff_dict(cube_dict)
+    # swap stokes and field axes so field is first
+    stokes_cube = np.swapaxes((I, Q, U), 0, 1)
 
-    stokes_cube = np.array((I, Q, U))
+    stokes_hdrs = []
+    for hdr in headers:
+        stokes_hdr = combine_frames_headers(hdr)
+        # reduce exptime by 2 because cam1 and cam2 are simultaneous
+        stokes_hdr["TINT"] /= 2
+        stokes_hdrs.append(stokes_hdr)
 
-    headers = [fits.getheader(f) for f in filenames]
-    stokes_hdr = combine_frames_headers(headers)
-    # reduce exptime by 2 because cam1 and cam2 are simultaneous
-    stokes_hdr["TINT"] /= 2
-
-    return fits.PrimaryHDU(stokes_cube, stokes_hdr)
+    # reform hdulist
+    prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs[0])
+    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(stokes_cube, stokes_hdrs[1:]))
+    return fits.HDUList([prim_hdu, *hdus])
 
 
 def make_triplediff_dict(filenames):
     output = {}
     for file in filenames:
-        data, hdr = fits.getdata(
-            file,
-            header=True,
-        )
+        data, hdr = fits.getdata(file, header=True)
         # get row vector for mueller matrix of each file
         # store into dictionaries
-        key = hdr["U_HWPANG"], hdr["U_FLCSTT"], hdr["U_CAMERA"]
+        key = hdr["RET-ANG1"], hdr["U_FLC"], hdr["U_CAMERA"]
         output[key] = data
     return output
-
-
-def mueller_matrix_correct(stokes_cube, filenames, header=None):
-    for file in filenames:
-        fits.getdata(file)
 
 
 def triple_diff_dict(input_dict):
     ## make difference images
     # single diff (cams)
-    pQ0 = input_dict[(0, 1, 1)] - input_dict[(0, 1, 2)]
-    pIQ0 = input_dict[(0, 1, 1)] + input_dict[(0, 1, 2)]
-    pQ1 = input_dict[(0, 2, 1)] - input_dict[(0, 2, 2)]
-    pIQ1 = input_dict[(0, 2, 1)] + input_dict[(0, 2, 2)]
+    pQ0 = input_dict[(0, "A", 1)] - input_dict[(0, "A", 2)]
+    pIQ0 = input_dict[(0, "A", 1)] + input_dict[(0, "A", 2)]
+    pQ1 = input_dict[(0, "B", 1)] - input_dict[(0, "B", 2)]
+    pIQ1 = input_dict[(0, "B", 1)] + input_dict[(0, "B", 2)]
+
+    mQ0 = input_dict[(45, "A", 1)] - input_dict[(45, "A", 2)]
+    mIQ0 = input_dict[(45, "A", 1)] + input_dict[(45, "A", 2)]
+    mQ1 = input_dict[(45, "B", 1)] - input_dict[(45, "B", 2)]
+    mIQ1 = input_dict[(45, "B", 1)] + input_dict[(45, "B", 2)]
+
+    pU0 = input_dict[(22.5, "A", 1)] - input_dict[(22.5, "A", 2)]
+    pIU0 = input_dict[(22.5, "A", 1)] + input_dict[(22.5, "A", 2)]
+    pU1 = input_dict[(22.5, "B", 1)] - input_dict[(22.5, "B", 2)]
+    pIU1 = input_dict[(22.5, "B", 1)] + input_dict[(22.5, "B", 2)]
+
+    mU0 = input_dict[(67.5, "A", 1)] - input_dict[(67.5, "A", 2)]
+    mIU0 = input_dict[(67.5, "A", 1)] + input_dict[(67.5, "A", 2)]
+    mU1 = input_dict[(67.5, "B", 1)] - input_dict[(67.5, "B", 2)]
+    mIU1 = input_dict[(67.5, "B", 1)] + input_dict[(67.5, "B", 2)]
+
     # double difference (FLC1 - FLC2)
     pQ = 0.5 * (pQ0 - pQ1)
     pIQ = 0.5 * (pIQ0 + pIQ1)
 
-    mQ0 = input_dict[(45, 1, 1)] - input_dict[(45, 1, 2)]
-    mIQ0 = input_dict[(45, 1, 1)] + input_dict[(45, 1, 2)]
-    mQ1 = input_dict[(45, 2, 1)] - input_dict[(45, 2, 2)]
-    mIQ1 = input_dict[(45, 2, 1)] + input_dict[(45, 2, 2)]
-
     mQ = 0.5 * (mQ0 - mQ1)
     mIQ = 0.5 * (mIQ0 + mIQ1)
 
-    pU0 = input_dict[(22.5, 1, 1)] - input_dict[(22.5, 1, 2)]
-    pIU0 = input_dict[(22.5, 1, 1)] + input_dict[(22.5, 1, 2)]
-    pU1 = input_dict[(22.5, 2, 1)] - input_dict[(22.5, 2, 2)]
-    pIU1 = input_dict[(22.5, 2, 1)] + input_dict[(22.5, 2, 2)]
-
     pU = 0.5 * (pU0 - pU1)
     pIU = 0.5 * (pIU0 + pIU1)
-
-    mU0 = input_dict[(67.5, 1, 1)] - input_dict[(67.5, 1, 2)]
-    mIU0 = input_dict[(67.5, 1, 1)] + input_dict[(67.5, 1, 2)]
-    mU1 = input_dict[(67.5, 2, 1)] - input_dict[(67.5, 2, 2)]
-    mIU1 = input_dict[(67.5, 2, 1)] + input_dict[(67.5, 2, 2)]
 
     mU = 0.5 * (mU0 - mU1)
     mIU = 0.5 * (mIU0 + mIU1)
 
     # triple difference (HWP1 - HWP2)
+    Q = 0.5 * (pQ - mQ)
+    IQ = 0.5 * (pIQ + mIQ)
+    U = 0.5 * (pU - mU)
+    IU = 0.5 * (pIU + mIU)
+    I = 0.5 * (IQ + IU)
+
+    return I, Q, U
+
+
+def double_diff_dict(input_dict):
+    ## make difference images
+    # single diff (cams)
+    pQ = input_dict[(0, 1)] - input_dict[(0, 2)]
+    pIQ = input_dict[(0, 1)] + input_dict[(0, 2)]
+
+    mQ = input_dict[(45, 1)] - input_dict[(45, 2)]
+    mIQ = input_dict[(45, 1)] + input_dict[(45, 2)]
+
+    pU = input_dict[(22.5, 1)] - input_dict[(22.5, 2)]
+    pIU = input_dict[(22.5, 1)] + input_dict[(22.5, 2)]
+
+    mU = input_dict[(67.5, 1)] - input_dict[(67.5, 2)]
+    mIU = input_dict[(67.5, 1)] + input_dict[(67.5, 2)]
+
+    # double difference (HWP1 - HWP2)
     Q = 0.5 * (pQ - mQ)
     IQ = 0.5 * (pIQ + mIQ)
     U = 0.5 * (pU - mU)
@@ -154,45 +183,66 @@ def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=Fal
     if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
     # step 1: load each file and header- derotate on the way
-    frames = []
+    cubes = []
     headers = []
     mueller_mats = []
     for file, mm_file in tqdm.tqdm(
         zip(filenames, mm_filenames), total=len(filenames), desc="Least-squares calibration"
     ):
-        frame, hdr = fits.getdata(file, header=True, memmap=False)
+        cube, hdr = fits.getdata(file, header=True, memmap=False)
         # rotate to N up E left
-        frame_derot = derotate_frame(frame, hdr["DEROTANG"])
+        cube_derot = derotate_frame(cube, hdr["DEROTANG"])
         # get row vector for mueller matrix of each file
         mueller_mat = fits.getdata(mm_file, memmap=False)[0]
 
-        frames.append(frame_derot)
+        cubes.append(cube_derot)
         headers.append(hdr)
         mueller_mats.append(mueller_mat)
 
     mueller_mat_cube = np.array(mueller_mats)
-    cube = np.array(frames)
+    super_cube = np.array(cubes)
     stokes_hdr = combine_frames_headers(headers, wcs=True)
-    stokes_cube = mueller_matrix_calibration(mueller_mat_cube, cube)
-    return write_stokes_products(stokes_cube, stokes_hdr, outname=path, force=True)
+    stokes_final = []
+    for cube in super_cube:
+        stokes_cube = mueller_matrix_calibration(mueller_mat_cube, cube)
+        stokes_final.append(stokes_cube)
+    stokes_final = np.array(stokes_final)
+    return write_stokes_products(stokes_final, stokes_hdr, outname=path, force=True)
 
 
-TRIPLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), (1, 2), (1, 2)))
+DOUBLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), (1, 2)))
+TRIPLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), ("A", "B"), (1, 2)))
 
 
 def get_triplediff_set(table, row):
     time_arr = Time(table["MJD"], format="mjd")
     row_time = Time(row["MJD"], format="mjd")
     deltatime = np.abs(row_time - time_arr)
-    row_key = (row["U_HWPANG"], row["U_FLCSTT"], row["U_CAMERA"])
+    row_key = (row["RET-ANG1"], row["U_FLC"], int(row["U_CAMERA"]))
     remaining_keys = TRIPLEDIFF_SETS - set(row_key)
     output_set = {row_key: row["path"]}
     for key in remaining_keys:
         mask = (
-            (table["U_HWPANG"] == key[0])
-            & (table["U_FLCSTT"] == key[1])
+            (table["RET-ANG1"] == key[0])
+            & (table["U_FLC"] == key[1])
             & (table["U_CAMERA"] == key[2])
         )
+        idx = deltatime[mask].argmin()
+
+        output_set[key] = table.loc[mask, "path"].iloc[idx]
+
+    return output_set
+
+
+def get_doublediff_set(table, row):
+    time_arr = Time(table["MJD"], format="mjd")
+    row_time = Time(row["MJD"], format="mjd")
+    deltatime = np.abs(row_time - time_arr)
+    row_key = (row["RET-ANG1"], int(row["U_CAMERA"]))
+    remaining_keys = DOUBLEDIFF_SETS - set(row_key)
+    output_set = {row_key: row["path"]}
+    for key in remaining_keys:
+        mask = (table["RET-ANG1"] == key[0]) & (table["U_CAMERA"] == key[1])
         idx = deltatime[mask].argmin()
 
         output_set[key] = table.loc[mask, "path"].iloc[idx]
@@ -215,40 +265,51 @@ def make_stokes_image(
         return fits.getdata(outpath, header=True)
 
     # create stokes cube
-
     if method == "triplediff":
-        stokes_hdu = polarization_calibration_triplediff(path_set)
+        stokes_hdul = polarization_calibration_triplediff(path_set)
         if mm_correct:
             mm_dict = make_triplediff_dict(mm_paths)
+            _, mmQs, mmUs = triple_diff_dict(mm_dict)
     else:
         raise ValueError(f"Unrecognized method {method}")
 
-    stokes_data = stokes_hdu.data
-    stokes_header = stokes_hdu.header
-    I, Q, U = stokes_data
-    # mm correct
-    if mm_correct:
-        _, mmQ, mmU = triple_diff_dict(mm_dict)
+    output_data = []
+    output_hdrs = []
+    for i in range(1, len(stokes_hdul)):
+        hdu = stokes_hdul[i]
+        stokes_data = hdu.data
+        stokes_header = hdu.header
+        I, Q, U = stokes_data
+        # mm correct
+        if mm_correct:
+            # get first row of diffed Mueller-matrix
+            mmQ = mmQs[i - 1, 0]
+            mmU = mmUs[i - 1, 0]
 
-        # correct IP
-        Q -= mmQ[0, 0] * I
-        U -= mmU[0, 0] * I
+            # correct IP
+            Q -= mmQ[0] * I
+            U -= mmU[0] * I
 
-        # correct cross-talk
-        Sarr = np.array((Q.ravel(), U.ravel()))
-        Marr = np.array((mmQ[0, 1:3], mmU[0, 1:3]))
-        res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
-        Q = res[0].reshape(I.shape[-2:])
-        U = res[1].reshape(I.shape[-2:])
-        stokes_data = np.array((I, Q, U))
-    # second order IP correction
-    if ip_correct:
-        stokes_data, stokes_header = polarization_ip_correct(
-            stokes_data, phot_rad=ip_radius, header=stokes_header
-        )
+            # correct cross-talk
+            Sarr = np.array((Q.ravel(), U.ravel()))
+            Marr = np.array((mmQ[1:3], mmU[1:3]))
+            res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
+            Q = res[0].reshape(I.shape[-2:])
+            U = res[1].reshape(I.shape[-2:])
+            stokes_data = np.array((I, Q, U))
+        # second order IP correction
+        if ip_correct:
+            stokes_data, stokes_header = polarization_ip_correct(
+                stokes_data, phot_rad=ip_radius, header=stokes_header
+            )
+        output_data.append(stokes_data)
+        output_hdrs.append(stokes_header)
 
-    fits.writeto(outpath, stokes_data, header=stokes_header, overwrite=True)
-    return stokes_data, stokes_header
+    prim_hdu = fits.PrimaryHDU(np.array(output_data), stokes_hdul[0].header)
+    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(output_data, output_hdrs))
+    hdul = fits.HDUList([prim_hdu, *hdus])
+    hdul.writeto(outpath, overwrite=True)
+    return prim_hdu.data, prim_hdu.header
 
 
 def polarization_ip_correct(stokes_data, phot_rad, header=None):

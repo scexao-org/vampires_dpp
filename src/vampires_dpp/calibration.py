@@ -23,7 +23,7 @@ from vampires_dpp.image_processing import (
     collapse_frames_files,
     correct_distortion_cube,
 )
-from vampires_dpp.util import get_paths, load_fits, wrap_angle
+from vampires_dpp.util import append_or_create, get_paths, load_fits, wrap_angle
 from vampires_dpp.wcs import apply_wcs, get_coord_header
 
 __all__ = [
@@ -80,6 +80,7 @@ def deinterleave_cube(
     if flc1_filt is not None:
         hdu1 = fits.PrimaryHDU(flc1_filt, header=header.copy())
         hdu1.header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
+        hdu1.header["U_FLC"] = "A"
         fix_header(hdu1.header)
 
     flc2_filt = data[1::2]
@@ -89,6 +90,7 @@ def deinterleave_cube(
     if flc2_filt is not None:
         hdu2 = fits.PrimaryHDU(flc2_filt, header=header.copy())
         hdu2.header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
+        hdu2.header["U_FLC"] = "B"
         fix_header(hdu2.header)
 
     return hdu1, hdu2
@@ -168,9 +170,9 @@ def calibrate_file(
     if bpfix:
         mask, _ = detect_cosmics(
             cube.mean(0),
-            gain=header.get("DETGAIN", 4.5) * max(1, header.get("U_EMGAIN", 1)),
+            gain=header.get("GAIN") * max(1, header.get("DETGAIN", 1)),
             readnoise=READNOISE,
-            satlevel=2**15 * header.get("DETGAIN", 4.5) * max(1, header.get("U_EMGAIN", 1)),
+            satlevel=2**16 * header.get("GAIN") * max(1, header.get("DETGAIN", 1)),
             niter=1,
         )
         cube_copy = cube.copy()
@@ -239,18 +241,21 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
 
 
 def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dict[tuple, Path]:
-    file_dict = {}
+    file_dict: dict[tuple, Path] = {}
     for filename in filenames:
         path = Path(filename)
         header = fits.getheader(path, ext=ext)
         sz = header["NAXIS1"], header["NAXIS2"]
-        key = (header["U_CAMERA"], header["U_EMGAIN"], header["U_AQTINT"], sz, header["U_FILTER"])
-        if backgrounds:
-            key = key[:-1]
-        if key in file_dict:
-            file_dict[key].append(path)
+        if "DETGAIN" in header:
+            key = header["U_CAMERA"], header["U_AQTINT"], header["FILTER01"], header["DETGAIN"], sz
+            if backgrounds:
+                del key[2]
         else:
-            file_dict[key] = [path]
+            key = header["U_CAMERA"], header["EXPTIME"], header["FILTER01"], header["FILTER02"], sz
+            if backgrounds:
+                del key[3:4]
+
+        append_or_create(file_dict, key, path)
     return file_dict
 
 
@@ -278,11 +283,18 @@ def make_master_background(
     with mp.Pool(num_proc) as pool:
         jobs = []
         for key, filelist in file_inputs.items():
-            cam, gain, exptime, sz = key
-            outname = (
-                outdir
-                / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
-            )
+            if len(key) == 4:
+                cam, exptime, gain, sz = key
+                outname = (
+                    outdir
+                    / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
+                )
+            else:
+                cam, exptime, sz = key
+                outname = (
+                    outdir
+                    / f"{name}_{exptime*1e3:07.02f}ms_{sz[0]:04d}x{sz[1]:04d}_cam{cam:.0f}.fits"
+                )
             outnames[key] = outname
             if not force and outname.is_file():
                 continue
@@ -329,7 +341,10 @@ def make_master_flat(
         back_inputs = sort_calib_files(master_backgrounds, backgrounds=True)
         for key in file_inputs.keys():
             # don't need to match filter for backs
-            back_key = key[:-1]
+            if len(key) == 5:
+                back_key = key[:-1]
+            else:
+                back_key = tuple(*key[:3], *key[5:])
             # input should be list with one file in it
             if back_key in back_inputs:
                 master_back_dict[key] = back_inputs[back_key][0]
@@ -346,11 +361,19 @@ def make_master_flat(
     with mp.Pool(num_proc) as pool:
         jobs = []
         for key, filelist in file_inputs.items():
-            cam, gain, exptime, sz, filt = key
-            outname = (
-                outdir
-                / f"{name}_{filt}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
-            )
+            if len(key) == 5:
+                cam, exptime, filt, gain, sz = key
+                outname = (
+                    outdir
+                    / f"{name}_{filt}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
+                )
+            else:
+                cam, exptime, filt1, filt2, gain, sz = key
+                outname = (
+                    outdir
+                    / f"{name}_{filt1}_{filt2}_{exptime*1e3:07.02f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
+                )
+
             outnames[key] = outname
             if not force and outname.is_file():
                 continue

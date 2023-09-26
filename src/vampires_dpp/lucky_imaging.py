@@ -4,10 +4,13 @@ from typing import Final, Literal, Optional
 import numpy as np
 import scipy.stats as st
 from astropy.io import fits
+from astropy.nddata import Cutout2D
 from numpy.typing import ArrayLike
 
-from .image_processing import collapse_cube, pad_cube, shift_cube
-from .indexing import frame_center
+from .image_processing import collapse_cube, pad_cube, shift_cube, shift_frame
+from .image_registration import register_frame
+from .indexing import cutout_inds, frame_center
+from .util import get_center
 
 FRAME_SELECT_MAP: Final[dict[str, str]] = {
     "peak": "max",
@@ -23,11 +26,14 @@ def get_frame_select_mask(metrics, input_key, quantile=0):
     frame_select_key = FRAME_SELECT_MAP[input_key]
     # create masked metrics
     values = metrics[frame_select_key]
-    cutoff = np.nanquantile(values, quantile, axis=1, keepdims=True)
+    # get the quantile along the time dimension
+    cutoff = np.nanquantile(values, quantile, axis=-1, keepdims=True)
+    # get mask by tossing if _any_ field or psf is below spec.
+    # this way mask can be applied to time dimension
     if input_key == "fwhm":
-        return np.all(values < cutoff, axis=0)
+        return np.all(values < cutoff, axis=(0, 1))
     else:
-        return np.all(values > cutoff, axis=0)
+        return np.all(values > cutoff, axis=(0, 1))
 
 
 REGISTER_MAP: Final[dict[str, str]] = {
@@ -43,23 +49,44 @@ def get_centroids_from(metrics, input_key):
     cy = metrics[f"{register_key}_y"]
     # if there are values from multiple PSFs (e.g. satspots)
     # take the mean centroid of each PSF
-    if cx.ndim == 2:
-        cx = np.mean(cx, axis=0)
-    if cy.ndim == 2:
-        cy = np.mean(cy, axis=0)
-    centroids = np.column_stack((cy, cx))
+    if cx.ndim == 3:
+        cx = np.mean(cx, axis=-2)
+    if cy.ndim == 3:
+        cy = np.mean(cy, axis=-2)
+
+    # stack so size is (Nfields, Nframes, x/y)
+    centroids = np.stack((cy, cx), axis=2)
     return centroids
+
+
+def recenter_frame(frame, method, centroids, window=30, **kwargs):
+    frame_ctr = frame_center(frame)
+    if centroids.ndim == 2:
+        ## determine center of raw frame from centroids
+        ctr = 0
+        for off in centroids - centroids.mean(0):
+            inds = cutout_inds(frame, window=window, center=frame_ctr + off)
+            ctr += register_frame(frame, inds, method=method, **kwargs)
+        ctr = ctr / centroids.shape[0]
+    else:
+        inds = cutout_inds(frame, window=window, center=frame_ctr)
+        ctr = register_frame(frame, inds, method=method)
+
+    return shift_frame(frame, frame_ctr - ctr)
 
 
 def lucky_image_file(
     hdu,
     outpath,
+    centroids,
     method: str = "median",
     register: Optional[Literal["com", "peak", "model"]] = "com",
     frame_select: Optional[Literal["peak", "normvar", "var", "strehl", "model", "fwhm"]] = None,
     metric_file: Optional[Path] = None,
     force: bool = False,
+    recenter: bool = True,
     select_cutoff: float = 0,
+    crop_width=None,
     **kwargs,
 ) -> Path:
     if (
@@ -74,14 +101,38 @@ def lucky_image_file(
     cube = hdu.data
     header = hdu.header
 
+    if crop_width is None:
+        if "MBI" in header.get("OBS-MOD", ""):
+            crop_width = 536
+        else:
+            crop_width = np.min(cube.shape[-2:])
+
+    cam_num = header["U_CAMERA"]
+    cam_key = f"cam{cam_num:.0f}"
+    fields = centroids[cam_key]
+
     # if no metric file assume straight collapsing
     if not metric_file:
         frame, header = collapse_cube(cube, method=method, header=header, **kwargs)
-        hdu = fits.PrimaryHDU(frame, header=header)
+        frames = []
+        headers = []
+        for field, ctr in fields.items():
+            field_ctr = get_center(frame, ctr, cam_num)
+            if field_ctr.ndim > 1:
+                field_ctr = field_ctr.mean(axis=0)
+            cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
+            frames.append(cutout.data)
+            hdr = header.copy()
+            hdr["FIELD"] = field
+            headers.append(hdr)
+        prim_hdu = fits.PrimaryHDU(np.array(frames), header=header)
+        hdus = [fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers)]
+        hdu = fits.HDUList([prim_hdu, *hdus])
         hdu.writeto(outpath, overwrite=True)
         return hdu
 
     metrics = np.load(metric_file)
+
     # mask metrics
     masked_metrics = metrics
     if frame_select and select_cutoff > 0:
@@ -91,20 +142,53 @@ def lucky_image_file(
         cube = cube[mask]
 
     if register:
-        centroids = get_centroids_from(masked_metrics, input_key=register)
-        # print(centroids)
-        offsets = centroids - frame_center(cube)
-        # determine maximum padding, with sqrt(2)
-        # for radial coverage
-        rad_factor = (np.sqrt(2) - 1) * np.max(cube.shape[-2:]) / 2
-        npad = np.ceil(rad_factor + 1).astype(int)
-        cube_padded, header = pad_cube(cube, npad, header=header)
-        cube = shift_cube(cube_padded, -offsets, **kwargs)
+        psf_centroids = get_centroids_from(masked_metrics, input_key=register)
 
-    ## Step 3: Collapse
-    frame, header = collapse_cube(cube, method=method, header=header, **kwargs)
-    header = add_metrics_to_header(header, masked_metrics)
-    hdu = fits.PrimaryHDU(frame, header=header)
+    import matplotlib.pyplot as plt
+
+    # plt.ion()
+    # fig, ax = plt.subplots(1, 3)
+    frames = []
+    headers = []
+    for i, (field, ctr) in enumerate(fields.items()):
+        field_ctr = get_center(cube, ctr, cam_num)
+        if field_ctr.ndim > 1:
+            field_ctr = field_ctr.mean(axis=0)
+        offsets = psf_centroids[i] - field_ctr
+        aligned_frames = []
+        for frame, offset in zip(cube, offsets):
+            cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
+            # ax[0].imshow(cutout.data, origin="lower", cmap="magma")
+            if register:
+                # determine maximum padding, with sqrt(2)
+                # for radial coverage
+                rad_factor = (np.sqrt(2) - 1) * np.max(cutout.shape[-2:]) / 2
+                npad = np.ceil(rad_factor + 1).astype(int)
+                frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)
+                # ax[1].imshow(frame_padded, origin="lower", cmap="magma")
+                shifted = shift_frame(frame_padded, -offset, **kwargs)
+                # ax[2].imshow(shifted, origin="lower", cmap="magma")
+                aligned_frames.append(shifted)
+            else:
+                aligned_frames.append(cutout.data)
+            # plt.show(block=True)
+        ## Step 3: Collapse
+        coll_frame, header = collapse_cube(np.array(aligned_frames), header=header)
+        ## Step 4: Recenter
+        if recenter:
+            coll_frame = recenter_frame(
+                coll_frame, method=register, centroids=get_center(cube, ctr, cam_num)
+            )
+        frames.append(coll_frame)
+        hdr = header.copy()
+        hdr["FIELD"] = field
+        ## handle header metadata
+        add_metrics_to_header(hdr, masked_metrics, index=i)
+        headers.append(hdr)
+    prim_hdu = fits.PrimaryHDU(np.array(frames), header=header)
+    hdus = [fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers)]
+    hdu = fits.HDUList([prim_hdu, *hdus])
+    # write to disk
     hdu.writeto(outpath, overwrite=True)
     return hdu
 
@@ -115,7 +199,7 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "mean": "[adu] Mean signal{}measured in window {}",
     "med": "[adu] Median signal{}measured in window {}",
     "var": "[adu^2] Signal variance{}measured in window {}",
-    "nvar": "[adu] Normalized variance{}(var / mean) measured in window {}",
+    "nvar": "[adu] Normalized variance{}measured in window {}",
     "photr": "[px] Radius of photometric aperture",
     "photf": "[adu] Photometric flux{}in window {}",
     # "phote": "[adu] Photometric flux error in window {}",
@@ -124,15 +208,16 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "pk_x": "[px] Peak signal index{}along x axis in window {}",
     "pk_y": "[px] Peak signal index{}along y axis in window {}",
     "psfmod": "Model used for PSF fitting",
-    "mod_x": "[px] Model position fit{}along x axis in window {}",
-    "mod_y": "[px] Model position fit{}along y axis in window {}",
+    "mod_x": "[px] Model center fit{}along x axis in window {}",
+    "mod_y": "[px] Model center fit{}along y axis in window {}",
     "mod_w": "[px] Model FWHM fit{}in window {}",
     "mod_a": "[adu] Model amplitude fit{}in window {}",
 }
 
 
-def add_metrics_to_header(hdr: fits.Header, metrics: dict) -> fits.Header:
-    for key, arr in metrics.items():
+def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Header:
+    for key, field_arrs in metrics.items():
+        arr = field_arrs[index]
         if key not in COMMENT_FSTRS:
             continue
         key_up = key.upper()
@@ -142,6 +227,6 @@ def add_metrics_to_header(hdr: fits.Header, metrics: dict) -> fits.Header:
         for i, psf in enumerate(arr):
             comment = COMMENT_FSTRS[key].format(" ", i)
             hdr[f"{key_up}{i}"] = psf.mean(), comment
-            err_comment = COMMENT_FSTRS[key].format(" error ", i)
+            err_comment = COMMENT_FSTRS[key].format(" err ", i)
             hdr[f"{key_up[:5]}ER{i}"] = st.sem(psf, nan_policy="omit"), err_comment
     return hdr

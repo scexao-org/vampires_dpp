@@ -36,8 +36,6 @@ from vampires_dpp.util import any_file_newer
 from ..lucky_imaging import lucky_image_file
 from .modules import get_psf_centroids_mpl
 
-# logger.add(level="INFO")
-
 
 class Pipeline:
     def __init__(self, config: PipelineConfig, workdir=Path.cwd()):
@@ -121,11 +119,18 @@ class Pipeline:
         for key in self.centroids.keys():
             path = self.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
 
-            im = fits.getdata(raw_psf_filenames[key])
+            im, hdr = fits.getdata(raw_psf_filenames[key], header=True)
             npsfs = 4 if self.config.coronagraphic else 1
             outpath = self.preproc_dir / f"{self.config.name}_{key}.png"
-            ctrs = get_psf_centroids_mpl(im, npsfs=npsfs, suptitle=key, outpath=outpath)
-            field_keys = (f"field_{i}" for i in range(1))
+            if "MBI" in hdr.get("OBS-MOD", ""):
+                field_keys = "F610", "F670", "F720", "F760"
+                nfields = 4
+            else:
+                field_keys = ("PSF",)
+                nfields = 1
+            ctrs = get_psf_centroids_mpl(
+                im, npsfs=npsfs, nfields=nfields, suptitle=key, outpath=outpath
+            )
             ctrs_as_dict = dict(zip(field_keys, ctrs.tolist()))
             with path.open("wb") as fh:
                 tomli_w.dump(ctrs_as_dict, fh)
@@ -206,7 +211,7 @@ class Pipeline:
 
         self.subset_db = self.determine_execution(force=force)
         if len(self.subset_db) == 0:
-            logger.info("Finished! (No files to process)")
+            logger.success("Finished processing files (No files to process)")
             return
         logger.info(
             f"Processing {len(self.subset_db)} files using {len(self.working_db) - len(self.subset_db)} cached files"
@@ -232,6 +237,8 @@ class Pipeline:
         if self.config.make_diff_images:
             self.make_diff_images(force=force)
 
+        logger.success("Finished processing files")
+
     def process_one(self, fileinfo):
         # fix headers and calibrate
         cur_hdu = self.calibrate_one(fileinfo["path"], fileinfo)
@@ -249,7 +256,7 @@ class Pipeline:
             self.coord = self.config.object.get_coord()
 
     def calibrate_one(self, path, fileinfo, force=False):
-        logger.info("Starting data calibration")
+        logger.debug("Starting data calibration")
         config = self.config.calibrate
         if config.save_intermediate:
             outpath = Path(fileinfo["calib_file"])
@@ -274,11 +281,11 @@ class Pipeline:
         if config.save_intermediate:
             calib_hdu.writeto(fileinfo["calib_file"], overwrite=True)
             logger.debug(f"Calibrated data saved to {fileinfo['calib_file']}")
-        logger.info("Data calibration completed")
+        logger.debug("Data calibration completed")
         return calib_hdu
 
     def analyze_one(self, hdu: fits.PrimaryHDU, fileinfo, force=False):
-        logger.info("Starting frame analysis")
+        logger.debug("Starting frame analysis")
         config = self.config.analysis
 
         key = f"cam{fileinfo['U_CAMERA']:.0f}"
@@ -296,7 +303,7 @@ class Pipeline:
         return outpath
 
     def collapse_one(self, hdu, fileinfo, force=False):
-        logger.info("Starting data calibration")
+        logger.debug("Starting data calibration")
         config = self.config.collapse
         outpath = Path(fileinfo["collapse_file"])
         kwargs = dict(
@@ -305,28 +312,15 @@ class Pipeline:
             select_cutoff=config.select_cutoff,
             register=config.centroid,
             metric_file=fileinfo["metric_file"],
+            recenter=config.recenter,
+            centroids=self.centroids,
             outpath=outpath,
             force=force,
         )
         lucky_image_file(hdu, **kwargs)
-        logger.info("Data calibration completed")
+        logger.debug("Data calibration completed")
         logger.debug(f"Saved collapsed data to {outpath}")
         return outpath
-
-    # def reanalyze_one(self, hdu, fileinfo, force=False):
-    #     config = self.config.analysis
-
-    #     key = f"cam{fileinfo['U_CAMERA']:.0f}"
-    #     outpath = analyze_file(
-    #         hdu,
-    #         centroids=self.centroids[key],
-    #         aper_rad=config.aper_rad,
-    #         ann_rad=config.ann_rad,
-    #         model=config.model,
-    #         outpath=fileinfo["metric_file"],
-    #         force=force,
-    #         window=config.window_size,
-    #     )
 
     def save_output_header(self):
         self.output_table.to_csv(self.output_table_path)
@@ -337,8 +331,8 @@ class Pipeline:
         self.cam1_cube_path = self.cam2_cube_path = None
 
         # save cubes for each camera
-        if "U_FLCSTT" in self.output_table.keys():
-            sort_keys = ["MJD", "U_FLCSTT"]
+        if "U_FLC" in self.output_table.keys():
+            sort_keys = ["MJD", "U_FLC"]
         else:
             sort_keys = "MJD"
 
@@ -350,45 +344,6 @@ class Pipeline:
             angles = np.asarray(group["DEROTANG"], dtype="f4")
             fits.writeto(angles_path, angles, overwrite=True)
             logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
-
-    # def save_sdi_products(self, force: bool = False):
-    #     # preset values
-    #     sdi_frames = []
-    #     derot_angs = []
-    #     headers = []
-    #     if self.diff_files is None:
-    #         print("Skipping SDI products because no difference images were made.")
-    #         return
-    #     for filename in self.diff_files:
-    #         frames, hdr = fits.getdata(filename, header=True)
-    #         diff_frame, summ_frame = frames
-    #         sdi_frames.append(diff_frame)
-    #         headers.append(hdr)
-    #         if hdr["U_PLSTIT"] == 2:
-    #             # mask state 2: Cont / Halpha
-    #             diff_frame *= -1
-    #         sdi_frames.append(diff_frame)
-    #         derot_angs.append(hdr["DEROTANG"])
-
-    #     output_header_cube = combine_frames_headers(headers)
-    #     sdi_frames = np.array(sdi_frames).astype("f4")
-
-    #     outname = self.product_dir / f"{self.config.name}_sdi_cube.fits"
-    #     outname_angles = self.product_dir / f"{self.config.name}_sdi_angles.fits"
-    #     outname_frame = self.product_dir / f"{self.config.name}_sdi_frame.fits"
-
-    #     fits.writeto(outname, sdi_frames, overwrite=True, header=output_header_cube)
-    #     fits.writeto(
-    #         outname_angles,
-    #         np.array(derot_angs).astype("f4"),
-    #         overwrite=True,
-    #     )
-    #     print(f"Saved SDI cube to: {outname}")
-    #     print(f"Saved SDI derotation angles to: {outname_angles}")
-
-    #     collapsed_frame, frame_header = collapse_frames(sdi_frames, headers=headers)
-    #     fits.writeto(outname_frame, collapsed_frame, header=frame_header, overwrite=True)
-    #     print(f"Saved collapsed SDI frame to: {outname_frame}")
 
     def make_diff_images(self, force=False):
         logger.info("Making difference frames")
@@ -424,11 +379,11 @@ class Pipeline:
         return self.diff_files
 
     def create_stokes_table(self, table):
-        keys = ["path", "MJD", "U_HWPANG", "U_CAMERA"]
-        sort_keys = ["MJD", "U_HWPANG", "U_CAMERA"]
-        if "U_FLCSTT" in table.keys():
-            keys.append("U_FLCSTT")
-            sort_keys.append("U_FLCSTT")
+        keys = ["path", "MJD", "RET-ANG1", "U_CAMERA"]
+        sort_keys = ["MJD", "RET-ANG1", "U_CAMERA"]
+        if "U_FLC" in table.keys():
+            keys.append("U_FLC")
+            sort_keys.append("U_FLC")
         table = table.sort_values(sort_keys)
         subset = table[keys]
         return subset
@@ -475,17 +430,15 @@ class Pipeline:
             self.polarimetry_difference(force=force)
         elif self.config.polarimetry.method == "leastsq":
             self.polarimetry_leastsq(force=force)
-        logger.info("Finished PDI")
+        logger.success("Finished PDI")
 
     def polarimetry_difference(self, force=False):
         config = self.config.polarimetry
         full_paths = []
         with mp.Pool(self.num_proc) as pool:
             jobs = []
-            for row in self.working_db.itertuples(index=False):
-                jobs.append(
-                    pool.apply_async(get_triplediff_set, args=(self.working_db, row._asdict()))
-                )
+            for _, row in self.working_db.iterrows():
+                jobs.append(pool.apply_async(get_triplediff_set, args=(self.working_db, row)))
 
             for job in tqdm(jobs, desc="Forming Stokes sets"):
                 stokes_set = job.get()

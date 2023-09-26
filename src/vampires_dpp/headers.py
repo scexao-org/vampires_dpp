@@ -94,18 +94,25 @@ def fix_header(header):
         header[key] = fix_typical_time_iso(header, key)
     header["MJD"] = fix_typical_time_mjd(header)
     # add RET-ANG1 and similar headers to be more consistent
-    header["DETECTOR"] = f"iXon Ultra 897 - VAMPIRES {header['U_CAMERA']}", "Name of the detector"
+    if "DETECTOR" not in header:
+        header["DETECTOR"] = (
+            f"iXon Ultra 897 - VAMPIRES {header['U_CAMERA']}",
+            "Name of the detector",
+        )
     if "U_EMGAIN" in header:
         header["DETGAIN"] = header["U_EMGAIN"], "Detector multiplication factor"
+        header["GAIN"] = 4.5, "[e-/adu] Gain conversion factor"
     if "U_HWPANG" in header:
         header["RET-ANG1"] = header["U_HWPANG"], "[deg] Position angle of first retarder plate"
         header["RETPLAT1"] = "HWP(NIR)", "Identifier of first retarder plate"
     if "U_FLCSTT" in header:
-        header["U_FLCANG"] = 0 if header["U_FLCSTT"] == 0 else 45, "[deg] VAMPIRES FLC angle"
-    else:
-        header["U_FLCSTT"] = -1, "VAMPIRES FLC state"
+        header["U_FLC"] = "A" if header["U_FLCSTT"] == 1 else "B", "VAMPIRES FLC State"
+    if "EXPTIME" not in header:
+        header["EXPTIME"] = header["U_AQTINT"] / 1e6, "[s] exposure time"
+    if "FILTER01" not in header:
+        header["FILTER01"] = header["U_FILTER"]
+        header["FILTER02"] = "Unknown"
 
-    header["EXPTIME"] = header["U_AQTINT"] / 1e6, "[s] exposure time"
     header["TINT"] = header["EXPTIME"] * header["NAXIS3"], "[s] total integrated exposure time"
     return header
 
@@ -153,33 +160,6 @@ def fix_header_file(filename, output: Optional[str] = None, force: bool = False)
     )
     hdr = fix_header(hdr)
     # save file
-    fits.writeto(output, data, header=hdr, overwrite=True)
-    return output
-
-
-def fix_old_headers(filename, output=None, skip=False):
-    path = Path(filename)
-    if output is None:
-        output = path.with_name(f"{path.stem}_hdr.fits.fz")
-
-    if skip and output.is_file() and path.stat().st_mtime < output.stat().st_mtime:
-        return output
-
-    # merge secondary headers
-    with fits.open(path) as hdus:
-        data = hdus[0].data
-        hdr = hdus[0].header
-        for i in range(1, len(hdus)):
-            sec_hdr = hdus[i].header
-            for k, v in sec_hdr.items():
-                if k not in hdr:
-                    hdr[k] = v
-
-    ra_tokens = hdr["RA"].split(".")
-    hdr["RA"] = ":".join(ra_tokens[:-1]) + f".{ra_tokens[-1]}"
-    dec_tokens = hdr["DEC"].split(".")
-    hdr["DEC"] = ":".join(dec_tokens[:-1]) + f".{dec_tokens[-1]}"
-    hdr["U_CAMERA"] = 1 if "cam1" in filename else 2
     fits.writeto(output, data, header=hdr, overwrite=True)
     return output
 

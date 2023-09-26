@@ -432,7 +432,7 @@ CAL_DICT = {
 
 
 def mueller_matrix_from_header(header, adi_sync=True, ideal=False):
-    filt = header["U_FILTER"]
+    filt = header["FILTER01"]
     if ideal:
         filt_dict = CAL_DICT["ideal"]
     elif filt in CAL_DICT:
@@ -451,9 +451,9 @@ def mueller_matrix_from_header(header, adi_sync=True, ideal=False):
     else:
         hwp_offset = 0
 
-    hwp_theta = np.deg2rad(header["U_HWPANG"]) + filt_dict["hwp_offset"] + hwp_offset
+    hwp_theta = np.deg2rad(header["RET-ANG1"]) + filt_dict["hwp_offset"] + hwp_offset
     imr_theta = np.deg2rad(header["D_IMRANG"]) + filt_dict["imr_offset"]
-    flc_ang = 0 if header["U_FLCSTT"] == 1 else np.pi / 4
+    flc_ang = 0 if header["U_FLC"] == "A" else np.pi / 4
     flc_theta = flc_ang + filt_dict["flc_offset"]
 
     M = np.linalg.multi_dot(
@@ -481,7 +481,15 @@ def mueller_matrix_from_file(filename, outpath, force=False, **kwargs):
         and Path(filename).stat().st_mtime < Path(outpath).stat().st_mtime
     ):
         return outpath
-    header = fits.getheader(filename)
-    mm = mueller_matrix_from_header(header, **kwargs)
-    fits.writeto(outpath, mm, header=header, overwrite=True)
+
+    headers = []
+    mms = []
+    with fits.open(filename) as hdul:
+        for hdu in hdul[1:]:
+            headers.append(hdu.header)
+            mms.append(mueller_matrix_from_header(hdu.header, **kwargs).astype("f4"))
+        prim_hdu = fits.PrimaryHDU(np.array(mms), hdul[0].header)
+    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(mms, headers))
+    hdul = fits.HDUList([prim_hdu, *hdus])
+    hdul.writeto(outpath, overwrite=True)
     return outpath
