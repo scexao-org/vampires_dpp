@@ -18,12 +18,12 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=ac02cc09edc035673794" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=ac02cc09edc035673794" rel="stylesheet" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
@@ -33,10 +33,11 @@
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=ac02cc09edc035673794" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794" />
+  <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=ac02cc09edc035673794"></script>
 
-    <script src="_static/documentation_options.js?v=032c51cf"></script>
+    <script src="_static/documentation_options.js?v=5767a989"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
@@ -55,6 +56,15 @@
   
   
   <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
   
   <input type="checkbox"
           class="sidebar-toggle"
@@ -136,8 +146,8 @@
           
           
           
-          <a href="https://github.com/scexao-org/vampires_dpp" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
-            <label class="sr-only">GitHub</label></a>
+          <a href="https://github.com/scexao-org/vampires_dpp" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
         <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
@@ -269,10 +279,10 @@
 
 <script>
 document.write(`
-  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
   </button>
 `);
 </script>
@@ -280,7 +290,7 @@ document.write(`
 <script>
 document.write(`
   <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
   </button>
 `);
 </script>
@@ -309,42 +319,14 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-steps">Processing steps</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-options">General Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CoordinateOptions"><code class="docutils literal notranslate"><span class="pre">CoordinateOptions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.ProductOptions"><code class="docutils literal notranslate"><span class="pre">ProductOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coronagraph-options">Coronagraph Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CoronagraphOptions"><code class="docutils literal notranslate"><span class="pre">CoronagraphOptions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.SatspotOptions"><code class="docutils literal notranslate"><span class="pre">SatspotOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-options">Calibration Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CalibrateOptions"><code class="docutils literal notranslate"><span class="pre">CalibrateOptions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.DistortionOptions"><code class="docutils literal notranslate"><span class="pre">DistortionOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-selection-options">Frame Selection Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.FrameSelectOptions"><code class="docutils literal notranslate"><span class="pre">FrameSelectOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#image-registration-options">Image Registration Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.RegisterOptions"><code class="docutils literal notranslate"><span class="pre">RegisterOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#collapsing-options">Collapsing Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CollapseOptions"><code class="docutils literal notranslate"><span class="pre">CollapseOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#difference-image-options">Difference Image Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.DiffOptions"><code class="docutils literal notranslate"><span class="pre">DiffOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polarimetry-options">Polarimetry Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PolarimetryOptions"><code class="docutils literal notranslate"><span class="pre">PolarimetryOptions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.IPOptions"><code class="docutils literal notranslate"><span class="pre">IPOptions</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-options">General Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coronagraph-options">Coronagraph Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-options">Calibration Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-selection-options">Frame Selection Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#image-registration-options">Image Registration Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#collapsing-options">Collapsing Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#difference-image-options">Difference Image Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polarimetry-options">Polarimetry Options</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#templates">Templates</a><ul class="nav section-nav flex-column">
@@ -404,432 +386,27 @@ tail config_debug.log
 <p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, so there are certain guarantees about the backwards compatibility of the pipeline, which means you don’t have to have the exact same version of <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> as in the configuration- merely a version that is compatible.</p>
 <section id="general-options">
 <h3>General Options<a class="headerlink" href="#general-options" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CoordinateOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoordinateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ra</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_ra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pm_dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icrs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obstime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'J2016'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoordinateOptions" title="Link to this definition">#</a></dt>
-<dd><p>Astronomical coordinate options</p>
-<div class="tip admonition">
-<p class="admonition-title">Tip: GAIA</p>
-<p>This can be auto-generated wtih GAIA coordinate information through the command line <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">new</span></code> interface.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>object</strong> (<em>str</em>) – SIMBAD-friendly object name</p></li>
-<li><p><strong>ra</strong> (<em>str</em>) – Right ascension in sexagesimal hour angles</p></li>
-<li><p><strong>dec</strong> (<em>str</em>) – Declination in sexagesimal degrees</p></li>
-<li><p><strong>parallax</strong> (<em>float</em>) – parallax of system in mas</p></li>
-<li><p><strong>pm_ra</strong> (<em>float</em>) – Proper motion of RA axis in mas/yr, by default 0.</p></li>
-<li><p><strong>pm_dec</strong> (<em>float</em>) – Proper motion of DEC axis in mas/yr, by default 0.</p></li>
-<li><p><strong>frame</strong> (<em>str</em>) – Coordinate reference frame, by default “icrs”.</p></li>
-<li><p><strong>obstime</strong> (<em>str</em>) – Observation time as a string, by default “J2016” (to coincide with GAIA coordinates)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.ProductOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">ProductOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdi_cubes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.ProductOptions" title="Link to this definition">#</a></dt>
-<dd><p>The output products from the processing pipeline.</p>
-<div class="admonition-outputs admonition">
-<p class="admonition-title">Outputs</p>
-<p><strong>Header Table:</strong></p>
-<p>A table with the header information of all the input files will be saved to a CSV in the output directory.</p>
-<p><strong>ADI Outputs:</strong></p>
-<p>The ADI outputs will include a cube for each camera and the corresponding derotation angles. For ADI analysis, you can either interleave the two cubes into one cube with double the frames, add the two camera frames before post-processing, or add the two ADI residuals from each camera after post-processing.</p>
-<p><strong>PDI Outputs:</strong></p>
-<p>If <cite>polarimetry</cite> is set, PDI outputs will be constructed from the triple-differential or inverse least-squares methods. The Stokes images in each cube or frame are listed in the “STOKES” header, and are</p>
-<ol class="arabic simple">
-<li><p>Stokes I</p></li>
-<li><p>Stokes Q</p></li>
-<li><p>Stokes U</p></li>
-<li><p>Radial Stokes Qphi</p></li>
-<li><p>Radial Stokse Uphi</p></li>
-<li><p>Linear polarized intensity</p></li>
-<li><p>Angle of linear polarization</p></li>
-</ol>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>header_table</strong> (<em>bool</em>) – If true, saves a CSV with header information, by default true.</p></li>
-<li><p><strong>adi_cubes</strong> (<em>bool</em>) – If true, saves ADI outputs</p></li>
-<li><p><strong>pdi_cubes</strong> (<em>bool</em>) – If true, saves PDI triple-diff cubes</p></li>
-<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The products will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
-<li><p><strong>force</strong> (<em>bool</em>) – If true, will force all products to be recreated step to occur.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">ProductOptions</span><span class="p">(</span><span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;products&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[products]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;products&quot;</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 <section id="coronagraph-options">
 <h3>Coronagraph Options<a class="headerlink" href="#coronagraph-options" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CoronagraphOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoronagraphOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iwa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoronagraphOptions" title="Link to this definition">#</a></dt>
-<dd><p>Coronagraph options</p>
-<p>The IWAs for the masks are listed on the <a class="reference external" href="https://www.naoj.org/Projects/SCEXAO/scexaoWEB/030openuse.web/040vampires.web/100vampcoronagraph.web/indexm.html">VAMPIRES website</a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>iwa</strong> (<em>float</em>) – Coronagraph inner working angle (IWA) in mas.</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">CoronagraphOptions</span><span class="p">(</span><span class="n">iwa</span><span class="o">=</span><span class="mi">55</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[coronagraph]</span>
-<span class="n">iwa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">55</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.SatspotOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">SatspotOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">84.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.SatspotOptions" title="Link to this definition">#</a></dt>
-<dd><p>Satellite spot options</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>radius</strong> (<em>float</em>) – Satellite spot radius in lambda/D, by default 15.9. If doing PDI with CHARIS this should be 11.2.</p></li>
-<li><p><strong>angle</strong> (<em>float</em>) – Satellite spot position angle (in degrees), by default 45 - <cite>PUPIL_OFFSET</cite>.</p></li>
-<li><p><strong>amp</strong> (<em>float</em>) – Satellite spot modulation amplitude (in nm), by default 50.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">SatspotOptions</span><span class="p">(</span><span class="n">radius</span><span class="o">=</span><span class="mf">11.2</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[satspots]</span>
-<span class="n">radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">11.2</span>
-<span class="n">angle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">84.6</span>
-<span class="n">amp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">25</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 <section id="calibration-options">
 <h3>Calibration Options<a class="headerlink" href="#calibration-options" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CalibrateOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CalibrateOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_backgrounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CamFileInput(cam1=None,</span> <span class="pre">cam2=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">master_flats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CamFileInput(cam1=None,</span> <span class="pre">cam2=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distortion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_bad_pixels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deinterleave</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CalibrateOptions" title="Link to this definition">#</a></dt>
-<dd><p>Options for general image calibration</p>
-<p>The calibration strategy is generally</p>
-<ol class="arabic simple">
-<li><p>Subtract background frame, if provided</p></li>
-<li><p>Normalize by flat field, if provided</p></li>
-<li><p>Bad pixel correction, if set</p></li>
-<li><p>Flip camera 1 data along y-axis</p></li>
-<li><p>Apply distortion correction, if provided</p></li>
-<li><p>Deinterleave FLC states, if set</p></li>
-</ol>
-<div class="warning admonition">
-<p class="admonition-title">Deinterleaving</p>
-<p>Deinterleaving should not be required for data downloaded from STARS. Only set this option if you are dealing with PDI data downloaded directly from the VAMPIRES computer.</p>
-</div>
-<div class="admonition-outputs admonition">
-<p class="admonition-title">Outputs</p>
-<p>If <cite>deinterleave</cite> is set, two files will be saved in the output directory for each input file, with <cite>_FLC1</cite> and <cite>_FLC2</cite> appended. The calibrated files will be saved with the “_calib” suffix.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>master_backgrounds</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>Path</em><em>]</em><em>]</em><em>]</em>) – If provided, must be a dict with keys for “cam1” and “cam2” master backgrounds. You can omit one of the cameras. By default None.</p></li>
-<li><p><strong>master_flats</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Optional</em><em>[</em><em>Path</em><em>]</em><em>]</em><em>]</em>) – If provided, must be a dict with keys for “cam1” and “cam2” master flats. You can omit one of the cameras. By default None.</p></li>
-<li><p><strong>distortion</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.DistortionOptions" title="vampires_dpp.pipeline.config.DistortionOptions"><em>DistortionOptions</em></a><em>]</em>) – (Advanced) Options for geometric distortion correction. By default None.</p></li>
-<li><p><strong>fix_bad_pixels</strong> (<em>bool</em>) – If true, will run LACosmic algorithm for one iteration on each frame and correct bad pixels. By default false.</p></li>
-<li><p><strong>deinterleave</strong> (<em>bool</em>) – <strong>(Advanced)</strong> If true, will deinterleave every other file into the two FLC states. By default false.</p></li>
-<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The calibrated files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
-<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">master_backs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cam1&quot;</span><span class="p">:</span> <span class="s2">&quot;master_back_cam1.fits&quot;</span><span class="p">,</span> <span class="s2">&quot;cam2&quot;</span><span class="p">:</span> <span class="s2">&quot;master_back_cam2.fits&quot;</span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dist</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;transform_filename&quot;</span><span class="p">:</span> <span class="s2">&quot;20230102_fcs16000_params.csv&quot;</span><span class="p">}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">CalibrateOptions</span><span class="p">(</span>
-<span class="go">        master_backgrounds=master_backs,</span>
-<span class="go">        distortion=dist,</span>
-<span class="go">        output_directory=&quot;calibrated&quot;</span>
-<span class="go">    )</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[calibrate]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
-
-<span class="k">[calibrate.master_backgrounds]</span>
-<span class="n">cam1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;master_back_cam1.fits&quot;</span>
-<span class="n">cam2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;master_back_cam2.fits&quot;</span>
-
-<span class="k">[calibrate.master_flats]</span>
-
-<span class="k">[calibrate.distortion]</span>
-<span class="n">transform_filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;20230102_fcs16000_params.csv&quot;</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.DistortionOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">DistortionOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.DistortionOptions" title="Link to this definition">#</a></dt>
-<dd><p>Geometric distortion correction options</p>
-<div class="warning admonition">
-<p class="admonition-title">Advanced Usage</p>
-<p>Distortion correction requires specialized calibration files. Please get in contact with the SCExAO team for more details</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>transform_filename</strong> (<em>Path</em>) – The path to a CSV with the distortion corrections for each camera.</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="frame-selection-options">
 <h3>Frame Selection Options<a class="headerlink" href="#frame-selection-options" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.FrameSelectOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">FrameSelectOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'normvar'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.FrameSelectOptions" title="Link to this definition">#</a></dt>
-<dd><p>Frame selection options</p>
-<p>Frame selection metrics can be measured on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The quality metrics are</p>
-<ul class="simple">
-<li><p>normvar - The variance normalized by the mean.</p></li>
-<li><p>l2norm - The L2-norm, roughly equivalent to the RMS value</p></li>
-<li><p>peak - maximum value</p></li>
-</ul>
-<div class="admonition-outputs admonition">
-<p class="admonition-title">Outputs</p>
-<p>For each input file, a CSV with frame selection metrics for each slice will be saved in the output directory with the “_metrics” suffix. If <cite>save_intermediate</cite> is true, a cube with bad frames discarded will be saved with the “_selected” suffix.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cutoff</strong> (<em>float</em>) – The cutoff quantile for frame selection where 0 means no frame selection and 1 would discard all frames.</p></li>
-<li><p><strong>metric</strong> (<em>str</em>) – The frame selection metric, one of <cite>“peak”</cite>, <cite>“l2norm”</cite>, and <cite>“normvar”</cite>, by default <cite>“normvar”</cite>.</p></li>
-<li><p><strong>window_size</strong> (<em>int</em>) – The window size (in pixels) to cut out around PSFs before measuring the frame selection metric, by default 30.</p></li>
-<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The trimmed files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
-<li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save the frame-selected FITS files in the output directory. WARNING this can lead to extremely large data volumes.</p></li>
-<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">FrameSelectOptions</span><span class="p">(</span><span class="n">cutoff</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;selected&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[frame_select]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;selected&quot;</span>
-<span class="n">cutoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.7</span>
-<span class="n">metric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;normvar&quot;</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 <section id="image-registration-options">
 <h3>Image Registration Options<a class="headerlink" href="#image-registration-options" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.RegisterOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">RegisterOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dft_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'com'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_intermediate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.RegisterOptions" title="Link to this definition">#</a></dt>
-<dd><p>Image registration options</p>
-<p>Image registration can be done on the central PSF, or can be done on calibration speckles (satellite spots). Satellite spots will be used if the <cite>satspots</cite> option is set in the pipeline. The registration methods are</p>
-<ul class="simple">
-<li><p>com - centroid</p></li>
-<li><p>peak - pixel at highest value</p></li>
-<li><p>dft - Cross-correlation between frames using discrete Fourier transform (DFT) upsampling for subpixel accuracy</p></li>
-<li><p>gaussian - Model fit using a Gaussian PSF</p></li>
-<li><p>airydisk - Model fit using a Moffat PSF</p></li>
-<li><p>moffat - Model fit using an Airy disk PSF</p></li>
-</ul>
-<div class="admonition-outputs admonition">
-<p class="admonition-title">Outputs</p>
-<p>For each input file, a CSV with PSF centroids (or centroids for each satellite spot) will be saved in the output directory with the “_offsets” suffix. If <cite>save_intermediate</cite> is true, a registered cube will be saved with the “_aligned” suffix.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>str</em>) – The image registration method, one of <cite>“com”</cite>, <cite>“peak”</cite>, <cite>“dft”</cite>, <cite>“airydisk”</cite>, <cite>“moffat”</cite>, or <cite>“gaussian”</cite>. By default <cite>“com”</cite>.</p></li>
-<li><p><strong>window_size</strong> (<em>int</em>) – The window size (in pixels) to cut out around PSFs before measuring the centroid, by default 30.</p></li>
-<li><p><strong>smooth</strong> (<em>bool</em>) – If true, will Gaussian smooth the input frames before measuring offsets, by default false.</p></li>
-<li><p><strong>dft_factor</strong> (<em>int</em>) – If using the DFT method, the upsampling factor (inverse of centroid precision), by default 1.</p></li>
-<li><p><strong>dft_ref</strong> (<em>str</em>) – If using the DFT method, the reference method, one of “com”, “peak”.</p></li>
-<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The PSF offsets and aligned files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
-<li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save the registered FITS files in the output directory. WARNING this can lead to extremely large data volumes.</p></li>
-<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">RegisterOptions</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;com&quot;</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;registered&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[register]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 <section id="collapsing-options">
 <h3>Collapsing Options<a class="headerlink" href="#collapsing-options" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CollapseOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CollapseOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CollapseOptions" title="Link to this definition">#</a></dt>
-<dd><p>Cube collapse options</p>
-<ul class="simple">
-<li><p>median - Pixel-by-pixel median</p></li>
-<li><p>mean - Pixel-by-pixel mean</p></li>
-<li><p>varmean - Pixel-by-pixel mean weighted by frame variance</p></li>
-<li><p>biweight - Pixel-by-pixel biweight location</p></li>
-</ul>
-<div class="admonition-outputs admonition">
-<p class="admonition-title">Outputs</p>
-<p>For each input file, a collapsed frame will be saved in the output directory with the “_collapsed” suffix.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>str</em>) – The collapse method, one of <cite>“median”</cite>, <cite>“mean”</cite>, <cite>“varmean”</cite>, or <cite>“biweight”</cite>. By default <cite>“median”</cite>.</p></li>
-<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The collapsed files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
-<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">CollapseOptions</span><span class="p">(</span><span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;collapsed&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[collapse]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 <section id="difference-image-options">
 <h3>Difference Image Options<a class="headerlink" href="#difference-image-options" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.DiffOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">DiffOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.DiffOptions" title="Link to this definition">#</a></dt>
-<dd><p>DIfference imaging options.</p>
-<p>Difference images are made by taking camera 1 - camera 2.</p>
-<div class="admonition-outputs admonition">
-<p class="admonition-title">Outputs</p>
-<p>Each pair of camera 1 / camera 2 inputs will be subtracted and added. The difference image is stored in the first slice of the output file and the sum image is stored in the second slice.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The collapsed files will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
-<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="polarimetry-options">
 <h3>Polarimetry Options<a class="headerlink" href="#polarimetry-options" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.PolarimetryOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">PolarimetryOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'difference'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mm_correct</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_per_hwp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'QQUU'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adi_sync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PolarimetryOptions" title="Link to this definition">#</a></dt>
-<dd><p>Polarimetric differential imaging (PDI) options</p>
-<div class="warning admonition">
-<p class="admonition-title">Warning: experimental</p>
-<p>The polarimetric reduction in this pipeline is an active work-in-progress. Do not consider any outputs publication-ready without further vetting and consultation with the SCExAO team.</p>
-</div>
-<p>PDI is processed after all of the individual file processing since it requires sorting the files into complete sets for the triple-differential calibration.</p>
-<div class="admonition-outputs admonition">
-<p class="admonition-title">Outputs</p>
-<p>If using the <cite>difference</cite> method, a cube of Stokes frames for each HWP set and a derotated and collapsed Stokes frame will be saved in the products directory with the suffixes <cite>_stokes_cube</cite> and <cite>_stokes_cube_collapsed</cite>, respectively.</p>
-<p>If using the <cite>leastsq</cite> method, a Stokes frame will be saved in the products directory with the suffix <cite>_stokes_frame</cite>.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Determines the polarization calibration method, either the double/triple-difference method (<cite>difference</cite>) or using the inverse least-squares solution from Mueller calculus (<cite>leastsq</cite>). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.</p></li>
-<li><p><strong>mm_correct</strong> (<em>bool</em>) – Apply Mueller-matrix correction (only applicable to data reduced using the <cite>“difference”</cite> method). By default, True.</p></li>
-<li><p><strong>ip</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#vampires_dpp.pipeline.config.IPOptions" title="vampires_dpp.pipeline.config.IPOptions"><em>IPOptions</em></a><em>]</em>) – Instrumental polarization (IP) correction options, by default None.</p></li>
-<li><p><strong>order</strong> (<em>str</em>) – HWP iteration order, one of <cite>“QQUU”</cite> or <cite>“QUQU”</cite>. By default <cite>“QQUU”</cite>.</p></li>
-<li><p><strong>adi_sync</strong> (<em>bool</em>) – If true, will assume the HWP is in pupil-tracking mode. By default, True.</p></li>
-<li><p><strong>output_directory</strong> (<em>Optional</em><em>[</em><em>Path</em><em>]</em>) – The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.</p></li>
-<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
-<li><p><strong>N_per_hwp</strong> (<em>int</em>) – </p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="n">PolarimetryOptions</span><span class="p">(</span><span class="n">ip</span><span class="o">=</span><span class="n">IPOptions</span><span class="p">(),</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;pdi&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">to_toml</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[polarimetry]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pdi&quot;</span>
-
-<span class="k">[polarimetry.ip]</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;photometry&quot;</span>
-<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.IPOptions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">IPOptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'photometry'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aper_rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.IPOptions" title="Link to this definition">#</a></dt>
-<dd><p>Instrumental polarization (IP) correction options.</p>
-<p>There are three main IP correction techniques</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt>Calibrated correction using Mueller calculus</dt><dd><p>In each HWP cycle a combined Mueller matrix is used to correct the instrument polarization and crosstalk.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>Ad-hoc correction using PSF photometry</dt><dd><p>In each diff image, the partial polarization of the central PSF is measured and removed, presuming there should be no polarized stellar signal. In coronagraphic data, this uses the light penetrating the partially transmissive focal plane masks (~0.06%).</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>Ad-hoc correction using PSF photometry of calibration speckles (satellite spots)</dt><dd><p>Same as above, but using the average correction for the four satellite spot PSFs instead of the central PSF.</p>
-</dd>
-</dl>
-</li>
-</ul>
-<div class="admonition-outputs admonition">
-<p class="admonition-title">Outputs</p>
-<p>The IP corrected versions of any Stokes cubes or collapsed frames will be saved with the additional suffix <cite>_ipcorr</cite>.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>str</em>) – IP correction method, one of <cite>“photometry”</cite>, <cite>“satspots”</cite>. By default, <cite>“photometry”</cite></p></li>
-<li><p><strong>aper_rad</strong> (<em>float</em>) – For photometric-based methods, the aperture radius in pixels. By default, 6.</p></li>
-<li><p><strong>force</strong> (<em>bool</em>) – If true, will force this processing step to occur.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 </section>
 <section id="templates">
@@ -839,44 +416,43 @@ tail config_debug.log
 <details>
 <summary>PDI example</summary>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.4&quot;</span>
+<span class="n">make_diff_images</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">save_adi_cubes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">coronagraphic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">dpp_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.10.0&quot;</span>
 
 <span class="k">[calibrate]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
+<span class="n">fix_bad_pixels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">save_intermediate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 
 <span class="k">[calibrate.master_backgrounds]</span>
 
 <span class="k">[calibrate.master_flats]</span>
 
-<span class="k">[register]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
-<span class="n">dft_ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
-
-<span class="k">[collapse]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
-
 <span class="k">[analysis]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;analysis&quot;</span>
+<span class="n">fit_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gaussian&quot;</span>
 <span class="n">strehl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">photometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.0</span>
+<span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span>
 
-<span class="k">[analysis.photometry]</span>
-<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+<span class="k">[collapse]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;median&quot;</span>
+<span class="n">frame_select</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;normvar&quot;</span>
+<span class="n">centroid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
+<span class="n">select_cutoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 
 <span class="k">[polarimetry]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pdi&quot;</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;difference&quot;</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;triplediff&quot;</span>
 <span class="n">mm_correct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-
-<span class="k">[polarimetry.ip]</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;photometry&quot;</span>
-<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
-
-<span class="k">[products]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;products&quot;</span>
+<span class="n">hwp_adi_sync</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">use_ideal_mm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">ip_correct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">ip_method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;aperture&quot;</span>
+<span class="n">ip_radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">15.0</span>
 </pre></div>
 </div>
 </details>
@@ -887,35 +463,34 @@ tail config_debug.log
 <details>
 <summary>Single-cam example</summary>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.4&quot;</span>
+<span class="n">make_diff_images</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">save_adi_cubes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">coronagraphic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">dpp_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.10.0&quot;</span>
 
 <span class="k">[calibrate]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
+<span class="n">fix_bad_pixels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">save_intermediate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 
 <span class="k">[calibrate.master_backgrounds]</span>
 
 <span class="k">[calibrate.master_flats]</span>
 
-<span class="k">[register]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
-<span class="n">dft_ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
-
-<span class="k">[collapse]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
-
 <span class="k">[analysis]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;analysis&quot;</span>
+<span class="n">fit_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gaussian&quot;</span>
 <span class="n">strehl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">photometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.0</span>
+<span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span>
 
-<span class="k">[analysis.photometry]</span>
-<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
-
-<span class="k">[products]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;products&quot;</span>
+<span class="k">[collapse]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;median&quot;</span>
+<span class="n">frame_select</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;normvar&quot;</span>
+<span class="n">centroid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
+<span class="n">select_cutoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 </pre></div>
 </div>
 </details>
@@ -930,38 +505,34 @@ tail config_debug.log
 <details>
 <summary>H-alpha example</summary>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span>
-<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.8.4&quot;</span>
+<span class="n">make_diff_images</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">save_adi_cubes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">coronagraphic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">dpp_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;0.10.0&quot;</span>
 
 <span class="k">[calibrate]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;calibrated&quot;</span>
+<span class="n">fix_bad_pixels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">save_intermediate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 
 <span class="k">[calibrate.master_backgrounds]</span>
 
 <span class="k">[calibrate.master_flats]</span>
 
-<span class="k">[register]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;registered&quot;</span>
-<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;peak&quot;</span>
-<span class="n">dft_ref</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
-
-<span class="k">[collapse]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;collapsed&quot;</span>
-
 <span class="k">[analysis]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;analysis&quot;</span>
+<span class="n">fit_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gaussian&quot;</span>
 <span class="n">strehl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">subtract_radprof</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<span class="n">photometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.0</span>
+<span class="n">window_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">30</span>
 
-<span class="k">[analysis.photometry]</span>
-<span class="n">aper_rad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
-
-<span class="k">[diff]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;diff&quot;</span>
-
-<span class="k">[products]</span>
-<span class="n">output_directory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;products&quot;</span>
+<span class="k">[collapse]</span>
+<span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;median&quot;</span>
+<span class="n">frame_select</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;normvar&quot;</span>
+<span class="n">centroid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com&quot;</span>
+<span class="n">select_cutoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">recenter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 </pre></div>
 </div>
 </details>
@@ -1020,11 +591,10 @@ tail config_debug.log
 
               
               
-                <footer class="bd-footer-article">
-                  
-<div class="footer-article-items footer-article__inner">
-  
-    <div class="footer-article-item"><!-- Previous / next buttons -->
+              
+              
+                <footer class="prev-next-footer">
+                  <!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
        href="quickstart.html"
@@ -1044,10 +614,7 @@ tail config_debug.log
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
-</div></div>
-  
 </div>
-
                 </footer>
               
             </div>
@@ -1064,42 +631,14 @@ tail config_debug.log
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-steps">Processing steps</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-options">General Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CoordinateOptions"><code class="docutils literal notranslate"><span class="pre">CoordinateOptions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.ProductOptions"><code class="docutils literal notranslate"><span class="pre">ProductOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coronagraph-options">Coronagraph Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CoronagraphOptions"><code class="docutils literal notranslate"><span class="pre">CoronagraphOptions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.SatspotOptions"><code class="docutils literal notranslate"><span class="pre">SatspotOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-options">Calibration Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CalibrateOptions"><code class="docutils literal notranslate"><span class="pre">CalibrateOptions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.DistortionOptions"><code class="docutils literal notranslate"><span class="pre">DistortionOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-selection-options">Frame Selection Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.FrameSelectOptions"><code class="docutils literal notranslate"><span class="pre">FrameSelectOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#image-registration-options">Image Registration Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.RegisterOptions"><code class="docutils literal notranslate"><span class="pre">RegisterOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#collapsing-options">Collapsing Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CollapseOptions"><code class="docutils literal notranslate"><span class="pre">CollapseOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#difference-image-options">Difference Image Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.DiffOptions"><code class="docutils literal notranslate"><span class="pre">DiffOptions</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polarimetry-options">Polarimetry Options</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PolarimetryOptions"><code class="docutils literal notranslate"><span class="pre">PolarimetryOptions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.IPOptions"><code class="docutils literal notranslate"><span class="pre">IPOptions</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-options">General Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#coronagraph-options">Coronagraph Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-options">Calibration Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-selection-options">Frame Selection Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#image-registration-options">Image Registration Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#collapsing-options">Collapsing Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#difference-image-options">Difference Image Options</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polarimetry-options">Polarimetry Options</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#templates">Templates</a><ul class="nav section-nav flex-column">
@@ -1161,8 +700,8 @@ By Miles Lucas
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+  <script src="_static/scripts/bootstrap.js?digest=ac02cc09edc035673794"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794"></script>
 
   <footer class="bd-footer">
   </footer>

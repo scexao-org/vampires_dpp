@@ -18,12 +18,12 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=ac02cc09edc035673794" rel="stylesheet" />
 
   
-  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=ac02cc09edc035673794" rel="stylesheet" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
@@ -33,10 +33,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=ac02cc09edc035673794" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794" />
+  <script src="../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=ac02cc09edc035673794"></script>
 
-    <script src="../_static/documentation_options.js?v=032c51cf"></script>
+    <script src="../_static/documentation_options.js?v=5767a989"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
@@ -54,6 +55,15 @@
   
   
   <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
   
   <input type="checkbox"
           class="sidebar-toggle"
@@ -135,8 +145,8 @@
           
           
           
-          <a href="https://github.com/scexao-org/vampires_dpp" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
-            <label class="sr-only">GitHub</label></a>
+          <a href="https://github.com/scexao-org/vampires_dpp" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
         <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
@@ -268,10 +278,10 @@
 
 <script>
 document.write(`
-  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
   </button>
 `);
 </script>
@@ -279,7 +289,7 @@ document.write(`
 <script>
 document.write(`
   <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
   </button>
 `);
 </script>
@@ -306,16 +316,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.mueller_matrices">Mueller calculus</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.generic"><code class="docutils literal notranslate"><span class="pre">generic()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.hwp"><code class="docutils literal notranslate"><span class="pre">hwp()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.linear_polarizer"><code class="docutils literal notranslate"><span class="pre">linear_polarizer()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.qwp"><code class="docutils literal notranslate"><span class="pre">qwp()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.rotator"><code class="docutils literal notranslate"><span class="pre">rotator()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.waveplate"><code class="docutils literal notranslate"><span class="pre">waveplate()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.wollaston"><code class="docutils literal notranslate"><span class="pre">wollaston()</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mueller-calculus">Mueller calculus</a></li>
 </ul>
             </nav>
         </div>
@@ -329,242 +330,8 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="polarization">
 <h1>Polarization<a class="headerlink" href="#polarization" title="Link to this heading">#</a></h1>
-<section id="module-vampires_dpp.mueller_matrices">
-<span id="mueller-calculus"></span><h2>Mueller calculus<a class="headerlink" href="#module-vampires_dpp.mueller_matrices" title="Link to this heading">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.generic">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">generic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.generic" title="Link to this definition">#</a></dt>
-<dd><p>Return a generic optic with diattenuation <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> and phase retardance <code class="docutils literal notranslate"><span class="pre">delta</span></code> oriented at angle <code class="docutils literal notranslate"><span class="pre">theta</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Rotation angle of the fast-axis in radians, by default 0</p></li>
-<li><p><strong>epsilon</strong> (<em>float</em><em>, </em><em>optional</em>) – Diattenuation, by default 0</p></li>
-<li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Retardance in radians, by default 0</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(4, 4) Mueller matrix for the optic</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">generic</span><span class="p">()</span> <span class="c1"># Identity</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0.,  1.,  0., -0.],</span>
-<span class="go">       [ 0.,  0.,  1.,  0.],</span>
-<span class="go">       [ 0.,  0., -0.,  1.]])</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">generic</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="c1"># mirror with diatt.</span>
-<span class="go">array([[ 1.     ,  0.01   ,  0.     ,  0.     ],</span>
-<span class="go">       [ 0.01   ,  1.     ,  0.     , -0.     ],</span>
-<span class="go">       [ 0.     ,  0.     , -0.99995,  0.     ],</span>
-<span class="go">       [ 0.     ,  0.     , -0.     , -0.99995]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.hwp">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">hwp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.hwp" title="Link to this definition">#</a></dt>
-<dd><p>Return the Mueller matrix for an ideal half-wave plate (HWP) with fast-axis oriented to the given angle, in radians.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Rotation angle of the fast-axis, in radians. By default 0</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(4, 4) Mueller matrix representing the HWP</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hwp</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0.,  1.,  0.,  0.],</span>
-<span class="go">       [ 0.,  0., -1.,  0.],</span>
-<span class="go">       [ 0.,  0.,  0., -1.]])</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hwp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">))</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0., -1.,  0.,  0.],</span>
-<span class="go">       [ 0.,  0.,  1.,  0.],</span>
-<span class="go">       [ 0.,  0.,  0., -1.]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.linear_polarizer">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">linear_polarizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.linear_polarizer" title="Link to this definition">#</a></dt>
-<dd><p>Return the Mueller matrix for an ideal linear polarizer oriented at the given angle.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Angle of rotation, in radians. By default 0</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(4, 4) Mueller matrix for the linear polarizer</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">linear_polarizer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="go">array([[0.5, 0.5, 0. , 0. ],</span>
-<span class="go">       [0.5, 0.5, 0. , 0. ],</span>
-<span class="go">       [0. , 0. , 0. , 0. ],</span>
-<span class="go">       [0. , 0. , 0. , 0. ]])</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">linear_polarizer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">))</span>
-<span class="go">array([[0.5, 0. , 0.5, 0. ],</span>
-<span class="go">       [0. , 0. , 0. , 0. ],</span>
-<span class="go">       [0.5, 0. , 0.5, 0. ],</span>
-<span class="go">       [0. , 0. , 0. , 0. ]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.qwp">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">qwp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.qwp" title="Link to this definition">#</a></dt>
-<dd><p>Return the Mueller matrix for an ideal quarter-wave plate (QWP) with fast-axis oriented to the given angle, in radians.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Rotation angle of the fast-axis in radians. By default 0</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(4, 4) Mueller matrix representing the QWP</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">qwp</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0.,  1.,  0., -0.],</span>
-<span class="go">       [ 0.,  0.,  0.,  1.],</span>
-<span class="go">       [ 0.,  0., -1.,  0.]])</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">qwp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">))</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0.,  0.,  0., -1.],</span>
-<span class="go">       [ 0.,  0.,  1.,  0.],</span>
-<span class="go">       [ 0.,  1., -0.,  0.]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.rotator">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">rotator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.rotator" title="Link to this definition">#</a></dt>
-<dd><p>Return the Mueller matrix for rotation clockwise about the optical axis.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Angle of rotation, in radians. By default 0</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(4, 4) Mueller matrix</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rotator</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0.,  1.,  0.,  0.],</span>
-<span class="go">       [ 0., -0.,  1.,  0.],</span>
-<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rotator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">))</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0.,  0.,  1.,  0.],</span>
-<span class="go">       [ 0., -1.,  0.,  0.],</span>
-<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.waveplate">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">waveplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.waveplate" title="Link to this definition">#</a></dt>
-<dd><p>Return the Mueller matrix for a waveplate with arbitrary phase retardance.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Rotation angle of the fast-axis in radians. By default 0</p></li>
-<li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Retardance in radians, by default 0</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(4, 4) Mueller matrix representing the waveplate</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waveplate</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="c1"># HWP</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0.,  1.,  0., -0.],</span>
-<span class="go">       [ 0.,  0., -1.,  0.],</span>
-<span class="go">       [ 0.,  0., -0., -1.]])</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waveplate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># QWP at 45°</span>
-<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
-<span class="go">       [ 0.,  0.,  0., -1.],</span>
-<span class="go">       [ 0.,  0.,  1.,  0.],</span>
-<span class="go">       [ 0.,  1., -0.,  0.]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.mueller_matrices.wollaston">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">wollaston</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ordinary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.mueller_matrices.wollaston" title="Link to this definition">#</a></dt>
-<dd><p>Return the Mueller matrix for a Wollaston prism or polarizing beamsplitter.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ordinary</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return the ordinary beam’s Mueller matrix, by default True</p></li>
-<li><p><strong>eta</strong> (<em>float</em><em>, </em><em>optional</em>) – For imperfect beamsplitters, the diattenuation of the optic, by default 1</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(4, 4) Mueller matrix for the selected output beam</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wollaston</span><span class="p">()</span>
-<span class="go">array([[0.5, 0.5, 0. , 0. ],</span>
-<span class="go">       [0.5, 0.5, 0. , 0. ],</span>
-<span class="go">       [0. , 0. , 0. , 0. ],</span>
-<span class="go">       [0. , 0. , 0. , 0. ]])</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wollaston</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
-<span class="go">array([[ 0.5, -0.4,  0. ,  0. ],</span>
-<span class="go">       [-0.4,  0.5,  0. ,  0. ],</span>
-<span class="go">       [ 0. ,  0. ,  0.3,  0. ],</span>
-<span class="go">       [ 0. ,  0. ,  0. ,  0.3]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<section id="mueller-calculus">
+<h2>Mueller calculus<a class="headerlink" href="#mueller-calculus" title="Link to this heading">#</a></h2>
 </section>
 </section>
 
@@ -574,11 +341,10 @@ document.write(`
 
               
               
-                <footer class="bd-footer-article">
-                  
-<div class="footer-article-items footer-article__inner">
-  
-    <div class="footer-article-item"><!-- Previous / next buttons -->
+              
+              
+                <footer class="prev-next-footer">
+                  <!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
        href="utility.html"
@@ -589,10 +355,7 @@ document.write(`
         <p class="prev-next-title">Utility</p>
       </div>
     </a>
-</div></div>
-  
 </div>
-
                 </footer>
               
             </div>
@@ -607,16 +370,7 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.mueller_matrices">Mueller calculus</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.generic"><code class="docutils literal notranslate"><span class="pre">generic()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.hwp"><code class="docutils literal notranslate"><span class="pre">hwp()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.linear_polarizer"><code class="docutils literal notranslate"><span class="pre">linear_polarizer()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.qwp"><code class="docutils literal notranslate"><span class="pre">qwp()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.rotator"><code class="docutils literal notranslate"><span class="pre">rotator()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.waveplate"><code class="docutils literal notranslate"><span class="pre">waveplate()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.mueller_matrices.wollaston"><code class="docutils literal notranslate"><span class="pre">wollaston()</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mueller-calculus">Mueller calculus</a></li>
 </ul>
   </nav></div>
 
@@ -664,8 +418,8 @@ By Miles Lucas
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=ac02cc09edc035673794"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794"></script>
 
   <footer class="bd-footer">
   </footer>
