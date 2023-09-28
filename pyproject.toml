@@ -24,6 +24,7 @@ dependencies = [
     "scikit-image",
     "scipy",
     "sep",
+    "sqlalchemy",
     "tomli-w",
     "tomli",
     "tqdm",

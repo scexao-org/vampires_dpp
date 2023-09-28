@@ -19,10 +19,10 @@ FILTER_ANGULAR_SIZE = {
     "725-50": np.rad2deg(725e-9 / 7.79) * 3.6e6,
     "750-50": np.rad2deg(750e-9 / 7.79) * 3.6e6,
     "775-50": np.rad2deg(775e-9 / 7.79) * 3.6e6,
-    "F620": np.rad2deg(620e-9 / 7.79) * 3.6e6,
+    "F610": np.rad2deg(620e-9 / 7.79) * 3.6e6,
     "F670": np.rad2deg(670e-9 / 7.79) * 3.6e6,
     "F720": np.rad2deg(720e-9 / 7.79) * 3.6e6,
-    "F770": np.rad2deg(770e-9 / 7.79) * 3.6e6,
+    "F760": np.rad2deg(770e-9 / 7.79) * 3.6e6,
 }
 
 # limit default nproc since many operations are

@@ -67,14 +67,14 @@ def measure_metric_file(
         ctrs = mbi_centers(header["OBS-MOD"], header["U_CAMERA"], flip=True)
         metrics = []
         if coronagraphic:
-            for field, ctr in zip(("F770", "F720", "F670", "F620"), reversed(ctrs)):
+            for field, ctr in zip(("F760", "F720", "F670", "F610"), reversed(ctrs)):
                 radius = lamd_to_pixel(base_rad, field)
                 kwargs["center"] = ctr
                 metrics.append(
                     measure_satellite_spot_metrics(cube, metric=metric, radius=radius, **kwargs)
                 )
         else:
-            for field, ctr in zip(("F770", "F720", "F670", "F620"), reversed(ctrs)):
+            for field, ctr in zip(("F760", "F720", "F670", "F610"), reversed(ctrs)):
                 radius = lamd_to_pixel(base_rad, field)
                 kwargs["center"] = ctr
                 metrics.append(measure_metric(cube, metric=metric, radius=radius, **kwargs))

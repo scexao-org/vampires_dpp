@@ -124,27 +124,27 @@ def mbi_centers(obs_mode, camera_num, flip=False):
     if camera_num == 1:
         centers = np.array(
             (
-                (280, 277),  # 620
-                (845, 290),  # 670
-                (842, 852),  # 720
-                (821, 1977),  # 770
+                (248, 327),  # 610
+                (811, 334),  # 670
+                (807, 900),  # 720
+                (794, 2022),  # 760
             )
         )
         if flip:
-            centers[:, 0] = 1108 - centers[:, 0]
+            centers[:, 0] = 1104 - centers[:, 0]
     elif camera_num == 2:
         centers = np.array(
             (
-                (826, 280),  # 620
-                (260, 301),  # 670
-                (272, 865),  # 720
-                (310, 1983),  # 770
+                (782, 258),  # 610
+                (219, 274),  # 670
+                (229, 839),  # 720
+                (256, 1959),  # 760
             )
         )
     else:
         raise ValueError(f"Did not recognize camera number {camera_num}")
 
-    # remove 620 field from reduced crop
+    # remove 610 field from reduced crop
     if obs_mode.upper().endswith("MBIR"):
         centers = centers[1:]
     return centers

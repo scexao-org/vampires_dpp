@@ -720,12 +720,19 @@ def run(config, filenames, num_proc, quiet):
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
 )
 @click.option(
+    "-t",
+    "--type",
+    "_type",
+    default="csv",
+    type=click.Choice(["sql", "csv"], case_sensitive=False),
+    help="Save as a CSV file or create a headers table in a sqlite database"
+)
+@click.option(
     "--output",
     "-o",
     type=click.Path(dir_okay=False, writable=True, path_type=Path),
-    default=(Path.cwd() / "header_table.csv").name,
-    help="Output path.",
-    show_default=True,
+    default=(Path.cwd() / "header_table").name,
+    help="Output path without file extension.",
 )
 @click.option(
     "--num-proc",
@@ -733,7 +740,6 @@ def run(config, filenames, num_proc, quiet):
     default=DEFAULT_NPROC,
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
-    show_default=True,
 )
 @click.option(
     "--quiet",
@@ -741,7 +747,7 @@ def run(config, filenames, num_proc, quiet):
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def table(filenames, output, num_proc, quiet):
+def table(filenames, _type, output, num_proc, quiet):
     # handle name clashes
     outpath = Path(output).resolve()
     if outpath.is_file():
@@ -749,7 +755,13 @@ def table(filenames, output, num_proc, quiet):
             f"{outpath.name} already exists in the output directory. Overwrite?", abort=True
         )
     df = header_table(filenames, num_proc=num_proc, quiet=quiet)
-    df.to_csv(outpath)
+    if _type == "csv":
+        outname = outpath.with_name(f"{outpath.name}.csv")
+        df.to_csv(outname)
+    elif _type == "sql":
+        outname = outpath.with_name(f"{outpath.name}.db")
+        df.to_sql("headers", f"sqlite:///{outname.absolute()}")
+    return outname
 
 
 ########## upgrade ##########

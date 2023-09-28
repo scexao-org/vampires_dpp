@@ -137,7 +137,7 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs) -> NDArray:
     Parameters
     ----------
     cube : ArrayLike
-        3D cube
+        3D or 4D cube
     shifts : ArrayLike
         Array of (dy, dx) pairs, one for each frame in the input cube
 
@@ -291,7 +291,14 @@ def combine_frames_headers(headers, wcs=False):
         output_header["MOD_AMP"] = table["MOD_AMP"].mean(), "[adu] PSF model amplitude"
         output_header["MOD_X"] = table["MOD_X"].mean(), "[px] PSF model x"
         output_header["MOD_Y"] = table["MOD_Y"].mean(), "[px] PSF model y"
-        output_header["PHOTFLUX"] = table["PHOTFLUX"].mean(), "[adu] Aperture photometry flux"
+    if "PHOTFLX" in table.keys():
+        output_header["PHOTFLX"] = table["PHOTFLX"].mean(), "[adu] Aperture photometry flux"
+    if "MEDFLUX" in table.keys():
+        output_header["MEDFLUX"] = table["MEDFLUX"].mean(), "[adu] Median frame flux"
+    if "SUMFLUX" in table.keys():
+        output_header["SUMFLUX"] = table["SUMFLUX"].mean(), "[adu] Total frame flux"
+    if "PEAKFLX" in table.keys():
+        output_header["PEAKFLX"] = table["PEAKFLX"].mean(), "[adu] Peak frame flux"
     # get PA rotation
     if "PA" in table.keys():
         output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
@@ -511,9 +518,7 @@ class FileSet:
             if N > 4:
                 raise ValueError(f"Too many input files, should be 4 at max, got {N}")
             if N == 3:
-                missing = set((1, "A"), (1, "B"), (2, "A"), (2, "B")) - set(
-                    self.paths.keys()
-                )
+                missing = set((1, "A"), (1, "B"), (2, "A"), (2, "B")) - set(self.paths.keys())
                 print(
                     f"Expected set of 4 files, one for each camera and FLC state combination. Missing camera {missing[0][0]} FLC state {missing[0][1]}"
                 )

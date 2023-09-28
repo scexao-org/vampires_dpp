@@ -29,7 +29,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     path = Path(filename)
     summary = OrderedDict()
     # add path to row before the FITS header keys
-    summary["path"] = path.resolve()
+    summary["path"] = path.resolve().absolute()
     ext = 1 if ".fits.fz" in path.name else 0
     header = fits.getheader(filename, ext=ext, **kwargs)
     summary.update(dict_from_header(header))
@@ -69,6 +69,7 @@ def header_table(
     filenames: list[PathLike],
     num_proc: int = min(8, mp.cpu_count()),
     quiet: bool = False,
+    excluded_columns=("HISTORY", "COMMENT"),
 ) -> pd.DataFrame:
     """
     Generate a pandas dataframe from the FITS headers parsed from the given files.
@@ -80,18 +81,25 @@ def header_table(
         Number of processes to use in multiprocessing, by default mp.cpu_count()
     quiet : bool, optional
         Silence the progress bar, by default False
+    excluded_columns: list[str], optional
+        Columns to exclude, by default HISTORY, COMMENT
 
     Returns
     -------
     pandas.DataFrame
     """
+    N = len(filenames)
+    if N == 0:
+        raise ValueError("No FITS files provided")
     with mp.Pool(num_proc) as pool:
-        jobs = [pool.apply_async(dict_from_header_file, args=(f,)) for f in filenames]
-        iter = jobs if quiet else tqdm(jobs, desc="Parsing FITS headers")
-        rows = [job.get() for job in iter]
-
-    df = pd.DataFrame(rows)
+        jobs = (pool.apply_async(dict_from_header_file, args=(f,)) for f in filenames)
+        iter = jobs if quiet else tqdm(jobs, total=N, desc="Parsing FITS headers")
+        rows = (job.get() for job in iter)
+        df = pd.DataFrame(rows)
     df.sort_values("MJD", inplace=True)
+    for col in excluded_columns:
+        if col in df.keys():
+            del df[col]
     return df
 
 

@@ -147,7 +147,7 @@ def psf_offsets(
     elif method in ("moffat", "airydisk", "gaussian"):
         fitter = fitting.LevMarLSQFitter()
         for i, frame in enumerate(cube):
-            offsets[i, 0] = offset_modelfit(frame, inds, method, fitter) - center
+            offsets[i, 0] = offset_modelfit(frame, inds, method, fitter=fitter) - center
 
     return offsets
 
@@ -190,9 +190,9 @@ def measure_offsets_file(
     if "MBI" in header["OBS-MOD"]:
         ctrs = mbi_centers(header["OBS-MOD"], header["U_CAMERA"], flip=True)
         offsets = []
-        base_rad = kwargs.pop("radius")
         if coronagraphic:
-            for field, ctr in zip(("F770", "F720", "F670", "F620"), ctrs[::-1]):
+            base_rad = kwargs.pop("radius")
+            for field, ctr in zip(("F760", "F720", "F670", "F610"), ctrs[::-1]):
                 radius = lamd_to_pixel(base_rad, field)
                 kwargs["center"] = ctr
                 offsets.append(
@@ -201,7 +201,7 @@ def measure_offsets_file(
                     )
                 )
         else:
-            for field, ctr in zip(("F770", "F720", "F670", "F620"), ctrs[::-1]):
+            for field, ctr in zip(("F760", "F720", "F670", "F610"), ctrs[::-1]):
                 kwargs["center"] = ctr
                 offsets.append(psf_offsets(cube, method=method, refidx=refidx, **kwargs))
         # flatten offsets
@@ -230,17 +230,30 @@ def register_cube(cube, offsets, header=None, **kwargs):
     return shifted, header
 
 
+import tqdm.auto as tqdm
+
+
 def register_mbi_cube(cube, offsets, header=None, **kwargs):
-    # reshape offsets into a single average
     stack = []
     cube = np.atleast_3d(cube)
     offsets = np.atleast_3d(offsets)
-    for i in range(offsets.shape[1]):
+    ctr = frame_center(cube)
+    # cut out crop around offset and realign
+    for i in tqdm.trange(offsets.shape[1], desc="registering"):
         offs = offsets[:, i]
+        # reshape offsets into a single average
         mean_offsets = np.mean(offs.reshape(len(offs), -1, 2), axis=1)
-        shifted = shift_cube(cube, -mean_offsets)
+        meaner_offsets = np.mean(mean_offsets, axis=0)
+        centers = meaner_offsets + ctr
+        new_offsets = mean_offsets - meaner_offsets
+        sl = cutout_slice(cube[0], window=400, center=centers)
+        #
+        print(cube[..., sl[0], sl[1]].shape)
+        shifted = shift_cube(cube[..., sl[0], sl[1]], -new_offsets)
         stack.append(shifted)
 
+    stack = np.asarray(stack)
+    print(stack.shape)
     stack = np.swapaxes(stack, 0, 1)
     ## crop
     crop_size = 500
@@ -283,6 +296,9 @@ def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
     return output, header
 
 
+import time
+
+
 def lucky_image_file(
     cube, header, filename, metric_file=None, offsets_file=None, force: bool = False, q=0, **kwargs
 ) -> Path:
@@ -291,6 +307,9 @@ def lucky_image_file(
         frame, header = fits.getdata(path, header=True)
         return frame, header
     cube = np.atleast_3d(cube)
+
+    # print("Lucky imaging: frame select...", end="") DEBUG
+    t1 = time.time()
     ## Step 1: Frame select
     mask = np.ones(cube.shape[0], dtype=bool)
     if metric_file is not None:
@@ -298,7 +317,11 @@ def lucky_image_file(
         metrics = np.median(metrics, axis=0)
         cube, header = frame_select_cube(cube, metrics, header=header, q=q, **kwargs)
         mask &= metrics >= np.quantile(metrics, q)
+    t2 = time.time()
+    # print(f" done preparing metrics (took {t2 - t1} s).") DEBUG
 
+    # print("Lucky imaging: register...", end="") DEBUG
+    t1 = time.time()
     ## Step 2: Register
     if offsets_file is not None:
         offsets = np.atleast_2d(np.loadtxt(offsets_file, delimiter=","))
@@ -322,9 +345,15 @@ def lucky_image_file(
         offs = np.array([np.array(ctr) - np.array(fctr) for ctr in ctrs])
         offs = np.tile(offs, (len(cube), 1, 1))
         cube, header = register_mbi_cube(cube, offs, header=header, **kwargs)
+    t2 = time.time()
+    # print(f" done registering (took {t2 - t1} s).") DEBUG
 
+    # print("Lucky imaging: collapse...", end="") DEBUG
+    t1 = time.time()
     ## Step 3: Collapse
     frame, header = collapse_cube(cube, header=header, **kwargs)
+    t2 = time.time()
+    # print(f" done collapsing (took {t2 - t1} s).") DEBUG
     return frame, header
     # fits.writeto(outpath, frame, header=header, overwrite=True)
     # return outpath

@@ -411,5 +411,5 @@ def mueller_matrix_from_header(header, filt=None):
 
 
 def mbi_mueller_matrix_from_header(header):
-    fields = reversed(f for f, _ in zip(("F770", "F720", "F670", "F620"), range(header["NAXIS3"])))
+    fields = reversed(f for f, _ in zip(("F760", "F720", "F670", "F610"), range(header["NAXIS3"])))
     return [mueller_matrix_from_header(header, filt=f) for f in fields]

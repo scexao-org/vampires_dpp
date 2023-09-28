@@ -63,6 +63,9 @@ def analyze_frame(
         header[f"MOD_Y{header_key:1s}"] = model_fit["y"], "[px] PSF model y"
         header[f"FLUX{header_key:1s}"] = phot, "[adu] Aperture photometry flux"
         header[f"PHOTRAD{header_key:1s}"] = aper_rad, "[px] Aperture photometry radius"
+        header[f"MEDFLUX{header_key:1s}"] = np.nanmedian(frame), "[adu] Median frame flux"
+        header[f"SUMFLUX{header_key:1s}"] = np.nansum(frame), "[adu] Total frame flux"
+        header[f"PEAKFLX{header_key:1s}"] = np.nanmax(frame), "[adu] Peak frame flux"
 
     return frame, header
 
@@ -114,14 +117,16 @@ def analyze_satspots_frame(
         header[f"MOD_AMP{header_key:1s}"] = ave_amp, "[adu] PSF model amplitude"
         header[f"MOD_X{header_key:1s}"] = ave_x, "[px] PSF model x"
         header[f"MOD_Y{header_key:1s}"] = ave_y, "[px] PSF model y"
-        header[f"FLUX{header_key:1s}"] = ave_flux, "[adu] Aperture photometry flux"
+        header[f"PHOTFLX{header_key:1s}"] = ave_flux, "[adu] Aperture photometry flux"
         header[f"PHOTRAD{header_key:1s}"] = aper_rad, "[px] Aperture photometry radius"
-
+        header[f"MEDFLUX{header_key:1s}"] = np.nanmedian(frame), "[adu] Median frame flux"
+        header[f"SUMFLUX{header_key:1s}"] = np.nansum(frame), "[adu] Total frame flux"
+        header[f"PEAKFLX{header_key:1s}"] = np.nanmax(frame), "[adu] Peak frame flux"
     return frame, header
 
 
 def analyze_file(
-    frame, header, filename, aper_rad, radius, coronagraphic=False, force=False, **kwargs
+    frame, header, filename, aper_rad, radius=None, coronagraphic=False, force=False, **kwargs
 ):
     path, outpath = get_paths(filename, suffix="analyzed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:

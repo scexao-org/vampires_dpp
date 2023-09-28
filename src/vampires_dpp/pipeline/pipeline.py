@@ -3,11 +3,11 @@ import multiprocessing as mp
 import re
 from pathlib import Path
 from typing import Optional, Tuple
+import time
 
 import numpy as np
 import pandas as pd
 from astropy.io import fits
-from multiprocessing_logging import install_mp_handler
 from tqdm.auto import tqdm
 
 import vampires_dpp as dpp
@@ -58,7 +58,6 @@ class Pipeline(PipelineOptions):
         stream_handler = logging.StreamHandler()
         stream_handler.setLevel(logging.INFO)
         self.logger.addHandler(stream_handler)
-        install_mp_handler(self.logger)
 
     def run(self, filenames, num_proc: int = None, quiet: bool = False):
         """Run the pipeline
@@ -98,6 +97,13 @@ class Pipeline(PipelineOptions):
                     self.output_files.append(result)
                 else:
                     self.output_files.extend(result)
+
+        # for row in tqdm(self.table.itertuples(index=False), total=len(self.table), desc="Processing files"):
+        #     result, tripwire = self.process_one(row._asdict())
+        #     if isinstance(result, Path):
+        #         self.output_files.append(result)
+        #     else:
+        #         self.output_files.extend(result)
         self.output_table = header_table(self.output_files, quiet=True)
         ## products
         if self.products is not None:
@@ -122,11 +128,15 @@ class Pipeline(PipelineOptions):
         if outpath.exists():
             return outpath, tripwire
         # tripwire = not outpath.exists()
-
+        # print(f"{path} loaded") DEBUG
         # fix headers and calibrate
         if self.calibrate is not None:
+            # print("Calibrating...", end="") DEBUG
+            t1 = time.time()
             tripwire |= self.calibrate.force
             data, header, tripwire = self.calibrate_one(path, row)
+            t2 = time.time()
+            # print(f" done calibrating (took {t2 - t1} s).") DEBUG
         metric_file = offsets_file = None
         ## Step 2: Frame selection
         if self.frame_select is not None:
@@ -136,12 +146,18 @@ class Pipeline(PipelineOptions):
             )
         ## 3: Image registration
         if self.register is not None:
+            # print("Registering...", end="") DEBUG
+            t1 = time.time()
             tripwire |= self.register.force
             offsets_file, tripwire = self.register_one(
                 data, header, filename=path, tripwire=tripwire
             )
+            t2 = time.time()
+            # print(f" done registering (took {t2 - t1} s).") DEBUG
         ## Step 4: collapsing
         if self.collapse is not None:
+            # print("Collapsing...", end="") DEBUG
+            t1 = time.time()
             tripwire |= self.collapse.force
             data, header, tripwire = self.collapse_one(
                 data,
@@ -151,6 +167,8 @@ class Pipeline(PipelineOptions):
                 metric_file=metric_file,
                 offsets_file=offsets_file,
             )
+            t2 = time.time()
+            # print(f" done collapsing (took {t2 - t1} s).") DEBUG
 
         ## Step 5: PSF analysis
         if self.analysis is not None:
@@ -337,7 +355,8 @@ class Pipeline(PipelineOptions):
     def collapse_one(
         self, cube, header, filename, metric_file=None, offsets_file=None, tripwire=False
     ):
-        self.logger.info("Starting data calibration")
+        self.logger.info("Starting data collapsing")
+        # print("starting data collapsing") DEBUG
         config = self.collapse
         if config.output_directory is not None:
             outdir = config.output_directory
@@ -357,7 +376,7 @@ class Pipeline(PipelineOptions):
         )
         if self.frame_select is not None:
             kwargs["q"] = self.frame_select.cutoff
-
+        # print("starting lucky imaging") DEBUG
         calib_frame, header = lucky_image_file(cube, header, **kwargs)
         self.logger.info("Data calibration completed")
         return calib_frame, header, tripwire
@@ -383,6 +402,7 @@ class Pipeline(PipelineOptions):
                 ann_rad=config.photometry.ann_rad,
                 model=config.model,
                 output_directory=outdir,
+                recenter=config.recenter,
                 force=tripwire,
                 window=config.window_size,
             )
@@ -395,6 +415,7 @@ class Pipeline(PipelineOptions):
                 ann_rad=config.photometry.ann_rad,
                 model=config.model,
                 output_directory=outdir,
+                recenter=config.recenter,
                 force=tripwire,
                 coronagraphic=True,
                 radius=header["X_GRDSEP"],

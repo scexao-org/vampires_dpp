@@ -63,7 +63,7 @@ def get_coord_header(header, time=None):
 GAIA_CATALOGS = {"dr1": "I/337/gaia", "dr2": "I/345/gaia2", "dr3": "I/355/gaiadr3"}
 
 
-def get_gaia_astrometry(target, catalog="dr3", radius=1):
+def get_gaia_astrometry(target, catalog="dr3", radius=3):
     # get precise RA and DEC
     gaia_catalog_list = Vizier.query_object(
         target, radius=radius * u.arcsec, catalog=GAIA_CATALOGS[catalog.lower()]
