@@ -44,7 +44,7 @@ def frame_radii(frame: ArrayLike, center=None) -> NDArray:
     if center is None:
         center = frame_center(frame)
     Ys, Xs = np.ogrid[: frame.shape[-2], : frame.shape[-1]]
-    radii = np.hypot(Ys - center[0], Xs - center[1])
+    radii = np.hypot(Ys - center[-2], Xs - center[-1])
     return radii
 
 
@@ -78,14 +78,14 @@ def frame_angles(frame: ArrayLike, center=None, conv: Literal["image", "astro"] 
 
 def frame_angles_image(frame, center):
     Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
-    thetas = np.arctan2(Ys - center[0], Xs - center[1])
+    thetas = np.arctan2(Ys - center[-2], Xs - center[-1])
     return thetas
 
 
 def frame_angles_astro(frame, center):
     Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
     # degrees East of North: phi = arctan(-x, y)
-    thetas = np.arctan2(center[1] - Xs, Ys - center[0])
+    thetas = np.arctan2(center[-2] - Xs, Ys - center[-1])
     return thetas
 
 

@@ -95,9 +95,9 @@ def main():
 @click.option("--ext", "-e", default=0, help="HDU extension")
 @click.option(
     "--copy/--no-copy",
-    "-c/",
-    callback=abort_if_false,
-    prompt="Are you sure you want to move data files?",
+    "-c/-nc",
+    default=False,
+    prompt="Would you like to copy files (or move them)?",
     help="copy files instead of moving them",
 )
 @click.option(
@@ -496,7 +496,7 @@ def new_config(ctx, config, edit):
         if click.confirm(" - Would you like to subtract background annulus?", default=False):
             resp = click.prompt(
                 " - Enter comma-separated inner and outer radius (px)",
-                default=f"{aper_rad + 5}, {aper_rad + 10}",
+                default=f"{max(aper_rad, tpl.analysis.window_size / 2 - 5)}, {tpl.analysis.window_size / 2}",
             )
             ann_rad = list(map(float, resp.replace(" ", "").split(",")))
             if ann_rad[1] > tpl.analysis.window_size / 2:
@@ -576,12 +576,12 @@ def new_config(ctx, config, edit):
 
     ## Polarization
     if click.confirm("Would you like to do polarimetry?", default=tpl.polarimetry is not None):
-        calib_choices = ["difference", "leastsq"]
+        calib_choices = ["doublediff", "triplediff", "leastsq"]
         readline.set_completer(createListCompleter(calib_choices))
         pol_method = click.prompt(
             " - Choose a polarimetric calibration method",
             type=click.Choice(calib_choices, case_sensitive=False),
-            default="difference",
+            default="triplediff",
         )
         readline.set_completer()
         tpl.polarimetry = PolarimetryConfig(method=pol_method)

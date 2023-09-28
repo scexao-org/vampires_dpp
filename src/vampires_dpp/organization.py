@@ -116,6 +116,8 @@ def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs
     # meaningfully, so use ad-hoc sorting method
     if header["DATA-TYP"] == "ACQUISITION":
         foldname = foldername_old(outdir, path, header)
+    elif "U_EMGAIN" in header:
+        foldname = foldername_halfold(outdir, header)
     else:
         foldname = foldername_new(outdir, header)
 
@@ -129,6 +131,37 @@ def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs
 
 
 def foldername_new(outdir: PathLike, header: fits.Header):
+    filt1 = header["FILTER01"]
+    filt2 = header["FILTER02"]
+    filt_str = f"{filt1}_{filt2}"
+    exptime = header["EXPTIME"] * 1e3  # ms
+    sz = f"{header['NAXIS1']:03d}x{header['NAXIS2']:03d}"
+    match header["DATA-TYP"]:
+        case "OBJECT":
+            # subsort based on filter, EM gain, and exposure time
+            subdir = f"{filt_str}_{exptime:07.02f}ms_{sz}"
+            foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
+        case "DARK":
+            subdir = f"{exptime:07.02f}ms_{sz}"
+            foldname = outdir / "darks" / subdir
+        # put sky flats separately because they are usually
+        # background frames, not flats
+        case "SKYFLAT":
+            subdir = f"{exptime:07.02f}ms_{sz}"
+            foldname = outdir / "skies" / subdir
+        case "FLAT" | "DOMEFLAT":
+            subdir = f"{filt_str}_{exptime:07.02f}ms_{sz}"
+            foldname = outdir / "flats" / subdir
+        case "COMPARISON":
+            subdir = f"{filt_str}_{exptime:07.02f}ms_{sz}"
+            foldname = outdir / "pinholes" / subdir
+        case _:
+            foldname = outdir
+
+    return foldname
+
+
+def foldername_halfold(outdir: PathLike, header: fits.Header):
     filt = header["U_FILTER"]
     gain = header["U_EMGAIN"]
     exptime = header["U_AQTINT"] / 1e3  # ms

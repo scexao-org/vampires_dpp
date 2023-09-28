@@ -25,6 +25,7 @@ from vampires_dpp.image_processing import (
 from vampires_dpp.organization import header_table
 from vampires_dpp.pdi.mueller_matrices import mueller_matrix_from_file
 from vampires_dpp.pdi.processing import (
+    get_doublediff_set,
     get_triplediff_set,
     make_stokes_image,
     polarization_calibration_leastsq,
@@ -108,7 +109,7 @@ class Pipeline:
                 / self.config.preproc_directory
                 / f"{self.config.name}_raw_psf_cam{cam_num:.0f}.fits"
             )
-            outfile = collapse_frames_files(paths, output=outpath)
+            outfile = collapse_frames_files(paths, output=outpath, cubes=True)
             outfiles[f"cam{cam_num:.0f}"] = outfile
             logger.info(f"Saved raw PSF frame to {outpath.absolute()}")
         return outfiles
@@ -129,7 +130,7 @@ class Pipeline:
                 field_keys = ("PSF",)
                 nfields = 1
             ctrs = get_psf_centroids_mpl(
-                im, npsfs=npsfs, nfields=nfields, suptitle=key, outpath=outpath
+                np.squeeze(im), npsfs=npsfs, nfields=nfields, suptitle=key, outpath=outpath
             )
             ctrs_as_dict = dict(zip(field_keys, ctrs.tolist()))
             with path.open("wb") as fh:
@@ -422,23 +423,27 @@ class Pipeline:
 
         self.working_db = pd.read_csv(self.output_table_path, index_col=0)
 
-        self.working_db["mm_file"] = self.make_mueller_mats()
+        if self.config.polarimetry.mm_correct or self.config.polarimetry.method == "leastsq":
+            self.working_db["mm_file"] = self.make_mueller_mats()
 
         logger.info("Performing polarimetric calibration")
         logger.debug(f"Saving Stokes data to {self.polarimetry_dir.absolute()}")
-        if self.config.polarimetry.method == "difference":
-            self.polarimetry_difference(force=force)
+        if self.config.polarimetry.method.endswith("diff"):
+            self.polarimetry_difference(method=self.config.polarimetry.method, force=force)
         elif self.config.polarimetry.method == "leastsq":
             self.polarimetry_leastsq(force=force)
         logger.success("Finished PDI")
 
-    def polarimetry_difference(self, force=False):
+    def polarimetry_difference(self, method, force=False):
         config = self.config.polarimetry
         full_paths = []
         with mp.Pool(self.num_proc) as pool:
             jobs = []
             for _, row in self.working_db.iterrows():
-                jobs.append(pool.apply_async(get_triplediff_set, args=(self.working_db, row)))
+                if method == "triplediff":
+                    jobs.append(pool.apply_async(get_triplediff_set, args=(self.working_db, row)))
+                else:
+                    jobs.append(pool.apply_async(get_doublediff_set, args=(self.working_db, row)))
 
             for job in tqdm(jobs, desc="Forming Stokes sets"):
                 stokes_set = job.get()
@@ -453,7 +458,7 @@ class Pipeline:
         stokes_data = []
         stokes_hdrs = []
         kwds = dict(
-            method="triplediff",
+            method=method,
             mm_correct=config.mm_correct,
             ip_correct=config.ip_correct,
             ip_method=config.ip_method,
@@ -463,9 +468,14 @@ class Pipeline:
         with mp.Pool(self.num_proc) as pool:
             jobs = []
             for outpath, path_set in zip(stokes_files, full_path_set):
-                mm_paths = self.working_db.loc[
-                    self.working_db["path"].apply(lambda p: p in path_set), "mm_file"
-                ]
+                if config.mm_correct:
+                    mm_paths = self.working_db.loc[
+                        self.working_db["path"].apply(lambda p: p in path_set), "mm_file"
+                    ]
+                else:
+                    mm_paths = None
+                if len(path_set) not in (8, 16):
+                    continue
                 jobs.append(
                     pool.apply_async(
                         make_stokes_image, args=(path_set, outpath, mm_paths), kwds=kwds
@@ -478,9 +488,9 @@ class Pipeline:
                 stokes_hdrs.append(header)
 
                 full_paths.append(tuple(sorted(stokes_set.values())))
-
+        remain_files = filter(lambda f: Path(f).exists(), stokes_files)
         ## Save CSV of Stokes values
-        stokes_tbl = header_table(stokes_files, quiet=True)
+        stokes_tbl = header_table(remain_files, quiet=True)
         stokes_tbl_path = self.polarimetry_dir / f"{self.config.name}_stokes_table.csv"
         stokes_tbl.to_csv(stokes_tbl_path)
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")

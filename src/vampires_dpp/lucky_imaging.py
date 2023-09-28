@@ -59,18 +59,13 @@ def get_centroids_from(metrics, input_key):
     return centroids
 
 
-def recenter_frame(frame, method, centroids, window=30, **kwargs):
+def recenter_frame(frame, method, offsets, window=30, **kwargs):
     frame_ctr = frame_center(frame)
-    if centroids.ndim == 2:
-        ## determine center of raw frame from centroids
-        ctr = 0
-        for off in centroids - centroids.mean(0):
-            inds = cutout_inds(frame, window=window, center=frame_ctr + off)
-            ctr += register_frame(frame, inds, method=method, **kwargs)
-        ctr = ctr / centroids.shape[0]
-    else:
-        inds = cutout_inds(frame, window=window, center=frame_ctr)
-        ctr = register_frame(frame, inds, method=method)
+    ctr = 0
+    for off in offsets - offsets.mean(0):
+        inds = cutout_inds(frame, window=window, center=frame_ctr + off)
+        ctr += register_frame(frame, inds, method=method, **kwargs)
+    ctr = ctr / offsets.shape[0]
 
     return shift_frame(frame, frame_ctr - ctr)
 
@@ -144,41 +139,31 @@ def lucky_image_file(
     if register:
         psf_centroids = get_centroids_from(masked_metrics, input_key=register)
 
-    import matplotlib.pyplot as plt
-
-    # plt.ion()
-    # fig, ax = plt.subplots(1, 3)
     frames = []
     headers = []
-    for i, (field, ctr) in enumerate(fields.items()):
+    for i, (field, psf_ctr) in enumerate(fields.items()):
+        ctr = psf_ctr.mean(axis=0)
+        offs = psf_ctr - ctr
         field_ctr = get_center(cube, ctr, cam_num)
-        if field_ctr.ndim > 1:
-            field_ctr = field_ctr.mean(axis=0)
         offsets = psf_centroids[i] - field_ctr
         aligned_frames = []
         for frame, offset in zip(cube, offsets):
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
-            # ax[0].imshow(cutout.data, origin="lower", cmap="magma")
             if register:
                 # determine maximum padding, with sqrt(2)
                 # for radial coverage
                 rad_factor = (np.sqrt(2) - 1) * np.max(cutout.shape[-2:]) / 2
                 npad = np.ceil(rad_factor + 1).astype(int)
                 frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)
-                # ax[1].imshow(frame_padded, origin="lower", cmap="magma")
                 shifted = shift_frame(frame_padded, -offset, **kwargs)
-                # ax[2].imshow(shifted, origin="lower", cmap="magma")
                 aligned_frames.append(shifted)
             else:
                 aligned_frames.append(cutout.data)
-            # plt.show(block=True)
-        ## Step 3: Collapse
+        # ## Step 3: Collapse
         coll_frame, header = collapse_cube(np.array(aligned_frames), header=header)
         ## Step 4: Recenter
         if recenter:
-            coll_frame = recenter_frame(
-                coll_frame, method=register, centroids=get_center(cube, ctr, cam_num)
-            )
+            coll_frame = recenter_frame(coll_frame, method=register, offsets=offs)
         frames.append(coll_frame)
         hdr = header.copy()
         hdr["FIELD"] = field
@@ -226,7 +211,11 @@ def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Head
             continue
         for i, psf in enumerate(arr):
             comment = COMMENT_FSTRS[key].format(" ", i)
-            hdr[f"{key_up}{i}"] = psf.mean(), comment
+            hdr[f"{key_up}{i}"] = np.mean(psf), comment
             err_comment = COMMENT_FSTRS[key].format(" err ", i)
-            hdr[f"{key_up[:5]}ER{i}"] = st.sem(psf, nan_policy="omit"), err_comment
+            if len(psf) == 1:
+                sem = 0
+            else:
+                sem = st.sem(psf, nan_policy="omit")
+            hdr[f"{key_up[:5]}ER{i}"] = sem, err_comment
     return hdr

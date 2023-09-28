@@ -1,6 +1,6 @@
 import itertools
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Sequence
 
 import numpy as np
 import tqdm.auto as tqdm
@@ -15,16 +15,10 @@ from vampires_dpp.image_processing import (
 )
 
 from ..util import any_file_newer
-from .mueller_matrices import mueller_matrix_from_header
 from .utils import instpol_correct, measure_instpol, write_stokes_products
 
 
-def polarization_calibration_triplediff(
-    filenames: Sequence[str],
-    mm_filenames: Optional[Sequence[str]] = None,
-    adi_sync=True,
-    mm_correct=True,
-) -> NDArray:
+def polarization_calibration_triplediff(filenames: Sequence[str]):
     """
     Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
@@ -77,7 +71,46 @@ def polarization_calibration_triplediff(
     for hdr in headers:
         stokes_hdr = combine_frames_headers(hdr)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
-        stokes_hdr["TINT"] /= 2
+        if "TINT" in stokes_hdr:
+            stokes_hdr["TINT"] /= 2
+        stokes_hdrs.append(stokes_hdr)
+
+    # reform hdulist
+    prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs[0])
+    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(stokes_cube, stokes_hdrs[1:]))
+    return fits.HDUList([prim_hdu, *hdus])
+
+
+def polarization_calibration_doublediff(filenames: Sequence[str]):
+    if len(filenames) % 8 != 0:
+        raise ValueError(
+            f"Cannot do double-differential calibration without exact sets of 8 frames for each HWP cycle"
+        )
+    # now do double-differential calibration
+    cube_dict = {}
+    headers = []
+    for file in filenames:
+        with fits.open(file) as hdul:
+            cube = hdul[0].data
+            prim_hdr = hdul[0].header
+            hdrs = (hdu.header for hdu in hdul[1:])
+            headers.append([prim_hdr, *hdrs])
+        # derotate frame - necessary for crosstalk correction
+        cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
+        # store into dictionaries
+        key = prim_hdr["RET-ANG1"], prim_hdr["U_CAMERA"]
+        cube_dict[key] = cube_derot
+
+    I, Q, U = double_diff_dict(cube_dict)
+    # swap stokes and field axes so field is first
+    stokes_cube = np.swapaxes((I, Q, U), 0, 1)
+
+    stokes_hdrs = []
+    for hdr in headers:
+        stokes_hdr = combine_frames_headers(hdr)
+        # reduce exptime by 2 because cam1 and cam2 are simultaneous
+        if "TINT" in stokes_hdr:
+            stokes_hdr["TINT"] /= 2
         stokes_hdrs.append(stokes_hdr)
 
     # reform hdulist
@@ -93,6 +126,17 @@ def make_triplediff_dict(filenames):
         # get row vector for mueller matrix of each file
         # store into dictionaries
         key = hdr["RET-ANG1"], hdr["U_FLC"], hdr["U_CAMERA"]
+        output[key] = data
+    return output
+
+
+def make_doublediff_dict(filenames):
+    output = {}
+    for file in filenames:
+        data, hdr = fits.getdata(file, header=True)
+        # get row vector for mueller matrix of each file
+        # store into dictionaries
+        key = hdr["RET-ANG1"], hdr["U_CAMERA"]
         output[key] = data
     return output
 
@@ -141,6 +185,9 @@ def triple_diff_dict(input_dict):
     I = 0.5 * (IQ + IU)
 
     return I, Q, U
+
+
+from rich import pretty as p
 
 
 def double_diff_dict(input_dict):
@@ -218,7 +265,7 @@ def get_triplediff_set(table, row):
     time_arr = Time(table["MJD"], format="mjd")
     row_time = Time(row["MJD"], format="mjd")
     deltatime = np.abs(row_time - time_arr)
-    row_key = (row["RET-ANG1"], row["U_FLC"], int(row["U_CAMERA"]))
+    row_key = (row["RET-ANG1"], row["U_FLC"], row["U_CAMERA"])
     remaining_keys = TRIPLEDIFF_SETS - set(row_key)
     output_set = {row_key: row["path"]}
     for key in remaining_keys:
@@ -238,7 +285,7 @@ def get_doublediff_set(table, row):
     time_arr = Time(table["MJD"], format="mjd")
     row_time = Time(row["MJD"], format="mjd")
     deltatime = np.abs(row_time - time_arr)
-    row_key = (row["RET-ANG1"], int(row["U_CAMERA"]))
+    row_key = (row["RET-ANG1"], row["U_CAMERA"])
     remaining_keys = DOUBLEDIFF_SETS - set(row_key)
     output_set = {row_key: row["path"]}
     for key in remaining_keys:
@@ -270,6 +317,11 @@ def make_stokes_image(
         if mm_correct:
             mm_dict = make_triplediff_dict(mm_paths)
             _, mmQs, mmUs = triple_diff_dict(mm_dict)
+    elif method == "doublediff":
+        stokes_hdul = polarization_calibration_doublediff(path_set)
+        if mm_correct:
+            mm_dict = make_doublediff_dict(mm_paths)
+            _, mmQs, mmUs = double_diff_dict(mm_dict)
     else:
         raise ValueError(f"Unrecognized method {method}")
 

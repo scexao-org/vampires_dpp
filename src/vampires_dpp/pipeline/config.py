@@ -243,7 +243,7 @@ class AnalysisConfig(BaseModel):
     strehl: Literal[False] = False
     subtract_radprof: bool = False
     photometry: bool = True
-    aper_rad: float | Literal["auto"] = 10
+    aper_rad: float | Literal["auto"] = 8
     ann_rad: Optional[Sequence[float]] = None
     window_size: int = 30
     # dft_factor: int = 5
@@ -311,7 +311,7 @@ class PolarimetryConfig(BaseModel):
         aper_rad = 6
     """
 
-    method: Literal["difference", "leastsq"] = "difference"
+    method: Literal["triplediff", "doublediff", "leastsq"] = "triplediff"
     mm_correct: bool = True
     hwp_adi_sync: bool = True
     use_ideal_mm: bool = False

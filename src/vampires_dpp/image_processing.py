@@ -352,7 +352,7 @@ def collapse_frames(frames, headers=None, method="median", **kwargs):
     return collapse_cube(cube, method=method, header=header)
 
 
-def collapse_frames_files(filenames, output, force=False, **kwargs):
+def collapse_frames_files(filenames, output, force=False, cubes=False, **kwargs):
     path = Path(output)
     if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
@@ -363,7 +363,8 @@ def collapse_frames_files(filenames, output, force=False, **kwargs):
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>
         frame, header = fits.getdata(filename, header=True, memmap=False)
-        # if frame secretly a cube (shh) randomly sample a frame
+        if cubes:
+            frame = frame[np.random.randint(0, len(frame))]
         frames.append(frame)
         headers.append(header)
 

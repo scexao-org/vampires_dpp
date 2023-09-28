@@ -247,13 +247,27 @@ def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dic
         header = fits.getheader(path, ext=ext)
         sz = header["NAXIS1"], header["NAXIS2"]
         if "DETGAIN" in header:
-            key = header["U_CAMERA"], header["U_AQTINT"], header["FILTER01"], header["DETGAIN"], sz
             if backgrounds:
-                del key[2]
+                key = header["U_CAMERA"], header["U_AQTINT"], header["DETGAIN"], sz
+            else:
+                key = (
+                    header["U_CAMERA"],
+                    header["U_AQTINT"],
+                    header["FILTER01"],
+                    header["DETGAIN"],
+                    sz,
+                )
         else:
-            key = header["U_CAMERA"], header["EXPTIME"], header["FILTER01"], header["FILTER02"], sz
             if backgrounds:
-                del key[3:4]
+                key = header["U_CAMERA"], header["EXPTIME"], sz
+            else:
+                key = (
+                    header["U_CAMERA"],
+                    header["EXPTIME"],
+                    header["FILTER01"],
+                    header["FILTER02"],
+                    sz,
+                )
 
         append_or_create(file_dict, key, path)
     return file_dict
