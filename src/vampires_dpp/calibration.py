@@ -16,7 +16,7 @@ from astropy.time import Time
 from astroscrappy import detect_cosmics
 from tqdm.auto import tqdm
 
-from vampires_dpp.constants import DEFAULT_NPROC, PA_OFFSET, READNOISE, SUBARU_LOC
+from vampires_dpp.constants import DEFAULT_NPROC, SUBARU_LOC
 from vampires_dpp.headers import fix_header, parallactic_angle
 from vampires_dpp.image_processing import (
     collapse_cube,
@@ -127,7 +127,7 @@ def apply_coordinate(header, coord: Optional[SkyCoord] = None):
     header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
     pa = parallactic_angle(time, coord_now)
     header["PA"] = pa, "[deg] parallactic angle of target"
-    derotang = wrap_angle(pa + PA_OFFSET)
+    derotang = wrap_angle(pa + header["PAOFFSET"])
     header["DEROTANG"] = derotang, "[deg] derotation angle for North up"
     return apply_wcs(header, angle=derotang)
 
@@ -150,7 +150,7 @@ def calibrate_file(
     # load data and mask saturated pixels
     raw_cube, header = load_fits(path, header=True)
     cube = np.where(raw_cube >= 65535, np.nan, raw_cube.astype("f4"))
-
+    header = fix_header(header)
     # apply proper motion correction to coordinate
     header = apply_coordinate(header, coord)
 
@@ -159,19 +159,19 @@ def calibrate_file(
         back_path = Path(back_filename)
         header["BACKFILE"] = back_path.name
         background = fits.getdata(back_path).astype("f4")
-        cube -= background
+        cube = cube - background
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
         header["FLATFILE"] = flat_path.name
         flat = fits.getdata(flat_path).astype("f4")
-        cube /= flat
+        cube = cube / flat
     # bad pixel correction
     if bpfix:
         mask, _ = detect_cosmics(
             cube.mean(0),
             gain=header.get("GAIN") * max(1, header.get("DETGAIN", 1)),
-            readnoise=READNOISE,
+            readnoise=header["RN"],
             satlevel=2**16 * header.get("GAIN") * max(1, header.get("DETGAIN", 1)),
             niter=1,
         )

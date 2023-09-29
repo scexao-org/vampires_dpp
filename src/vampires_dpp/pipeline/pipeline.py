@@ -14,7 +14,6 @@ from tqdm.auto import tqdm
 import vampires_dpp as dpp
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calibration import calibrate_file
-from vampires_dpp.constants import PIXEL_SCALE, PUPIL_OFFSET
 from vampires_dpp.image_processing import (
     FileSet,
     collapse_frames,
@@ -250,10 +249,9 @@ class Pipeline:
         return path
 
     def get_coordinate(self):
-        self.pxscale = PIXEL_SCALE
-        self.pupil_offset = PUPIL_OFFSET
-        self.coord = None
-        if self.config.object is not None:
+        if self.config.object is None:
+            self.coord = None
+        else:
             self.coord = self.config.object.get_coord()
 
     def calibrate_one(self, path, fileinfo, force=False):

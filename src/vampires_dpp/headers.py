@@ -1,11 +1,13 @@
-from pathlib import Path
-from typing import Optional
-
 import numpy as np
 from astropy.io import fits
 from astropy.time import Time
 
-from vampires_dpp.constants import SUBARU_LOC
+from vampires_dpp.constants import (
+    CMOSVAMPIRES,
+    EMCCDVAMPIRES,
+    SUBARU_LOC,
+    InstrumentInfo,
+)
 from vampires_dpp.util import wrap_angle
 
 
@@ -113,55 +115,16 @@ def fix_header(header):
         header["FILTER01"] = header["U_FILTER"]
         header["FILTER02"] = "Unknown"
 
+    # add in detector charracteristics
+    inst = get_instrument_from(header)
+    header["GAIN"] = inst.gain
+    if "RN" not in header:
+        header["RN"] = inst.readnoise
+    header["PXSCALE"] = inst.pxscale
+    header["PAOFFSET"] = inst.pa_offset
+
     header["TINT"] = header["EXPTIME"] * header["NAXIS3"], "[s] total integrated exposure time"
     return header
-
-
-def fix_header_file(filename, output: Optional[str] = None, force: bool = False):
-    """
-    Apply fixes to headers based on known bugs
-
-    Fixes
-    -----
-    1. "backpack" header (should be fixed as of 2020??)
-        - Old data have second headers with instrument info
-        - Will merge the second header into the first
-    2. Too many colons in timestamps (should be fixed as of 2023/01/01)
-        - Some STARS data have `UT` and `HST` timestamps like "10:03:34:342"
-        - In this case, the last colon is replaced with a period, e.g. "10:03:34.342"
-    3. "typical" exposure values are file creation time instead of midpoint
-        - For `UT`, `HST`, and `MJD` keys will recalculate the midpoint based on the `*-STR` and `*-END` values
-
-    Parameters
-    ----------
-    filename : pathlike
-        Input FITS file
-    output : Optional[str], optional
-        Output file name, if None will append "_fix" to the input filename, by default None
-
-    Returns
-    -------
-    Path
-        path of the updated FITS file
-    """
-    path = Path(filename)
-    if output is None:
-        output = path.with_name(f"{path.stem}_fix.fits.fz")
-    else:
-        output = Path(output)
-
-    # skip file if output exists!
-    if not force and output.exists() and path.stat().st_mtime < output.stat().st_mtime:
-        return output
-
-    data, hdr = fits.getdata(
-        filename,
-        header=True,
-    )
-    hdr = fix_header(hdr)
-    # save file
-    fits.writeto(output, data, header=hdr, overwrite=True)
-    return output
 
 
 def fix_typical_time_iso(hdr, key):
@@ -214,3 +177,14 @@ def fix_typical_time_mjd(hdr):
     t_typ = t_str + dt
     # split on the space to remove date from timestamp
     return t_typ.mjd
+
+
+def get_instrument_from(header: fits.Header) -> InstrumentInfo:
+    """Get the instrument info from a FITS header"""
+    cam_num = int(header["U_CAMERA"])
+    if "U_EMGAIN" in header:
+        inst = EMCCDVAMPIRES(cam_num=cam_num)
+    else:
+        inst = CMOSVAMPIRES(cam_num=cam_num, readmode=header["U_DETMOD"])
+
+    return inst

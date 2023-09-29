@@ -5,10 +5,8 @@ from astropy.coordinates import Angle, SkyCoord
 from astropy.time import Time
 from astroquery.vizier import Vizier
 
-from vampires_dpp.constants import PIXEL_SCALE, SUBARU_LOC
 
-
-def apply_wcs(header, pxscale=PIXEL_SCALE, angle=0):
+def apply_wcs(header, pxscale, angle=0):
     nx = header["NAXIS1"]
     ny = header["NAXIS2"]
 

@@ -97,7 +97,7 @@ def main():
     "--copy/--no-copy",
     "-c/-nc",
     default=False,
-    prompt="Would you like to copy files (or move them)?",
+    prompt="Would you like to copy files?",
     help="copy files instead of moving them",
 )
 @click.option(
