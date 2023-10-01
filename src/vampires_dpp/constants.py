@@ -21,6 +21,7 @@ class InstrumentInfo(BaseModel):
 
 class EMCCDVAMPIRES(InstrumentInfo):
     cam_num: Literal[1, 2]
+    emgain: int
     pixel_scale: ClassVar[float] = 6.24  # mas / px
     pupil_offset: ClassVar[float] = 140.4  # deg
     readnoise: ClassVar[float] = 82  # e-
@@ -36,6 +37,16 @@ class EMCCDVAMPIRES(InstrumentInfo):
         "Halpha",
         "Ha-Cont",
     }
+
+    @property
+    def fullwell(self):
+        if self.emgain == 0:
+            # with EM gain off, using 180K register
+            fullwell = 180_000  # e-
+        else:
+            # with EM gain on, limited by 16-bit register almost always
+            fullwell = min(800_000, 2**16 * self.gain)
+        return fullwell
 
     def get_psf_size(self, filt_name):
         if not filt_name in self.filters:
@@ -82,6 +93,11 @@ class CMOSVAMPIRES(InstrumentInfo):
     @property
     def gain(self):
         return self.VAMP_GAIN[self.readmode]
+
+    @property
+    def fullwell(self):
+        # 7000 e- from manual, but 2**16 is almost always lower
+        return min(7000, 2**16 * self.gain)  # e-
 
     def get_psf_size(self, filt_name):
         if not filt_name in self.filters:

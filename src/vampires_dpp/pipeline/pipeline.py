@@ -1,5 +1,5 @@
 import multiprocessing as mp
-import re
+import warnings
 from pathlib import Path
 from typing import Optional
 
@@ -15,7 +15,6 @@ import vampires_dpp as dpp
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calibration import calibrate_file
 from vampires_dpp.image_processing import (
-    FileSet,
     collapse_frames,
     collapse_frames_files,
     combine_frames_files,
@@ -31,9 +30,9 @@ from vampires_dpp.pdi.processing import (
 )
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
-from vampires_dpp.util import any_file_newer
 
 from ..lucky_imaging import lucky_image_file
+from ..paths import Paths, any_file_newer, get_paths
 from .modules import get_psf_centroids_mpl
 
 
@@ -43,46 +42,15 @@ class Pipeline:
         self.master_flats = {1: None, 2: None}
         self.diff_files = None
         self.config = config
-        self.workdir = Path(workdir)
+        self.workdir = workdir
+        self.paths = Paths(workdir=self.workdir)
         self._conn = None
-        self._prepare_directories()
         self.db_file = self.workdir / f"{self.config.name}_db.csv"
-        self.output_table_path = self.product_dir / f"{self.config.name}_table.csv"
-
-    def _prepare_directories(self):
-        if self.config.calibrate.save_intermediate:
-            self.calib_dir = self.workdir / self.config.calibrate.output_directory
-            self.calib_dir.mkdir(parents=True, exist_ok=True)
-        self.analysis_dir = self.workdir / self.config.analysis.output_directory
-        self.analysis_dir.mkdir(parents=True, exist_ok=True)
-        self.preproc_dir = self.workdir / self.config.preproc_directory
-        self.preproc_dir.mkdir(parents=True, exist_ok=True)
-        self.product_dir = self.workdir / self.config.product_directory
-        self.product_dir.mkdir(parents=True, exist_ok=True)
-
-        if self.config.collapse:
-            self.collapse_dir = self.workdir / self.config.collapse.output_directory
-            self.collapse_dir.mkdir(parents=True, exist_ok=True)
-
-        if self.config.make_diff_images:
-            self.diff_dir = self.workdir / "diff"
-            self.diff_dir.mkdir(parents=True, exist_ok=True)
-
-        if self.config.save_adi_cubes:
-            self.adi_dir = self.workdir / self.config.product_directory / "adi"
-            self.adi_dir.mkdir(parents=True, exist_ok=True)
-
-        if self.config.polarimetry:
-            self.polarimetry_dir = self.workdir / self.config.polarimetry.output_directory
-            self.stokes_dir = self.polarimetry_dir / "stokes"
-            self.stokes_dir.mkdir(parents=True, exist_ok=True)
-            if self.config.polarimetry.mm_correct:
-                self.mm_dir = self.polarimetry_dir / "mm"
-                self.mm_dir.mkdir(parents=True, exist_ok=True)
+        self.output_table_path = self.paths.products_dir / f"{self.config.name}_table.csv"
 
     def create_input_table(self, filenames) -> pd.DataFrame:
         input_table = header_table(filenames, quiet=True).sort_values("MJD")
-        table_path = self.preproc_dir / f"{self.config.name}_headers.csv"
+        table_path = self.paths.preproc_dir / f"{self.config.name}_headers.csv"
         input_table.to_csv(table_path)
         logger.info(f"Saved header table to: {table_path}")
         return input_table
@@ -103,11 +71,7 @@ class Pipeline:
         outfiles = {}
         for cam_num, group in table.groupby("U_CAMERA"):
             paths = group["path"].sample(n=max_files)
-            outpath = (
-                self.workdir
-                / self.config.preproc_directory
-                / f"{self.config.name}_raw_psf_cam{cam_num:.0f}.fits"
-            )
+            outpath = self.paths.preproc_dir / f"{self.config.name}_raw_psf_cam{cam_num:.0f}.fits"
             outfile = collapse_frames_files(paths, output=outpath, cubes=True)
             outfiles[f"cam{cam_num:.0f}"] = outfile
             logger.info(f"Saved raw PSF frame to {outpath.absolute()}")
@@ -117,11 +81,11 @@ class Pipeline:
         self.centroids = {"cam1": None, "cam2": None}
         raw_psf_filenames = self.create_raw_input_psf(table)
         for key in self.centroids.keys():
-            path = self.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
+            path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
 
             im, hdr = fits.getdata(raw_psf_filenames[key], header=True)
             npsfs = 4 if self.config.coronagraphic else 1
-            outpath = self.preproc_dir / f"{self.config.name}_{key}.png"
+            outpath = self.paths.preproc_dir / f"{self.config.name}_{key}.png"
             if "MBI" in hdr.get("OBS-MOD", ""):
                 field_keys = "F610", "F670", "F720", "F760"
                 nfields = 4
@@ -139,7 +103,7 @@ class Pipeline:
     def get_centroids(self):
         self.centroids = {"cam1": None, "cam2": None}
         for key in self.centroids.keys():
-            path = self.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
+            path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
             if not path.exists():
                 raise RuntimeError(
                     f"Could not locate centroid file for {key}, expected it to be at {path}"
@@ -157,32 +121,32 @@ class Pipeline:
     def add_paths_to_db(self):
         input_paths = self.working_db["path"].apply(Path)
         # figure out which metrics need to be calculated, which is necessary to collapse files
-        func = lambda p: self.workdir / self.config.analysis.get_output_path(p).absolute()
+        func = lambda p: get_paths(
+            p, suffix="metrics", filetype=".npz", output_directory=self.paths.metrics_dir
+        )
         self.working_db["metric_file"] = input_paths.apply(func)
 
         if self.config.collapse is not None:
-            func = lambda p: self.workdir / self.config.collapse.get_output_path(p).absolute()
+            func = lambda p: get_paths(
+                p, suffix="coll", filetype=".fits", output_directory=self.paths.collapsed_dir
+            )
             self.working_db["collapse_file"] = input_paths.apply(func)
 
         if self.config.calibrate.save_intermediate:
-            func = lambda p: self.workdir / self.config.calibrate.get_output_path(p).absolute()
+            func = lambda p: get_paths(
+                p, suffix="calib", filetype=".fits", output_directory=self.paths.calibrated_dir
+            )
             self.working_db["calib_file"] = input_paths.apply(func)
-
-        if self.config.polarimetry:
-            func = lambda p: self.workdir / self.config.polarimetry.get_output_path(p).absolute()
-            self.working_db["mm_file"] = input_paths.apply(func)
 
         self.working_db.to_csv(self.db_file)
 
     def determine_execution(self, force=False):
         if force:
             return self.working_db
-
-        files_to_calibrate = self.working_db["metric_file"].apply(lambda p: not Path(p).exists())
+        file_doesnt_exist = lambda p: not Path(p).exists()
+        files_to_calibrate = self.working_db["metric_file"].apply(file_doesnt_exist)
         if self.config.collapse is not None:
-            files_to_calibrate |= self.working_db["collapse_file"].apply(
-                lambda p: not Path(p).exists()
-            )
+            files_to_calibrate |= self.working_db["collapse_file"].apply(file_doesnt_exist)
 
         subset = self.working_db.loc[files_to_calibrate]
         return subset
@@ -198,7 +162,7 @@ class Pipeline:
             Number of processes to use for multi-processing, by default None.
         """
         logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
-        conf_copy_path = self.preproc_dir / f"{self.config.name}.bak.toml"
+        conf_copy_path = self.paths.preproc_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
 
@@ -235,7 +199,8 @@ class Pipeline:
             self.save_adi_cubes(force=force)
         ## diff images
         if self.config.make_diff_images:
-            self.make_diff_images(force=force)
+            raise NotImplementedError("Making diff images needs reworking")
+            # self.make_diff_images(force=force)
 
         logger.success("Finished processing files")
 
@@ -331,12 +296,12 @@ class Pipeline:
 
         # save cubes for each camera
         if "U_FLC" in self.output_table.keys():
-            sort_keys = ["MJD", "U_FLC"]
+            self.output_table.sort_values(["MJD", "U_FLC"], inplace=True)
         else:
-            sort_keys = "MJD"
+            self.output_table.sort_values("MJD", inplace=True)
 
-        for cam_num, group in self.output_table.sort_values(sort_keys).groupby("U_CAMERA"):
-            cube_path = self.adi_dir / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
+        for cam_num, group in self.output_table.groupby("U_CAMERA"):
+            cube_path = self.paths.adi_dir / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
             combine_frames_files(group["path"], output=cube_path, force=force)
             logger.info(f"Saved cam {cam_num:.0f} ADI cube to {cube_path}")
             angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
@@ -344,48 +309,33 @@ class Pipeline:
             fits.writeto(angles_path, angles, overwrite=True)
             logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
 
-    def make_diff_images(self, force=False):
-        logger.info("Making difference frames")
-        if self.diff.output_directory is not None:
-            outdir = self.diff.output_directory
-        outdir.mkdir(parents=True, exist_ok=True)
-        logger.debug(f"saving difference images to {outdir.absolute()}")
-        force |= self.diff.force
-        # table should still be sorted by MJD
-        groups = self.output_table.groupby(["MJD", "U_CAMERA"])
-        cam1_paths = []
-        cam2_paths = []
-        for key, group in groups:
-            if key[1] == 1:
-                cam1_paths.append(group["path"].iloc[0])
-            elif key[1] == 2:
-                cam2_paths.append(group["path"].iloc[0])
+    # def make_diff_images(self, force=False):
+    #     logger.info("Making difference frames")
+    #     # table should still be sorted by MJD
+    #     groups = self.output_table.groupby(["MJD", "U_CAMERA"])
+    #     cam1_paths = []
+    #     cam2_paths = []
+    #     for key, group in groups:
+    #         if key[1] == 1:
+    #             cam1_paths.append(group["path"].iloc[0])
+    #         elif key[1] == 2:
+    #             cam2_paths.append(group["path"].iloc[0])
 
-        with mp.Pool(self.num_proc) as pool:
-            jobs = []
-            for cam1_file, cam2_file in zip(cam1_paths, cam2_paths):
-                stem = re.sub("_cam[12]", "", cam1_file.name)
-                outname = outdir / stem.replace(".fits", "_diff.fits")
-                logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
-                logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
-                kwds = dict(outname=outname, force=force)
-                jobs.append(
-                    pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
-                )
+    #     with mp.Pool(self.num_proc) as pool:
+    #         jobs = []
+    #         for cam1_file, cam2_file in zip(cam1_paths, cam2_paths):
+    #             stem = re.sub("_cam[12]", "", cam1_file.name)
+    #             outname = outdir / stem.replace(".fits", "_diff.fits")
+    #             logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
+    #             logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
+    #             kwds = dict(outname=outname, force=force)
+    #             jobs.append(
+    #                 pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
+    #             )
 
-            self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
-        logger.info("Done making difference frames")
-        return self.diff_files
-
-    def create_stokes_table(self, table):
-        keys = ["path", "MJD", "RET-ANG1", "U_CAMERA"]
-        sort_keys = ["MJD", "RET-ANG1", "U_CAMERA"]
-        if "U_FLC" in table.keys():
-            keys.append("U_FLC")
-            sort_keys.append("U_FLC")
-        table = table.sort_values(sort_keys)
-        subset = table[keys]
-        return subset
+    #         self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
+    #     logger.info("Done making difference frames")
+    #     return self.diff_files
 
     def make_mueller_mats(self, force=False):
         logger.info("Creating Mueller matrices")
@@ -398,7 +348,7 @@ class Pipeline:
         with mp.Pool(self.num_proc) as pool:
             jobs = []
             for row in self.working_db.itertuples(index=False):
-                outpath = self.workdir / self.config.polarimetry.get_output_path(Path(row.path))
+                outpath = get_paths(row.path, suffix="mm", output_directory=self.paths.mm_dir)
                 jobs.append(
                     pool.apply_async(mueller_matrix_from_file, args=(row.path, outpath), kwds=kwds)
                 )
@@ -410,7 +360,7 @@ class Pipeline:
 
     def run_polarimetry(self, num_proc, force=False):
         logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
-        conf_copy_path = self.preproc_dir / f"{self.config.name}.bak.toml"
+        conf_copy_path = self.paths.preproc_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
 
@@ -425,11 +375,12 @@ class Pipeline:
             self.working_db["mm_file"] = self.make_mueller_mats()
 
         logger.info("Performing polarimetric calibration")
-        logger.debug(f"Saving Stokes data to {self.polarimetry_dir.absolute()}")
-        if self.config.polarimetry.method.endswith("diff"):
-            self.polarimetry_difference(method=self.config.polarimetry.method, force=force)
-        elif self.config.polarimetry.method == "leastsq":
-            self.polarimetry_leastsq(force=force)
+        logger.debug(f"Saving Stokes data to {self.paths.polarimetry_dir.absolute()}")
+        match self.config.polarimetry.method:
+            case "doublediff" | "triplediff":
+                self.polarimetry_difference(method=self.config.polarimetry.method, force=force)
+            case "leastsq":
+                self.polarimetry_leastsq(force=force)
         logger.success("Finished PDI")
 
     def polarimetry_difference(self, method, force=False):
@@ -450,7 +401,7 @@ class Pipeline:
         full_path_set = list(set(paths for paths in full_paths))
 
         stokes_files = [
-            self.stokes_dir / f"{self.config.name}_stokes_{i:03d}.fits"
+            self.paths.stokes_dir / f"{self.config.name}_stokes_{i:03d}.fits"
             for i in range(len(full_path_set))
         ]
         stokes_data = []
@@ -489,18 +440,29 @@ class Pipeline:
         remain_files = filter(lambda f: Path(f).exists(), stokes_files)
         ## Save CSV of Stokes values
         stokes_tbl = header_table(remain_files, quiet=True)
-        stokes_tbl_path = self.polarimetry_dir / f"{self.config.name}_stokes_table.csv"
+        stokes_tbl_path = self.paths.pdi_dir / f"{self.config.name}_stokes_table.csv"
         stokes_tbl.to_csv(stokes_tbl_path)
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
 
         ## Collapse outputs
         collapse_frame, coll_hdr = collapse_frames(stokes_data, headers=stokes_hdrs)
-        stokes_coll_path = self.polarimetry_dir / f"{self.config.name}_stokes_coll.fits"
+        if collapse_frame.shape[0] > 1:
+            stokes_cube_path = self.paths.pdi_dir / f"{self.config.name}_stokes_cube.fits"
+            write_stokes_products(
+                collapse_frame, header=coll_hdr, outname=stokes_cube_path, force=True
+            )
+            logger.info(f"Saved Stokes cube to {stokes_cube_path}")
+
+            # collapse wavelength axis
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                collapse_frame = np.nanmean(collapse_frame, axis=0, keepdims=True)
+        stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(collapse_frame, header=coll_hdr, outname=stokes_coll_path, force=True)
         logger.info(f"Saved collapsed Stokes cube to {stokes_coll_path}")
 
     def polarimetry_leastsq(self, force=False):
-        self.stokes_collapsed_file = self.polarimetry_dir / f"{self.config.name}_stokes_coll.fits"
+        self.stokes_collapsed_file = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
         if (
             force
             or not self.stokes_collapsed_file.is_file()

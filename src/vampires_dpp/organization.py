@@ -10,6 +10,8 @@ import pandas as pd
 from astropy.io import fits
 from tqdm.auto import tqdm
 
+from .headers import fix_header
+
 
 def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     """
@@ -31,7 +33,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     # add path to row before the FITS header keys
     summary["path"] = str(path.resolve().absolute())
     ext = 1 if ".fits.fz" in path.name else 0
-    header = fits.getheader(filename, ext=ext, **kwargs)
+    header = fix_header(fits.getheader(filename, ext=ext, **kwargs))
     summary.update(dict_from_header(header))
     return summary
 
@@ -130,7 +132,7 @@ def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs
     return newname
 
 
-def foldername_new(outdir: PathLike, header: fits.Header):
+def foldername_new(outdir: Path, header: fits.Header):
     filt1 = header["FILTER01"]
     filt2 = header["FILTER02"]
     filt_str = f"{filt1}_{filt2}"
@@ -161,7 +163,7 @@ def foldername_new(outdir: PathLike, header: fits.Header):
     return foldname
 
 
-def foldername_halfold(outdir: PathLike, header: fits.Header):
+def foldername_halfold(outdir: Path, header: fits.Header):
     filt = header["U_FILTER"]
     gain = header["U_EMGAIN"]
     exptime = header["U_AQTINT"] / 1e3  # ms
@@ -191,7 +193,7 @@ def foldername_halfold(outdir: PathLike, header: fits.Header):
     return foldname
 
 
-def foldername_old(outdir: PathLike, path: Path, header: fits.Header):
+def foldername_old(outdir: Path, path: Path, header: fits.Header):
     name = header.get("U_OGFNAM", path.name)
     filt = header["U_FILTER"]
     gain = header["U_EMGAIN"]

@@ -146,6 +146,6 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
         (stokes_cube[:, 0], stokes_cube[:, 1], stokes_cube[:, 2], Qphi, Uphi, pi, aolp)
     )
     np.swapaxes(data, 0, 1)
-    fits.writeto(path, data, header=header, overwrite=True)
+    fits.writeto(path, np.squeeze(data), header=header, overwrite=True)
 
     return path

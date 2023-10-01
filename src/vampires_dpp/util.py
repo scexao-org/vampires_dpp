@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 import numpy as np
@@ -82,32 +81,6 @@ def check_version(config: str, dpp: str) -> bool:
         if dpp_min == config_min:
             flag = flag and dpp_pat >= config_pat
     return flag
-
-
-def get_paths(
-    filename, /, suffix=None, outname=None, output_directory=None, filetype=".fits", **kwargs
-):
-    path = Path(filename)
-    _suffix = "" if suffix is None else f"_{suffix}"
-    if output_directory is None:
-        output_directory = path.parent
-    else:
-        output_directory = Path(output_directory)
-        output_directory.mkdir(parents=True, exist_ok=True)
-    if outname is None:
-        outname = re.sub("\.fits(\..*)?", f"{_suffix}{filetype}", path.name)
-    outpath = output_directory / outname
-    return path, outpath
-
-
-def any_file_newer(filenames, outpath):
-    out_mt = Path(outpath).stat().st_mtime
-    # check if input is only a single file
-    if isinstance(filenames, Path) or isinstance(filenames, str):
-        return Path(filenames).stat().st_mtime > out_mt
-    else:
-        gen = (Path(f).stat().st_mtime > out_mt for f in filenames)
-        return any(gen)
 
 
 def load_fits(filename, ext=0, **kwargs):

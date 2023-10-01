@@ -103,7 +103,6 @@ def fix_header(header):
         )
     if "U_EMGAIN" in header:
         header["DETGAIN"] = header["U_EMGAIN"], "Detector multiplication factor"
-        header["GAIN"] = 4.5, "[e-/adu] Gain conversion factor"
     if "U_HWPANG" in header:
         header["RET-ANG1"] = header["U_HWPANG"], "[deg] Position angle of first retarder plate"
         header["RETPLAT1"] = "HWP(NIR)", "Identifier of first retarder plate"
@@ -117,11 +116,11 @@ def fix_header(header):
 
     # add in detector charracteristics
     inst = get_instrument_from(header)
-    header["GAIN"] = inst.gain
-    if "RN" not in header:
-        header["RN"] = inst.readnoise
-    header["PXSCALE"] = inst.pxscale
-    header["PAOFFSET"] = inst.pa_offset
+    header["GAIN"] = inst.gain, "[e-/adu] detector gain"
+    header["RN"] = inst.readnoise, "[e-] RMS read noise"
+    header["PXSCALE"] = inst.pixel_scale, "[mas/px] pixel scale"
+    header["PAOFFSET"] = inst.pa_offset, "[deg] parallactic angle offset"
+    header["FULLWELL"] = inst.fullwell, "[e-] full well of camera register"
 
     header["TINT"] = header["EXPTIME"] * header["NAXIS3"], "[s] total integrated exposure time"
     return header
@@ -183,8 +182,8 @@ def get_instrument_from(header: fits.Header) -> InstrumentInfo:
     """Get the instrument info from a FITS header"""
     cam_num = int(header["U_CAMERA"])
     if "U_EMGAIN" in header:
-        inst = EMCCDVAMPIRES(cam_num=cam_num)
+        inst = EMCCDVAMPIRES(cam_num=cam_num, emgain=header["U_EMGAIN"])
     else:
-        inst = CMOSVAMPIRES(cam_num=cam_num, readmode=header["U_DETMOD"])
+        inst = CMOSVAMPIRES(cam_num=cam_num, readmode=header["U_DETMOD"].lower())
 
     return inst

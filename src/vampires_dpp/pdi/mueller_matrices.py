@@ -455,10 +455,14 @@ def mueller_matrix_from_header(header, adi_sync=True, ideal=False):
     imr_theta = np.deg2rad(header["D_IMRANG"]) + filt_dict["imr_offset"]
     flc_ang = 0 if header["U_FLC"] == "A" else np.pi / 4
     flc_theta = flc_ang + filt_dict["flc_offset"]
+    beam = header["U_CAMERA"] == 1  # true if ordinary
+    if "U_MBI" in header:
+        flc_theta *= -1
+        beam = not beam
 
     M = np.linalg.multi_dot(
         (
-            wollaston(header["U_CAMERA"] == 1),
+            wollaston(beam),
             waveplate(flc_theta, filt_dict["flc_delta"]),
             generic(
                 filt_dict["optics_theta"], filt_dict["optics_diatt"], filt_dict["optics_delta"]

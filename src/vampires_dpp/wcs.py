@@ -6,7 +6,7 @@ from astropy.time import Time
 from astroquery.vizier import Vizier
 
 
-def apply_wcs(header, pxscale, angle=0):
+def apply_wcs(header, angle=0):
     nx = header["NAXIS1"]
     ny = header["NAXIS2"]
 
@@ -17,7 +17,7 @@ def apply_wcs(header, pxscale, angle=0):
         Angle(header["DEC"], u.degree).degree,
     ]
     w.wcs.cunit = ["deg", "deg"]
-    w.wcs.cdelt = [-pxscale / 3.6e6, pxscale / 3.6e6]
+    w.wcs.cdelt = [-header["PXSCALE"] / 3.6e6, header["PXSCALE"] / 3.6e6]
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     ang = np.deg2rad(-angle)
     cosang = np.cos(ang)
@@ -63,7 +63,10 @@ GAIA_CATALOGS = {"dr1": "I/337/gaia", "dr2": "I/345/gaia2", "dr3": "I/355/gaiadr
 def get_gaia_astrometry(target, catalog="dr3", radius=1):
     # get precise RA and DEC
     gaia_catalog_list = Vizier.query_object(
-        target, radius=radius * u.arcsec, catalog=GAIA_CATALOGS[catalog.lower()]
+        target,
+        radius=radius * u.arcsec,
+        catalog=GAIA_CATALOGS[catalog.lower()],
+        coordinate_system="J2016",
     )
     if len(gaia_catalog_list) == 0:
         return None

@@ -171,7 +171,7 @@ def lucky_image_file(
         add_metrics_to_header(hdr, masked_metrics, index=i)
         headers.append(hdr)
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=header)
-    hdus = [fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers)]
+    hdus = (fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers))
     hdu = fits.HDUList([prim_hdu, *hdus])
     # write to disk
     hdu.writeto(outpath, overwrite=True)
@@ -184,19 +184,18 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "mean": "[adu] Mean signal{}measured in window {}",
     "med": "[adu] Median signal{}measured in window {}",
     "var": "[adu^2] Signal variance{}measured in window {}",
-    "nvar": "[adu] Normalized variance{}measured in window {}",
+    "nvar": "[adu] Normed variance{}measured in window {}",
     "photr": "[px] Radius of photometric aperture",
     "photf": "[adu] Photometric flux{}in window {}",
-    # "phote": "[adu] Photometric flux error in window {}",
-    "com_x": "[px] Center-of-mass{}along x axis in window {}",
-    "com_y": "[px] Center-of-mass{}along y axis in window {}",
-    "pk_x": "[px] Peak signal index{}along x axis in window {}",
-    "pk_y": "[px] Peak signal index{}along y axis in window {}",
+    "com_x": "[px] COM{}along x axis in window {}",
+    "com_y": "[px] COM{}along y axis in window {}",
+    "pk_x": "[px] Peak index{}along x axis in window {}",
+    "pk_y": "[px] Peak index{}along y axis in window {}",
     "psfmod": "Model used for PSF fitting",
-    "mod_x": "[px] Model center fit{}along x axis in window {}",
-    "mod_y": "[px] Model center fit{}along y axis in window {}",
-    "mod_w": "[px] Model FWHM fit{}in window {}",
-    "mod_a": "[adu] Model amplitude fit{}in window {}",
+    "mod_x": "[px] Model fit{}along x axis in window {}",
+    "mod_y": "[px] Model fit{}along y axis in window {}",
+    "mod_w": "[px] Model FWHM{}in window {}",
+    "mod_a": "[adu] Model amplitude{}in window {}",
 }
 
 

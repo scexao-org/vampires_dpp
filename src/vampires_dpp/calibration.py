@@ -1,7 +1,7 @@
 # library functions for common calibration tasks like
 # background subtraction, collapsing cubes
 import multiprocessing as mp
-from os import PathLike
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -13,8 +13,14 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.stats import biweight_location
 from astropy.time import Time
-from astroscrappy import detect_cosmics
 from tqdm.auto import tqdm
+
+# need to safely import astroscrappy because it
+# forces CPU affinity to drop to 0
+_CORES = os.sched_getaffinity(0)
+from astroscrappy import detect_cosmics
+
+os.sched_setaffinity(0, _CORES)
 
 from vampires_dpp.constants import DEFAULT_NPROC, SUBARU_LOC
 from vampires_dpp.headers import fix_header, parallactic_angle
@@ -149,8 +155,9 @@ def calibrate_file(
 
     # load data and mask saturated pixels
     raw_cube, header = load_fits(path, header=True)
-    cube = np.where(raw_cube >= 65535, np.nan, raw_cube.astype("f4"))
     header = fix_header(header)
+    # mask values above saturation
+    cube = np.where(raw_cube >= header["FULLWELL"] / header["GAIN"], np.nan, raw_cube.astype("f4"))
     # apply proper motion correction to coordinate
     header = apply_coordinate(header, coord)
 
@@ -168,27 +175,30 @@ def calibrate_file(
         cube = cube / flat
     # bad pixel correction
     if bpfix:
+        # la cosmic on mean frame
         mask, _ = detect_cosmics(
-            cube.mean(0),
-            gain=header.get("GAIN") * max(1, header.get("DETGAIN", 1)),
+            np.mean(cube, axis=0),
+            gain=header.get("GAIN"),
             readnoise=header["RN"],
-            satlevel=2**16 * header.get("GAIN") * max(1, header.get("DETGAIN", 1)),
+            satlevel=header["FULLWELL"],
             niter=1,
         )
+        # fix bad pixels with 5x5 median filter
         cube_copy = cube.copy()
         for i in range(cube.shape[0]):
             smooth_im = cv2.medianBlur(cube_copy[i], 5)
             cube[i, mask] = smooth_im[mask]
-    # flip cam 1 data
+    # flip cam 1 data on y-axis
     if header["U_CAMERA"] == 1:
         cube = np.flip(cube, axis=-2)
     # distortion correction
+    # TODO tbh this is scuffed
     if transform_filename is not None:
         transform_path = Path(transform_filename)
         distort_coeffs = pd.read_csv(transform_path, index_col=0)
         params = distort_coeffs.loc[f"cam{header['U_CAMERA']:.0f}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
-
+    # clip fot float32 to limit data size
     return fits.PrimaryHDU(cube.astype("f4"), header=header)
 
 
@@ -197,7 +207,7 @@ def make_background_file(filename: str, force=False, **kwargs):
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     raw_cube, header = load_fits(path, header=True)
-    cube = np.where(raw_cube >= 65535, np.nan, raw_cube.astype("f4"))
+    cube = np.where(raw_cube >= header["FULLWELL"] / header["GAIN"], np.nan, raw_cube.astype("f4"))
     master_background, header = collapse_cube(cube, header=header, **kwargs)
     header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
     ## TODO add bad-pixel mask creation
@@ -221,7 +231,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     raw_cube, header = load_fits(path, header=True)
-    cube = np.where(raw_cube >= 65535, np.nan, raw_cube.astype("f4"))
+    cube = np.where(raw_cube >= header["FULLWELL"] / header["GAIN"], np.nan, raw_cube.astype("f4"))
     header["CAL_TYPE"] = "FLATFIELD", "DPP calibration file type"
     if back_filename is not None:
         back_path = Path(back_filename)

@@ -149,13 +149,6 @@ class CalibrateConfig(BaseModel):
     distortion_file: Optional[Path] = None
     fix_bad_pixels: bool = False
     save_intermediate: bool = False
-    output_directory: ClassVar[Path] = Path("calib")
-
-    def get_output_path(self, filename: Path):
-        # replace any .fits.fz with .fits
-        name = filename.name.split(".fits")[0]
-        # take input filename and append '_calib'
-        return self.output_directory / f"{name}_calib.fits"
 
 
 class CollapseConfig(BaseModel):
@@ -198,13 +191,6 @@ class CollapseConfig(BaseModel):
     centroid: Optional[Literal["com", "peak", "psf", "model"]] = "com"
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     recenter: bool = True
-    output_directory: ClassVar[Path] = Path("collapsed")
-
-    def get_output_path(self, filename: Path):
-        # replace any .fits.fz with .fits
-        name = filename.name.split(".fits")[0]
-        # take input filename and append '_coll'
-        return self.output_directory / f"{name}_coll.fits"
 
 
 class AnalysisConfig(BaseModel):
@@ -248,13 +234,6 @@ class AnalysisConfig(BaseModel):
     window_size: int = 30
     # dft_factor: int = 5
     # dft_ref: Literal["centroid", "peak"] | Path = "centroid"
-    output_directory: ClassVar[Path] = Path("metrics")
-
-    def get_output_path(self, filename: Path):
-        # replace any .fits.fz with .fits
-        name = filename.name.split(".fits")[0]
-        # take input filename and append '_metrics'
-        return self.output_directory / f"{name}_metrics.npz"
 
     # def __post_init__(self):
     #     if not isinstance(self.aper_rad, str) and self.aper_rad > self.window_size / 2:
@@ -318,12 +297,6 @@ class PolarimetryConfig(BaseModel):
     ip_correct: bool = True
     ip_method: Literal["aperture"] = "aperture"
     ip_radius: float = 15
-    output_directory: ClassVar[Path] = Path("pdi")
-
-    def get_output_path(self, filename: Path):
-        # replace any .fits.fz with .fits
-        name = filename.name.split(".fits")[0]
-        return self.output_directory / "mm" / f"{name}_mm.fits"
 
 
 class PipelineConfig(BaseModel):
@@ -426,7 +399,7 @@ class PipelineConfig(BaseModel):
     collapse: CollapseConfig = CollapseConfig()
     polarimetry: Optional[PolarimetryConfig] = None
     preproc_directory: ClassVar[Path] = Path("preproc")
-    product_directory: ClassVar[Path] = Path("product")
+    product_directory: ClassVar[Path] = Path("products")
 
     @classmethod
     def from_file(cls, filename: PathLike):
