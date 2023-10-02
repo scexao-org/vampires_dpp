@@ -32,6 +32,7 @@ def analyze_fields(
     inds,
     aper_rad,
     ann_rad=None,
+    fit_model: bool=True,
     model="gaussian",
     strehl: bool = False,
     refmethod="com",
@@ -46,7 +47,7 @@ def analyze_fields(
     output["med"] = np.nanmedian(cutout, axis=(-2, -1))
     output["var"] = np.nanvar(cutout, axis=(-2, -1))
     output["nvar"] = output["var"] / output["mean"]
-    if model is not None:
+    if fit_model:
         output["psfmod"] = np.full(cube.shape[0], model)
     ## Centroids
     for frame in cube:
@@ -67,7 +68,7 @@ def analyze_fields(
             append_or_create(output, "phote", photerr)
 
         ## fit PSF to center
-        if model is not None:
+        if fit_model:
             model_fit = offset_modelfit(frame, inds, model=model)
             append_or_create(output, "mod_x", model_fit["x"])
             append_or_create(output, "mod_y", model_fit["y"])
@@ -81,6 +82,7 @@ def analyze_file(
     outpath,
     centroids,
     subtract_radprof: bool = False,
+    fit_model: bool = True,
     model="gaussian",
     refmethod="com",
     aper_rad=None,
@@ -108,6 +110,7 @@ def analyze_file(
                 data,
                 header=hdu.header,
                 inds=inds,
+                fit_model=fit_model,
                 model=model,
                 aper_rad=aper_rad,
                 ann_rad=ann_rad,

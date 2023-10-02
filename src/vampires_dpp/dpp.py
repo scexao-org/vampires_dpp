@@ -216,13 +216,17 @@ def flat(ctx, filenames, back, collapse, force):
     background_files = []
     if back is None:
         back = ctx.obj["outdir"]
-    if back.is_dir():
-        fits_files = (
-            list(back.rglob("*.fits.*")) + list(back.rglob("*.fts.*")) + list(back.rglob("*.fit.*"))
-        )
+        fits_files = list(back.glob("[!._]*.fits")) + list(back.glob("[!._]*.fits.fz"))
         background_files.extend(
             filter(lambda f: load_fits_key(f, "CAL_TYPE") == "BACKGROUND", fits_files)
         )
+    elif back.is_dir():
+        fits_files = list(back.glob("[!._]*.fits")) + list(back.glob("[!._]*.fits.fz"))
+        background_files.extend(
+            filter(lambda f: load_fits_key(f, "CAL_TYPE") == "BACKGROUND", fits_files)
+        )
+    else:
+        background_files = [back]
     make_master_flat(
         filenames,
         collapse=collapse,
@@ -230,6 +234,7 @@ def flat(ctx, filenames, back, collapse, force):
         output_directory=ctx.obj["outdir"],
         quiet=ctx.obj["quiet"],
         num_proc=ctx.obj["num_proc"],
+        master_backgrounds=background_files
     )
 
 
@@ -739,12 +744,19 @@ def pdi(config, num_proc, quiet, outdir):
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
 )
 @click.option(
+    "-t",
+    "--type",
+    "_type",
+    default="csv",
+    type=click.Choice(["sql", "csv"], case_sensitive=False),
+    help="Save as a CSV file or create a headers table in a sqlite database"
+)
+@click.option(
     "--output",
     "-o",
     type=click.Path(dir_okay=False, writable=True, path_type=Path),
-    default=(Path.cwd() / "header_table.csv").name,
-    help="Output path.",
-    show_default=True,
+    default=(Path.cwd() / "header_table").name,
+    help="Output path without file extension.",
 )
 @click.option(
     "--num-proc",
@@ -752,7 +764,6 @@ def pdi(config, num_proc, quiet, outdir):
     default=DEFAULT_NPROC,
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
-    show_default=True,
 )
 @click.option(
     "--quiet",
@@ -760,15 +771,25 @@ def pdi(config, num_proc, quiet, outdir):
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def table(filenames, output, num_proc, quiet):
+def table(filenames, _type, output, num_proc, quiet):
     # handle name clashes
     outpath = Path(output).resolve()
-    if outpath.is_file():
+    if _type == "csv":
+        outname = outpath.with_name(f"{outpath.name}.csv")
+    elif _type == "sql":
+        outname = outpath.with_name(f"{outpath.name}.db")
+
+    if outname.exists():
         click.confirm(
-            f"{outpath.name} already exists in the output directory. Overwrite?", abort=True
+            f"{outname.name} already exists in the output directory. Overwrite?", abort=True
         )
     df = header_table(filenames, num_proc=num_proc, quiet=quiet)
-    df.to_csv(outpath)
+    if _type == "csv":
+        df.to_csv(outname)
+    elif _type == "sql":
+        df.to_sql("headers", f"sqlite:///{outname.absolute()}")
+    return outname
+
 
 
 ########## upgrade ##########

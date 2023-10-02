@@ -67,22 +67,21 @@ class Pipeline:
         self.working_db = self.working_db.loc[mask]
         return self.working_db
 
-    def create_raw_input_psf(self, table, max_files=50) -> dict[str, Path]:
+    def create_raw_input_psf(self, table, max_files=5) -> dict[str, Path]:
         # group by cameras
         outfiles = {}
         for cam_num, group in table.groupby("U_CAMERA"):
             paths = group["path"].sample(n=max_files)
             outpath = self.paths.preproc_dir / f"{self.config.name}_raw_psf_cam{cam_num:.0f}.fits"
             outpath.parent.mkdir(parents=True, exist_ok=True)
-            outfile = collapse_frames_files(paths, output=outpath, cubes=True)
+            outfile = collapse_frames_files(paths, output=outpath, cubes=True, quiet=False)
             outfiles[f"cam{cam_num:.0f}"] = outfile
             logger.info(f"Saved raw PSF frame to {outpath.absolute()}")
         return outfiles
 
     def save_centroids(self, table):
-        self.centroids = {"cam1": None, "cam2": None}
         raw_psf_filenames = self.create_raw_input_psf(table)
-        for key in self.centroids.keys():
+        for key in ("cam1", "cam2"):
             path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
 
             im, hdr = load_fits(raw_psf_filenames[key], header=True)
@@ -104,21 +103,21 @@ class Pipeline:
             logger.debug(f"Saved {key} centroids to {path}")
 
     def get_centroids(self):
-        self.centroids = {"cam1": None, "cam2": None}
-        for key in self.centroids.keys():
+        self.centroids = {}
+        for key in ("cam1", "cam2"):
             path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
             if not path.exists():
-                raise RuntimeError(
+                logger.warning(
                     f"Could not locate centroid file for {key}, expected it to be at {path}"
                 )
+                continue
             with path.open("rb") as fh:
                 centroids = tomli.load(fh)
             self.centroids[key] = {}
             for field, ctrs in centroids.items():
                 self.centroids[key][field] = np.flip(np.atleast_2d(ctrs), axis=-1)
 
-        logger.debug(f"Cam 1 frame center is {self.centroids['cam1']} (y, x)")
-        logger.debug(f"Cam 2 frame center is {self.centroids['cam2']} (y, x)")
+            logger.debug(f"{key} frame center is {self.centroids['cam1']} (y, x)")
         return self.centroids
 
     def add_paths_to_db(self):
@@ -210,6 +209,7 @@ class Pipeline:
 
     def process_one(self, fileinfo):
         # fix headers and calibrate
+        logger.debug(f"Processing {fileinfo['path']}")
         cur_hdu = self.calibrate_one(fileinfo["path"], fileinfo)
         ## Step 2: Frame analysis
         self.analyze_one(cur_hdu, fileinfo)
@@ -263,6 +263,7 @@ class Pipeline:
             subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
             ann_rad=config.ann_rad,
+            fit_model=config.fit_model,
             model=config.model,
             outpath=fileinfo["metric_file"],
             force=force,

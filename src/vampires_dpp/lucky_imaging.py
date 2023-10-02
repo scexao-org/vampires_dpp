@@ -138,7 +138,6 @@ def lucky_image_file(
 
     if register:
         psf_centroids = get_centroids_from(masked_metrics, input_key=register)
-
     frames = []
     headers = []
     for i, (field, psf_ctr) in enumerate(fields.items()):

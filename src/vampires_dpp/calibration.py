@@ -3,7 +3,8 @@
 import multiprocessing as mp
 import os
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Sequence
+from loguru import logger
 
 import astropy.units as u
 import cv2
@@ -70,7 +71,7 @@ def normalize_file(
         path, outpath = get_paths(filename, suffix="fix", **kwargs)
         if outpath.exists():
             return outpath
-
+    logger.debug(f"Loading {path} for normalization")
     data, header = load_fits(path, header=True)
     # determine how many frames to discard
     ndiscard = 0 if "U_FLCSTT" in header else 2
@@ -251,9 +252,10 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
         back_path = Path(back_filename)
         header["DPP_BACK"] = (back_path.name, "DPP file used for background subtraction")
         master_back = load_fits(back_path)
-        cube -= master_back
+        cube = cube - master_back
     master_flat, header = collapse_cube(cube, header=header, **kwargs)
-    master_flat /= np.nanmedian(master_flat)
+    ## TMP
+    # master_flat /= np.nanmedian(master_flat)
 
     fits.writeto(
         outpath,
@@ -288,8 +290,7 @@ def sort_calib_files(filenames: Iterable, backgrounds=False) -> dict[tuple, Path
                 key = (
                     header["U_CAMERA"],
                     header["EXPTIME"],
-                    header["FILTER01"],
-                    header["FILTER02"],
+                    (header["FILTER01"], header["FILTER02"]),
                     sz,
                 )
 
@@ -364,7 +365,7 @@ def make_master_background(
 
 def make_master_flat(
     filenames: Iterable,
-    master_backgrounds: Optional[Iterable] = None,
+    master_backgrounds: Optional[Sequence] = None,
     collapse: str = "median",
     name: str = "master_flat",
     force: bool = False,
@@ -376,16 +377,15 @@ def make_master_flat(
     file_inputs = sort_calib_files(filenames)
     master_back_dict = {key: None for key in file_inputs.keys()}
     if master_backgrounds is not None:
-        back_inputs = sort_calib_files(master_backgrounds, backgrounds=True)
         for key in file_inputs.keys():
-            # don't need to match filter for backs
-            if len(key) == 5:
-                back_key = key[:-1]
-            else:
-                back_key = tuple(*key[:3], *key[5:])
-            # input should be list with one file in it
-            if back_key in back_inputs:
-                master_back_dict[key] = back_inputs[back_key][0]
+            master_back_dict[key] = master_backgrounds[0]
+        # back_inputs = sort_calib_files(master_backgrounds, backgrounds=True)
+        # for key in file_inputs.keys():
+        #     # don't need to match filter for backs
+        #     back_key = tuple([*key[:2], *key[3:]])
+        #     # input should be list with one file in it
+        #     if back_key in back_inputs:
+        #         master_back_dict[key] = back_inputs[back_key][0]
 
     if output_directory is not None:
         outdir = Path(output_directory)
@@ -406,7 +406,7 @@ def make_master_flat(
                     / f"{name}_{filt}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
                 )
             else:
-                cam, exptime, filt1, filt2, gain, sz = key
+                cam, exptime, (filt1, filt2), sz = key
                 outname = (
                     outdir
                     / f"{name}_{filt1}_{filt2}_{exptime*1e3:07.02f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"

@@ -11,6 +11,7 @@ from astropy.coordinates import Angle
 from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
+import tqdm.auto as tqdm
 
 from vampires_dpp.indexing import frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header, header_table
@@ -354,14 +355,18 @@ def collapse_frames(frames, headers=None, method="median", **kwargs):
     return collapse_cube(cube, method=method, header=header)
 
 
-def collapse_frames_files(filenames, output, force=False, cubes=False, **kwargs):
+def collapse_frames_files(filenames, output, force=False, cubes=False, quiet=True, **kwargs):
     path = Path(output)
     if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
 
     frames = []
     headers = []
-    for filename in filenames:
+    if not quiet:
+        _iter = tqdm.tqdm(filenames, "Collecting files")
+    else:
+        _iter = filenames
+    for filename in _iter:
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>
         frame, header = load_fits(filename, header=True, memmap=False)
