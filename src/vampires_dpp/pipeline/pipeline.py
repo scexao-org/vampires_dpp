@@ -123,19 +123,19 @@ class Pipeline:
         # figure out which metrics need to be calculated, which is necessary to collapse files
         func = lambda p: get_paths(
             p, suffix="metrics", filetype=".npz", output_directory=self.paths.metrics_dir
-        )
+        )[1]
         self.working_db["metric_file"] = input_paths.apply(func)
 
         if self.config.collapse is not None:
             func = lambda p: get_paths(
                 p, suffix="coll", filetype=".fits", output_directory=self.paths.collapsed_dir
-            )
+            )[1]
             self.working_db["collapse_file"] = input_paths.apply(func)
 
         if self.config.calibrate.save_intermediate:
             func = lambda p: get_paths(
                 p, suffix="calib", filetype=".fits", output_directory=self.paths.calibrated_dir
-            )
+            )[1]
             self.working_db["calib_file"] = input_paths.apply(func)
 
         self.working_db.to_csv(self.db_file)
@@ -348,7 +348,7 @@ class Pipeline:
         with mp.Pool(self.num_proc) as pool:
             jobs = []
             for row in self.working_db.itertuples(index=False):
-                outpath = get_paths(row.path, suffix="mm", output_directory=self.paths.mm_dir)
+                _, outpath = get_paths(row.path, suffix="mm", output_directory=self.paths.mm_dir)
                 jobs.append(
                     pool.apply_async(mueller_matrix_from_file, args=(row.path, outpath), kwds=kwds)
                 )
@@ -375,7 +375,7 @@ class Pipeline:
             self.working_db["mm_file"] = self.make_mueller_mats()
 
         logger.info("Performing polarimetric calibration")
-        logger.debug(f"Saving Stokes data to {self.paths.polarimetry_dir.absolute()}")
+        logger.debug(f"Saving Stokes data to {self.paths.pdi_dir.absolute()}")
         match self.config.polarimetry.method:
             case "doublediff" | "triplediff":
                 self.polarimetry_difference(method=self.config.polarimetry.method, force=force)

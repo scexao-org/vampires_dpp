@@ -14,7 +14,9 @@ from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.indexing import frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header, header_table
-from vampires_dpp.util import any_file_newer, delta_angle, get_paths
+from vampires_dpp.util import delta_angle
+
+from .paths import any_file_newer, get_paths
 
 
 def shift_frame(data: ArrayLike, shift: list | Tuple, **kwargs) -> NDArray:

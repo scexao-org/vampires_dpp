@@ -3,7 +3,7 @@
 import multiprocessing as mp
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 
 import astropy.units as u
 import cv2
@@ -17,10 +17,14 @@ from tqdm.auto import tqdm
 
 # need to safely import astroscrappy because it
 # forces CPU affinity to drop to 0
-_CORES = os.sched_getaffinity(0)
-from astroscrappy import detect_cosmics
+try:
+    _CORES = os.sched_getaffinity(0)
+    from astroscrappy import detect_cosmics
 
-os.sched_setaffinity(0, _CORES)
+    os.sched_setaffinity(0, _CORES)
+except AttributeError:
+    # not on a UNIX system
+    from astroscrappy import detect_cosmics
 
 from vampires_dpp.constants import DEFAULT_NPROC, SUBARU_LOC
 from vampires_dpp.headers import fix_header, parallactic_angle
@@ -29,8 +33,10 @@ from vampires_dpp.image_processing import (
     collapse_frames_files,
     correct_distortion_cube,
 )
-from vampires_dpp.util import append_or_create, get_paths, load_fits, wrap_angle
+from vampires_dpp.util import append_or_create, load_fits, wrap_angle
 from vampires_dpp.wcs import apply_wcs, get_coord_header
+
+from .paths import get_paths
 
 __all__ = [
     "normalize_file",
@@ -250,7 +256,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     return outpath
 
 
-def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dict[tuple, Path]:
+def sort_calib_files(filenames: Iterable, backgrounds=False, ext=0) -> dict[tuple, Path]:
     file_dict: dict[tuple, Path] = {}
     for filename in filenames:
         path = Path(filename)
@@ -284,11 +290,11 @@ def sort_calib_files(filenames: list[PathLike], backgrounds=False, ext=0) -> dic
 
 
 def make_master_background(
-    filenames: list[PathLike],
+    filenames: Iterable,
     collapse: str = "median",
     name: str = "master_back",
     force: bool = False,
-    output_directory: Optional[PathLike] = None,
+    output_directory: Optional = None,
     num_proc: int = DEFAULT_NPROC,
     quiet: bool = False,
 ) -> list[Path]:
@@ -349,12 +355,12 @@ def make_master_background(
 
 
 def make_master_flat(
-    filenames: list[PathLike],
-    master_backgrounds: Optional[list[PathLike]] = None,
+    filenames: Iterable,
+    master_backgrounds: Optional[Iterable] = None,
     collapse: str = "median",
     name: str = "master_flat",
     force: bool = False,
-    output_directory: Optional[PathLike] = None,
+    output_directory: Optional = None,
     num_proc: int = DEFAULT_NPROC,
     quiet: bool = False,
 ) -> list[Path]:

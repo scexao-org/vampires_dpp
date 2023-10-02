@@ -14,7 +14,7 @@ from vampires_dpp.image_processing import (
     derotate_frame,
 )
 
-from ..util import any_file_newer
+from ..paths import any_file_newer
 from .utils import instpol_correct, measure_instpol, write_stokes_products
 
 

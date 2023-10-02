@@ -7,10 +7,7 @@ from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.analysis import safe_aperture_sum
-from vampires_dpp.image_processing import combine_frames_headers, derotate_frame
-from vampires_dpp.image_registration import offset_centroid
 from vampires_dpp.indexing import cutout_inds, frame_angles
-from vampires_dpp.util import any_file_newer, average_angle
 from vampires_dpp.wcs import apply_wcs
 
 from .mueller_matrices import mueller_matrix_from_header
