@@ -14,7 +14,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.indexing import frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header, header_table
-from vampires_dpp.util import delta_angle
+from vampires_dpp.util import delta_angle, load_fits
 
 from .paths import any_file_newer, get_paths
 
@@ -235,7 +235,7 @@ def collapse_cube_file(filename, force: bool = False, **kwargs) -> Path:
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
-    cube, header = fits.getdata(
+    cube, header = load_fits(
         path,
         header=True,
     )
@@ -339,7 +339,7 @@ def combine_frames_files(filenames, output, force=False, **kwargs):
     for filename in filenames:
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>
-        frame, header = fits.getdata(filename, header=True, memmap=False)
+        frame, header = load_fits(filename, header=True, memmap=False)
         frames.append(frame)
         headers.append(header)
 
@@ -364,7 +364,7 @@ def collapse_frames_files(filenames, output, force=False, cubes=False, **kwargs)
     for filename in filenames:
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>
-        frame, header = fits.getdata(filename, header=True, memmap=False)
+        frame, header = load_fits(filename, header=True, memmap=False)
         if cubes:
             frame = frame[np.random.randint(0, len(frame))]
         frames.append(frame)
@@ -533,11 +533,11 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
     if not force and outname.is_file() and not any_file_newer((cam1_file, cam2_file), outname):
         return outname
 
-    cam1_frame, header = fits.getdata(
+    cam1_frame, header = load_fits(
         cam1_file,
         header=True,
     )
-    cam2_frame, header2 = fits.getdata(
+    cam2_frame, header2 = load_fits(
         cam2_file,
         header=True,
     )

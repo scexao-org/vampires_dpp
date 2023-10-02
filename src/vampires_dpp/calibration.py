@@ -33,7 +33,13 @@ from vampires_dpp.image_processing import (
     collapse_frames_files,
     correct_distortion_cube,
 )
-from vampires_dpp.util import append_or_create, load_fits, wrap_angle
+from vampires_dpp.util import (
+    append_or_create,
+    load_fits,
+    load_fits_header,
+    load_fits_key,
+    wrap_angle,
+)
 from vampires_dpp.wcs import apply_wcs, get_coord_header
 
 from .paths import get_paths
@@ -171,13 +177,13 @@ def calibrate_file(
     if back_filename is not None:
         back_path = Path(back_filename)
         header["BACKFILE"] = back_path.name
-        background = fits.getdata(back_path).astype("f4")
+        background = load_fits(back_path).astype("f4")
         cube = cube - background
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
         header["FLATFILE"] = flat_path.name
-        flat = fits.getdata(flat_path).astype("f4")
+        flat = load_fits(flat_path).astype("f4")
         cube = cube / flat
     # bad pixel correction
     if bpfix:
@@ -256,11 +262,11 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     return outpath
 
 
-def sort_calib_files(filenames: Iterable, backgrounds=False, ext=0) -> dict[tuple, Path]:
+def sort_calib_files(filenames: Iterable, backgrounds=False) -> dict[tuple, Path]:
     file_dict: dict[tuple, Path] = {}
     for filename in filenames:
         path = Path(filename)
-        header = fits.getheader(path, ext=ext)
+        header = load_fits_header(path)
         sz = header["NAXIS1"], header["NAXIS2"]
         if "DETGAIN" in header:
             if backgrounds:

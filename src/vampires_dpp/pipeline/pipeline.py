@@ -33,6 +33,7 @@ from vampires_dpp.pipeline.config import PipelineConfig
 
 from ..lucky_imaging import lucky_image_file
 from ..paths import Paths, any_file_newer, get_paths
+from ..util import load_fits
 from .modules import get_psf_centroids_mpl
 
 
@@ -83,7 +84,7 @@ class Pipeline:
         for key in self.centroids.keys():
             path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
 
-            im, hdr = fits.getdata(raw_psf_filenames[key], header=True)
+            im, hdr = load_fits(raw_psf_filenames[key], header=True)
             npsfs = 4 if self.config.coronagraphic else 1
             outpath = self.paths.preproc_dir / f"{self.config.name}_{key}.png"
             if "MBI" in hdr.get("OBS-MOD", ""):

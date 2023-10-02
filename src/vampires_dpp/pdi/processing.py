@@ -15,6 +15,7 @@ from vampires_dpp.image_processing import (
 )
 
 from ..paths import any_file_newer
+from ..util import load_fits
 from .utils import instpol_correct, measure_instpol, write_stokes_products
 
 
@@ -122,7 +123,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
 def make_triplediff_dict(filenames):
     output = {}
     for file in filenames:
-        data, hdr = fits.getdata(file, header=True)
+        data, hdr = load_fits(file, header=True)
         # get row vector for mueller matrix of each file
         # store into dictionaries
         key = hdr["RET-ANG1"], hdr["U_FLC"], hdr["U_CAMERA"]
@@ -133,7 +134,7 @@ def make_triplediff_dict(filenames):
 def make_doublediff_dict(filenames):
     output = {}
     for file in filenames:
-        data, hdr = fits.getdata(file, header=True)
+        data, hdr = load_fits(file, header=True)
         # get row vector for mueller matrix of each file
         # store into dictionaries
         key = hdr["RET-ANG1"], hdr["U_CAMERA"]
@@ -236,11 +237,11 @@ def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=Fal
     for file, mm_file in tqdm.tqdm(
         zip(filenames, mm_filenames), total=len(filenames), desc="Least-squares calibration"
     ):
-        cube, hdr = fits.getdata(file, header=True, memmap=False)
+        cube, hdr = load_fits(file, header=True, memmap=False)
         # rotate to N up E left
         cube_derot = derotate_frame(cube, hdr["DEROTANG"])
         # get row vector for mueller matrix of each file
-        mueller_mat = fits.getdata(mm_file, memmap=False)[0]
+        mueller_mat = load_fits(mm_file, memmap=False)[0]
 
         cubes.append(cube_derot)
         headers.append(hdr)
@@ -309,7 +310,7 @@ def make_stokes_image(
     force=False,
 ):
     if not force and outpath.exists() and not any_file_newer(path_set, outpath):
-        return fits.getdata(outpath, header=True)
+        return load_fits(outpath, header=True)
 
     # create stokes cube
     if method == "triplediff":

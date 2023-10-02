@@ -90,6 +90,20 @@ def load_fits(filename, ext=0, **kwargs):
     return fits.getdata(path, ext=ext, **kwargs)
 
 
+def load_fits_header(filename, ext=0, **kwargs):
+    path = Path(filename)
+    if ".fits.fz" in path.name:
+        ext = 1
+    return fits.getheader(path, ext=ext, **kwargs)
+
+
+def load_fits_key(filename, key, ext=0, **kwargs):
+    path = Path(filename)
+    if ".fits.fz" in path.name:
+        ext = 1
+    return fits.getkey(path, key, ext=ext, **kwargs)
+
+
 def append_or_create(dict, key, value):
     if key in dict:
         dict[key].append(value)

@@ -11,6 +11,7 @@ from astropy.io import fits
 from tqdm.auto import tqdm
 
 from .headers import fix_header
+from .util import load_fits_header
 
 
 def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
@@ -22,7 +23,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     filename : str
         FITS file to parse
     **kwargs
-        All keyword arguments will be passed to ``fits.getheader``
+        All keyword arguments will be passed to ``load_fits_header``
 
     Returns
     -------
@@ -32,8 +33,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     summary = OrderedDict()
     # add path to row before the FITS header keys
     summary["path"] = str(path.resolve().absolute())
-    ext = 1 if ".fits.fz" in path.name else 0
-    header = fix_header(fits.getheader(filename, ext=ext, **kwargs))
+    header = fix_header(load_fits_header(filename, **kwargs))
     summary.update(dict_from_header(header))
     return summary
 
@@ -112,7 +112,7 @@ def sort_files(
 
 def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs) -> Path:
     path = Path(filename)
-    header = fits.getheader(path, **kwargs)
+    header = load_fits_header(path, **kwargs)
 
     # data pre 2023/02/02 does not store DATA-TYP
     # meaningfully, so use ad-hoc sorting method

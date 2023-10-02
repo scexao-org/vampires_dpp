@@ -222,7 +222,7 @@ def flat(ctx, filenames, back, collapse, force):
             list(back.rglob("*.fits.*")) + list(back.rglob("*.fts.*")) + list(back.rglob("*.fit.*"))
         )
         background_files.extend(
-            filter(lambda f: fits.getkey(f, "CAL_TYPE") == "BACKGROUND", fits_files)
+            filter(lambda f: load_fits_key(f, "CAL_TYPE") == "BACKGROUND", fits_files)
         )
     make_master_flat(
         filenames,
