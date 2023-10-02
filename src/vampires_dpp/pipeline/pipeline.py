@@ -32,7 +32,7 @@ from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
 
 from ..lucky_imaging import lucky_image_file
-from ..paths import Paths, any_file_newer, get_paths
+from ..paths import Paths, any_file_newer, get_paths, make_dirs
 from ..util import load_fits
 from .modules import get_psf_centroids_mpl
 
@@ -73,6 +73,7 @@ class Pipeline:
         for cam_num, group in table.groupby("U_CAMERA"):
             paths = group["path"].sample(n=max_files)
             outpath = self.paths.preproc_dir / f"{self.config.name}_raw_psf_cam{cam_num:.0f}.fits"
+            outpath.parent.mkdir(parents=True, exist_ok=True)
             outfile = collapse_frames_files(paths, output=outpath, cubes=True)
             outfiles[f"cam{cam_num:.0f}"] = outfile
             logger.info(f"Saved raw PSF frame to {outpath.absolute()}")
@@ -87,6 +88,7 @@ class Pipeline:
             im, hdr = load_fits(raw_psf_filenames[key], header=True)
             npsfs = 4 if self.config.coronagraphic else 1
             outpath = self.paths.preproc_dir / f"{self.config.name}_{key}.png"
+            outpath.parent.mkdir(parents=True, exist_ok=True)
             if "MBI" in hdr.get("OBS-MOD", ""):
                 field_keys = "F610", "F670", "F720", "F760"
                 nfields = 4
@@ -162,6 +164,7 @@ class Pipeline:
         num_proc : Optional[int]
             Number of processes to use for multi-processing, by default None.
         """
+        make_dirs(self.paths, self.config)
         logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
         conf_copy_path = self.paths.preproc_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
@@ -360,6 +363,7 @@ class Pipeline:
         return mm_paths
 
     def run_polarimetry(self, num_proc, force=False):
+        make_dirs(self.paths, self.config)
         logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
         conf_copy_path = self.paths.preproc_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)

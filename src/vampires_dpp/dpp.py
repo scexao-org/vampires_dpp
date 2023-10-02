@@ -41,7 +41,6 @@ from vampires_dpp.wcs import get_gaia_astrometry
 
 logger.remove(0)
 logger.add(sys.stderr, level="INFO")
-logger.add("debug.log", level="DEBUG", enqueue=True, colorize=False)
 
 
 # callback that will confirm if a flag is false
@@ -682,6 +681,7 @@ def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool,
 )
 def run(config: Path, filenames, num_proc, outdir):
     # make sure versions match within SemVar
+    logger.add(outdir / "debug.log", level="DEBUG", enqueue=True, colorize=False)
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
     if not check_version(pipeline.config.dpp_version, dpp.__version__):
         raise ValueError(
@@ -716,6 +716,7 @@ def run(config: Path, filenames, num_proc, outdir):
 )
 def pdi(config, num_proc, quiet, outdir):
     # make sure versions match within SemVar
+    logger.add(outdir / "debug.log", level="DEBUG", enqueue=True, colorize=False)
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
     if not check_version(pipeline.config.dpp_version, dpp.__version__):
         raise ValueError(

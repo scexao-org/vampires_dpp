@@ -218,7 +218,8 @@ def make_background_file(filename: str, force=False, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    raw_cube, header = load_fits(path, header=True)
+    raw_cube, raw_header = load_fits(path, header=True)
+    header = fix_header(raw_header)
     cube = np.where(raw_cube >= header["FULLWELL"] / header["GAIN"], np.nan, raw_cube.astype("f4"))
     master_background, header = collapse_cube(cube, header=header, **kwargs)
     header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
@@ -242,7 +243,8 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
-    raw_cube, header = load_fits(path, header=True)
+    raw_cube, raw_header = load_fits(path, header=True)
+    header = fix_header(raw_header)
     cube = np.where(raw_cube >= header["FULLWELL"] / header["GAIN"], np.nan, raw_cube.astype("f4"))
     header["CAL_TYPE"] = "FLATFIELD", "DPP calibration file type"
     if back_filename is not None:

@@ -46,8 +46,24 @@ class Paths:
     def stokes_dir(self) -> Path:
         return self.pdi_dir / "stokes"
 
+def make_dirs(paths, config):
+    paths.preproc_dir.mkdir(parents=True, exist_ok=True)
+    paths.products_dir.mkdir(parents=True, exist_ok=True)
+    paths.metrics_dir.mkdir(parents=True, exist_ok=True)
+    if config.calibrate.save_intermediate:
+        paths.calib_dir.mkdir(parents=True, exist_ok=True)
+    if config.collapse:
+        paths.collapsed_dir.mkdir(parents=True, exist_ok=True)
+    if config.make_diff_images:
+        paths.diff_dir.mkdir(parents=True, exist_ok=True)
+    if config.save_adi_cubes:
+        paths.adi_dir.mkdir(parents=True, exist_ok=True)
+    if config.polarimetry:
+        paths.pdi_dir.mkdir(parents=True, exist_ok=True)
+        paths.mm_dir.mkdir(parents=True, exist_ok=True)
+        paths.stokes_dir.mkdir(parents=True, exist_ok=True)
 
-def get_paths(filename, /, suffix=None, outname=None, output_directory=None, filetype=".fits"):
+def get_paths(filename, /, suffix=None, outname=None, output_directory=None, filetype=".fits", **kwargs):
     path = Path(filename)
     _suffix = "" if suffix is None else f"_{suffix}"
     if output_directory is None:

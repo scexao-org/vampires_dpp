@@ -398,8 +398,6 @@ class PipelineConfig(BaseModel):
     analysis: AnalysisConfig = AnalysisConfig()
     collapse: CollapseConfig = CollapseConfig()
     polarimetry: Optional[PolarimetryConfig] = None
-    preproc_directory: ClassVar[Path] = Path("preproc")
-    product_directory: ClassVar[Path] = Path("products")
 
     @classmethod
     def from_file(cls, filename: PathLike):

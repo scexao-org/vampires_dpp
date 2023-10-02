@@ -66,7 +66,6 @@ def get_gaia_astrometry(target, catalog="dr3", radius=1):
         target,
         radius=radius * u.arcsec,
         catalog=GAIA_CATALOGS[catalog.lower()],
-        coordinate_system="J2016",
     )
     if len(gaia_catalog_list) == 0:
         return None
