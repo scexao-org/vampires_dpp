@@ -167,8 +167,7 @@ def lucky_image_file(
         hdr = header.copy()
         hdr["FIELD"] = field
         ## handle header metadata
-        add_metrics_to_header(hdr, masked_metrics, index=i)
-        headers.append(hdr)
+        headers.append(add_metrics_to_header(hdr, masked_metrics, index=i))
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=header)
     hdus = (fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers))
     hdu = fits.HDUList([prim_hdu, *hdus])
