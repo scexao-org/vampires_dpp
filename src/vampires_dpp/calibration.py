@@ -272,7 +272,7 @@ def sort_calib_files(filenames: Iterable, backgrounds=False) -> dict[tuple, Path
         path = Path(filename)
         header = load_fits_header(path)
         sz = header["NAXIS1"], header["NAXIS2"]
-        if "DETGAIN" in header:
+        if "U_EMGAIN" in header:
             if backgrounds:
                 key = header["U_CAMERA"], header["U_AQTINT"], header["DETGAIN"], sz
             else:
