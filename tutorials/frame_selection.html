@@ -371,7 +371,20 @@ Publication date: 2022-11-24
 DOI: 10.5281/zenodo.7359198
 Total size: 231.8 MB
 
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits   size: 100.0 MB
+Link: https://zenodo.org/record/7359198/files/ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits   size: 31.0 MB
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checksum is correct. (b79ad15d2897a05247a5c82ca82aed23)
+
+Link: https://zenodo.org/record/7359198/files/bench_CLC-3_750-50_LyotStop_00_cam1_calib.fits   size: 100.0 MB
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checksum is correct. (c7cf42d5ef0575e6b355bf74341633d9)
+
+Link: https://zenodo.org/record/7359198/files/ABAur_01_20190320_750-50_EmptySlot_00_cam1_hdr_calib_FLC1.fits   size: 100.0 MB
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
@@ -379,70 +392,11 @@ Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_01
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checksum is correct. (c382c6b256cb581da0d0720a1da4d3bb)
 
-Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_02__RS___20220224_750-50_LyotStop_00_cam1_fix_calib_FLC1.fits   size: 31.0 MB
+Link: https://zenodo.org/record/7359198/files/hd32297_20220225_headers.csv   size: 0.8 MB
 </pre></div>
 </div>
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">KeyboardInterrupt</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">2</span>
-<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1"># download example data</span>
-<span class="ne">----&gt; </span><span class="mi">2</span> <span class="n">zenodo_get</span><span class="p">([</span><span class="s2">&quot;10.5281/zenodo.7359198&quot;</span><span class="p">,</span> <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="n">datadir</span><span class="o">.</span><span class="n">absolute</span><span class="p">()])</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/zenodo_get/zget.py:360,</span> in <span class="ni">zenodo_get</span><span class="nt">(argv)</span>
-<span class="g g-Whitespace">    </span><span class="mi">358</span> <span class="k">try</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">359</span>     <span class="n">link</span> <span class="o">=</span> <span class="n">url</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">360</span>     <span class="n">filename</span> <span class="o">=</span> <span class="n">wget</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">link</span><span class="si">}</span><span class="s2">?access_token=</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">361</span> <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">362</span>     <span class="n">eprint</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Download error. Original link: </span><span class="si">{</span><span class="n">link</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/wget.py:526,</span> in <span class="ni">download</span><span class="nt">(url, out, bar)</span>
-<span class="g g-Whitespace">    </span><span class="mi">524</span> <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">525</span>     <span class="n">binurl</span> <span class="o">=</span> <span class="n">url</span>
-<span class="ne">--&gt; </span><span class="mi">526</span> <span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span> <span class="o">=</span> <span class="n">ulib</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">binurl</span><span class="p">,</span> <span class="n">tmpfile</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">527</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">detect_filename</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">528</span> <span class="k">if</span> <span class="n">outdir</span><span class="p">:</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/urllib/request.py:270,</span> in <span class="ni">urlretrieve</span><span class="nt">(url, filename, reporthook, data)</span>
-<span class="g g-Whitespace">    </span><span class="mi">267</span>     <span class="n">reporthook</span><span class="p">(</span><span class="n">blocknum</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">269</span> <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">270</span>     <span class="n">block</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">271</span>     <span class="k">if</span> <span class="ow">not</span> <span class="n">block</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">272</span>         <span class="k">break</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/http/client.py:466,</span> in <span class="ni">HTTPResponse.read</span><span class="nt">(self, amt)</span>
-<span class="g g-Whitespace">    </span><span class="mi">463</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">amt</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">464</span>     <span class="c1"># clip the read to the &quot;end of response&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">465</span>     <span class="n">amt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span>
-<span class="ne">--&gt; </span><span class="mi">466</span> <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">amt</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">467</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">amt</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">468</span>     <span class="c1"># Ideally, we would raise IncompleteRead if the content-length</span>
-<span class="g g-Whitespace">    </span><span class="mi">469</span>     <span class="c1"># wasn&#39;t satisfied, but it might break compatibility.</span>
-<span class="g g-Whitespace">    </span><span class="mi">470</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_close_conn</span><span class="p">()</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/socket.py:705,</span> in <span class="ni">SocketIO.readinto</span><span class="nt">(self, b)</span>
-<span class="g g-Whitespace">    </span><span class="mi">703</span> <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">704</span>     <span class="k">try</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">705</span>         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">recv_into</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">706</span>     <span class="k">except</span> <span class="n">timeout</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">707</span>         <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_occurred</span> <span class="o">=</span> <span class="kc">True</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/ssl.py:1307,</span> in <span class="ni">SSLSocket.recv_into</span><span class="nt">(self, buffer, nbytes, flags)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1303</span>     <span class="k">if</span> <span class="n">flags</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1304</span>         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<span class="g g-Whitespace">   </span><span class="mi">1305</span>           <span class="s2">&quot;non-zero flags not allowed in calls to recv_into() on </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-<span class="g g-Whitespace">   </span><span class="mi">1306</span>           <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
-<span class="ne">-&gt; </span><span class="mi">1307</span>     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">nbytes</span><span class="p">,</span> <span class="n">buffer</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1308</span> <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1309</span>     <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">recv_into</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">nbytes</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/ssl.py:1163,</span> in <span class="ni">SSLSocket.read</span><span class="nt">(self, len, buffer)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1161</span> <span class="k">try</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1162</span>     <span class="k">if</span> <span class="n">buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<span class="ne">-&gt; </span><span class="mi">1163</span>         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sslobj</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">buffer</span><span class="p">)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1164</span>     <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">   </span><span class="mi">1165</span>         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sslobj</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">len</span><span class="p">)</span>
-
-<span class="ne">KeyboardInterrupt</span>: 
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Checksum is correct. (8319111d4234772db4372d1a568038e5)
+All files have been downloaded.
 </pre></div>
 </div>
 </div>
@@ -475,7 +429,7 @@ Link: https://zenodo.org/api/files/a16d7d26-dcff-49c8-89f4-08e5c46c99ac/ABAur_02
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/8ede21121ca026c568ad18218dc986519d544647d2e231bfaa0f1bdb2038270f.png" src="../_images/8ede21121ca026c568ad18218dc986519d544647d2e231bfaa0f1bdb2038270f.png" />
+<img alt="../_images/ac6830bbe0dd97fea15e41e679b1a274a3618b3f1e2df743609c8b28ed6141df.png" src="../_images/ac6830bbe0dd97fea15e41e679b1a274a3618b3f1e2df743609c8b28ed6141df.png" />
 </div>
 </div>
 <div class="cell tag_remove-output docutils container">
