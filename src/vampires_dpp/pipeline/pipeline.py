@@ -259,7 +259,7 @@ class Pipeline:
         key = f"cam{fileinfo['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdu,
-            centroids=self.centroids[key],
+            centroids=self.centroids.get(key, None),
             subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
             ann_rad=config.ann_rad,
@@ -418,6 +418,7 @@ class Pipeline:
             ip_correct=config.ip_correct,
             ip_method=config.ip_method,
             ip_radius=config.ip_radius,
+            ip_radius2=config.ip_radius2,
             force=force,
         )
         with mp.Pool(self.num_proc) as pool:

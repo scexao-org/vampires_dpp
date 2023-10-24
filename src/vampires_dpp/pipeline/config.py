@@ -295,8 +295,9 @@ class PolarimetryConfig(BaseModel):
     hwp_adi_sync: bool = True
     use_ideal_mm: bool = False
     ip_correct: bool = True
-    ip_method: Literal["aperture"] = "aperture"
+    ip_method: Literal["aperture", "annulus"] = "aperture"
     ip_radius: float = 15
+    ip_radius2: Optional[float] = None
 
 
 class PipelineConfig(BaseModel):

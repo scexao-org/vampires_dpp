@@ -104,7 +104,10 @@ def lucky_image_file(
 
     cam_num = header["U_CAMERA"]
     cam_key = f"cam{cam_num:.0f}"
-    fields = centroids[cam_key]
+    if cam_key in centroids:
+        fields = centroids[cam_key]
+    else:
+        fields = {"": [frame_center(cube)]}
 
     # if no metric file assume straight collapsing
     if not metric_file:
@@ -114,7 +117,7 @@ def lucky_image_file(
         for field, ctr in fields.items():
             field_ctr = get_center(frame, ctr, cam_num)
             if field_ctr.ndim > 1:
-                field_ctr = field_ctr.mean(axis=0)
+                field_ctr = np.mean(field_ctr, axis=0)
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
             frames.append(cutout.data)
             hdr = header.copy()
@@ -141,7 +144,7 @@ def lucky_image_file(
     frames = []
     headers = []
     for i, (field, psf_ctr) in enumerate(fields.items()):
-        ctr = psf_ctr.mean(axis=0)
+        ctr = np.mean(psf_ctr, axis=0)
         offs = psf_ctr - ctr
         field_ctr = get_center(cube, ctr, cam_num)
         offsets = psf_centroids[i] - field_ctr

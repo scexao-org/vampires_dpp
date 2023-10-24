@@ -51,7 +51,7 @@ def make_dirs(paths, config):
     paths.products_dir.mkdir(parents=True, exist_ok=True)
     paths.metrics_dir.mkdir(parents=True, exist_ok=True)
     if config.calibrate.save_intermediate:
-        paths.calib_dir.mkdir(parents=True, exist_ok=True)
+        paths.calibrated_dir.mkdir(parents=True, exist_ok=True)
     if config.collapse:
         paths.collapsed_dir.mkdir(parents=True, exist_ok=True)
     if config.make_diff_images:

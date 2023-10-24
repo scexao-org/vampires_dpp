@@ -36,7 +36,7 @@ from vampires_dpp.pipeline.templates import (
     VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
 )
-from vampires_dpp.util import check_version
+from vampires_dpp.util import check_version, load_fits_key
 from vampires_dpp.wcs import get_gaia_astrometry
 
 logger.remove(0)
@@ -568,7 +568,7 @@ def new_config(ctx, config, edit):
             # if register_method == "dft":
             #     dft_factor = click.prompt(" -   Enter DFT upsample factor", default=1, type=int)
         else:
-            tpl.collapse.register = None
+            tpl.collapse.centroid = None
 
         tpl.collapse.recenter = click.confirm(
             " - Would you like to recenter the collapsed data after a model PSF fit?", default=True

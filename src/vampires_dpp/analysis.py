@@ -23,6 +23,22 @@ def safe_aperture_sum(frame, r, center=None, ann_rad=None):
     return flux[0], fluxerr[0]
 
 
+def safe_annulus_sum(frame, Rin, Rout, center=None):
+    if center is None:
+        center = frame_center(frame)
+    mask = ~np.isfinite(frame)
+    flux, fluxerr, flag = sep.sum_circann(
+        np.ascontiguousarray(frame).astype("f4"),
+        (center[1],),
+        (center[0],),
+        Rin,
+        Rout,
+        mask=mask,
+    )
+
+    return flux[0], fluxerr[0]
+
+
 def estimate_strehl(*args, **kwargs):
     raise NotImplementedError()
 
@@ -102,6 +118,8 @@ def analyze_file(
 
     cam_num = hdu.header["U_CAMERA"]
     metrics: dict[str, list[list[list]]] = {}
+    if centroids is None:
+        centroids = {"": [frame_center(data)]}
     for field, ctrs in centroids.items():
         field_metrics = {}
         for ctr in ctrs:

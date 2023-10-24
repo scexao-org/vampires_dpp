@@ -6,7 +6,7 @@ import tqdm.auto as tqdm
 from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
 
-from vampires_dpp.analysis import safe_aperture_sum
+from vampires_dpp.analysis import safe_aperture_sum, safe_annulus_sum
 from vampires_dpp.indexing import cutout_inds, frame_angles
 from vampires_dpp.wcs import apply_wcs
 
@@ -15,7 +15,7 @@ from .mueller_matrices import mueller_matrix_from_header
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
 
-def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0, window=30, **kwargs):
+def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):
     """
     Use aperture photometry to estimate the instrument polarization.
 
@@ -35,11 +35,13 @@ def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0, window=30, **kwargs
         The instrumental polarization coefficient
     """
     x = X / I
-    inds = cutout_inds(x, window=window, **kwargs)
-    cutout = x[inds]
-    pX, _ = safe_aperture_sum(cutout, r=r)
+    pX, _ = safe_aperture_sum(x, r=r)
     return pX / (np.pi * r**2) - expected
 
+def measure_instpol_ann(I: NDArray, X: NDArray, Rin, Rout, expected=0):
+    x = X / I
+    pX, _ = safe_annulus_sum(x, Rin, Rout)
+    return pX / (np.pi * (Rout**2 - Rin**2)) - expected
 
 def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
     """
