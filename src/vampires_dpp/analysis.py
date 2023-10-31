@@ -114,10 +114,11 @@ def analyze_file(
         return outpath
 
     data = hdu.data
-    bkg_noise = (
-        np.sqrt(hdu.header["DC"] * hdu.header["EXPTIME"] + hdu.header["RN"] ** 2)
-        / hdu.header["GAIN"]
-    )
+
+    dc_var = hdu.header["DC"] * hdu.header["EXPTIME"]
+    rn_var = hdu.header["RN"] ** 2
+    bkg_noise = np.sqrt(dc_var + rn_var) / hdu.header["GAIN"]
+
     bkg_err = np.full_like(data, bkg_noise)
     data_err = calc_total_error(data, bkg_err, effective_gain=hdu.header["GAIN"])
 

@@ -7,7 +7,6 @@ from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 
 from .indexing import frame_center
-from .psf_models import fit_model_airy, fit_model_gaussian, fit_model_moffat
 
 
 def offset_dft(frame, inds, psf, *, upsample_factor):

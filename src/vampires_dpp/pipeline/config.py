@@ -54,9 +54,6 @@ class ObjectConfig(BaseModel):
     pm_dec: float = 0
     frame: str = "icrs"
     obstime: str = "J2016"
-    sptype: Optional[str] = None
-    mag: Optional[float] = None
-    mag_band: Optional[Literal["U", "B", "V", "R", "I", "J", "H", "K"]] = None
 
     @property
     def ra_ang(self):
@@ -78,6 +75,14 @@ class ObjectConfig(BaseModel):
             frame=self.frame,
             obstime=self.obstime,
         )
+
+
+class SpecphotConfig(BaseModel):
+    source: Literal["pickles"] | Path = "pickles"
+    sptype: Optional[str] = None
+    mag: Optional[float] = None
+    mag_band: Optional[Literal["U", "B", "V", "R", "I", "J", "H", "K"]] = "V"
+    flux_metric: Literal["photometry", "sum"] = "photometry"
 
 
 class CalibrateConfig(BaseModel):
@@ -188,7 +193,7 @@ class CollapseConfig(BaseModel):
 
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
     frame_select: Optional[Literal["max", "l2norm", "normvar"]] = "normvar"
-    centroid: Optional[Literal["com", "peak", "psf", "model"]] = "com"
+    centroid: Optional[Literal["com", "peak", "gauss", "quad"]] = "com"
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     recenter: bool = True
 
@@ -224,22 +229,13 @@ class AnalysisConfig(BaseModel):
         strehl = false
     """
 
-    fit_model: bool = True
-    model: Literal["gaussian", "moffat", "airydisk"] = "gaussian"
     strehl: Literal[False] = False
     subtract_radprof: bool = False
-    photometry: bool = True
     aper_rad: float | Literal["auto"] = 8
     ann_rad: Optional[Sequence[float]] = None
     window_size: int = 30
     # dft_factor: int = 5
     # dft_ref: Literal["centroid", "peak"] | Path = "centroid"
-
-    # def __post_init__(self):
-    #     if not isinstance(self.aper_rad, str) and self.aper_rad > self.window_size / 2:
-    #         raise ValueError(f"Photometric radius ({self.aper_rad}) must be smaller than the window half-length ({self.window_size // 2})")
-    #     if self.ann_rad is not None and self.ann_rad[1] > self.window_size / 2:
-    #         raise ValueError(f"Photometric annulus radius ({self.ann_rad[1]}) must be smaller than the window half-length ({self.window_size // 2})")
 
 
 class PolarimetryConfig(BaseModel):
@@ -397,6 +393,7 @@ class PipelineConfig(BaseModel):
     object: Optional[ObjectConfig] = None
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
+    specphot: Optional[SpecphotConfig] = SpecphotConfig()
     collapse: CollapseConfig = CollapseConfig()
     polarimetry: Optional[PolarimetryConfig] = None
 

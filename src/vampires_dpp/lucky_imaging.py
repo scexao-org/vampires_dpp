@@ -8,8 +8,8 @@ from astropy.nddata import Cutout2D
 from numpy.typing import ArrayLike
 
 from .image_processing import collapse_cube, pad_cube, shift_cube, shift_frame
-from .image_registration import register_frame
 from .indexing import cutout_inds, frame_center
+from .specphot import convert_to_surface_brightness, specphot_calibration
 from .util import get_center
 
 FRAME_SELECT_MAP: Final[dict[str, str]] = {
@@ -62,11 +62,12 @@ def get_centroids_from(metrics, input_key):
 def recenter_frame(frame, method, offsets, window=30, **kwargs):
     frame_ctr = frame_center(frame)
     ctr = 0
+    n = 1
     for off in offsets - offsets.mean(0):
         inds = cutout_inds(frame, window=window, center=frame_ctr + off)
-        ctr += register_frame(frame, inds, method=method, **kwargs)
-    ctr = ctr / offsets.shape[0]
-
+        offsets = offset_centroids(frame, inds)
+        ctr += (offsets[method] - ctr) / n
+        n += 1
     return shift_frame(frame, frame_ctr - ctr)
 
 
@@ -82,6 +83,8 @@ def lucky_image_file(
     recenter: bool = True,
     select_cutoff: float = 0,
     crop_width=None,
+    preproc_dir=None,
+    specphot=None,
     **kwargs,
 ) -> Path:
     if (
@@ -166,11 +169,17 @@ def lucky_image_file(
         ## Step 4: Recenter
         if recenter:
             coll_frame = recenter_frame(coll_frame, method=register, offsets=offs)
-        frames.append(coll_frame)
         hdr = header.copy()
         hdr["FIELD"] = field
         ## handle header metadata
-        headers.append(add_metrics_to_header(hdr, masked_metrics, index=i))
+        add_metrics_to_header(hdr, masked_metrics, index=i)
+        if specphot is not None:
+            hdr = specphot_calibration(hdr, masked_metrics, outdir=preproc_dir, config=specphot)
+            coll_frame = convert_to_surface_brightness(coll_frame)
+            hdr["BUNIT"] = "Jy/arcsec^2"
+        frames.append(coll_frame)
+        headers.append(hdr)
+
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=header)
     hdus = (fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers))
     hdu = fits.HDUList([prim_hdu, *hdus])
@@ -186,18 +195,18 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "med": "[adu] Median signal{}in window {}",
     "var": "[adu^2] Signal variance{}in window {}",
     "nvar": "[adu] Normed variance{}in window {}",
-    "photr": "[px] Photometric aperture radius",
+    "photr": "[pix] Photometric aperture radius",
     "photf": "[adu] Photometric flux{}in window {}",
     "phote": "[adu] Photometric fluxerr{}in window {}",
-    "comx": "[px] COM x{}in window {}",
-    "comy": "[px] COM y{}in window {}",
-    "quadx": "[px] Quad. fit x{}in window {}",
-    "quady": "[px] Quad. fit y{}in window {}",
-    "peakx": "[px] Peak index x{}in window {}",
-    "peaky": "[px] Peak index y{}in window {}",
-    "gausx": "[px] Gauss. fit x{}in window {}",
-    "gausy": "[px] Gauss. fit y{}in window {}",
-    "fwhm": "[px] Gauss. fit fwhm{}in window {}",
+    "comx": "[pix] COM x{}in window {}",
+    "comy": "[pix] COM y{}in window {}",
+    "quadx": "[pix] Quad. fit x{}in window {}",
+    "quady": "[pix] Quad. fit y{}in window {}",
+    "peakx": "[pix] Peak index x{}in window {}",
+    "peaky": "[pix] Peak index y{}in window {}",
+    "gausx": "[pix] Gauss. fit x{}in window {}",
+    "gausy": "[pix] Gauss. fit y{}in window {}",
+    "fwhm": "[pix] Gauss. fit fwhm{}in window {}",
 }
 
 

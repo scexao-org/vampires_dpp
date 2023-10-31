@@ -241,7 +241,7 @@ def flat(ctx, filenames, back, collapse, force):
 ########## centroid ##########
 
 
-@prep.command(name="centroid", help="Fit the centroids")
+@click.command(name="centroid", help="Fit the centroids")
 @click.argument(
     "config",
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
@@ -359,10 +359,9 @@ def new_config(ctx, config, edit):
     tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
 
     ## get target
-    object = click.prompt("SIMBAD-friendly object name (optional)", default="")
-    obj = None if object == "" else object
+    obj = click.prompt("SIMBAD-friendly object name (optional)", default="")
     coord = None
-    if obj is not None:
+    if obj is not "":
         rad = 1
         cat = "dr3"
         while True:
@@ -483,43 +482,31 @@ def new_config(ctx, config, edit):
         "Would you like to estimate the Strehl ratio?", default=False
     )
 
-    tpl.analysis.photometry = click.confirm(
-        "Would you like to do photometry?", default=tpl.analysis.photometry is not None
+    aper_rad = click.prompt(
+        " Enter aperture radius (px)", type=float, default=tpl.analysis.aper_rad
     )
-    if tpl.analysis.photometry:
-        aper_rad = click.prompt(
-            " - Enter aperture radius (px)", type=float, default=tpl.analysis.aper_rad
+
+    if aper_rad > tpl.analysis.window_size / 2:
+        aper_rad = tpl.analysis.window_size / 2
+        click.echo(f" ! Reducing aperture radius to match window size ({aper_rad:.0f} px)")
+    tpl.analysis.aper_rad = aper_rad
+
+    ann_rad = None
+    if click.confirm("Would you like to subtract background annulus?", default=False):
+        resp = click.prompt(
+            " - Enter comma-separated inner and outer radius (px)",
+            default=f"{max(aper_rad, tpl.analysis.window_size / 2 - 5)}, {tpl.analysis.window_size / 2}",
         )
-
-        if aper_rad > tpl.analysis.window_size / 2:
-            aper_rad = tpl.analysis.window_size / 2
-            click.echo(f"Reducing aperture radius to match window size ({aper_rad:.0f} px)")
-        tpl.analysis.aper_rad = aper_rad
-
-        ann_rad = None
-        if click.confirm(" - Would you like to subtract background annulus?", default=False):
-            resp = click.prompt(
-                " - Enter comma-separated inner and outer radius (px)",
-                default=f"{max(aper_rad, tpl.analysis.window_size / 2 - 5)}, {tpl.analysis.window_size / 2}",
+        ann_rad = list(map(float, resp.replace(" ", "").split(",")))
+        if ann_rad[1] > tpl.analysis.window_size / 2:
+            ann_rad[1] = tpl.analysis.window_size / 2
+            click.echo(
+                f" ! Reducing annulus outer radius to match window size ({ann_rad[1]:.0f} px)"
             )
-            ann_rad = list(map(float, resp.replace(" ", "").split(",")))
-            if ann_rad[1] > tpl.analysis.window_size / 2:
-                ann_rad[1] = tpl.analysis.window_size / 2
-                click.echo(
-                    f"Reducing annulus outer radius to match window size ({ann_rad[1]:.0f} px)"
-                )
-            if ann_rad[0] >= ann_rad[1]:
-                ann_rad[0] = max(aper_rad, ann_rad[0] - 5)
-                click.echo(f"Reducing annulus inner radius to ({ann_rad[0]:.0f} px)")
-            tpl.analysis.ann_rad = ann_rad
-
-    tpl.analysis.fit_model = click.confirm("Would you like to fit a PSF?", default=True)
-    if tpl.analysis.fit_model:
-        tpl.analysis.model = click.prompt(
-            " - Choose a PSF model",
-            type=click.Choice(["gaussian", "moffat", "airydisk"]),
-            default=tpl.analysis.model,
-        )
+        if ann_rad[0] >= ann_rad[1]:
+            ann_rad[0] = max(aper_rad, ann_rad[0] - 5)
+            click.echo(f" ! Reducing annulus inner radius to ({ann_rad[0]:.0f} px)")
+        tpl.analysis.ann_rad = ann_rad
 
     ## Collapsing
     if click.confirm("Would you like to collapse your data?", default=tpl.collapse is not None):

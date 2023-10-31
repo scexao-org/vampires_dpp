@@ -34,6 +34,7 @@ from vampires_dpp.pipeline.config import PipelineConfig
 
 from ..lucky_imaging import lucky_image_file
 from ..paths import Paths, any_file_newer, get_paths, make_dirs
+from ..specphot import specphot_calibration
 from ..util import load_fits
 from .modules import get_psf_centroids_mpl
 
@@ -201,7 +202,7 @@ class Pipeline:
         cur_hdu = self.calibrate_one(fileinfo["path"], fileinfo)
         ## Step 2: Frame analysis
         self.analyze_one(cur_hdu, fileinfo)
-        ## Step 4: collapsing
+        ## Step 3: collapsing
         path = self.collapse_one(cur_hdu, fileinfo)
         return path
 
@@ -251,16 +252,16 @@ class Pipeline:
             subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
             ann_rad=config.ann_rad,
-            fit_model=config.fit_model,
-            model=config.model,
             outpath=fileinfo["metric_file"],
             force=force,
             window=config.window_size,
+            specphot=self.config.specphot,
+            preproc_dir=self.paths.preproc_dir,
         )
         return outpath
 
     def collapse_one(self, hdu, fileinfo, force=False):
-        logger.debug("Starting data calibration")
+        logger.debug("Starting data collapsing")
         config = self.config.collapse
         outpath = Path(fileinfo["collapse_file"])
         lucky_image_file(
@@ -275,7 +276,7 @@ class Pipeline:
             outpath=outpath,
             force=force,
         )
-        logger.debug("Data calibration completed")
+        logger.debug("Data collapsing completed")
         logger.debug(f"Saved collapsed data to {outpath}")
         return outpath
 
