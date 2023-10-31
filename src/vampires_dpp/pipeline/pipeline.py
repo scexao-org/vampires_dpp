@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import warnings
+from functools import partial
 from pathlib import Path
 from typing import Optional
 
@@ -46,26 +47,14 @@ class Pipeline:
         self.workdir = workdir
         self.paths = Paths(workdir=self.workdir)
         self._conn = None
-        self.db_file = self.workdir / f"{self.config.name}_db.csv"
         self.output_table_path = self.paths.products_dir / f"{self.config.name}_table.csv"
 
     def create_input_table(self, filenames) -> pd.DataFrame:
         input_table = header_table(filenames, quiet=True).sort_values("MJD")
         table_path = self.paths.preproc_dir / f"{self.config.name}_headers.csv"
         input_table.to_csv(table_path)
-        logger.info(f"Saved header table to: {table_path}")
+        logger.info(f"Saved input header table to: {table_path}")
         return input_table
-
-    def merge_input_table_with_db(self, input_table: pd.DataFrame):
-        if self.db_file.exists():
-            self.working_db = pd.read_csv(self.db_file, index_col=0)
-        else:
-            input_table.to_csv(self.db_file)
-            self.working_db = input_table
-
-        mask = self.working_db["path"] == input_table["path"].values
-        self.working_db = self.working_db.loc[mask]
-        return self.working_db
 
     def create_raw_input_psf(self, table, max_files=5) -> dict[str, Path]:
         # group by cameras
@@ -108,7 +97,7 @@ class Pipeline:
             path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
             if not path.exists():
                 logger.warning(
-                    f"Could not locate centroid file for {key}, expected it to be at {path}"
+                    f"Could not locate centroid file for {key}, expected it to be at {path}. Using center of image as default."
                 )
                 continue
             with path.open("rb") as fh:
@@ -120,37 +109,37 @@ class Pipeline:
             logger.debug(f"{key} frame center is {self.centroids['cam1']} (y, x)")
         return self.centroids
 
-    def add_paths_to_db(self):
-        input_paths = self.working_db["path"].apply(Path)
+    def add_paths_to_db(self, table):
+        input_paths = table["path"].apply(Path)
         # figure out which metrics need to be calculated, which is necessary to collapse files
         func = lambda p: get_paths(
             p, suffix="metrics", filetype=".npz", output_directory=self.paths.metrics_dir
         )[1]
-        self.working_db["metric_file"] = input_paths.apply(func)
+        table["metric_file"] = input_paths.apply(func)
 
         if self.config.collapse is not None:
             func = lambda p: get_paths(
                 p, suffix="coll", filetype=".fits", output_directory=self.paths.collapsed_dir
             )[1]
-            self.working_db["collapse_file"] = input_paths.apply(func)
+            table["collapse_file"] = input_paths.apply(func)
 
         if self.config.calibrate.save_intermediate:
             func = lambda p: get_paths(
                 p, suffix="calib", filetype=".fits", output_directory=self.paths.calibrated_dir
             )[1]
-            self.working_db["calib_file"] = input_paths.apply(func)
+            table["calib_file"] = input_paths.apply(func)
 
-        self.working_db.to_csv(self.db_file)
+        return table
 
-    def determine_execution(self, force=False):
+    def determine_execution(self, table, force=False):
         if force:
-            return self.working_db
+            return table
         file_doesnt_exist = lambda p: not Path(p).exists()
-        files_to_calibrate = self.working_db["metric_file"].apply(file_doesnt_exist)
+        files_to_calibrate = table["metric_file"].apply(file_doesnt_exist)
         if self.config.collapse is not None:
-            files_to_calibrate |= self.working_db["collapse_file"].apply(file_doesnt_exist)
+            files_to_calibrate |= table["collapse_file"].apply(file_doesnt_exist)
 
-        subset = self.working_db.loc[files_to_calibrate]
+        subset = table.loc[files_to_calibrate]
         return subset
 
     def run(self, filenames, num_proc: Optional[int] = None, force=False):
@@ -171,17 +160,16 @@ class Pipeline:
 
         self.num_proc = num_proc
         input_table = self.create_input_table(filenames=filenames)
-        self.merge_input_table_with_db(input_table)
-        self.add_paths_to_db()
+        self.add_paths_to_db(input_table)
         self.get_centroids()
         self.get_coordinate()
 
-        self.subset_db = self.determine_execution(force=force)
-        if len(self.subset_db) == 0:
+        working_table = self.determine_execution(input_table, force=force)
+        if len(working_table) == 0:
             logger.success("Finished processing files (No files to process)")
             return
         logger.info(
-            f"Processing {len(self.subset_db)} files using {len(self.working_db) - len(self.subset_db)} cached files"
+            f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
         )
 
         ## For each file do
@@ -189,7 +177,7 @@ class Pipeline:
         self.output_files = []
         with mp.Pool(self.num_proc) as pool:
             jobs = []
-            for row in self.subset_db.itertuples(index=False):
+            for row in working_table.itertuples(index=False):
                 jobs.append(pool.apply_async(self.process_one, args=(row._asdict(),)))
 
             for job in tqdm(jobs, desc="Processing files"):
@@ -275,7 +263,8 @@ class Pipeline:
         logger.debug("Starting data calibration")
         config = self.config.collapse
         outpath = Path(fileinfo["collapse_file"])
-        kwargs = dict(
+        lucky_image_file(
+            hdu,
             method=config.method,
             frame_select=config.frame_select,
             select_cutoff=config.select_cutoff,
@@ -286,7 +275,6 @@ class Pipeline:
             outpath=outpath,
             force=force,
         )
-        lucky_image_file(hdu, **kwargs)
         logger.debug("Data calibration completed")
         logger.debug(f"Saved collapsed data to {outpath}")
         return outpath
@@ -342,27 +330,6 @@ class Pipeline:
     #     logger.info("Done making difference frames")
     #     return self.diff_files
 
-    def make_mueller_mats(self, force=False):
-        logger.info("Creating Mueller matrices")
-        mm_paths = []
-        kwds = dict(
-            adi_sync=self.config.polarimetry.hwp_adi_sync,
-            ideal=self.config.polarimetry.use_ideal_mm,
-            force=force,
-        )
-        with mp.Pool(self.num_proc) as pool:
-            jobs = []
-            for row in self.working_db.itertuples(index=False):
-                _, outpath = get_paths(row.path, suffix="mm", output_directory=self.paths.mm_dir)
-                jobs.append(
-                    pool.apply_async(mueller_matrix_from_file, args=(row.path, outpath), kwds=kwds)
-                )
-
-            for job in tqdm(jobs, desc="Making Mueller matrices"):
-                mm_paths.append(job.get())
-
-        return mm_paths
-
     def run_polarimetry(self, num_proc, force=False):
         make_dirs(self.paths, self.config)
         logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
@@ -375,31 +342,58 @@ class Pipeline:
         if not self.output_table_path.exists():
             raise RuntimeError(f"Output table {self.output_table_path} cannot be found")
 
-        self.working_db = pd.read_csv(self.output_table_path, index_col=0)
+        working_table = pd.read_csv(self.output_table_path, index_col=0)
 
         if self.config.polarimetry.mm_correct or self.config.polarimetry.method == "leastsq":
-            self.working_db["mm_file"] = self.make_mueller_mats()
+            working_table["mm_file"] = self.make_mueller_mats(working_table)
 
         logger.info("Performing polarimetric calibration")
         logger.debug(f"Saving Stokes data to {self.paths.pdi_dir.absolute()}")
         match self.config.polarimetry.method:
             case "doublediff" | "triplediff":
-                self.polarimetry_difference(method=self.config.polarimetry.method, force=force)
+                self.polarimetry_difference(
+                    working_table, method=self.config.polarimetry.method, force=force
+                )
             case "leastsq":
-                self.polarimetry_leastsq(force=force)
+                self.polarimetry_leastsq(working_table, force=force)
         logger.success("Finished PDI")
 
-    def polarimetry_difference(self, method, force=False):
-        config = self.config.polarimetry
-        full_paths = []
+    def make_mueller_mats(self, table, force=False):
+        logger.info("Creating Mueller matrices")
+        mm_paths = []
+        kwds = dict(
+            adi_sync=self.config.polarimetry.hwp_adi_sync,
+            ideal=self.config.polarimetry.use_ideal_mm,
+            force=force,
+        )
         with mp.Pool(self.num_proc) as pool:
             jobs = []
-            for _, row in self.working_db.iterrows():
-                if method == "triplediff":
-                    jobs.append(pool.apply_async(get_triplediff_set, args=(self.working_db, row)))
-                else:
-                    jobs.append(pool.apply_async(get_doublediff_set, args=(self.working_db, row)))
+            for row in table.itertuples(index=False):
+                _, outpath = get_paths(row.path, suffix="mm", output_directory=self.paths.mm_dir)
+                jobs.append(
+                    pool.apply_async(mueller_matrix_from_file, args=(row.path, outpath), kwds=kwds)
+                )
 
+            for job in tqdm(jobs, desc="Making Mueller matrices"):
+                mm_paths.append(job.get())
+
+        return mm_paths
+
+    def polarimetry_difference(self, table, method, force=False):
+        config = self.config.polarimetry
+        full_paths = []
+        match method.lower():
+            case "triplediff":
+                pol_func = partial(get_triplediff_set, table)
+            case "doublediff":
+                pol_func = partial(get_doublediff_set, table)
+            case _:
+                raise ValueError(f"Invalid polarimetric difference method '{method}'")
+
+        with mp.Pool(self.num_proc) as pool:
+            jobs = []
+            for _, row in table.iterrows():
+                jobs.append(pool.apply_async(pol_func, args=(row,)))
             for job in tqdm(jobs, desc="Forming Stokes sets"):
                 stokes_set = job.get()
                 full_paths.append(tuple(sorted(stokes_set.values())))
@@ -421,13 +415,12 @@ class Pipeline:
             ip_radius2=config.ip_radius2,
             force=force,
         )
+        # TODO this is kind of ugly
         with mp.Pool(self.num_proc) as pool:
             jobs = []
             for outpath, path_set in zip(stokes_files, full_path_set):
                 if config.mm_correct:
-                    mm_paths = self.working_db.loc[
-                        self.working_db["path"].apply(lambda p: p in path_set), "mm_file"
-                    ]
+                    mm_paths = table.loc[table["path"].apply(lambda p: p in path_set), "mm_file"]
                 else:
                     mm_paths = None
                 if len(path_set) not in (8, 16):
@@ -450,9 +443,10 @@ class Pipeline:
         stokes_tbl_path = self.paths.pdi_dir / f"{self.config.name}_stokes_table.csv"
         stokes_tbl.to_csv(stokes_tbl_path)
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
-
+        logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
         ## Collapse outputs
         collapse_frame, coll_hdr = collapse_frames(stokes_data, headers=stokes_hdrs)
+        # In the case we have multi-wavelength data, save 4D Stokes cube
         if collapse_frame.shape[0] > 1:
             stokes_cube_path = self.paths.pdi_dir / f"{self.config.name}_stokes_cube.fits"
             write_stokes_products(
@@ -460,25 +454,28 @@ class Pipeline:
             )
             logger.info(f"Saved Stokes cube to {stokes_cube_path}")
 
-            # collapse wavelength axis
+            # now collapse wavelength axis and clobber
+            # the `collapse_frame` variable
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 collapse_frame = np.nanmean(collapse_frame, axis=0, keepdims=True)
+        # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(collapse_frame, header=coll_hdr, outname=stokes_coll_path, force=True)
         logger.info(f"Saved collapsed Stokes cube to {stokes_coll_path}")
 
-    def polarimetry_leastsq(self, force=False):
-        self.stokes_collapsed_file = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
-        if (
-            force
-            or not self.stokes_collapsed_file.is_file()
-            or any_file_newer(self.working_db["path"], self.stokes_collapsed_file)
-        ):
-            # create stokes cube
-            polarization_calibration_leastsq(
-                self.working_db["path"],
-                self.working_db["mm_file"],
-                outname=self.stokes_collapsed_file,
-                force=True,
-            )
+    def polarimetry_leastsq(self, table, force=False):
+        raise NotImplementedError("Need to rewrite this, sorry.")
+        # self.stokes_collapsed_file = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
+        # if (
+        #     force
+        #     or not self.stokes_collapsed_file.is_file()
+        #     or any_file_newer(self.working_db["path"], self.stokes_collapsed_file)
+        # ):
+        #     # create stokes cube
+        #     polarization_calibration_leastsq(
+        #         self.working_db["path"],
+        #         self.working_db["mm_file"],
+        #         outname=self.stokes_collapsed_file,
+        #         force=True,
+        #     )

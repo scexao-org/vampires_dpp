@@ -122,7 +122,10 @@ def fix_header(header):
     header["PAOFFSET"] = inst.pa_offset, "[deg] parallactic angle offset"
     header["FULLWELL"] = inst.fullwell, "[e-] full well of camera register"
 
-    header["TINT"] = header["EXPTIME"] * header.get("NAXIS3", 1), "[s] total integrated exposure time"
+    header["TINT"] = (
+        header["EXPTIME"] * header.get("NAXIS3", 1),
+        "[s] total integrated exposure time",
+    )
     return header
 
 

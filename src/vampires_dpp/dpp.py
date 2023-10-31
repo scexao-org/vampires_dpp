@@ -234,7 +234,7 @@ def flat(ctx, filenames, back, collapse, force):
         output_directory=ctx.obj["outdir"],
         quiet=ctx.obj["quiet"],
         num_proc=ctx.obj["num_proc"],
-        master_backgrounds=background_files
+        master_backgrounds=background_files,
     )
 
 
@@ -749,7 +749,7 @@ def pdi(config, num_proc, quiet, outdir):
     "_type",
     default="csv",
     type=click.Choice(["sql", "csv"], case_sensitive=False),
-    help="Save as a CSV file or create a headers table in a sqlite database"
+    help="Save as a CSV file or create a headers table in a sqlite database",
 )
 @click.option(
     "--output",
@@ -789,7 +789,6 @@ def table(filenames, _type, output, num_proc, quiet):
     elif _type == "sql":
         df.to_sql("headers", f"sqlite:///{outname.absolute()}")
     return outname
-
 
 
 ########## upgrade ##########

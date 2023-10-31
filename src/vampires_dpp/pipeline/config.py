@@ -1,6 +1,6 @@
 from os import PathLike
 from pathlib import Path
-from typing import Annotated, ClassVar, Literal, Optional, Sequence
+from typing import Annotated, Literal, Optional, Sequence
 
 import astropy.units as u
 import tomli
@@ -56,7 +56,7 @@ class ObjectConfig(BaseModel):
     obstime: str = "J2016"
     sptype: Optional[str] = None
     mag: Optional[float] = None
-    mag_band: Optional[str] = None
+    mag_band: Optional[Literal["U", "B", "V", "R", "I", "J", "H", "K"]] = None
 
     @property
     def ra_ang(self):

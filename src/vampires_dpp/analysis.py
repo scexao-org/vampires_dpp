@@ -1,13 +1,15 @@
 import numpy as np
 import sep
+from photutils import profiles
+from photutils.utils import calc_total_error
 
 from .image_processing import radial_profile_image
-from .image_registration import offset_centroid, offset_modelfit, offset_peak
+from .image_registration import offset_centroids
 from .indexing import cutout_inds, frame_center
 from .util import append_or_create, get_center
 
 
-def safe_aperture_sum(frame, r, center=None, ann_rad=None):
+def safe_aperture_sum(frame, r, err=None, center=None, ann_rad=None):
     if center is None:
         center = frame_center(frame)
     mask = ~np.isfinite(frame)
@@ -16,6 +18,7 @@ def safe_aperture_sum(frame, r, center=None, ann_rad=None):
         (center[1],),
         (center[0],),
         r,
+        err=err,
         mask=mask,
         bkgann=ann_rad,
     )
@@ -45,17 +48,18 @@ def estimate_strehl(*args, **kwargs):
 
 def analyze_fields(
     cube,
+    cube_err,
     inds,
     aper_rad,
     ann_rad=None,
-    fit_model: bool=True,
-    model="gaussian",
     strehl: bool = False,
-    refmethod="com",
+    window_size=30,
     **kwargs,
 ):
     output = {}
     cutout = cube[inds]
+    cube_err[inds]
+    radii = np.arange(window_size)
     ## Simple statistics
     output["max"] = np.nanmax(cutout, axis=(-2, -1))
     output["sum"] = np.nansum(cutout, axis=(-2, -1))
@@ -63,33 +67,35 @@ def analyze_fields(
     output["med"] = np.nanmedian(cutout, axis=(-2, -1))
     output["var"] = np.nanvar(cutout, axis=(-2, -1))
     output["nvar"] = output["var"] / output["mean"]
-    if fit_model:
-        output["psfmod"] = np.full(cube.shape[0], model)
     ## Centroids
-    for frame in cube:
-        pk = offset_peak(frame, inds)
-        com_ctr = offset_centroid(frame, inds)
-        if refmethod == "com":
-            ctr_est = com_ctr
-        elif refmethod == "peak":
-            ctr_est = pk
-        append_or_create(output, "com_x", com_ctr[1])
-        append_or_create(output, "com_y", com_ctr[0])
-        append_or_create(output, "pk_x", pk[1])
-        append_or_create(output, "pk_y", pk[0])
-        if aper_rad is not None:
-            append_or_create(output, "photr", aper_rad)
-            phot, photerr = safe_aperture_sum(frame, r=aper_rad, center=ctr_est, ann_rad=ann_rad)
-            append_or_create(output, "photf", phot)
-            append_or_create(output, "phote", photerr)
+    for fidx in range(cube.shape[0]):
+        frame = cube[fidx]
+        frame_err = cube_err[fidx]
+        centroids = offset_centroids(frame, inds)
 
-        ## fit PSF to center
-        if fit_model:
-            model_fit = offset_modelfit(frame, inds, model=model)
-            append_or_create(output, "mod_x", model_fit["x"])
-            append_or_create(output, "mod_y", model_fit["y"])
-            append_or_create(output, "mod_w", model_fit["fwhm"])
-            append_or_create(output, "mod_a", model_fit["amplitude"])
+        append_or_create(output, "comx", centroids["com"][1])
+        append_or_create(output, "comy", centroids["com"][0])
+        append_or_create(output, "peakx", centroids["peak"][1])
+        append_or_create(output, "peaky", centroids["peak"][0])
+        append_or_create(output, "quadx", centroids["quad"][1])
+        append_or_create(output, "quady", centroids["quad"][0])
+        append_or_create(output, "gausx", centroids["gauss"][1])
+        append_or_create(output, "gausy", centroids["gauss"][0])
+
+        prof = profiles.RadialProfile(frame, centroids["quad"][::-1], radii, error=frame_err)
+        append_or_create(output, "fwhm", prof.gaussian_fwhm)
+        cog = profiles.CurveOfGrowth(frame, centroids["quad"][::-1], radii, error=frame_err)
+        snr = cog.profile / cog.profile_error
+        aper_rad = cog.radius[np.argmax(snr)]
+        append_or_create(output, "photr", aper_rad)
+        ann_fwhm = 4
+        ann_rad = aper_rad + ann_fwhm, aper_rad + 2 * ann_fwhm
+        phot, photerr = safe_aperture_sum(
+            frame, err=frame_err, r=aper_rad, center=ctr_est, ann_rad=ann_rad
+        )
+        append_or_create(output, "photf", phot)
+        append_or_create(output, "phote", photerr)
+
     return output
 
 
@@ -97,24 +103,23 @@ def analyze_file(
     hdu,
     outpath,
     centroids,
-    subtract_radprof: bool = False,
-    fit_model: bool = True,
-    model="gaussian",
-    refmethod="com",
     aper_rad=None,
     ann_rad=None,
     strehl=False,
     force=False,
+    window_size=30,
     **kwargs,
 ):
     if not force and outpath.is_file():
         return outpath
 
     data = hdu.data
-    ## subtract radial profile
-    if subtract_radprof:
-        mean_frame = np.nanmean(data, axis=0)
-        data -= radial_profile_image(mean_frame)
+    bkg_noise = (
+        np.sqrt(hdu.header["DC"] * hdu.header["EXPTIME"] + hdu.header["RN"] ** 2)
+        / hdu.header["GAIN"]
+    )
+    bkg_err = np.full_like(data, bkg_noise)
+    data_err = calc_total_error(data, bkg_err, effective_gain=hdu.header["GAIN"])
 
     cam_num = hdu.header["U_CAMERA"]
     metrics: dict[str, list[list[list]]] = {}
@@ -123,17 +128,17 @@ def analyze_file(
     for field, ctrs in centroids.items():
         field_metrics = {}
         for ctr in ctrs:
-            inds = cutout_inds(data, center=get_center(data, ctr, cam_num), **kwargs)
+            inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)
             results = analyze_fields(
                 data,
+                data_err,
                 header=hdu.header,
                 inds=inds,
-                fit_model=fit_model,
-                model=model,
                 aper_rad=aper_rad,
                 ann_rad=ann_rad,
                 strehl=strehl,
-                refmethod=refmethod,
+                window_size=window_size,
+                **kwargs,
             )
             # append psf result to this field's dictionary
             for k, v in results.items():

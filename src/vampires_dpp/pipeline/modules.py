@@ -1,6 +1,6 @@
 import numpy as np
 
-from vampires_dpp.image_registration import offset_centroid
+from vampires_dpp.image_registration import offset_centroids
 from vampires_dpp.indexing import cutout_inds
 
 
@@ -25,7 +25,7 @@ def get_psf_centroids_mpl(mean_image, npsfs=1, nfields=1, suptitle=None, outpath
         points = fig.ginput(npsfs, show_clicks=True)
         for j, point in enumerate(points):
             inds = cutout_inds(mean_image, center=(point[1], point[0]), window=15)
-            output[i, j] = offset_centroid(mean_image, inds)
+            output[i, j] = offset_centroids(mean_image, inds)["quad"]
             ax.text(output[i, j, 1] + 2, output[i, j, 0] + 2, str(i), c="green")
         ax.scatter(output[i, :, 1], output[i, :, 0], marker="+", c="green")
         fig.show()

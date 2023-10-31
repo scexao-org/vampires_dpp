@@ -2,6 +2,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.modeling import fitting, models
 from numpy.typing import ArrayLike
+from photutils import centroids
 from skimage.measure import centroid
 from skimage.registration import phase_cross_correlation
 
@@ -21,54 +22,23 @@ def offset_dft(frame, inds, psf, *, upsample_factor):
     return ctr
 
 
-def offset_centroid(frame, inds):
-    """NaN-friendly centroid"""
+def offset_centroids(frame, inds):
+    """NaN-friendly centroids"""
     # wy, wx = np.ogrid[inds[-2], inds[-1]]
     cutout = frame[inds]
-    ctr = centroid(cutout)
-    # mask = np.isfinite(cutout)
-    # cy = np.sum(wy * cutout, where=mask)
-    # cx = np.sum(wx * cutout, where=mask)
-    # ctr = np.asarray((cy, cx)) / np.sum(cutout, where=mask)
+
+    peak_yx = np.unravel_index(np.nanargmax(cutout), cutout.shape)
+    com_xy = centroids.centroid_com(cutout)
+    gauss_xy = centroids.centroid_2dg(cutout)
+    quad_xy = centroids.centroid_quadratic(cutout)
+
     # offset based on indices
-    ctr[-2] += inds[-2].start
-    ctr[-1] += inds[-1].start
-    return ctr
-
-
-def offset_peak(frame, inds):
-    view = frame[inds]
-    ctr = np.asarray(np.unravel_index(np.nanargmax(view), view.shape))
-    # offset based on indices
-    ctr[-2] += inds[-2].start
-    ctr[-1] += inds[-1].start
-    return ctr
-
-
-def offset_modelfit(frame, inds, *, model="gaussian", fitter=fitting.LevMarLSQFitter()):
-    model = model.lower()
-    view = frame[inds]
-
-    match model:
-        case "gaussian":
-            model_dict = fit_model_gaussian(view, fitter=fitter)
-        case "moffat":
-            model_dict = fit_model_moffat(view, fitter=fitter)
-        case "airy":
-            model_dict = fit_model_airy(view, fitter=fitter)
-
-    # fix the offsetting due to the indices
-    model_dict["y"] += inds[-2].start
-    model_dict["x"] += inds[-1].start
-    return model_dict
-
-
-def register_frame(frame, inds, *, method, **kwargs):
-    match method:
-        case "com":
-            return offset_centroid(frame, inds)
-        case "peak":
-            return offset_peak(frame, inds)
-        case "model":
-            mfit = offset_modelfit(frame, inds, **kwargs)
-            return np.array((mfit["y"], mfit["x"]))
+    offx = inds[-1].start
+    offy = inds[-2].start
+    ctrs = {
+        "peak": np.array((peak_yx[0] + offy, peak_yx[1] + offx)),
+        "com": np.array((com_xy[1] + offy, com_xy[0] + offx)),
+        "gauss": np.array((gauss_xy[1] + offy, gauss_xy[0] + offx)),
+        "quad": np.array((quad_xy[1] + offy, quad_xy[0] + offx)),
+    }
+    return ctrs
