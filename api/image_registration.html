@@ -18,12 +18,12 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=ac02cc09edc035673794" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=ac02cc09edc035673794" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
 
   
-  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=ac02cc09edc035673794" rel="stylesheet" />
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
@@ -33,11 +33,11 @@
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=ac02cc09edc035673794" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794" />
-  <script src="../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=ac02cc09edc035673794"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6" />
+  <script src="../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=365ca57ee442770a23c6"></script>
 
-    <script src="../_static/documentation_options.js?v=5767a989"></script>
+    <script src="../_static/documentation_options.js?v=37fc6485"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
@@ -125,13 +125,14 @@
   
   
   
+  
     
     
       
     
     
-    <img src="../_static/scexao_logo.svg" class="logo__image only-light" alt="Logo image"/>
-    <script>document.write(`<img src="../_static/scexao_logo.svg" class="logo__image only-dark" alt="Logo image"/>`);</script>
+    <img src="../_static/scexao_logo.svg" class="logo__image only-light" alt="VAMPIRES DPP - Home"/>
+    <script>document.write(`<img src="../_static/scexao_logo.svg" class="logo__image only-dark" alt="VAMPIRES DPP - Home"/>`);</script>
   
   
 </a></div>
@@ -317,7 +318,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_registration.offset_centroid"><code class="docutils literal notranslate"><span class="pre">offset_centroid()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_registration.offset_centroids"><code class="docutils literal notranslate"><span class="pre">offset_centroids()</span></code></a></li>
 </ul>
             </nav>
         </div>
@@ -332,9 +333,9 @@ document.write(`
   <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.image_registration">
 <span id="image-registration"></span><h1>Image Registration<a class="headerlink" href="#module-vampires_dpp.image_registration" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.image_registration.offset_centroid">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_registration.</span></span><span class="sig-name descname"><span class="pre">offset_centroid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_registration.offset_centroid" title="Link to this definition">#</a></dt>
-<dd><p>NaN-friendly centroid</p>
+<dt class="sig sig-object py" id="vampires_dpp.image_registration.offset_centroids">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_registration.</span></span><span class="sig-name descname"><span class="pre">offset_centroids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_registration.offset_centroids" title="Link to this definition">#</a></dt>
+<dd><p>NaN-friendly centroids</p>
 </dd></dl>
 
 </section>
@@ -383,7 +384,7 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_registration.offset_centroid"><code class="docutils literal notranslate"><span class="pre">offset_centroid()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_registration.offset_centroids"><code class="docutils literal notranslate"><span class="pre">offset_centroids()</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -431,8 +432,8 @@ By Miles Lucas
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=ac02cc09edc035673794"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=ac02cc09edc035673794"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6"></script>
 
   <footer class="bd-footer">
   </footer>
