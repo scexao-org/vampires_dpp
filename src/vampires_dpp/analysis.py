@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import sep
 from photutils import profiles
@@ -59,7 +61,7 @@ def analyze_fields(
     output = {}
     cutout = cube[inds]
     cube_err[inds]
-    radii = np.arange(window_size)
+    radii = np.arange(1, window_size)
     ## Simple statistics
     output["max"] = np.nanmax(cutout, axis=(-2, -1))
     output["sum"] = np.nansum(cutout, axis=(-2, -1))
@@ -71,7 +73,7 @@ def analyze_fields(
     for fidx in range(cube.shape[0]):
         frame = cube[fidx]
         frame_err = cube_err[fidx]
-        centroids = offset_centroids(frame, inds)
+        centroids = offset_centroids(frame, frame_err, inds)
 
         append_or_create(output, "comx", centroids["com"][1])
         append_or_create(output, "comy", centroids["com"][0])
@@ -82,16 +84,20 @@ def analyze_fields(
         append_or_create(output, "gausx", centroids["gauss"][1])
         append_or_create(output, "gausy", centroids["gauss"][0])
 
-        prof = profiles.RadialProfile(frame, centroids["quad"][::-1], radii, error=frame_err)
-        append_or_create(output, "fwhm", prof.gaussian_fwhm)
-        cog = profiles.CurveOfGrowth(frame, centroids["quad"][::-1], radii, error=frame_err)
-        snr = cog.profile / cog.profile_error
-        aper_rad = cog.radius[np.argmax(snr)]
-        append_or_create(output, "photr", aper_rad)
-        ann_fwhm = 4
-        ann_rad = aper_rad + ann_fwhm, aper_rad + 2 * ann_fwhm
+        ctr_est = centroids["com"]
+        prof = profiles.RadialProfile(frame, ctr_est[::-1], radii, error=frame_err)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            append_or_create(output, "fwhm", prof.gaussian_fwhm)
+
+        if aper_rad == "auto":
+            r = prof.gaussian_fwhm
+            ann_rad = r + 1, r + prof.gaussian_fwhm + 1
+        else:
+            r = aper_rad
+        append_or_create(output, "photr", r)
         phot, photerr = safe_aperture_sum(
-            frame, err=frame_err, r=aper_rad, center=ctr_est, ann_rad=ann_rad
+            frame, err=frame_err, r=r, center=ctr_est, ann_rad=ann_rad
         )
         append_or_create(output, "photf", phot)
         append_or_create(output, "phote", photerr)
@@ -103,7 +109,7 @@ def analyze_file(
     hdu,
     outpath,
     centroids,
-    aper_rad=None,
+    aper_rad="auto",
     ann_rad=None,
     strehl=False,
     force=False,
@@ -115,10 +121,7 @@ def analyze_file(
 
     data = hdu.data
 
-    dc_var = hdu.header["DC"] * hdu.header["EXPTIME"]
-    rn_var = hdu.header["RN"] ** 2
-    bkg_noise = np.sqrt(dc_var + rn_var) / hdu.header["GAIN"]
-
+    bkg_noise = hdu.header["RN"] / hdu.header["GAIN"]
     bkg_err = np.full_like(data, bkg_noise)
     data_err = calc_total_error(data, bkg_err, effective_gain=hdu.header["GAIN"])
 

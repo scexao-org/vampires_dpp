@@ -7,7 +7,14 @@ from astropy.io import fits
 from astropy.nddata import Cutout2D
 from numpy.typing import ArrayLike
 
-from .image_processing import collapse_cube, pad_cube, shift_cube, shift_frame
+from .image_processing import (
+    collapse_cube,
+    combine_frames_headers,
+    pad_cube,
+    shift_cube,
+    shift_frame,
+)
+from .image_registration import offset_centroids
 from .indexing import cutout_inds, frame_center
 from .specphot import convert_to_surface_brightness, specphot_calibration
 from .util import get_center
@@ -36,17 +43,9 @@ def get_frame_select_mask(metrics, input_key, quantile=0):
         return np.all(values > cutoff, axis=(0, 1))
 
 
-REGISTER_MAP: Final[dict[str, str]] = {
-    "com": "com",
-    "peak": "pk",
-    "model": "mod",
-}
-
-
 def get_centroids_from(metrics, input_key):
-    register_key = REGISTER_MAP[input_key]
-    cx = metrics[f"{register_key}_x"]
-    cy = metrics[f"{register_key}_y"]
+    cx = metrics[f"{input_key}x"]
+    cy = metrics[f"{input_key}y"]
     # if there are values from multiple PSFs (e.g. satspots)
     # take the mean centroid of each PSF
     if cx.ndim == 3:
@@ -65,7 +64,7 @@ def recenter_frame(frame, method, offsets, window=30, **kwargs):
     n = 1
     for off in offsets - offsets.mean(0):
         inds = cutout_inds(frame, window=window, center=frame_ctr + off)
-        offsets = offset_centroids(frame, inds)
+        offsets = offset_centroids(frame, None, inds)
         ctr += (offsets[method] - ctr) / n
         n += 1
     return shift_frame(frame, frame_ctr - ctr)
@@ -75,10 +74,10 @@ def lucky_image_file(
     hdu,
     outpath,
     centroids,
+    metric_file: Path,
     method: str = "median",
     register: Optional[Literal["com", "peak", "model"]] = "com",
     frame_select: Optional[Literal["peak", "normvar", "var", "strehl", "model", "fwhm"]] = None,
-    metric_file: Optional[Path] = None,
     force: bool = False,
     recenter: bool = True,
     select_cutoff: float = 0,
@@ -111,26 +110,6 @@ def lucky_image_file(
         fields = centroids[cam_key]
     else:
         fields = {"": [frame_center(cube)]}
-
-    # if no metric file assume straight collapsing
-    if not metric_file:
-        frame, header = collapse_cube(cube, method=method, header=header, **kwargs)
-        frames = []
-        headers = []
-        for field, ctr in fields.items():
-            field_ctr = get_center(frame, ctr, cam_num)
-            if field_ctr.ndim > 1:
-                field_ctr = np.mean(field_ctr, axis=0)
-            cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
-            frames.append(cutout.data)
-            hdr = header.copy()
-            hdr["FIELD"] = field
-            headers.append(hdr)
-        prim_hdu = fits.PrimaryHDU(np.array(frames), header=header)
-        hdus = [fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers)]
-        hdu = fits.HDUList([prim_hdu, *hdus])
-        hdu.writeto(outpath, overwrite=True)
-        return hdu
 
     metrics = np.load(metric_file)
 
@@ -175,12 +154,12 @@ def lucky_image_file(
         add_metrics_to_header(hdr, masked_metrics, index=i)
         if specphot is not None:
             hdr = specphot_calibration(hdr, masked_metrics, outdir=preproc_dir, config=specphot)
-            coll_frame = convert_to_surface_brightness(coll_frame)
+            coll_frame = convert_to_surface_brightness(coll_frame, hdr)
             hdr["BUNIT"] = "Jy/arcsec^2"
         frames.append(coll_frame)
         headers.append(hdr)
-
-    prim_hdu = fits.PrimaryHDU(np.array(frames), header=header)
+    comb_header = combine_frames_headers(headers, wcs=True)
+    prim_hdu = fits.PrimaryHDU(np.array(frames), header=comb_header)
     hdus = (fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers))
     hdu = fits.HDUList([prim_hdu, *hdus])
     # write to disk
@@ -221,7 +200,7 @@ def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Head
             continue
         for i, psf in enumerate(arr):
             comment = COMMENT_FSTRS[key].format(" ", i)
-            hdr[f"{key_up}{i}"] = np.mean(psf), comment
+            hdr[f"{key_up}{i}"] = np.nan_to_num(np.mean(psf)), comment
             err_comment = COMMENT_FSTRS[key].format(" err ", i)
             if len(psf) == 1:
                 sem = 0

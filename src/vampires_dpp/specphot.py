@@ -60,16 +60,16 @@ def load_vampires_filter(name: str, csv_path=BASE_DIR / "vampires_filters.csv"):
 def update_header_with_filt_info(header: fits.Header, filt: SpectralElement) -> fits.Header:
     waves = filt.waveset
     through = filt.model.lookup_table
-    above_50, _ = np.nonzero(through >= 0.5 * np.nanmax(through))
+    above_50 = np.nonzero(through >= 0.5 * np.nanmax(through))
     waveset = waves[above_50]
-    header["WAVEMIN"] = waveset[0].to(u.nm), "[nm] Cut-on wavelength (50%)"
-    header["WAVEMAX"] = waveset[-1].to(u.nm), "[nm] Cut-off wavelength (50%)"
-    header["WAVEAVE"] = filt.avgwave(waveset).to(u.nm), "[nm] Average bandpass wavelength"
-    header["FWHM"] = (
+    header["WAVEMIN"] = waveset[0].to(u.nm).value, "[nm] Cut-on wavelength (50%)"
+    header["WAVEMAX"] = waveset[-1].to(u.nm).value, "[nm] Cut-off wavelength (50%)"
+    header["WAVEAVE"] = filt.avgwave(waveset).to(u.nm).value, "[nm] Average bandpass wavelength"
+    header["WAVFWHM"] = (
         header["WAVEMAX"] - header["WAVEMIN"],
-        "[nm] Width of 50% transmission through bandpass",
+        "[nm] Bandpass full width at half-max",
     )
-    header["DLAMLAM"] = header["FWHM"] / header["WAVEAVE"], "Filter inverse spectral resolution"
+    header["DLAMLAM"] = header["WAVFWHM"] / header["WAVEAVE"], "Filter inverse spectral resolution"
     return header
 
 
@@ -153,29 +153,29 @@ def update_header_from_obs(
     # get calibrated flux (adu / s)
     inst_flux = flux / header["EXPTIME"]
     inst_mag = -2.5 * np.log10(inst_flux)
-    header["INSFLX"] = inst_flux, "[adu/s] Instrumental flux"
-    header["INSMAG"] = inst_mag, "[mag] Instrumental magnitude"
+    header["INSTFLX"] = inst_flux, "[adu/s] Instrumental flux"
+    header["INSTMAG"] = inst_mag, "[mag] Instrumental magnitude"
     # calculate surface density conversion factory
     pxarea = (header["PXSCALE"] / 1e3) ** 2
     c_fd = obs_jy / inst_flux
-    header["C_FD"] = c_fd, "[Jy/(adu/s)] Absolute flux conversion factor"
+    header["C_FD"] = c_fd.value, "[Jy/(adu/s)] Absolute flux conversion factor"
     header["PXAREA"] = pxarea, "[arcsec^2/pix] Solid angle of each pixel"
     # calculate Vega zero point
     zp = obs_mag.value - inst_mag
     zp_jy = c_fd * 10 ** (0.4 * zp)
     header["ZPMAG"] = zp, "[mag] Zero point in the Vega magnitude system"
-    header["ZPJY"] = zp_jy, "[Jy] Zero point in the Vega magnitude system"
+    header["ZPJY"] = zp_jy.value, "[Jy] Zero point in the Vega magnitude system"
     # calculate total throughput (atmosphere + instrument + QE)
-    waverange = header["WAVEMIN"] * u.nm, header["WAVEMAX"] * u.nm
-    throughput = inst_flux / obs.countrate(area=SCEXAO_AREA, waverange=waverange).value
-    header["THROUGH"] = throughput, "[adu/ct] Estimated total throughput (Atm+Inst+QE)"
+    inst_flux_e = inst_flux / (header["GAIN"] * max(header.get("DETGAIN", 1), 1))
+    throughput = inst_flux_e / obs.countrate(area=SCEXAO_AREA).value
+    header["THROUGH"] = throughput, "[e-/ct] Est. total throughput (Atm+Inst+QE)"
     return header
 
 
 def get_flux_from_metrics(metrics, config: SpecphotConfig) -> float:
     match config.flux_metric:
         case "photometry":
-            fluxes = metrics["photr"]
+            fluxes = metrics["photf"]
         case "sum":
             fluxes = metrics["sum"]
     return np.nanmedian(fluxes)

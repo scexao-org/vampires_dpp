@@ -7,11 +7,11 @@ import astropy.units as u
 import cv2
 import numpy as np
 import pandas as pd
+import tqdm.auto as tqdm
 from astropy.coordinates import Angle
 from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
-import tqdm.auto as tqdm
 
 from vampires_dpp.indexing import frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header, header_table
@@ -278,6 +278,7 @@ def combine_frames_headers(headers, wcs=False):
     output_header = fits.Header()
     # let's make this easier with tables
     table = pd.DataFrame([dict_from_header(header) for header in headers])
+    table.sort_values("MJD", inplace=True)
     # use a single header to get comments
     test_header = headers[0]
     # which columns have only a single unique value?
@@ -287,16 +288,20 @@ def combine_frames_headers(headers, wcs=False):
     for key, val in unique_row.items():
         output_header[key] = val, test_header.comments[key]
 
+    # as a start, for everything else just median it
+    for key in table.columns[~unique_mask]:
+        output_header[key] = np.median(table[key]), test_header.comments[key]
+
+    ## everything below here has special rules for combinations
     # sum exposure times
     if "TINT" in table:
         output_header["TINT"] = table["TINT"].sum(), "[s] total integrated exposure time"
-    # median PSF models
 
     # get PA rotation
     if "PA" in table.keys():
         output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
         output_header["PA-END"] = table["PA-END"].iloc[-1], "[deg] par. angle at end"
-        total_rot = delta_angle(output_header["PA-END"], output_header["PA-STR"])
+        total_rot = delta_angle(output_header["PA-STR"], output_header["PA-END"])
         output_header["PA-ROT"] = total_rot, "[deg] total par. angle rotation"
 
     # average position using average angle formula

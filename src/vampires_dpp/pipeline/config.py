@@ -231,7 +231,7 @@ class AnalysisConfig(BaseModel):
 
     strehl: Literal[False] = False
     subtract_radprof: bool = False
-    aper_rad: float | Literal["auto"] = 8
+    aper_rad: float | Literal["auto"] = "auto"
     ann_rad: Optional[Sequence[float]] = None
     window_size: int = 30
     # dft_factor: int = 5

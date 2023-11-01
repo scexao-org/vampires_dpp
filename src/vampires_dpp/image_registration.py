@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from astropy.io import fits
 from astropy.modeling import fitting, models
@@ -21,15 +23,23 @@ def offset_dft(frame, inds, psf, *, upsample_factor):
     return ctr
 
 
-def offset_centroids(frame, inds):
+def offset_centroids(frame, frame_err, inds):
     """NaN-friendly centroids"""
     # wy, wx = np.ogrid[inds[-2], inds[-1]]
     cutout = frame[inds]
+    if frame_err is not None:
+        cutout_err = frame_err[inds]
+    else:
+        cutout_err = None
 
     peak_yx = np.unravel_index(np.nanargmax(cutout), cutout.shape)
     com_xy = centroids.centroid_com(cutout)
-    gauss_xy = centroids.centroid_2dg(cutout)
-    quad_xy = centroids.centroid_quadratic(cutout)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        gauss_xy = centroids.centroid_2dg(cutout, error=cutout_err)
+        quad_xy = centroids.centroid_quadratic(
+            cutout, xpeak=com_xy[0], ypeak=com_xy[1], fit_boxsize=cutout.shape
+        )
 
     # offset based on indices
     offx = inds[-1].start

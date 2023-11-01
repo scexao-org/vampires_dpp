@@ -16,7 +16,12 @@ from vampires_dpp.image_processing import (
 
 from ..paths import any_file_newer
 from ..util import load_fits
-from .utils import instpol_correct, measure_instpol, measure_instpol_ann, write_stokes_products
+from .utils import (
+    instpol_correct,
+    measure_instpol,
+    measure_instpol_ann,
+    write_stokes_products,
+)
 
 
 def polarization_calibration_triplediff(filenames: Sequence[str]):
@@ -354,7 +359,10 @@ def make_stokes_image(
         # second order IP correction
         if ip_correct:
             stokes_data, stokes_header = polarization_ip_correct(
-                stokes_data, phot_rad=(ip_radius, ip_radius2), method=ip_method, header=stokes_header
+                stokes_data,
+                phot_rad=(ip_radius, ip_radius2),
+                method=ip_method,
+                header=stokes_header,
             )
         output_data.append(stokes_data)
         output_hdrs.append(stokes_header)
@@ -366,13 +374,18 @@ def make_stokes_image(
     return prim_hdu.data, prim_hdu.header
 
 
-def polarization_ip_correct(stokes_data, phot_rad, header=None):
-    if phot_rad[1] is None:
-        cQ = measure_instpol(stokes_data[0], stokes_data[1], r=phot_rad)
-        cU = measure_instpol(stokes_data[0], stokes_data[2], r=phot_rad)
-    else:
-        cQ = measure_instpol_ann(stokes_data[0], stokes_data[1], Rin=phot_rad[0], Rout=phot_rad[1])
-        cU = measure_instpol_ann(stokes_data[0], stokes_data[2], Rin=phot_rad[0], Rout=phot_rad[1])
+def polarization_ip_correct(stokes_data, phot_rad, method, header=None):
+    match method:
+        case "aperture":
+            cQ = measure_instpol(stokes_data[0], stokes_data[1], r=phot_rad[0])
+            cU = measure_instpol(stokes_data[0], stokes_data[2], r=phot_rad[0])
+        case "annulus":
+            cQ = measure_instpol_ann(
+                stokes_data[0], stokes_data[1], Rin=phot_rad[0], Rout=phot_rad[1]
+            )
+            cU = measure_instpol_ann(
+                stokes_data[0], stokes_data[2], Rin=phot_rad[0], Rout=phot_rad[1]
+            )
 
     stokes_data[:3] = instpol_correct(stokes_data[:3], cQ, cU)
 

@@ -255,8 +255,6 @@ class Pipeline:
             outpath=fileinfo["metric_file"],
             force=force,
             window=config.window_size,
-            specphot=self.config.specphot,
-            preproc_dir=self.paths.preproc_dir,
         )
         return outpath
 
@@ -275,6 +273,8 @@ class Pipeline:
             centroids=self.centroids,
             outpath=outpath,
             force=force,
+            specphot=self.config.specphot,
+            preproc_dir=self.paths.preproc_dir,
         )
         logger.debug("Data collapsing completed")
         logger.debug(f"Saved collapsed data to {outpath}")

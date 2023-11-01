@@ -361,7 +361,7 @@ def new_config(ctx, config, edit):
     ## get target
     obj = click.prompt("SIMBAD-friendly object name (optional)", default="")
     coord = None
-    if obj is not "":
+    if obj != "":
         rad = 1
         cat = "dr3"
         while True:
@@ -691,6 +691,11 @@ def run(config: Path, filenames, num_proc, outdir):
     "config",
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
 )
+@click.argument(
+    "filenames",
+    nargs=-1,
+    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+)
 @click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
     "--num-proc",
@@ -706,7 +711,7 @@ def run(config: Path, filenames, num_proc, outdir):
     is_flag=True,
     help="Silence progress bars and extraneous logging.",
 )
-def pdi(config, num_proc, quiet, outdir):
+def pdi(config, filenames, num_proc, quiet, outdir):
     # make sure versions match within SemVar
     logger.add(outdir / "debug.log", level="DEBUG", enqueue=True, colorize=False)
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
