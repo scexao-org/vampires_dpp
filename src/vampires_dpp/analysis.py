@@ -15,17 +15,19 @@ def safe_aperture_sum(frame, r, err=None, center=None, ann_rad=None):
     if center is None:
         center = frame_center(frame)
     mask = ~np.isfinite(frame)
-    flux, fluxerr, flag = sep.sum_circle(
-        np.ascontiguousarray(frame).astype("f4"),
-        (center[1],),
-        (center[0],),
-        r,
-        err=err,
-        mask=mask,
-        bkgann=ann_rad,
-    )
-
-    return flux[0], fluxerr[0]
+    try:
+        flux, fluxerr, flag = sep.sum_circle(
+            np.ascontiguousarray(frame).astype("f4"),
+            (center[1],),
+            (center[0],),
+            r,
+            err=err,
+            mask=mask,
+            bkgann=ann_rad,
+        )
+        return flux[0], fluxerr[0]
+    except ZeroDivisionError:
+        return np.nan, np.nan
 
 
 def safe_annulus_sum(frame, Rin, Rout, center=None):
@@ -61,7 +63,7 @@ def analyze_fields(
     output = {}
     cutout = cube[inds]
     cube_err[inds]
-    radii = np.arange(1, window_size)
+    radii = np.arange(1, window_size // 2)
     ## Simple statistics
     output["max"] = np.nanmax(cutout, axis=(-2, -1))
     output["sum"] = np.nansum(cutout, axis=(-2, -1))
@@ -91,8 +93,8 @@ def analyze_fields(
             append_or_create(output, "fwhm", prof.gaussian_fwhm)
 
         if aper_rad == "auto":
-            r = prof.gaussian_fwhm
-            ann_rad = r + 1, r + prof.gaussian_fwhm + 1
+            r = max(prof.gaussian_fwhm, radii.max())
+            ann_rad = r + 5, r + prof.gaussian_fwhm + 5
         else:
             r = aper_rad
         append_or_create(output, "photr", r)

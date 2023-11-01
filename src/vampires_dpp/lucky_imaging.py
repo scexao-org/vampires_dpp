@@ -44,8 +44,8 @@ def get_frame_select_mask(metrics, input_key, quantile=0):
 
 
 def get_centroids_from(metrics, input_key):
-    cx = metrics[f"{input_key}x"]
-    cy = metrics[f"{input_key}y"]
+    cx = metrics[f"{input_key[:4]}x"]
+    cy = metrics[f"{input_key[:4]}y"]
     # if there are values from multiple PSFs (e.g. satspots)
     # take the mean centroid of each PSF
     if cx.ndim == 3:

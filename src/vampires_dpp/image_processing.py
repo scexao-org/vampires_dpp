@@ -273,6 +273,20 @@ WCS_KEYS = {
     "PC2_2",
 }
 
+RESERVED_KEYS = {
+    "NAXIS",
+    "NAXIS1",
+    "NAXIS2",
+    "NAXIS3",
+    "BSCALE",
+    "BZERO",
+    "BITPIX",
+    "WAVEMIN",
+    "WAVEMAX",
+    "WAVEFWHM",
+    "DLAMLAM",
+} | WCS_KEYS
+
 
 def combine_frames_headers(headers, wcs=False):
     output_header = fits.Header()
@@ -290,7 +304,10 @@ def combine_frames_headers(headers, wcs=False):
 
     # as a start, for everything else just median it
     for key in table.columns[~unique_mask]:
-        output_header[key] = np.median(table[key]), test_header.comments[key]
+        if key in RESERVED_KEYS or table[key].dtype not in (int, float):
+            continue
+        comment = test_header.comments[key] if key in test_header.comments else None
+        output_header[key] = np.nanmedian(table[key]), comment
 
     ## everything below here has special rules for combinations
     # sum exposure times

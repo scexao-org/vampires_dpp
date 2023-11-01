@@ -65,11 +65,11 @@ def update_header_with_filt_info(header: fits.Header, filt: SpectralElement) -> 
     header["WAVEMIN"] = waveset[0].to(u.nm).value, "[nm] Cut-on wavelength (50%)"
     header["WAVEMAX"] = waveset[-1].to(u.nm).value, "[nm] Cut-off wavelength (50%)"
     header["WAVEAVE"] = filt.avgwave(waveset).to(u.nm).value, "[nm] Average bandpass wavelength"
-    header["WAVFWHM"] = (
+    header["WAVEFWHM"] = (
         header["WAVEMAX"] - header["WAVEMIN"],
         "[nm] Bandpass full width at half-max",
     )
-    header["DLAMLAM"] = header["WAVFWHM"] / header["WAVEAVE"], "Filter inverse spectral resolution"
+    header["DLAMLAM"] = header["WAVEFWHM"] / header["WAVEAVE"], "Filter inverse spectral resolution"
     return header
 
 
@@ -166,7 +166,7 @@ def update_header_from_obs(
     header["ZPMAG"] = zp, "[mag] Zero point in the Vega magnitude system"
     header["ZPJY"] = zp_jy.value, "[Jy] Zero point in the Vega magnitude system"
     # calculate total throughput (atmosphere + instrument + QE)
-    inst_flux_e = inst_flux / (header["GAIN"] * max(header.get("DETGAIN", 1), 1))
+    inst_flux_e = inst_flux * header["GAIN"] / max(header.get("DETGAIN", 1), 1)
     throughput = inst_flux_e / obs.countrate(area=SCEXAO_AREA).value
     header["THROUGH"] = throughput, "[e-/ct] Est. total throughput (Atm+Inst+QE)"
     return header
