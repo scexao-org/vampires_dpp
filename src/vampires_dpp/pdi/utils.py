@@ -139,9 +139,9 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
     if header is None:
         header = fits.Header()
 
-    header["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP"
+    header["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
     if phi is not None:
-        header["DPP_PHI"] = phi, "deg, angle of linear polarization offset"
+        header["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
 
     data = np.asarray(
         (stokes_cube[:, 0], stokes_cube[:, 1], stokes_cube[:, 2], Qphi, Uphi, pi, aolp)

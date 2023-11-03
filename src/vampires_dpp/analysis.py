@@ -15,19 +15,16 @@ def safe_aperture_sum(frame, r, err=None, center=None, ann_rad=None):
     if center is None:
         center = frame_center(frame)
     mask = ~np.isfinite(frame)
-    try:
-        flux, fluxerr, flag = sep.sum_circle(
-            np.ascontiguousarray(frame).astype("f4"),
-            (center[1],),
-            (center[0],),
-            r,
-            err=err,
-            mask=mask,
-            bkgann=ann_rad,
-        )
-        return flux[0], fluxerr[0]
-    except ZeroDivisionError:
-        return np.nan, np.nan
+    flux, fluxerr, flag = sep.sum_circle(
+        np.ascontiguousarray(frame).astype("f4"),
+        (center[1],),
+        (center[0],),
+        r,
+        err=err,
+        mask=mask,
+        bkgann=ann_rad,
+    )
+    return flux[0], fluxerr[0]
 
 
 def safe_annulus_sum(frame, Rin, Rout, center=None):
@@ -63,7 +60,7 @@ def analyze_fields(
     output = {}
     cutout = cube[inds]
     cube_err[inds]
-    radii = np.arange(1, window_size // 2)
+    radii = np.arange(1, window_size)
     ## Simple statistics
     output["max"] = np.nanmax(cutout, axis=(-2, -1))
     output["sum"] = np.nansum(cutout, axis=(-2, -1))
@@ -81,8 +78,6 @@ def analyze_fields(
         append_or_create(output, "comy", centroids["com"][0])
         append_or_create(output, "peakx", centroids["peak"][1])
         append_or_create(output, "peaky", centroids["peak"][0])
-        append_or_create(output, "quadx", centroids["quad"][1])
-        append_or_create(output, "quady", centroids["quad"][0])
         append_or_create(output, "gausx", centroids["gauss"][1])
         append_or_create(output, "gausy", centroids["gauss"][0])
 
@@ -90,11 +85,12 @@ def analyze_fields(
         prof = profiles.RadialProfile(frame, ctr_est[::-1], radii, error=frame_err)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            append_or_create(output, "fwhm", prof.gaussian_fwhm)
+            fwhm = prof.gaussian_fwhm
+            append_or_create(output, "fwhm", fwhm)
 
         if aper_rad == "auto":
-            r = max(prof.gaussian_fwhm, radii.max())
-            ann_rad = r + 5, r + prof.gaussian_fwhm + 5
+            r = max(min(fwhm, radii.max() / 2), 3)
+            ann_rad = r + 5, r + fwhm + 5
         else:
             r = aper_rad
         append_or_create(output, "photr", r)

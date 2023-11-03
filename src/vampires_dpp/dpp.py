@@ -1,6 +1,7 @@
 import glob
 import multiprocessing as mp
 import os
+import re
 import readline
 import sys
 from multiprocessing import cpu_count
@@ -27,6 +28,7 @@ from vampires_dpp.pipeline.config import (
     ObjectConfig,
     PipelineConfig,
     PolarimetryConfig,
+    SpecphotConfig,
 )
 from vampires_dpp.pipeline.deprecation import upgrade_config
 from vampires_dpp.pipeline.pipeline import Pipeline
@@ -36,6 +38,7 @@ from vampires_dpp.pipeline.templates import (
     VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
 )
+from vampires_dpp.specphot import FILTERS, PICKLES_MAP, get_simbad_flux
 from vampires_dpp.util import check_version, load_fits_key
 from vampires_dpp.wcs import get_gaia_astrometry
 
@@ -241,7 +244,7 @@ def flat(ctx, filenames, back, collapse, force):
 ########## centroid ##########
 
 
-@click.command(name="centroid", help="Fit the centroids")
+@main.command(name="centroid", help="Fit the centroids")
 @click.argument(
     "config",
     type=click.Path(dir_okay=False, readable=True, path_type=Path),
@@ -475,24 +478,27 @@ def new_config(ctx, config, edit):
     tpl.analysis.window_size = click.prompt(
         "Enter analysis window size (px)", type=int, default=tpl.analysis.window_size
     )
-    tpl.analysis.subtract_radprof = click.confirm(
-        "Would you like to subtract a radial profile for analysis?", default=tpl.coronagraphic
-    )
+    # tpl.analysis.subtract_radprof = click.confirm(
+    #     "Would you like to subtract a radial profile for analysis?", default=tpl.coronagraphic
+    # )
     tpl.analysis.strehl = click.confirm(
         "Would you like to estimate the Strehl ratio?", default=False
     )
 
-    aper_rad = click.prompt(
-        " Enter aperture radius (px)", type=float, default=tpl.analysis.aper_rad
-    )
-
-    if aper_rad > tpl.analysis.window_size / 2:
+    aper_rad = click.prompt('Enter aperture radius (px/"auto")', default=tpl.analysis.aper_rad)
+    try:
+        aper_rad = float(aper_rad)
+    except ValueError:
+        pass
+    if not isinstance(aper_rad, str) and aper_rad > tpl.analysis.window_size / 2:
         aper_rad = tpl.analysis.window_size / 2
         click.echo(f" ! Reducing aperture radius to match window size ({aper_rad:.0f} px)")
     tpl.analysis.aper_rad = aper_rad
 
     ann_rad = None
-    if click.confirm("Would you like to subtract background annulus?", default=False):
+    if tpl.analysis.aper_rad != "auto" and click.confirm(
+        "Would you like to subtract background annulus?", default=False
+    ):
         resp = click.prompt(
             " - Enter comma-separated inner and outer radius (px)",
             default=f"{max(aper_rad, tpl.analysis.window_size / 2 - 5)}, {tpl.analysis.window_size / 2}",
@@ -507,6 +513,56 @@ def new_config(ctx, config, edit):
             ann_rad[0] = max(aper_rad, ann_rad[0] - 5)
             click.echo(f" ! Reducing annulus inner radius to ({ann_rad[0]:.0f} px)")
         tpl.analysis.ann_rad = ann_rad
+
+    ## Specphot Cal
+    if click.confirm("Would you like to do flux calibration?", default=tpl.specphot is not None):
+        readline.set_completer(pathCompleter)
+        source = click.prompt(
+            ' - Enter source type ("pickles"/"zeropoint"/path to spectrum)', default="pickles"
+        )
+        readline.set_completer()
+        if source == "pickles":
+            if tpl.object is not None:
+                simbad_table = get_simbad_flux(tpl.object.object)
+                if not simbad_table["FLUX_R"].mask[0]:
+                    mag = simbad_table["FLUX_R"][0]
+                    mag_band = "R"
+                elif not simbad_table["FLUX_I"].mask[0]:
+                    mag = simbad_table["FLUX_I"][0]
+                    mag_band = "I"
+                else:
+                    mag = simbad_table["FLUX_V"][0]
+                    mag_band = "V"
+                sptype = re.match(r"\w\d[IV]{1,3}?", simbad_table["SP_TYPE"][0]).group()
+                click.echo(f" * Found SIMBAD info: {sptype} {mag_band}={mag:.02f}")
+            else:
+                mag = ""
+                mag_band = "V"
+                sptype = "G0V"
+            sptype = click.prompt(" - Enter spectral type", default=sptype)
+            if sptype not in PICKLES_MAP.keys():
+                click.echo(
+                    " ! No match in pickles stellar library - you will have to edit manually"
+                )
+            mag = click.prompt(" - Enter source magnitude", default=mag, type=float)
+            mag_band = click.prompt(
+                " - Enter source magnitude passband",
+                default=mag_band,
+                type=click.Choice(list(FILTERS.keys()), case_sensitive=False),
+            )
+        else:
+            sptype = mag = mag_band = None
+
+        metric = click.prompt(
+            " - Select which metric to use for flux",
+            default="photometry",
+            type=click.Choice(["photometry", "sum"]),
+        )
+        tpl.specphot = SpecphotConfig(
+            source=source, sptype=sptype, mag=mag, mag_band=mag_band, flux_metric=metric
+        )
+    else:
+        tpl.specphot = None
 
     ## Collapsing
     if click.confirm("Would you like to collapse your data?", default=tpl.collapse is not None):
@@ -544,7 +600,7 @@ def new_config(ctx, config, edit):
             f"Would you like to do frame registration?", default=tpl.collapse.centroid is not None
         )
         if do_register:
-            centroid_choices = ["com", "peak", "model"]
+            centroid_choices = ["com", "peak", "gauss", "quad"]
             readline.set_completer(createListCompleter(centroid_choices))
             tpl.collapse.centroid = click.prompt(
                 " - Choose a registration method",
@@ -576,10 +632,10 @@ def new_config(ctx, config, edit):
         )
         readline.set_completer()
         tpl.polarimetry = PolarimetryConfig(method=pol_method)
-        if tpl.polarimetry.method == "difference":
+        if "diff" in tpl.polarimetry.method:
             tpl.polarimetry.mm_correct = click.confirm(
                 " - Would you like to to Mueller-matrix correction?",
-                default=True,
+                default=tpl.polarimetry.mm_correct,
             )
         tpl.polarimetry.use_ideal_mm = click.confirm(
             " - Would you like to use an idealized Muller matrix?",
@@ -588,6 +644,25 @@ def new_config(ctx, config, edit):
         tpl.polarimetry.ip_correct = click.confirm(
             " - Would you like to do IP touchup?", default=tpl.polarimetry.ip_correct is not None
         )
+        if tpl.polarimetry.ip_correct:
+            default = "annulus" if tpl.coronagraphic else "aperture"
+            tpl.polarimetry.ip_method = click.prompt(
+                " - Select IP correction method",
+                type=click.Choice(["aperture", "annulus"], case_sensitive=False),
+                default=default,
+            )
+            if tpl.polarimetry.ip_method == "aperture":
+                tpl.polarimetry.ip_radius = click.prompt(
+                    " - Enter IP aperture radius (px)", type=float, default=8
+                )
+            elif tpl.polarimetry.ip_method == "annulus":
+                resp = click.prompt(
+                    " - Enter comma-separated inner and outer radius (px)",
+                    default="10, 16",
+                )
+                ann_rad = list(map(float, resp.replace(" ", "").split(",")))
+                tpl.polarimetry.ip_radius = ann_rad[0]
+                tpl.polarimetry.ip_radius2 = ann_rad[1]
     else:
         tpl.polarimetry = None
 
@@ -673,7 +748,9 @@ def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool,
 )
 def run(config: Path, filenames, num_proc, outdir):
     # make sure versions match within SemVar
-    logger.add(outdir / "debug.log", level="DEBUG", enqueue=True, colorize=False)
+    logfile = outdir / "debug.log"
+    logfile.unlink(missing_ok=True)
+    logger.add(logfile, level="DEBUG", enqueue=True, colorize=False)
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
     if not check_version(pipeline.config.dpp_version, dpp.__version__):
         raise ValueError(

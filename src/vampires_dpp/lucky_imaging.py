@@ -76,7 +76,7 @@ def lucky_image_file(
     centroids,
     metric_file: Path,
     method: str = "median",
-    register: Optional[Literal["com", "peak", "model"]] = "com",
+    register: Optional[Literal["com", "peak", "gauss"]] = "com",
     frame_select: Optional[Literal["peak", "normvar", "var", "strehl", "model", "fwhm"]] = None,
     force: bool = False,
     recenter: bool = True,
@@ -153,7 +153,7 @@ def lucky_image_file(
         ## handle header metadata
         add_metrics_to_header(hdr, masked_metrics, index=i)
         if specphot is not None:
-            hdr = specphot_calibration(hdr, masked_metrics, outdir=preproc_dir, config=specphot)
+            hdr = specphot_calibration(hdr, outdir=preproc_dir, config=specphot)
             coll_frame = convert_to_surface_brightness(coll_frame, hdr)
             hdr["BUNIT"] = "Jy/arcsec^2"
         frames.append(coll_frame)
@@ -179,8 +179,6 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "phote": "[adu] Photometric fluxerr{}in window {}",
     "comx": "[pix] COM x{}in window {}",
     "comy": "[pix] COM y{}in window {}",
-    "quadx": "[pix] Quad. fit x{}in window {}",
-    "quady": "[pix] Quad. fit y{}in window {}",
     "peakx": "[pix] Peak index x{}in window {}",
     "peaky": "[pix] Peak index y{}in window {}",
     "gausx": "[pix] Gauss. fit x{}in window {}",
@@ -195,16 +193,24 @@ def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Head
         if key not in COMMENT_FSTRS:
             continue
         key_up = key.upper()
-        if key_up in ("PSFMOD", "PHOTR"):
+        if key_up == "PHOTR":
             hdr[key_up] = arr[0][0], COMMENT_FSTRS[key]
             continue
+        mean_val = 0
         for i, psf in enumerate(arr):
+            # mean val
             comment = COMMENT_FSTRS[key].format(" ", i)
-            hdr[f"{key_up}{i}"] = np.nan_to_num(np.mean(psf)), comment
+            psf_val = np.mean(psf)
+            mean_val += (psf_val - mean_val) / (i + 1)
+            hdr[f"{key_up}{i}"] = np.nan_to_num(psf_val), comment
+            # sem
             err_comment = COMMENT_FSTRS[key].format(" err ", i)
             if len(psf) == 1:
                 sem = 0
+            elif "PHOTE" in key_up:
+                sem = np.sqrt(np.mean(psf**2))
             else:
                 sem = st.sem(psf, nan_policy="omit")
-            hdr[f"{key_up[:5]}ER{i}"] = sem, err_comment
+            hdr[f"{key_up[:5]}ER{i}"] = np.nan_to_num(sem), err_comment
+        hdr[f"{key_up[:5]}"] = np.nan_to_num(mean_val), comment.split(" in window")[0]
     return hdr

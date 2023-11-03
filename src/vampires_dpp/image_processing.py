@@ -291,10 +291,10 @@ RESERVED_KEYS = {
 def combine_frames_headers(headers, wcs=False):
     output_header = fits.Header()
     # let's make this easier with tables
+    test_header = headers[0]
     table = pd.DataFrame([dict_from_header(header) for header in headers])
     table.sort_values("MJD", inplace=True)
     # use a single header to get comments
-    test_header = headers[0]
     # which columns have only a single unique value?
     unique_values = table.apply(lambda col: col.unique())
     unique_mask = unique_values.apply(lambda values: len(values) == 1)
@@ -306,7 +306,11 @@ def combine_frames_headers(headers, wcs=False):
     for key in table.columns[~unique_mask]:
         if key in RESERVED_KEYS or table[key].dtype not in (int, float):
             continue
-        comment = test_header.comments[key] if key in test_header.comments else None
+        try:
+            # there is no way to check if comment exists a priori...
+            comment = test_header.comments[key]
+        except KeyError:
+            comment = None
         output_header[key] = np.nanmedian(table[key]), comment
 
     ## everything below here has special rules for combinations

@@ -37,9 +37,6 @@ def offset_centroids(frame, frame_err, inds):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         gauss_xy = centroids.centroid_2dg(cutout, error=cutout_err)
-        quad_xy = centroids.centroid_quadratic(
-            cutout, xpeak=com_xy[0], ypeak=com_xy[1], fit_boxsize=cutout.shape
-        )
 
     # offset based on indices
     offx = inds[-1].start
@@ -48,6 +45,5 @@ def offset_centroids(frame, frame_err, inds):
         "peak": np.array((peak_yx[0] + offy, peak_yx[1] + offx)),
         "com": np.array((com_xy[1] + offy, com_xy[0] + offx)),
         "gauss": np.array((gauss_xy[1] + offy, gauss_xy[0] + offx)),
-        "quad": np.array((quad_xy[1] + offy, quad_xy[0] + offx)),
     }
     return ctrs

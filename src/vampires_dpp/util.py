@@ -51,9 +51,9 @@ def delta_angle(alpha: float, beta: float) -> float:
     """
     Given two angles, determine the total rotation between them
     """
-    if beta < alpha:
-        beta += 360
-    return beta - alpha
+    alpha_mod = np.mod(alpha, 360)
+    beta_mod = np.mod(beta, 360)
+    return beta_mod - alpha_mod
 
 
 def check_version(config: str, dpp: str) -> bool:

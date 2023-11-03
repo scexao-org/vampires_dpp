@@ -117,6 +117,7 @@ def fix_header(header):
     # add in detector charracteristics
     inst = get_instrument_from(header)
     header["GAIN"] = inst.gain, "[e-/adu] detector gain"
+    header["EFFGAIN"] = inst.effgain, "[e-/adu] detector effective gain"
     header["RN"] = inst.readnoise, "[e-] RMS read noise"
     header["PXSCALE"] = inst.pixel_scale, "[mas/px] pixel scale"
     header["PAOFFSET"] = inst.pa_offset, "[deg] parallactic angle offset"

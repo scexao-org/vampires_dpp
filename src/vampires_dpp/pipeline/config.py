@@ -78,7 +78,7 @@ class ObjectConfig(BaseModel):
 
 
 class SpecphotConfig(BaseModel):
-    source: Literal["pickles"] | Path = "pickles"
+    source: Literal["pickles", "zeropoint"] | Path = "pickles"
     sptype: Optional[str] = None
     mag: Optional[float] = None
     mag_band: Optional[Literal["U", "B", "V", "R", "I", "J", "H", "K"]] = "V"
@@ -193,7 +193,7 @@ class CollapseConfig(BaseModel):
 
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
     frame_select: Optional[Literal["max", "l2norm", "normvar"]] = "normvar"
-    centroid: Optional[Literal["com", "peak", "gauss", "quad"]] = "com"
+    centroid: Optional[Literal["com", "peak", "gauss"]] = "com"
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     recenter: bool = True
 

@@ -48,6 +48,10 @@ class EMCCDVAMPIRES(InstrumentInfo):
             fullwell = min(800_000, 2**16 * self.gain)
         return fullwell
 
+    @property
+    def effgain(self):
+        return self.gain / self.emgain
+
     def get_psf_size(self, filt_name):
         if not filt_name in self.filters:
             raise ValueError(f"{filt_name} not recognized as a filter")
@@ -93,6 +97,10 @@ class CMOSVAMPIRES(InstrumentInfo):
     @property
     def gain(self):
         return self.VAMP_GAIN[self.readmode]
+
+    @property
+    def effgain(self):
+        return self.gain
 
     @property
     def fullwell(self):

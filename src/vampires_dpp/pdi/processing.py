@@ -193,9 +193,6 @@ def triple_diff_dict(input_dict):
     return I, Q, U
 
 
-from rich import pretty as p
-
-
 def double_diff_dict(input_dict):
     ## make difference images
     # single diff (cams)
@@ -364,10 +361,13 @@ def make_stokes_image(
                 method=ip_method,
                 header=stokes_header,
             )
+        stokes_header["CTYPE3"] = "STOKES"
+        stokes_header["STOKES"] = "I,Q,U", "Stokes axis data type"
         output_data.append(stokes_data)
         output_hdrs.append(stokes_header)
 
-    prim_hdu = fits.PrimaryHDU(np.array(output_data), stokes_hdul[0].header)
+    prim_hdr = combine_frames_headers(output_hdrs)
+    prim_hdu = fits.PrimaryHDU(np.array(output_data), prim_hdr)
     hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(output_data, output_hdrs))
     hdul = fits.HDUList([prim_hdu, *hdus])
     hdul.writeto(outpath, overwrite=True)
@@ -390,6 +390,6 @@ def polarization_ip_correct(stokes_data, phot_rad, method, header=None):
     stokes_data[:3] = instpol_correct(stokes_data[:3], cQ, cU)
 
     if header is not None:
-        header["IP_PHOTQ"] = cQ, "I -> Q IP correction value"
-        header["IP_PHOTU"] = cU, "I -> U IP correction value"
+        header["IP_FQ"] = cQ, "I -> Q IP correction value"
+        header["IP_FU"] = cU, "I -> U IP correction value"
     return stokes_data, header

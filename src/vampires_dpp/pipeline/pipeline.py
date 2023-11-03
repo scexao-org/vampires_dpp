@@ -447,6 +447,7 @@ class Pipeline:
         logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
         ## Collapse outputs
         collapse_frame, coll_hdr = collapse_frames(stokes_data, headers=stokes_hdrs)
+
         # In the case we have multi-wavelength data, save 4D Stokes cube
         if collapse_frame.shape[0] > 1:
             stokes_cube_path = self.paths.pdi_dir / f"{self.config.name}_stokes_cube.fits"
