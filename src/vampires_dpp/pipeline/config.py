@@ -81,7 +81,7 @@ class SpecphotConfig(BaseModel):
     source: Literal["pickles", "zeropoint"] | Path = "pickles"
     sptype: Optional[str] = None
     mag: Optional[float] = None
-    mag_band: Optional[Literal["U", "B", "V", "R", "I", "J", "H", "K"]] = "V"
+    mag_band: Optional[Literal["U", "B", "V", "r", "i", "J", "H", "K"]] = "V"
     flux_metric: Literal["photometry", "sum"] = "photometry"
 
 
@@ -149,8 +149,9 @@ class CalibrateConfig(BaseModel):
         transform_filename = "20230102_fcs16000_params.csv"
     """
 
-    master_backgrounds: Optional[CamFileInput] = CamFileInput()
-    master_flats: Optional[CamFileInput] = CamFileInput()
+    calib_directory: Optional[Path] = None
+    back_subtract: bool = True
+    flat_correct: bool = True
     distortion_file: Optional[Path] = None
     fix_bad_pixels: bool = False
     save_intermediate: bool = False

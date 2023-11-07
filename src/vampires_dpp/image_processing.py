@@ -1,7 +1,7 @@
 import re
 import warnings
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple
 
 import astropy.units as u
 import cv2
@@ -288,11 +288,11 @@ RESERVED_KEYS = {
 } | WCS_KEYS
 
 
-def combine_frames_headers(headers, wcs=False):
+def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     output_header = fits.Header()
     # let's make this easier with tables
     test_header = headers[0]
-    table = pd.DataFrame([dict_from_header(header) for header in headers])
+    table = pd.DataFrame([dict_from_header(header, fix=False) for header in headers])
     table.sort_values("MJD", inplace=True)
     # use a single header to get comments
     # which columns have only a single unique value?
@@ -309,9 +309,15 @@ def combine_frames_headers(headers, wcs=False):
         try:
             # there is no way to check if comment exists a priori...
             comment = test_header.comments[key]
+            is_err = "error" in comment
         except KeyError:
             comment = None
-        output_header[key] = np.nanmedian(table[key]), comment
+            is_err = False
+        if is_err:
+            stderr = np.sqrt(np.nanmean(table[key] ** 2) / len(table))
+            output_header[key] = stderr * np.sqrt(np.pi / 2), comment
+        else:
+            output_header[key] = np.nanmedian(table[key]), comment
 
     ## everything below here has special rules for combinations
     # sum exposure times

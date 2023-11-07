@@ -14,11 +14,12 @@ from tqdm.auto import tqdm
 
 import vampires_dpp as dpp
 from vampires_dpp.analysis import analyze_file
-from vampires_dpp.calibration import calibrate_file
+from vampires_dpp.calibration import calibrate_file, match_calib_files
 from vampires_dpp.image_processing import (
     collapse_frames,
     collapse_frames_files,
     combine_frames_files,
+    combine_frames_headers,
     make_diff_image,
 )
 from vampires_dpp.organization import header_table
@@ -172,6 +173,14 @@ class Pipeline:
         logger.info(
             f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
         )
+        working_table["backfile"] = None
+        working_table["flatfile"] = None
+        if self.config.calibrate.calib_directory is not None:
+            cal_files = list(self.config.calibrate.calib_directory.glob("**/[!.]*.fits"))
+            if len(cal_files) > 0:
+                calib_table = match_calib_files(working_table["path"], cal_files)
+                working_table["backfile"] = calib_table["backfile"]
+                working_table["flatfile"] = calib_table["flatfile"]
 
         ## For each file do
         logger.info("Starting file-by-file processing")
@@ -199,11 +208,11 @@ class Pipeline:
     def process_one(self, fileinfo):
         # fix headers and calibrate
         logger.debug(f"Processing {fileinfo['path']}")
-        cur_hdu = self.calibrate_one(fileinfo["path"], fileinfo)
+        cur_hdul = self.calibrate_one(fileinfo["path"], fileinfo)
         ## Step 2: Frame analysis
-        self.analyze_one(cur_hdu, fileinfo)
+        self.analyze_one(cur_hdul, fileinfo)
         ## Step 3: collapsing
-        path = self.collapse_one(cur_hdu, fileinfo)
+        path = self.collapse_one(cur_hdul, fileinfo)
         return path
 
     def get_coordinate(self):
@@ -220,13 +229,12 @@ class Pipeline:
             if not force and outpath.exists():
                 hdul = fits.open(outpath)
                 return hdul[0]
-        if fileinfo["U_CAMERA"] == 1:
-            back_filename = config.master_backgrounds.cam1
-            flat_filename = config.master_flats.cam1
-        elif fileinfo["U_CAMERA"] == 2:
-            back_filename = config.master_backgrounds.cam2
-            flat_filename = config.master_flats.cam2
-        calib_hdu = calibrate_file(
+
+        if config.back_subtract:
+            back_filename = fileinfo["backfile"]
+        if config.flat_correct:
+            flat_filename = fileinfo["flatfile"]
+        calib_hdul = calibrate_file(
             path,
             back_filename=back_filename,
             flat_filename=flat_filename,
@@ -236,18 +244,18 @@ class Pipeline:
             force=force,
         )
         if config.save_intermediate:
-            calib_hdu.writeto(fileinfo["calib_file"], overwrite=True)
+            calib_hdul.writeto(fileinfo["calib_file"], overwrite=True)
             logger.debug(f"Calibrated data saved to {fileinfo['calib_file']}")
         logger.debug("Data calibration completed")
-        return calib_hdu
+        return calib_hdul
 
-    def analyze_one(self, hdu: fits.PrimaryHDU, fileinfo, force=False):
+    def analyze_one(self, hdul: fits.PrimaryHDU, fileinfo, force=False):
         logger.debug("Starting frame analysis")
         config = self.config.analysis
 
         key = f"cam{fileinfo['U_CAMERA']:.0f}"
         outpath = analyze_file(
-            hdu,
+            hdul,
             centroids=self.centroids.get(key, None),
             subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
@@ -258,12 +266,12 @@ class Pipeline:
         )
         return outpath
 
-    def collapse_one(self, hdu, fileinfo, force=False):
+    def collapse_one(self, hdul, fileinfo, force=False):
         logger.debug("Starting data collapsing")
         config = self.config.collapse
         outpath = Path(fileinfo["collapse_file"])
         lucky_image_file(
-            hdu,
+            hdul,
             method=config.method,
             frame_select=config.frame_select,
             select_cutoff=config.select_cutoff,
@@ -405,8 +413,13 @@ class Pipeline:
             self.paths.stokes_dir / f"{self.config.name}_stokes_{i:03d}.fits"
             for i in range(len(full_path_set))
         ]
+        # peek to get nfields
+        with fits.open(full_path_set[0][0]) as hdul:
+            nfields = hdul[0].shape[0]
+
         stokes_data = []
-        stokes_hdrs = []
+        stokes_hdrs = [[] for _ in range(nfields + 1)]
+        stokes_err = [[] for _ in range(nfields)]
         kwds = dict(
             method=method,
             mm_correct=config.mm_correct,
@@ -433,11 +446,14 @@ class Pipeline:
                 )
 
             for job in tqdm(jobs, desc="Creating Stokes images"):
-                data, header = job.get()
-                stokes_data.append(data)
-                stokes_hdrs.append(header)
-
-                full_paths.append(tuple(sorted(stokes_set.values())))
+                outpath = job.get()
+                with fits.open(outpath) as hdul:
+                    stokes_data.append(hdul[0].data)
+                    for i in range(nfields + 1):
+                        stokes_hdrs[i].append(hdul[i].header)
+                    for i in range(nfields):
+                        err_extname = f"{hdul[i + 1].header['FIELD']}ERROR"
+                        stokes_err[i].append(hdul[err_extname].data)
         remain_files = filter(lambda f: Path(f).exists(), stokes_files)
         ## Save CSV of Stokes values
         stokes_tbl = header_table(remain_files, quiet=True)
@@ -446,24 +462,45 @@ class Pipeline:
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
         logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
         ## Collapse outputs
-        collapse_frame, coll_hdr = collapse_frames(stokes_data, headers=stokes_hdrs)
-
+        coll_frame, coll_hdr = collapse_frames(stokes_data, headers=stokes_hdrs[0])
+        coll_hdrs = [
+            combine_frames_headers(stokes_hdrs[i], wcs=True) for i in range(1, nfields + 1)
+        ]
+        coll_errs = []
+        prim_hdu = fits.PrimaryHDU(coll_frame, header=coll_hdr)
+        hdul = fits.HDUList(prim_hdu)
+        for i in range(nfields):
+            hdu = fits.ImageHDU(coll_frame[i], header=coll_hdrs[i], name=coll_hdrs[i]["FIELD"])
+            hdul.append(hdu)
+        for i in range(nfields):
+            err_list = stokes_err[i]
+            hdr = coll_hdrs[i]
+            coll_err = np.sqrt(collapse_frames(np.power(err_list, 2))[0])
+            coll_errs.append(coll_err)
+            hdu_err = fits.ImageHDU(coll_err, header=hdr, name=f"{hdr['FIELD']}ERROR")
+            hdul.append(hdu_err)
         # In the case we have multi-wavelength data, save 4D Stokes cube
-        if collapse_frame.shape[0] > 1:
+        if coll_frame.shape[0] > 1:
             stokes_cube_path = self.paths.pdi_dir / f"{self.config.name}_stokes_cube.fits"
-            write_stokes_products(
-                collapse_frame, header=coll_hdr, outname=stokes_cube_path, force=True
-            )
+            write_stokes_products(hdul, outname=stokes_cube_path, force=True)
             logger.info(f"Saved Stokes cube to {stokes_cube_path}")
 
             # now collapse wavelength axis and clobber
-            # the `collapse_frame` variable
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                collapse_frame = np.nanmean(collapse_frame, axis=0, keepdims=True)
+                wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
+                wave_err_frame = np.sqrt(np.nansum(np.power(coll_errs, 2), axis=0, keepdims=True))
+            wave_coll_hdr = combine_frames_hdrs(coll_hdrs)
+            # TODO some fits keywords here are screwed up
+            hdul = fits.HDUList(
+                [
+                    fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr),
+                    fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERROR"),
+                ]
+            )
         # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
-        write_stokes_products(collapse_frame, header=coll_hdr, outname=stokes_coll_path, force=True)
+        write_stokes_products(hdul, outname=stokes_coll_path, force=True)
         logger.info(f"Saved collapsed Stokes cube to {stokes_coll_path}")
 
     def polarimetry_leastsq(self, table, force=False):

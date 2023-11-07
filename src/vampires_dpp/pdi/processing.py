@@ -1,4 +1,5 @@
 import itertools
+import warnings
 from pathlib import Path
 from typing import Sequence
 
@@ -56,26 +57,34 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
         )
     # now do triple-differential calibration
     cube_dict = {}
+    cube_errs = []
     headers = []
     for file in filenames:
         with fits.open(file) as hdul:
             cube = hdul[0].data
+            nfields = cube.shape[0]
             prim_hdr = hdul[0].header
-            hdrs = (hdu.header for hdu in hdul[1:])
+            hdrs = [hdu.header for hdu in hdul[1 : nfields + 1]]
+            cube_err = np.array([hdul[f"{hdr['EXTNAME']}ERROR"].data for hdr in hdrs])
             headers.append([prim_hdr, *hdrs])
         # derotate frame - necessary for crosstalk correction
         cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
+        cube_err_derot = derotate_cube(cube_err, prim_hdr["DEROTANG"])
         # store into dictionaries
         key = prim_hdr["RET-ANG1"], prim_hdr["U_FLC"], prim_hdr["U_CAMERA"]
         cube_dict[key] = cube_derot
+        cube_errs.append(cube_err_derot)
 
     I, Q, U = triple_diff_dict(cube_dict)
     # swap stokes and field axes so field is first
     stokes_cube = np.swapaxes((I, Q, U), 0, 1)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        stokes_err = np.sqrt(np.nanmean(np.power(cube_errs, 2), axis=0) / len(cube_errs))
 
     stokes_hdrs = []
     for hdr in headers:
-        stokes_hdr = combine_frames_headers(hdr)
+        stokes_hdr = combine_frames_headers(hdr, wcs=True)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
         if "TINT" in stokes_hdr:
             stokes_hdr["TINT"] /= 2
@@ -83,8 +92,14 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
 
     # reform hdulist
     prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs[0])
-    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(stokes_cube, stokes_hdrs[1:]))
-    return fits.HDUList([prim_hdu, *hdus])
+    hdul = fits.HDUList(prim_hdu)
+    for frame, hdr in zip(stokes_cube, stokes_hdrs[1:]):
+        hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
+        hdul.append(hdu)
+    for frame_err, hdr in zip(stokes_err, stokes_hdrs[1:]):
+        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERROR")
+        hdul.append(hdu)
+    return hdul
 
 
 def polarization_calibration_doublediff(filenames: Sequence[str]):
@@ -94,35 +109,48 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
         )
     # now do double-differential calibration
     cube_dict = {}
+    cube_errs = []
     headers = []
     for file in filenames:
         with fits.open(file) as hdul:
             cube = hdul[0].data
+            nfields = cube.shape[0]
             prim_hdr = hdul[0].header
-            hdrs = (hdu.header for hdu in hdul[1:])
+            hdrs = [hdu.header for hdu in hdul[1 : nfields + 1]]
+            cube_err = np.array([hdul[f"{hdr['EXTNAME']}ERROR"].data for hdr in hdrs])
             headers.append([prim_hdr, *hdrs])
         # derotate frame - necessary for crosstalk correction
         cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
+        cube_err_derot = derotate_cube(cube_err, prim_hdr["DEROTANG"])
         # store into dictionaries
         key = prim_hdr["RET-ANG1"], prim_hdr["U_CAMERA"]
         cube_dict[key] = cube_derot
+        cube_errs.append(cube_err_derot)
 
     I, Q, U = double_diff_dict(cube_dict)
     # swap stokes and field axes so field is first
     stokes_cube = np.swapaxes((I, Q, U), 0, 1)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        stokes_err = np.sqrt(np.nanmean(np.power(cube_errs, 2), axis=0) / len(cube_errs))
 
     stokes_hdrs = []
     for hdr in headers:
-        stokes_hdr = combine_frames_headers(hdr)
+        stokes_hdr = combine_frames_headers(hdr, wcs=True)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
         if "TINT" in stokes_hdr:
             stokes_hdr["TINT"] /= 2
         stokes_hdrs.append(stokes_hdr)
 
     # reform hdulist
-    prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs[0])
-    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(stokes_cube, stokes_hdrs[1:]))
-    return fits.HDUList([prim_hdu, *hdus])
+    fits.PrimaryHDU(stokes_cube, stokes_hdrs[0])
+    for frame, hdr in zip(stokes_cube, stokes_hdrs[1:]):
+        hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
+        hdul.append(hdu)
+    for frame_err, hdr in zip(stokes_err, stokes_hdrs[1:]):
+        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERROR")
+        hdul.append(hdu)
+    return hdul
 
 
 def make_triplediff_dict(filenames):
@@ -313,7 +341,7 @@ def make_stokes_image(
     force=False,
 ):
     if not force and outpath.exists() and not any_file_newer(path_set, outpath):
-        return load_fits(outpath, header=True)
+        return outpath
 
     # create stokes cube
     if method == "triplediff":
@@ -330,12 +358,19 @@ def make_stokes_image(
         raise ValueError(f"Unrecognized method {method}")
 
     output_data = []
+    output_data_err = []
     output_hdrs = []
-    for i in range(1, len(stokes_hdul)):
+    # slightly fragile, assumes HDUList is stored as
+    # prim_hdu, *field, *field_err
+    nfields = stokes_hdul[0].shape[0]
+    for i in range(1, nfields + 1):
         hdu = stokes_hdul[i]
         stokes_data = hdu.data
         stokes_header = hdu.header
+        error_extname = f"{stokes_header['FIELD']}ERROR"
+        stokes_err = stokes_hdul[error_extname].data
         I, Q, U = stokes_data
+        I_err = stokes_err
         # mm correct
         if mm_correct:
             # get first row of diffed Mueller-matrix
@@ -345,6 +380,8 @@ def make_stokes_image(
             # correct IP
             Q -= mmQ[0] * I
             U -= mmU[0] * I
+            Q_err = np.hypot(I_err, mmQ[0] * I_err)
+            U_err = np.hypot(I_err, mmU[0] * I_err)
 
             # correct cross-talk
             Sarr = np.array((Q.ravel(), U.ravel()))
@@ -353,6 +390,7 @@ def make_stokes_image(
             Q = res[0].reshape(I.shape[-2:])
             U = res[1].reshape(I.shape[-2:])
             stokes_data = np.array((I, Q, U))
+            stokes_err_data = np.array((I_err, Q_err, U_err))
         # second order IP correction
         if ip_correct:
             stokes_data, stokes_header = polarization_ip_correct(
@@ -361,17 +399,29 @@ def make_stokes_image(
                 method=ip_method,
                 header=stokes_header,
             )
+            stokes_err_data[1] = np.hypot(
+                stokes_err_data[1], stokes_header["IP_FQ"] * stokes_err_data[0]
+            )
+            stokes_err_data[2] = np.hypot(
+                stokes_err_data[2], stokes_header["IP_FU"] * stokes_err_data[0]
+            )
         stokes_header["CTYPE3"] = "STOKES"
         stokes_header["STOKES"] = "I,Q,U", "Stokes axis data type"
         output_data.append(stokes_data)
+        output_data_err.append(stokes_err_data)
         output_hdrs.append(stokes_header)
 
     prim_hdr = combine_frames_headers(output_hdrs)
     prim_hdu = fits.PrimaryHDU(np.array(output_data), prim_hdr)
-    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(output_data, output_hdrs))
-    hdul = fits.HDUList([prim_hdu, *hdus])
+    hdul = fits.HDUList(prim_hdu)
+    for frame, hdr in zip(output_data, output_hdrs):
+        hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
+        hdul.append(hdu)
+    for frame_err, hdr in zip(output_data_err, output_hdrs):
+        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERROR")
+        hdul.append(hdu)
     hdul.writeto(outpath, overwrite=True)
-    return prim_hdu.data, prim_hdu.header
+    return outpath
 
 
 def polarization_ip_correct(stokes_data, phot_rad, method, header=None):

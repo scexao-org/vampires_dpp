@@ -38,7 +38,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     return summary
 
 
-def dict_from_header(header: fits.Header, excluded=("COMMENT", "HISTORY")) -> OrderedDict:
+def dict_from_header(header: fits.Header, excluded=("COMMENT", "HISTORY"), fix=True) -> OrderedDict:
     """
     Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
@@ -51,6 +51,7 @@ def dict_from_header(header: fits.Header, excluded=("COMMENT", "HISTORY")) -> Or
     -------
     OrderedDict
     """
+    header = fix_header(header) if fix else header
     summary = OrderedDict()
     for k, v in header.items():
         if k == "" or k in excluded:

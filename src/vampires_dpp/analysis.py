@@ -11,6 +11,27 @@ from .indexing import cutout_inds, frame_center
 from .util import append_or_create, get_center
 
 
+def add_frame_statistics(frame, frame_err, header):
+    ## Simple statistics
+    N = frame.size
+    header["TOTMAX"] = np.nanmax(frame), "[adu] Peak signal in frame"
+    header["TOTSUM"] = np.nansum(frame), "[adu] Summed signal in frame"
+    header["TOTSUME"] = np.sqrt(np.nansum(frame_err**2)), "[adu] Summed signal error in frame"
+    header["TOTMEAN"] = np.nanmean(frame), "[adu] Mean signal in frame"
+    header["TOMEANE"] = np.sqrt(np.nanmean(frame_err**2)), "[adu] Mean signal error in frame"
+    header["TOTMED"] = np.nanmedian(frame), "[adu] Median signal in frame"
+    header["TOTMEDE"] = header["TOMEANE"] * np.sqrt(np.pi / 2), "[adu] Median signal error in frame"
+    header["TOTVAR"] = np.nanvar(frame), "[adu^2] Signal variance in frame"
+    header["TOTVARE"] = header["TOTVAR"] / N**2, "[adu^2] Signal variance error in frame"
+    header["TOTNVAR"] = header["TOTVAR"] / header["TOTMEAN"], "[adu] Normed variance in frame"
+    header["TONVARE"] = (
+        header["TOTNVAR"]
+        * np.hypot(header["TOTVARE"] / header["TOTVAR"], header["TOMEANE"] / header["TOTMEAN"]),
+        "[adu] Normed variance error in frame",
+    )
+    return header
+
+
 def safe_aperture_sum(frame, r, err=None, center=None, ann_rad=None):
     if center is None:
         center = frame_center(frame)
@@ -82,9 +103,11 @@ def analyze_fields(
         append_or_create(output, "gausy", centroids["gauss"][0])
 
         ctr_est = centroids["com"]
-        prof = profiles.RadialProfile(frame, ctr_est[::-1], radii, error=frame_err)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            prof = profiles.RadialProfile(
+                frame, ctr_est[::-1], radii, error=frame_err, mask=np.isnan(frame)
+            )
             fwhm = prof.gaussian_fwhm
             append_or_create(output, "fwhm", fwhm)
 
@@ -104,7 +127,7 @@ def analyze_fields(
 
 
 def analyze_file(
-    hdu,
+    hdul,
     outpath,
     centroids,
     aper_rad="auto",
@@ -117,13 +140,11 @@ def analyze_file(
     if not force and outpath.is_file():
         return outpath
 
-    data = hdu.data
+    data = hdul[0].data
+    hdr = hdul[0].header
+    data_err = hdul["ERROR"].data
 
-    bkg_noise = hdu.header["RN"] / hdu.header["GAIN"]
-    bkg_err = np.full_like(data, bkg_noise)
-    data_err = calc_total_error(data, bkg_err, effective_gain=hdu.header["GAIN"])
-
-    cam_num = hdu.header["U_CAMERA"]
+    cam_num = hdr["U_CAMERA"]
     metrics: dict[str, list[list[list]]] = {}
     if centroids is None:
         centroids = {"": [frame_center(data)]}
@@ -134,7 +155,7 @@ def analyze_file(
             results = analyze_fields(
                 data,
                 data_err,
-                header=hdu.header,
+                header=hdr,
                 inds=inds,
                 aper_rad=aper_rad,
                 ann_rad=ann_rad,

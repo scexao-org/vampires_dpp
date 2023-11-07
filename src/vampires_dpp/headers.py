@@ -98,7 +98,7 @@ def fix_header(header):
     # add RET-ANG1 and similar headers to be more consistent
     if "DETECTOR" not in header:
         header["DETECTOR"] = (
-            f"iXon Ultra 897 - VAMPIRES {header['U_CAMERA']}",
+            f"VCAM{header['U_CAMERA']} - Ultra 897",
             "Name of the detector",
         )
     if "U_EMGAIN" in header:
@@ -109,23 +109,26 @@ def fix_header(header):
     if "U_FLCSTT" in header:
         header["U_FLC"] = "A" if header["U_FLCSTT"] == 1 else "B", "VAMPIRES FLC State"
     if "EXPTIME" not in header:
-        header["EXPTIME"] = header["U_AQTINT"] / 1e6, "[s] exposure time"
+        header["EXPTIME"] = header["U_AQTINT"] / 1e6, "[s] Total integration time of the frame"
     if "FILTER01" not in header:
         header["FILTER01"] = header["U_FILTER"]
         header["FILTER02"] = "Unknown"
 
     # add in detector charracteristics
     inst = get_instrument_from(header)
-    header["GAIN"] = inst.gain, "[e-/adu] detector gain"
-    header["EFFGAIN"] = inst.effgain, "[e-/adu] detector effective gain"
+    header["BIAS"] = inst.bias, "[adu] Bias offset"
+    header["GAIN"] = inst.gain, "[e-/adu] Detector gain"
+    header["DC"] = inst.dark_current, "[e-/s/pix] Detector dark current"
+    header["ENF"] = inst.excess_noise_factor, "Detector excess noise factor"
+    header["EFFGAIN"] = inst.effgain, "[e-/adu] Detector effective gain"
     header["RN"] = inst.readnoise, "[e-] RMS read noise"
-    header["PXSCALE"] = inst.pixel_scale, "[mas/px] pixel scale"
-    header["PAOFFSET"] = inst.pa_offset, "[deg] parallactic angle offset"
-    header["FULLWELL"] = inst.fullwell, "[e-] full well of camera register"
+    header["PXSCALE"] = inst.pixel_scale, "[mas/px] Pixel scale"
+    header["PAOFFSET"] = inst.pa_offset, "[deg] Parallactic angle offset"
+    header["FULLWELL"] = inst.fullwell, "[e-] Full well of detector register"
 
     header["TINT"] = (
         header["EXPTIME"] * header.get("NAXIS3", 1),
-        "[s] total integrated exposure time",
+        "[s] Total integration time of file",
     )
     return header
 

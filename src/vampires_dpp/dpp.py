@@ -16,9 +16,9 @@ from loguru import logger
 
 import vampires_dpp as dpp
 from vampires_dpp.calibration import (
-    make_master_background,
-    make_master_flat,
     normalize_file,
+    process_background_files,
+    process_flat_files,
 )
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table, sort_files
@@ -38,7 +38,7 @@ from vampires_dpp.pipeline.templates import (
     VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
 )
-from vampires_dpp.specphot import FILTERS, PICKLES_MAP, get_simbad_flux
+from vampires_dpp.specphot import FILTERS, PICKLES_MAP, get_simbad_table, get_ucac_flux
 from vampires_dpp.util import check_version, load_fits_key
 from vampires_dpp.wcs import get_gaia_astrometry
 
@@ -178,11 +178,11 @@ def prep(ctx, outdir, quiet, num_proc):
 @click.option("--force", "-f", is_flag=True, help="Force processing of files")
 @click.pass_context
 def back(ctx, filenames, collapse, force):
-    make_master_background(
+    process_background_files(
         filenames,
         collapse=collapse,
         force=force,
-        output_directory=ctx.obj["outdir"],
+        output_directory=ctx.obj["outdir"] / "background",
         quiet=ctx.obj["quiet"],
         num_proc=ctx.obj["num_proc"],
     )
@@ -216,28 +216,17 @@ def back(ctx, filenames, collapse, force):
 @click.pass_context
 def flat(ctx, filenames, back, collapse, force):
     # if directory, filter non-FITS files and sort for background files
-    background_files = []
     if back is None:
         back = ctx.obj["outdir"]
-        fits_files = list(back.glob("[!._]*.fits")) + list(back.glob("[!._]*.fits.fz"))
-        background_files.extend(
-            filter(lambda f: load_fits_key(f, "CAL_TYPE") == "BACKGROUND", fits_files)
-        )
-    elif back.is_dir():
-        fits_files = list(back.glob("[!._]*.fits")) + list(back.glob("[!._]*.fits.fz"))
-        background_files.extend(
-            filter(lambda f: load_fits_key(f, "CAL_TYPE") == "BACKGROUND", fits_files)
-        )
-    else:
-        background_files = [back]
-    make_master_flat(
+    calib_files = list(back.glob("**/[!._]*.fits")) + list(back.glob("**/[!._]*.fits.fz"))
+    process_flat_files(
         filenames,
         collapse=collapse,
         force=force,
-        output_directory=ctx.obj["outdir"],
+        output_directory=ctx.obj["outdir"] / "flat",
         quiet=ctx.obj["quiet"],
         num_proc=ctx.obj["num_proc"],
-        master_backgrounds=background_files,
+        background_files=calib_files,
     )
 
 
@@ -405,67 +394,19 @@ def new_config(ctx, config, edit):
     if coord is None:
         click.echo(" - No coordinate information set; will only use header values.")
 
-    ## backgrounds
-    have_backgrounds = click.confirm("Do you have background files?", default=True)
-    if have_backgrounds:
-        readline.set_completer(pathCompleter)
-        cam1_path = click.prompt(
-            "Enter path to cam1 background (optional)",
-            default="",
-            type=click.Path(dir_okay=False, path_type=Path),
+    readline.set_completer(pathCompleter)
+    calib_dir = click.prompt("Enter path to calibration files", default="")
+    readline.set_completer()
+    if calib_dir != "":
+        tpl.calibrate.calib_directory = Path(calib_dir)
+        tpl.calibrate.back_subtract = click.confirm(
+            " - Subtract backgrounds?", default=tpl.calibrate.back_subtract
         )
-        cam1_path = None if cam1_path == "" else cam1_path
-        cam2_path = None
-        if template != "singlecam":
-            if cam1_path is not None:
-                cam2_default = str(cam1_path).replace("cam1", "cam2")
-                cam2_path = click.prompt(
-                    f"Enter path to cam2 background",
-                    default=cam2_default,
-                    type=click.Path(dir_okay=False, path_type=Path),
-                )
-            else:
-                cam2_path = click.prompt(
-                    "Enter path to cam2 background (optional)",
-                    default="",
-                    type=click.Path(dir_okay=False, path_type=Path),
-                )
-                if cam2_path == "":
-                    cam2_path = None
-        readline.set_completer()
-        tpl.calibrate.master_backgrounds = CamFileInput(cam1=cam1_path, cam2=cam2_path)
-
-    ## flats
-    have_flats = click.confirm("Do you have flat files?", default=have_backgrounds)
-    if have_flats:
-        readline.set_completer(pathCompleter)
-        cam1_path = click.prompt(
-            "Enter path to cam1 flat (optional)",
-            default="",
-            type=click.Path(dir_okay=False, path_type=Path),
+        tpl.calibrate.flat_correct = click.confirm(
+            " - Flat correct?", default=tpl.calibrate.flat_correct
         )
-        cam1_path = None if cam1_path == "" else cam1_path
-        cam2_path = None
-        if template != "singlecam" or cam1_path is None:
-            if cam1_path is not None:
-                cam2_default = str(cam1_path).replace("cam1", "cam2")
-                cam2_path = click.prompt(
-                    "Enter path to cam2 flat",
-                    default=cam2_default,
-                    type=click.Path(dir_okay=False, path_type=Path),
-                )
-                if cam2_path == "":
-                    cam2_path = cam2_default
-            else:
-                cam2_path = click.prompt(
-                    "Enter path to cam2 flat (optional)",
-                    default="",
-                    type=click.Path(dir_okay=False, path_type=Path),
-                )
-                if cam2_path == "":
-                    cam2_path = None
-        readline.set_completer()
-        tpl.calibrate.master_flats = CamFileInput(cam1=cam1_path, cam2=cam2_path)
+    else:
+        tpl.calibrate.calib_directory = None
 
     tpl.calibrate.save_intermediate = click.confirm(
         "Would you like to save calibrated files?", default=tpl.calibrate.save_intermediate
@@ -481,9 +422,9 @@ def new_config(ctx, config, edit):
     # tpl.analysis.subtract_radprof = click.confirm(
     #     "Would you like to subtract a radial profile for analysis?", default=tpl.coronagraphic
     # )
-    tpl.analysis.strehl = click.confirm(
-        "Would you like to estimate the Strehl ratio?", default=False
-    )
+    # tpl.analysis.strehl = click.confirm(
+    #     "Would you like to estimate the Strehl ratio?", default=False
+    # )
 
     aper_rad = click.prompt('Enter aperture radius (px/"auto")', default=tpl.analysis.aper_rad)
     try:
@@ -523,18 +464,19 @@ def new_config(ctx, config, edit):
         readline.set_completer()
         if source == "pickles":
             if tpl.object is not None:
-                simbad_table = get_simbad_flux(tpl.object.object)
-                if not simbad_table["FLUX_R"].mask[0]:
-                    mag = simbad_table["FLUX_R"][0]
-                    mag_band = "R"
-                elif not simbad_table["FLUX_I"].mask[0]:
-                    mag = simbad_table["FLUX_I"][0]
-                    mag_band = "I"
+                simbad_table = get_simbad_table(tpl.object.object)
+                ucac_table = get_ucac_flux(tpl.object.object)
+                if not ucac_table["rmag"].mask[0]:
+                    mag = ucac_table["rmag"][0]
+                    mag_band = "r"
+                elif not ucac_table["imag"].mask[0]:
+                    mag = ucac_table["imag"][0]
+                    mag_band = "i"
                 else:
-                    mag = simbad_table["FLUX_V"][0]
+                    mag = ucac_table["Vmag"][0]
                     mag_band = "V"
-                sptype = re.match(r"\w\d[IV]{1,3}?", simbad_table["SP_TYPE"][0]).group()
-                click.echo(f" * Found SIMBAD info: {sptype} {mag_band}={mag:.02f}")
+                sptype = re.match(r"\w\d[IV]{1,3}", simbad_table["SP_TYPE"][0]).group()
+                click.echo(f" * Found UCAC4 info: {sptype} {mag_band}={mag:.02f}")
             else:
                 mag = ""
                 mag_band = "V"

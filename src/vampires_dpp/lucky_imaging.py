@@ -7,6 +7,7 @@ from astropy.io import fits
 from astropy.nddata import Cutout2D
 from numpy.typing import ArrayLike
 
+from .analysis import add_frame_statistics
 from .image_processing import (
     collapse_cube,
     combine_frames_headers,
@@ -58,7 +59,7 @@ def get_centroids_from(metrics, input_key):
     return centroids
 
 
-def recenter_frame(frame, method, offsets, window=30, **kwargs):
+def get_recenter_offset(frame, method, offsets, window=30, **kwargs):
     frame_ctr = frame_center(frame)
     ctr = 0
     n = 1
@@ -67,11 +68,11 @@ def recenter_frame(frame, method, offsets, window=30, **kwargs):
         offsets = offset_centroids(frame, None, inds)
         ctr += (offsets[method] - ctr) / n
         n += 1
-    return shift_frame(frame, frame_ctr - ctr)
+    return frame_ctr - ctr
 
 
 def lucky_image_file(
-    hdu,
+    hdul,
     outpath,
     centroids,
     metric_file: Path,
@@ -93,10 +94,11 @@ def lucky_image_file(
         and Path(metric_file).stat().st_mtime < outpath.stat().st_mtime
     ):
         with fits.open(outpath) as hdul:
-            return hdul[0]
+            return hdul
 
-    cube = hdu.data
-    header = hdu.header
+    cube = hdul[0].data
+    cube_err = hdul["ERROR"].data
+    header = hdul[0].header
 
     if crop_width is None:
         if "MBI" in header.get("OBS-MOD", ""):
@@ -120,10 +122,12 @@ def lucky_image_file(
         masked_metrics = {key: metric[..., mask] for key, metric in metrics.items()}
         # frame select this cube
         cube = cube[mask]
+        cube_err = cube_err[mask]
 
     if register:
         psf_centroids = get_centroids_from(masked_metrics, input_key=register)
     frames = []
+    frame_errs = []
     headers = []
     for i, (field, psf_ctr) in enumerate(fields.items()):
         ctr = np.mean(psf_ctr, axis=0)
@@ -131,8 +135,10 @@ def lucky_image_file(
         field_ctr = get_center(cube, ctr, cam_num)
         offsets = psf_centroids[i] - field_ctr
         aligned_frames = []
-        for frame, offset in zip(cube, offsets):
+        aligned_err_frames = []
+        for frame, frame_err, offset in zip(cube, cube_err, offsets):
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
+            cutout_err = Cutout2D(frame_err, field_ctr[::-1], size=crop_width, mode="partial")
             if register:
                 # determine maximum padding, with sqrt(2)
                 # for radial coverage
@@ -141,13 +147,23 @@ def lucky_image_file(
                 frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)
                 shifted = shift_frame(frame_padded, -offset, **kwargs)
                 aligned_frames.append(shifted)
+                frame_err_padded = np.pad(cutout_err.data, npad, constant_values=np.nan)
+                shifted_err = shift_frame(frame_err_padded, -offset, **kwargs)
+                aligned_err_frames.append(shifted_err)
             else:
                 aligned_frames.append(cutout.data)
-        # ## Step 3: Collapse
+                aligned_err_frames.append(shifted_err)
+        ## Step 3: Collapse
         coll_frame, header = collapse_cube(np.array(aligned_frames), header=header)
+        # collapse error in quadrature
+        N = len(aligned_frames)
+        coll_var_frame, _ = collapse_cube(np.power(aligned_err_frames, 2))
+        coll_err_frame = np.sqrt(coll_var_frame / N)
         ## Step 4: Recenter
         if recenter:
-            coll_frame = recenter_frame(coll_frame, method=register, offsets=offs)
+            recenter_offset = get_recenter_offset(coll_frame, method=register, offsets=offs)
+            coll_frame = shift_frame(coll_frame, recenter_offset)
+            coll_err_frame = shift_frame(coll_err_frame, recenter_offset)
         hdr = header.copy()
         hdr["FIELD"] = field
         ## handle header metadata
@@ -155,16 +171,26 @@ def lucky_image_file(
         if specphot is not None:
             hdr = specphot_calibration(hdr, outdir=preproc_dir, config=specphot)
             coll_frame = convert_to_surface_brightness(coll_frame, hdr)
+            coll_err_frame = convert_to_surface_brightness(coll_err_frame, hdr)
             hdr["BUNIT"] = "Jy/arcsec^2"
+
+        hdr = add_frame_statistics(coll_frame, coll_err_frame, hdr)
+
         frames.append(coll_frame)
+        frame_errs.append(coll_err_frame)
         headers.append(hdr)
     comb_header = combine_frames_headers(headers, wcs=True)
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=comb_header)
-    hdus = (fits.ImageHDU(frame, header=hdr) for frame, hdr in zip(frames, headers))
-    hdu = fits.HDUList([prim_hdu, *hdus])
+    hdul = fits.HDUList(prim_hdu)
+    for field, frame, hdr in zip(fields.keys(), frames, headers):
+        hdu = fits.ImageHDU(frame, header=hdr, name=field)
+        hdul.append(hdu)
+    for field, frame_err, hdr in zip(fields.keys(), frame_errs, headers):
+        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{field}ERROR")
+        hdul.append(hdu)
     # write to disk
-    hdu.writeto(outpath, overwrite=True)
-    return hdu
+    hdul.writeto(outpath, overwrite=True)
+    return hdul
 
 
 COMMENT_FSTRS: Final[dict[str, str]] = {
@@ -197,6 +223,7 @@ def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Head
             hdr[key_up] = arr[0][0], COMMENT_FSTRS[key]
             continue
         mean_val = 0
+        N = len(arr)
         for i, psf in enumerate(arr):
             # mean val
             comment = COMMENT_FSTRS[key].format(" ", i)
@@ -208,7 +235,7 @@ def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Head
             if len(psf) == 1:
                 sem = 0
             elif "PHOTE" in key_up:
-                sem = np.sqrt(np.mean(psf**2))
+                sem = np.sqrt(np.mean(psf**2) / N)
             else:
                 sem = st.sem(psf, nan_policy="omit")
             hdr[f"{key_up[:5]}ER{i}"] = np.nan_to_num(sem), err_comment

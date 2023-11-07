@@ -1,10 +1,11 @@
 # library functions for common calibration tasks like
 # background subtraction, collapsing cubes
+import functools
+import itertools
 import multiprocessing as mp
 import os
 from pathlib import Path
-from typing import Iterable, Optional, Sequence
-from loguru import logger
+from typing import Iterable, Optional
 
 import astropy.units as u
 import cv2
@@ -14,7 +15,13 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.stats import biweight_location
 from astropy.time import Time
+from loguru import logger
+from scipy import stats
 from tqdm.auto import tqdm
+
+from .constants import CMOSVAMPIRES, EMCCDVAMPIRES
+from .headers import get_instrument_from
+from .organization import header_table
 
 # need to safely import astroscrappy because it
 # forces CPU affinity to drop to 0
@@ -89,6 +96,17 @@ def normalize_file(
             fits.writeto(outpath, data_filt, header=fix_header(header), overwrite=True)
 
 
+def filter_empty_frames(cube) -> Optional[np.ndarray]:
+    finite_mask = np.isfinite(cube)
+    nonzero_mask = cube != 0
+    combined = finite_mask & nonzero_mask
+    inds = np.any(combined, axis=(-2, -1))
+    if not np.any(inds):
+        return None
+
+    return cube[inds]
+
+
 def deinterleave_cube(
     data: np.ndarray, header: fits.Header, discard_empty: bool = True
 ) -> tuple[Optional[fits.PrimaryHDU], Optional[fits.PrimaryHDU]]:
@@ -113,17 +131,6 @@ def deinterleave_cube(
         fix_header(hdu2.header)
 
     return hdu1, hdu2
-
-
-def filter_empty_frames(cube) -> Optional[np.ndarray]:
-    finite_mask = np.isfinite(cube)
-    nonzero_mask = cube != 0
-    combined = finite_mask & nonzero_mask
-    inds = np.any(combined, axis=(-2, -1))
-    if not np.any(inds):
-        return None
-
-    return cube[inds]
 
 
 def apply_coordinate(header, coord: Optional[SkyCoord] = None):
@@ -157,53 +164,63 @@ def calibrate_file(
     flat_filename: Optional[str] = None,
     transform_filename: Optional[str] = None,
     force: bool = False,
-    bpfix: bool = False,
+    bpmask: bool = False,
     coord: Optional[SkyCoord] = None,
     **kwargs,
-) -> fits.PrimaryHDU:
+) -> fits.HDUList:
     path, outpath = get_paths(filename, suffix="calib", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         with fits.open(outpath) as hdul:
-            return hdul[0]
+            return hdul
 
     # load data and mask saturated pixels
     raw_cube, header = load_fits(path, header=True)
     header = fix_header(header)
     # mask values above saturation
-    cube = np.where(raw_cube >= header["FULLWELL"] / header["GAIN"], np.nan, raw_cube.astype("f4"))
+    satlevel = header["FULLWELL"] / header["GAIN"]
+    cube = np.where(raw_cube >= satlevel, np.nan, raw_cube.astype("f4"))
     # apply proper motion correction to coordinate
     header = apply_coordinate(header, coord)
-
+    cube_err = np.zeros_like(cube)
     # background subtraction
     if back_filename is not None:
         back_path = Path(back_filename)
-        header["BACKFILE"] = back_path.name
-        background = load_fits(back_path).astype("f4")
+        header["BACKFILE"] = back_path.name, "File used for back subtraction"
+        with fits.open(back_path) as hdul:
+            background = hdul[0].data.astype("f4")
+            back_err = hdul["ERROR"].data.astype("f4")
         cube = cube - background
+        cube_err = np.sqrt(
+            np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2
+            + back_err**2
+            + cube_err**2
+        )
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
-        header["FLATFILE"] = flat_path.name
-        flat = load_fits(flat_path).astype("f4")
+        header["FLATFILE"] = flat_path.name, "File used for flat-field correction"
+        with fits.open(flat_path) as hdul:
+            flat = hdul[0].data.astype("f4")
+            flat_err = hdul["ERROR"].data.astype("f4")
+        unnorm_cube = cube.copy()
         cube = cube / flat
+        cube_err = np.abs(cube) * np.sqrt((cube_err / unnorm_cube) ** 2 + (flat_err / flat) ** 2)
     # bad pixel correction
-    if bpfix:
-        # la cosmic on mean frame
-        mask, _ = detect_cosmics(
-            np.mean(cube, axis=0),
-            gain=header.get("GAIN"),
-            readnoise=header["RN"],
-            satlevel=header["FULLWELL"],
-            niter=1,
-        )
-        # fix bad pixels with 5x5 median filter
-        cube_copy = cube.copy()
+    if bpmask:
         for i in range(cube.shape[0]):
-            smooth_im = cv2.medianBlur(cube_copy[i], 5)
-            cube[i, mask] = smooth_im[mask]
+            mask, _ = detect_cosmics(
+                cube[i],
+                invar=cube_err[i] ** 2,
+                inmask=np.isnan(cube[i]),
+                satlevel=satlevel,
+            )
+            cube[i][mask] = np.nan
+            cube_err[i][mask] = np.nan
+
     # flip cam 1 data on y-axis
     if header["U_CAMERA"] == 1:
         cube = np.flip(cube, axis=-2)
+        cube_err = np.flip(cube_err, axis=-2)
     # distortion correction
     # TODO tbh this is scuffed
     if transform_filename is not None:
@@ -211,232 +228,222 @@ def calibrate_file(
         distort_coeffs = pd.read_csv(transform_path, index_col=0)
         params = distort_coeffs.loc[f"cam{header['U_CAMERA']:.0f}"]
         cube, header = correct_distortion_cube(cube, *params, header=header)
+        cube_err, _ = correct_distortion_cube(cube_err, *params)
+
+    prim_hdu = fits.PrimaryHDU(cube.astype("f4"), header=header)
+    err_hdu = fits.ImageHDU(cube_err.astype("f4"), header=header, name="ERROR")
     # clip fot float32 to limit data size
-    return fits.PrimaryHDU(cube.astype("f4"), header=header)
+    return fits.HDUList([prim_hdu, err_hdu])
 
 
 def make_background_file(filename: str, force=False, **kwargs):
-    path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
+    path, outpath = get_paths(filename, suffix="coll", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     raw_cube, raw_header = load_fits(path, header=True)
     header = fix_header(raw_header)
-    cube = np.where(raw_cube >= header["FULLWELL"] / header["GAIN"], np.nan, raw_cube.astype("f4"))
-    master_background, header = collapse_cube(cube, header=header, **kwargs)
-    header["CAL_TYPE"] = "BACKGROUND", "DPP calibration file type"
-    ## TODO add bad-pixel mask creation
-    # _, clean_background = detect_cosmics(
-    #     master_background,
-    #     gain=header.get("DETGAIN", 4.5),
-    #     readnoise=READNOISE,
-    #     satlevel=2**16 * header.get("DETGAIN", 4.5),
-    # )
-    fits.writeto(
-        outpath,
+    # mask saturated pixels
+    satlevel = header["FULLWELL"] / header["GAIN"]
+    cube = np.where(raw_cube >= satlevel, np.nan, raw_cube.astype("f4"))
+    # collapse cube (median by default)
+    if cube.shape[0] > 1:
+        master_background, header = collapse_cube(cube, header=header, **kwargs)
+        back_std = np.nanstd(cube, axis=0)
+        back_err = np.hypot(back_std, back_std / np.sqrt(cube.shape[0]))
+    else:
+        master_background = cube[0]
+        bkgnoise = np.sqrt(
+            header["DC"] * header["EXPTIME"] * header["ENF"] ** 2 + header["RN"] ** 2
+        )
+        back_std = np.full_like(master_background, bkgnoise / header["EFFGAIN"])
+        back_err = back_std
+
+    noise = np.nanmedian(back_std)
+    header["NOISEADU"] = noise, "[adu] median noise in background file"
+    header["NOISE"] = noise * header["GAIN"], "[e-] median noise in background file"
+    header["CALTYPE"] = "BACKGROUND", "DPP calibration file type"
+    # get bad pixel mask using lacosmic
+    bpmask, _ = detect_cosmics(
         master_background,
-        header=header,
-        overwrite=True,
+        invar=back_std**2,
+        inmask=np.isnan(master_background),
+        satlevel=satlevel,
     )
+    # mask out bad pixels with nan- use np.isnan
+    # to extract mask in future
+    master_background[bpmask] = np.nan
+    # save to disk
+    hdul = fits.HDUList(
+        [
+            fits.PrimaryHDU(master_background, header=header),
+            fits.ImageHDU(back_err, header=header, name="ERROR"),
+        ]
+    )
+    hdul.writeto(outpath, overwrite=True)
     return outpath
 
 
 def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
-    path, outpath = get_paths(filename, suffix="collapsed", **kwargs)
+    path, outpath = get_paths(filename, suffix="coll", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
     raw_cube, raw_header = load_fits(path, header=True)
     header = fix_header(raw_header)
-    cube = np.where(raw_cube >= header["FULLWELL"] / header["GAIN"], np.nan, raw_cube.astype("f4"))
-    header["CAL_TYPE"] = "FLATFIELD", "DPP calibration file type"
+    # mask saturated pixels
+    satlevel = header["FULLWELL"] / header["GAIN"]
+    cube = np.where(raw_cube >= satlevel, np.nan, raw_cube.astype("f4"))
+    # do back subtraction
     if back_filename is not None:
         back_path = Path(back_filename)
-        header["DPP_BACK"] = (back_path.name, "DPP file used for background subtraction")
-        master_back = load_fits(back_path)
-        cube = cube - master_back
-    master_flat, header = collapse_cube(cube, header=header, **kwargs)
-    ## TMP
-    # master_flat /= np.nanmedian(master_flat)
+        header["BACKFILE"] = back_path.name, "File used for background subtraction"
+        with fits.open(back_path) as hdul:
+            back = hdul[0].data
+            back_err = hdul["ERROR"].data
+        cube -= back
+    else:
+        cube -= header["BIAS"]
+        bkgnoise = np.sqrt(
+            header["DC"] * header["EXPTIME"] * header["ENF"] ** 2 + header["RN"] ** 2
+        )
+        back_err = bkgnoise / header["EFFGAIN"]  # adu
 
-    fits.writeto(
-        outpath,
-        master_flat,
-        header=header,
-        overwrite=True,
+    cube_err = np.sqrt(np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2)
+    # collapse cube (median by default)
+    if cube.shape[0] > 1:
+        master_flat, header = collapse_cube(cube, header=header, **kwargs)
+        flat_var, _ = collapse_cube(cube_err**2, **kwargs)
+        flat_err = np.sqrt(flat_var)
+    else:
+        master_flat = cube[0]
+        flat_err = cube_err[0]
+
+    normval = np.nanmedian(master_flat)
+    master_flat /= normval
+    flat_err /= normval
+    header["FLATNORM"] = normval, "[adu] Flat field normalization factor"
+    header["CALTYPE"] = "FLAT", "DPP calibration file type"
+    # get bad pixel mask using lacosmic
+    bpmask, _ = detect_cosmics(
+        master_flat, invar=flat_err**2, inmask=np.isnan(master_flat), satlevel=satlevel
     )
+    # mask out bad pixels with nan- use np.isnan
+    # to extract mask in future
+    master_flat[bpmask] = np.nan
+    # save to disk
+    hdul = fits.HDUList(
+        [
+            fits.PrimaryHDU(master_flat, header=header),
+            fits.ImageHDU(flat_err, header=header, name="ERROR"),
+        ]
+    )
+    hdul.writeto(outpath, overwrite=True)
     return outpath
 
 
-def sort_calib_files(filenames: Iterable, backgrounds=False) -> dict[tuple, Path]:
-    file_dict: dict[tuple, Path] = {}
-    for filename in filenames:
-        path = Path(filename)
-        header = load_fits_header(path)
-        sz = header["NAXIS1"], header["NAXIS2"]
-        if "U_EMGAIN" in header:
-            if backgrounds:
-                key = header["U_CAMERA"], header["U_AQTINT"], header["DETGAIN"], sz
-            else:
-                key = (
-                    header["U_CAMERA"],
-                    header["U_AQTINT"],
-                    header["FILTER01"],
-                    header["DETGAIN"],
-                    sz,
-                )
+def match_calib_files(filenames, calib_files):
+    cal_table = header_table(calib_files)
+    rows = []
+    for path in tqdm(map(Path, filenames), total=len(filenames), desc="Matching calibration files"):
+        hdr = fix_header(load_fits_header(path))
+        obstime = Time(hdr["MJD"], format="mjd", scale="utc")
+        subset = cal_table.query(
+            f"NAXIS1 == {hdr['NAXIS1']} and NAXIS2 == {hdr['NAXIS2']} and U_CAMERA == {hdr['U_CAMERA']}"
+        )
+        if len(subset) == 0:
+            rows.append(dict(path=path, backfile=None, flatfile=None))
+            continue
+        if "U_EMGAIN" in cal_table.columns:
+            mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
         else:
-            if backgrounds:
-                key = header["U_CAMERA"], header["EXPTIME"], sz
-            else:
-                key = (
-                    header["U_CAMERA"],
-                    header["EXPTIME"],
-                    (header["FILTER01"], header["FILTER02"]),
-                    sz,
-                )
+            mask = subset["DET-MOD"] == hdr["DET-MOD"]
 
-        append_or_create(file_dict, key, path)
-    return file_dict
+        # background files
+        back_mask = mask & (subset["CALTYPE"] == "BACKGROUND")
+        back_mask &= np.abs(subset["EXPTIME"] - hdr["EXPTIME"]) < 0.1
+        if np.any(back_mask):
+            back_subset = subset.loc[back_mask]
+            delta_time = Time(back_subset["MJD"], format="mjd", scale="utc") - obstime
+            back_path = back_subset["path"].iloc[np.abs(delta_time.jd).argmin()]
+        else:
+            back_path = None
+        # flat files
+        flat_mask = mask & (subset["CALTYPE"] == "FLAT")
+        if np.any(flat_mask):
+            flat_mask &= subset["FILTER01"] == hdr["FILTER01"]
+        if np.any(flat_mask):
+            flat_mask &= subset["FILTER02"] == hdr["FILTER02"]
+        if np.any(flat_mask):
+            flat_subset = subset.loc[flat_mask]
+            delta_time = Time(flat_subset["MJD"], format="mjd", scale="utc") - obstime
+            flat_path = flat_subset["path"].iloc[np.abs(delta_time.jd).argmin()]
+        else:
+            flat_path = None
+
+        rows.append(dict(path=path, backfile=back_path, flatfile=flat_path))
+    return pd.DataFrame(rows)
 
 
-def make_master_background(
-    filenames: Iterable,
+def process_background_files(
+    filenames: Iterable[str | Path],
     collapse: str = "median",
-    name: str = "master_back",
+    output_directory: str | Path | None = None,
     force: bool = False,
-    output_directory: Optional = None,
     num_proc: int = DEFAULT_NPROC,
     quiet: bool = False,
 ) -> list[Path]:
-    # prepare input filenames
-    file_inputs = sort_calib_files(filenames, backgrounds=True)
-    # make backgrounds for each camera
     if output_directory is not None:
         outdir = Path(output_directory)
         outdir.mkdir(parents=True, exist_ok=True)
     else:
-        outdir = Path.cwd()
+        outdir = Path.cwd() / "background"
 
-    # get names for master backgrounds and remove
-    # files from queue if they exist
-    outnames = {}
+    # print(outdir)
     with mp.Pool(num_proc) as pool:
         jobs = []
-        for key, filelist in file_inputs.items():
-            if len(key) == 4:
-                cam, exptime, gain, sz = key
-                outname = (
-                    outdir
-                    / f"{name}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
-                )
-            else:
-                cam, exptime, sz = key
-                outname = (
-                    outdir
-                    / f"{name}_{exptime*1e3:07.02f}ms_{sz[0]:04d}x{sz[1]:04d}_cam{cam:.0f}.fits"
-                )
-            outnames[key] = outname
-            if not force and outname.is_file():
-                continue
-            # collapse the files required for each background
-            for path in filelist:
-                kwds = dict(
-                    output_directory=outdir / "collapsed",
-                    force=force,
-                    method=collapse,
-                )
-                jobs.append(pool.apply_async(make_background_file, args=(path,), kwds=kwds))
-        iter = jobs if quiet else tqdm(jobs, desc="Collapsing background frames")
-        frames = [job.get() for job in iter]
-        # create master frames from collapsed files
-        collapsed_inputs = sort_calib_files(frames, backgrounds=True)
-        jobs = []
-        for key, filelist in collapsed_inputs.items():
-            kwds = dict(
-                output=outnames[key],
-                method=collapse,
-                force=force,
+        for path in map(Path, filenames):
+            func = functools.partial(
+                make_background_file, path, output_directory=outdir, method=collapse, force=force
             )
-            jobs.append(pool.apply_async(collapse_frames_files, args=(filelist,), kwds=kwds))
-        iter = jobs if quiet else tqdm(jobs, desc="Making master backgrounds")
-        [job.get() for job in iter]
+            jobs.append(pool.apply_async(func))
+        job_iter = jobs if quiet else tqdm(jobs, desc="Collapsing background frames")
+        frames = [job.get() for job in job_iter]
 
-    return list(outnames.values())
+    return frames
 
 
-def make_master_flat(
-    filenames: Iterable,
-    master_backgrounds: Optional[Sequence] = None,
+def process_flat_files(
+    filenames: Iterable[str | Path],
     collapse: str = "median",
-    name: str = "master_flat",
+    background_files: str | Path | None = None,
+    output_directory: str | Path | None = None,
     force: bool = False,
-    output_directory: Optional = None,
     num_proc: int = DEFAULT_NPROC,
     quiet: bool = False,
 ) -> list[Path]:
-    # prepare input filenames
-    file_inputs = sort_calib_files(filenames)
-    master_back_dict = {key: None for key in file_inputs.keys()}
-    if master_backgrounds is not None:
-        for key in file_inputs.keys():
-            master_back_dict[key] = master_backgrounds[0]
-        # back_inputs = sort_calib_files(master_backgrounds, backgrounds=True)
-        # for key in file_inputs.keys():
-        #     # don't need to match filter for backs
-        #     back_key = tuple([*key[:2], *key[3:]])
-        #     # input should be list with one file in it
-        #     if back_key in back_inputs:
-        #         master_back_dict[key] = back_inputs[back_key][0]
-
     if output_directory is not None:
         outdir = Path(output_directory)
         outdir.mkdir(parents=True, exist_ok=True)
     else:
-        outdir = Path.cwd()
+        outdir = Path.cwd() / "flat"
 
-    # get names for master backs and remove
-    # files from queue if they exist
-    outnames = {}
+    if background_files is not None:
+        calib_match_table = match_calib_files(filenames, background_files)
+        mapping = zip(calib_match_table["path"], calib_match_table["backfile"])
+    else:
+        mapping = zip(filenames, itertools.repeat(None))
     with mp.Pool(num_proc) as pool:
         jobs = []
-        for key, filelist in file_inputs.items():
-            if len(key) == 5:
-                cam, exptime, filt, gain, sz = key
-                outname = (
-                    outdir
-                    / f"{name}_{filt}_em{gain:.0f}_{exptime/1e3:05.0f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
-                )
-            else:
-                cam, exptime, (filt1, filt2), sz = key
-                outname = (
-                    outdir
-                    / f"{name}_{filt1}_{filt2}_{exptime*1e3:07.02f}ms_{sz[0]:03d}x{sz[1]:03d}_cam{cam:.0f}.fits"
-                )
-
-            outnames[key] = outname
-            if not force and outname.is_file():
-                continue
-            # collapse the files required for each flat
-            for path in filelist:
-                kwds = dict(
-                    output_directory=outdir / "collapsed",
-                    back_filename=master_back_dict[key],
-                    force=force,
-                    method=collapse,
-                )
-                jobs.append(pool.apply_async(make_flat_file, args=(path,), kwds=kwds))
-        iter = jobs if quiet else tqdm(jobs, desc="Collapsing flat frames")
-        frames = [job.get() for job in iter]
-        # create master frames from collapsed files
-        collapsed_inputs = sort_calib_files(frames)
-        jobs = []
-        for key, filelist in collapsed_inputs.items():
-            kwds = dict(
-                output=outnames[key],
+        for path, back_path in mapping:
+            func = functools.partial(
+                make_flat_file,
+                path,
+                back_filename=back_path,
+                output_directory=outdir,
                 method=collapse,
                 force=force,
             )
-            jobs.append(pool.apply_async(collapse_frames_files, args=(filelist,), kwds=kwds))
-        iter = jobs if quiet else tqdm(jobs, desc="Making master flats")
-        [job.get() for job in iter]
+            jobs.append(pool.apply_async(func))
+        job_iter = jobs if quiet else tqdm(jobs, desc="Collapsing flat frames")
+        frames = [job.get() for job in job_iter]
 
-    return outnames
+    return frames

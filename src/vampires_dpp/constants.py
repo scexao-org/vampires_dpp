@@ -24,8 +24,9 @@ class EMCCDVAMPIRES(InstrumentInfo):
     emgain: int
     pixel_scale: ClassVar[float] = 6.24  # mas / px
     pupil_offset: ClassVar[float] = 140.4  # deg
-    readnoise: ClassVar[float] = 82  # e-
     gain: ClassVar[float] = 4.5  # e-/adu
+    dark_current: ClassVar[float] = 1.5e-4  # e-/s/px
+    bias: ClassVar[int] = 150
 
     filters: ClassVar[set[str]] = {
         "Open",
@@ -39,18 +40,28 @@ class EMCCDVAMPIRES(InstrumentInfo):
     }
 
     @property
-    def fullwell(self):
+    def fullwell(self) -> float:
         if self.emgain == 0:
             # with EM gain off, using 180K register
-            fullwell = 180_000  # e-
+            fullwell = 1.8e5  # e-
         else:
             # with EM gain on, limited by 16-bit register almost always
-            fullwell = min(800_000, 2**16 * self.gain)
+            fullwell = min(8e5, 2**16 * self.gain)
         return fullwell
 
     @property
-    def effgain(self):
+    def effgain(self) -> float:
         return self.gain / self.emgain
+
+    @property
+    def excess_noise_factor(self) -> float:
+        return 1 if self.emgain == 0 else np.sqrt(2)
+
+    @property
+    def readnoise(self) -> float:
+        # read noise is 89 e- in EM register,
+        # 9.6 e- in conventional register
+        return 9.6 if self.emgain == 0 else 89
 
     def get_psf_size(self, filt_name):
         if not filt_name in self.filters:
@@ -62,8 +73,11 @@ class EMCCDVAMPIRES(InstrumentInfo):
 class CMOSVAMPIRES(InstrumentInfo):
     cam_num: Literal[1, 2]
     readmode: Literal["fast", "slow"]
+    dark_current: ClassVar[float] = 3.6e-3  # e-/s/px
     pixel_scale: ClassVar[float] = 6.018378804429752  # mas / px
     pupil_offset: ClassVar[float] = -41.323163723676146  # deg
+    excess_noise_factor: ClassVar[float] = 1
+    bias: ClassVar[int] = 200
 
     filters: ClassVar[set[str]] = {
         "Open",

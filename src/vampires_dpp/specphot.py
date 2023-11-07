@@ -7,6 +7,7 @@ import pandas as pd
 from astropy.io import fits
 from astropy.table import QTable
 from astroquery.simbad import Simbad
+from astroquery.vizier import Vizier
 from synphot import Empirical1D, Observation, SourceSpectrum, SpectralElement
 from synphot.models import Empirical1D, get_waveset
 from synphot.units import VEGAMAG
@@ -44,8 +45,8 @@ FILTERS: Final[dict[str, SpectralElement]] = {
     "U": SpectralElement.from_filter("johnson_u"),
     "B": SpectralElement.from_filter("johnson_b"),
     "V": SpectralElement.from_filter("johnson_v"),
-    "R": SpectralElement.from_filter("johnson_r"),
-    "I": SpectralElement.from_filter("johnson_i"),
+    "r": SpectralElement.from_filter("johnson_r"),
+    "i": SpectralElement.from_filter("johnson_i"),
     "J": SpectralElement.from_filter("johnson_j"),
     "H": SpectralElement.from_filter("bessel_h"),
     "K": SpectralElement.from_filter("johnson_k"),
@@ -255,11 +256,19 @@ def specphot_calibration(header, outdir: Path, config: SpecphotConfig):
     return header
 
 
-def get_simbad_flux(obj: str):
+def get_simbad_table(obj: str):
     sim = Simbad()
     sim.remove_votable_fields("coordinates")
-    flux_filts = ("U", "B", "V", "R", "I", "J", "H", "K")
-    flux_fields = (f"flux({filt})" for filt in flux_filts)
-    fluxerr_fields = (f"flux_error({filt})" for filt in flux_filts)
-    sim.add_votable_fields("sptype", *flux_fields, *fluxerr_fields)
+    sim.add_votable_fields("sptype")
     return sim.query_object(obj)
+
+
+def get_ucac_flux(obj: str, radius=1):
+    cat = "I/322A/out"
+    viz = Vizier(catalog=cat, columns=["Vmag", "rmag", "imag"])
+    # get precise RA and DEC
+    ucac4_list = viz.query_object(
+        obj,
+        radius=radius * u.arcsec,
+    )
+    return ucac4_list[0]

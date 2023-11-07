@@ -1,8 +1,8 @@
 import warnings
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
-import tqdm.auto as tqdm
 from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
 
@@ -10,6 +10,7 @@ from vampires_dpp.analysis import safe_annulus_sum, safe_aperture_sum
 from vampires_dpp.indexing import cutout_inds, frame_angles
 from vampires_dpp.wcs import apply_wcs
 
+from ..image_processing import combine_frames_headers
 from .mueller_matrices import mueller_matrix_from_header
 
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
@@ -72,7 +73,7 @@ def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
     )
 
 
-def radial_stokes(stokes_cube: ArrayLike, phi: float = 0) -> NDArray:
+def radial_stokes(stokes_cube: ArrayLike, stokes_err: Optional[ArrayLike] = None, phi: float = 0):
     r"""
     Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)
 
@@ -97,10 +98,16 @@ def radial_stokes(stokes_cube: ArrayLike, phi: float = 0) -> NDArray:
 
     cos2t = np.cos(2 * (thetas + phi))
     sin2t = np.sin(2 * (thetas + phi))
-    Qphi = -stokes_cube[:, 1] * cos2t - stokes_cube[:, 2] * sin2t
-    Uphi = stokes_cube[:, 1] * sin2t - stokes_cube[:, 2] * cos2t
+    Qphi = -cos2t * stokes_cube[1] - sin2t * stokes_cube[2]
+    Uphi = sin2t * stokes_cube[1] - cos2t * stokes_cube[2]
 
-    return Qphi, Uphi
+    if stokes_err is not None:
+        Qphi_err = np.hypot(cos2t * stokes_err[1], sin2t * stokes_err[2])
+        Uphi_err = np.hypot(sin2t * stokes_err[1], cos2t * stokes_err[2])
+    else:
+        Qphi_err = Uphi_err = np.full_like(Qphi, np.nan)
+
+    return Qphi, Uphi, Qphi_err, Uphi_err
 
 
 def rotate_stokes(stokes_cube, theta):
@@ -123,7 +130,7 @@ def collapse_stokes_cube(stokes_cube, header=None):
     return stokes_out, header
 
 
-def write_stokes_products(stokes_cube, header=None, outname=None, force=False, phi=0):
+def write_stokes_products(hdul, outname=None, force=False, phi=0):
     if outname is None:
         path = Path("stokes_cube.fits")
     else:
@@ -132,21 +139,42 @@ def write_stokes_products(stokes_cube, header=None, outname=None, force=False, p
     if not force and path.is_file():
         return path
 
-    pi = np.hypot(stokes_cube[:, 2], stokes_cube[:, 1])
-    aolp = np.arctan2(stokes_cube[:, 2], stokes_cube[:, 1])
-    Qphi, Uphi = radial_stokes(stokes_cube, phi=phi)
+    nfields = hdul[0].shape[0]
+    hdus = []
+    for i in range(1, nfields + 1):
+        data = hdul[i].data
+        hdr = hdul[i].header
+        err = hdul[f"{hdr['FIELD']}ERROR"].data
 
-    if header is None:
-        header = fits.Header()
+        pi = np.hypot(data[2], data[1])
+        aolp = np.arctan2(data[2], data[1])
+        Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(data, err, phi=phi)
+        # error propagation
+        pi_err = np.hypot(data[2] * err[2], data[1] * err[1]) / np.abs(pi)
+        aolp_err = np.hypot(data[1] * err[2], data[2] * err[1]) / pi**2
 
-    header["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
-    if phi is not None:
-        header["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
+        data = np.asarray((data[0], data[1], data[2], Qphi, Uphi, pi, aolp))
+        data_err = np.asarray((err[0], err[1], err[2], Qphi_err, Uphi_err, pi_err, aolp_err))
 
-    data = np.asarray(
-        (stokes_cube[:, 0], stokes_cube[:, 1], stokes_cube[:, 2], Qphi, Uphi, pi, aolp)
-    )
-    np.swapaxes(data, 0, 1)
-    fits.writeto(path, np.squeeze(data), header=header, overwrite=True)
+        hdr["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
+        if phi is not None:
+            hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
+
+        hdu = fits.ImageHDU(data, hdr, name=hdr["FIELD"])
+        hdu_err = fits.ImageHDU(data_err, hdr, name=f"{hdr['FIELD']}ERROR")
+        hdus.append((hdu, hdu_err))
+
+    prim_data = [hdu[0].data for hdu in hdus]
+    prim_hdr = combine_frames_headers([hdu[0].header for hdu in hdus], wcs=True)
+    prim_hdu = fits.PrimaryHDU(np.squeeze(np.array(prim_data)), header=prim_hdr)
+    hdul_out = fits.HDUList(prim_hdu)
+    # add data hdus
+    for hdu in hdus:
+        hdul_out.append(hdu[0])
+    # add err hdus
+    for hdu in hdus:
+        hdul_out.append(hdu[1])
+
+    hdul_out.writeto(path, overwrite=True)
 
     return path
