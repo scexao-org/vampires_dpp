@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 import sep
+from astropy.convolution import convolve, convolve_fft
 from photutils import profiles
 from photutils.utils import calc_total_error
 
@@ -76,6 +77,7 @@ def analyze_fields(
     ann_rad=None,
     strehl: bool = False,
     window_size=30,
+    psf=None,
     **kwargs,
 ):
     output = {}
@@ -123,6 +125,12 @@ def analyze_fields(
         append_or_create(output, "photf", phot)
         append_or_create(output, "phote", photerr)
 
+    # if psf is not None:
+    #     # assume PSF is already normalized
+    #     kernel = psf[None, ...]
+    #     psfphots = convolve(cutout, kernel, normalize_kernel=False).max()
+    #     append_or_create(output, "psff", psfphot)
+
     return output
 
 
@@ -135,6 +143,7 @@ def analyze_file(
     strehl=False,
     force=False,
     window_size=30,
+    psfs=None,
     **kwargs,
 ):
     if not force and outpath.is_file():
@@ -142,13 +151,15 @@ def analyze_file(
 
     data = hdul[0].data
     hdr = hdul[0].header
-    data_err = hdul["ERROR"].data
+    data_err = hdul["ERR"].data
 
     cam_num = hdr["U_CAMERA"]
     metrics: dict[str, list[list[list]]] = {}
     if centroids is None:
         centroids = {"": [frame_center(data)]}
-    for field, ctrs in centroids.items():
+    if psfs is None:
+        psfs = itertools.repeat(None)
+    for (field, ctrs), psf in zip(centroids.items(), psfs):
         field_metrics = {}
         for ctr in ctrs:
             inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)
@@ -160,6 +171,7 @@ def analyze_file(
                 aper_rad=aper_rad,
                 ann_rad=ann_rad,
                 strehl=strehl,
+                psf=psf,
                 window_size=window_size,
                 **kwargs,
             )

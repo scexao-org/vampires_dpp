@@ -394,7 +394,7 @@ class PipelineConfig(BaseModel):
     object: Optional[ObjectConfig] = None
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
-    specphot: Optional[SpecphotConfig] = SpecphotConfig()
+    specphot: Optional[SpecphotConfig] = None
     collapse: CollapseConfig = CollapseConfig()
     polarimetry: Optional[PolarimetryConfig] = None
 

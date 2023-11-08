@@ -139,29 +139,27 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
     if not force and path.is_file():
         return path
 
-    nfields = hdul[0].shape[0]
     hdus = []
+    nfields = hdul[0].shape[0]
     for i in range(1, nfields + 1):
-        data = hdul[i].data
-        hdr = hdul[i].header
-        err = hdul[f"{hdr['FIELD']}ERROR"].data
+        if nfields > 1:
+            stokes_data = hdul[i].data
+            hdr = hdul[i].header
+            stokes_err = hdul[f"{hdr['FIELD']}ERR"].data
+        else:
+            stokes_data = hdul[0].data[0]
+            hdr = hdul[0].header
+            stokes_err = hdul["ERR"].data[0]
+            hdr["FIELD"] = "COMB"
 
-        pi = np.hypot(data[2], data[1])
-        aolp = np.arctan2(data[2], data[1])
-        Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(data, err, phi=phi)
-        # error propagation
-        pi_err = np.hypot(data[2] * err[2], data[1] * err[1]) / np.abs(pi)
-        aolp_err = np.hypot(data[1] * err[2], data[2] * err[1]) / pi**2
-
-        data = np.asarray((data[0], data[1], data[2], Qphi, Uphi, pi, aolp))
-        data_err = np.asarray((err[0], err[1], err[2], Qphi_err, Uphi_err, pi_err, aolp_err))
+        data, data_err = stokes_products(stokes_data, stokes_err, phi=phi)
 
         hdr["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
         if phi is not None:
             hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
 
         hdu = fits.ImageHDU(data, hdr, name=hdr["FIELD"])
-        hdu_err = fits.ImageHDU(data_err, hdr, name=f"{hdr['FIELD']}ERROR")
+        hdu_err = fits.ImageHDU(data_err, hdr, name=f"{hdr['FIELD']}ERR")
         hdus.append((hdu, hdu_err))
 
     prim_data = [hdu[0].data for hdu in hdus]
@@ -169,12 +167,42 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
     prim_hdu = fits.PrimaryHDU(np.squeeze(np.array(prim_data)), header=prim_hdr)
     hdul_out = fits.HDUList(prim_hdu)
     # add data hdus
-    for hdu in hdus:
-        hdul_out.append(hdu[0])
+    if nfields > 1:
+        for hdu in hdus:
+            hdul_out.append(hdu[0])
     # add err hdus
     for hdu in hdus:
         hdul_out.append(hdu[1])
+    # else:
+    #     stokes_data = hdul[0].data
+    #     hdr = hdul[0].data
+    #     stokes_err = hdul[1].data
+    #     print(stokes_data.shape)
+    #     data, data_err = stokes_products(stokes_data, stokes_err, phi=phi)
+
+    #     hdr["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
+    #     if phi is not None:
+    #         hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
+
+    #     prim_hdu = fits.PrimaryHDU(data, hdr)
+    #     hdu_err = fits.ImageHDU(data_err, hdr, name=f"ERR")
+    #     hdul_out = fits.HDUList([prim_hdu, hdu_err])
 
     hdul_out.writeto(path, overwrite=True)
 
     return path
+
+
+def stokes_products(stokes_frame, stokes_err, phi=0):
+    pi = np.hypot(stokes_frame[2], stokes_frame[1])
+    aolp = np.arctan2(stokes_frame[2], stokes_frame[1])
+    Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(stokes_frame, stokes_err, phi=phi)
+    # error propagation
+    pi_err = np.hypot(stokes_frame[2] * stokes_err[2], stokes_frame[1] * stokes_err[1]) / np.abs(pi)
+    aolp_err = np.hypot(stokes_frame[1] * stokes_err[2], stokes_frame[2] * stokes_err[1]) / pi**2
+
+    data = np.asarray((stokes_frame[0], stokes_frame[1], stokes_frame[2], Qphi, Uphi, pi, aolp))
+    data_err = np.asarray(
+        (stokes_err[0], stokes_err[1], stokes_err[2], Qphi_err, Uphi_err, pi_err, aolp_err)
+    )
+    return data, data_err

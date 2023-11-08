@@ -88,19 +88,23 @@ def parallactic_angle_altaz(alt, az, lat=SUBARU_LOC.lat.deg):
 def fix_header(header):
     # check if the millisecond delimiter is a colon
     for key in ("UT-STR", "UT-END", "HST-STR", "HST-END"):
-        if header[key].count(":") == 3:
+        if key in header and header[key].count(":") == 3:
             tokens = header[key].rpartition(":")
             header[key] = f"{tokens[0]}.{tokens[2]}"
     # fix UT/HST/MJD being time of file creation instead of typical time
     for key in ("UT", "HST"):
-        header[key] = fix_typical_time_iso(header, key)
-    header["MJD"] = fix_typical_time_mjd(header)
+        if f"{key}-STR" in header and f"{key}-END" in header:
+            header[key] = fix_typical_time_iso(header, key)
+    if "MJD-STR" in header and "MJD-END" in header:
+        header["MJD"] = fix_typical_time_mjd(header)
     # add RET-ANG1 and similar headers to be more consistent
     if "DETECTOR" not in header:
         header["DETECTOR"] = (
             f"VCAM{header['U_CAMERA']} - Ultra 897",
             "Name of the detector",
         )
+    if "OBS-MOD" not in header:
+        header["OBS-MOD"] = "IPOL", "Observation mode"
     if "U_EMGAIN" in header:
         header["DETGAIN"] = header["U_EMGAIN"], "Detector multiplication factor"
     if "U_HWPANG" in header:
@@ -130,6 +134,7 @@ def fix_header(header):
         header["EXPTIME"] * header.get("NAXIS3", 1),
         "[s] Total integration time of file",
     )
+
     return header
 
 

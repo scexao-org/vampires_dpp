@@ -16,7 +16,7 @@ from vampires_dpp.image_processing import (
 )
 
 from ..paths import any_file_newer
-from ..util import load_fits
+from ..util import append_or_create, load_fits
 from .utils import (
     instpol_correct,
     measure_instpol,
@@ -58,18 +58,21 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     # now do triple-differential calibration
     cube_dict = {}
     cube_errs = []
-    headers = []
+    headers = {}
     for file in filenames:
         with fits.open(file) as hdul:
             cube = hdul[0].data
             nfields = cube.shape[0]
             prim_hdr = hdul[0].header
-            hdrs = [hdu.header for hdu in hdul[1 : nfields + 1]]
-            cube_err = np.array([hdul[f"{hdr['EXTNAME']}ERROR"].data for hdr in hdrs])
-            headers.append([prim_hdr, *hdrs])
+            append_or_create(headers, "PRIMARY", prim_hdr)
+            cube_err = []
+            for hdu in hdul[1 : nfields + 1]:
+                hdr = hdu.header
+                append_or_create(headers, hdr["FIELD"], hdr)
+                cube_err.append(hdul[f"{hdr['FIELD']}ERR"].data)
         # derotate frame - necessary for crosstalk correction
         cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
-        cube_err_derot = derotate_cube(cube_err, prim_hdr["DEROTANG"])
+        cube_err_derot = derotate_cube(np.array(cube_err), prim_hdr["DEROTANG"])
         # store into dictionaries
         key = prim_hdr["RET-ANG1"], prim_hdr["U_FLC"], prim_hdr["U_CAMERA"]
         cube_dict[key] = cube_derot
@@ -82,22 +85,22 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
         warnings.simplefilter("ignore")
         stokes_err = np.sqrt(np.nanmean(np.power(cube_errs, 2), axis=0) / len(cube_errs))
 
-    stokes_hdrs = []
-    for hdr in headers:
-        stokes_hdr = combine_frames_headers(hdr, wcs=True)
+    stokes_hdrs = {}
+    for key, hdrs in headers.items():
+        stokes_hdr = combine_frames_headers(hdrs, wcs=True)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
         if "TINT" in stokes_hdr:
             stokes_hdr["TINT"] /= 2
-        stokes_hdrs.append(stokes_hdr)
+        stokes_hdrs[key] = stokes_hdr
 
     # reform hdulist
-    prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs[0])
+    prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs.pop("PRIMARY"))
     hdul = fits.HDUList(prim_hdu)
-    for frame, hdr in zip(stokes_cube, stokes_hdrs[1:]):
+    for frame, hdr in zip(stokes_cube, stokes_hdrs.values()):
         hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
         hdul.append(hdu)
-    for frame_err, hdr in zip(stokes_err, stokes_hdrs[1:]):
-        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERROR")
+    for frame_err, hdr in zip(stokes_err, stokes_hdrs.values()):
+        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERR")
         hdul.append(hdu)
     return hdul
 
@@ -110,15 +113,18 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
     # now do double-differential calibration
     cube_dict = {}
     cube_errs = []
-    headers = []
+    headers = {}
     for file in filenames:
         with fits.open(file) as hdul:
             cube = hdul[0].data
             nfields = cube.shape[0]
             prim_hdr = hdul[0].header
-            hdrs = [hdu.header for hdu in hdul[1 : nfields + 1]]
-            cube_err = np.array([hdul[f"{hdr['EXTNAME']}ERROR"].data for hdr in hdrs])
-            headers.append([prim_hdr, *hdrs])
+            append_or_create(headers, "PRIMARY", prim_hdr)
+            cube_err = []
+            for hdu in hdul[1 : nfields + 1]:
+                hdr = hdu.header
+                append_or_create(headers, hdr["FIELD"], hdr)
+                cube_err.append(hdul[f"{hdr['FIELD']}ERR"].data)
         # derotate frame - necessary for crosstalk correction
         cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
         cube_err_derot = derotate_cube(cube_err, prim_hdr["DEROTANG"])
@@ -134,21 +140,22 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
         warnings.simplefilter("ignore")
         stokes_err = np.sqrt(np.nanmean(np.power(cube_errs, 2), axis=0) / len(cube_errs))
 
-    stokes_hdrs = []
-    for hdr in headers:
-        stokes_hdr = combine_frames_headers(hdr, wcs=True)
+    stokes_hdrs = {}
+    for key, hdrs in headers.items():
+        stokes_hdr = combine_frames_headers(hdrs, wcs=True)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
         if "TINT" in stokes_hdr:
             stokes_hdr["TINT"] /= 2
-        stokes_hdrs.append(stokes_hdr)
+        stokes_hdrs[key] = stokes_hdr
 
     # reform hdulist
-    fits.PrimaryHDU(stokes_cube, stokes_hdrs[0])
-    for frame, hdr in zip(stokes_cube, stokes_hdrs[1:]):
+    prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs.pop("PRIMARY"))
+    hdul = fits.HDUList(prim_hdu)
+    for frame, hdr in zip(stokes_cube, stokes_hdrs.values()):
         hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
         hdul.append(hdu)
-    for frame_err, hdr in zip(stokes_err, stokes_hdrs[1:]):
-        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERROR")
+    for frame_err, hdr in zip(stokes_err, stokes_hdrs.values()):
+        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERR")
         hdul.append(hdu)
     return hdul
 
@@ -367,7 +374,7 @@ def make_stokes_image(
         hdu = stokes_hdul[i]
         stokes_data = hdu.data
         stokes_header = hdu.header
-        error_extname = f"{stokes_header['FIELD']}ERROR"
+        error_extname = f"{stokes_header['FIELD']}ERR"
         stokes_err = stokes_hdul[error_extname].data
         I, Q, U = stokes_data
         I_err = stokes_err
@@ -418,7 +425,7 @@ def make_stokes_image(
         hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
         hdul.append(hdu)
     for frame_err, hdr in zip(output_data_err, output_hdrs):
-        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERROR")
+        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERR")
         hdul.append(hdu)
     hdul.writeto(outpath, overwrite=True)
     return outpath

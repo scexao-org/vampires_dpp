@@ -188,7 +188,7 @@ def calibrate_file(
         header["BACKFILE"] = back_path.name, "File used for back subtraction"
         with fits.open(back_path) as hdul:
             background = hdul[0].data.astype("f4")
-            back_err = hdul["ERROR"].data.astype("f4")
+            back_err = hdul["ERR"].data.astype("f4")
         cube = cube - background
         cube_err = np.sqrt(
             np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2
@@ -201,7 +201,7 @@ def calibrate_file(
         header["FLATFILE"] = flat_path.name, "File used for flat-field correction"
         with fits.open(flat_path) as hdul:
             flat = hdul[0].data.astype("f4")
-            flat_err = hdul["ERROR"].data.astype("f4")
+            flat_err = hdul["ERR"].data.astype("f4")
         unnorm_cube = cube.copy()
         cube = cube / flat
         cube_err = np.abs(cube) * np.sqrt((cube_err / unnorm_cube) ** 2 + (flat_err / flat) ** 2)
@@ -231,7 +231,7 @@ def calibrate_file(
         cube_err, _ = correct_distortion_cube(cube_err, *params)
 
     prim_hdu = fits.PrimaryHDU(cube.astype("f4"), header=header)
-    err_hdu = fits.ImageHDU(cube_err.astype("f4"), header=header, name="ERROR")
+    err_hdu = fits.ImageHDU(cube_err.astype("f4"), header=header, name="ERR")
     # clip fot float32 to limit data size
     return fits.HDUList([prim_hdu, err_hdu])
 
@@ -263,20 +263,22 @@ def make_background_file(filename: str, force=False, **kwargs):
     header["NOISE"] = noise * header["GAIN"], "[e-] median noise in background file"
     header["CALTYPE"] = "BACKGROUND", "DPP calibration file type"
     # get bad pixel mask using lacosmic
-    bpmask, _ = detect_cosmics(
-        master_background,
-        invar=back_std**2,
-        inmask=np.isnan(master_background),
-        satlevel=satlevel,
-    )
+    # bpmask, _ = detect_cosmics(
+    #     master_background,
+    #     invar=back_std**2,
+    #     inmask=np.isnan(master_background),
+    #     satlevel=satlevel,
+    #     sigclip=10,
+    #     gain=header["EFFGAIN"]
+    # )
     # mask out bad pixels with nan- use np.isnan
     # to extract mask in future
-    master_background[bpmask] = np.nan
+    # master_background[bpmask] = np.nan
     # save to disk
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_background, header=header),
-            fits.ImageHDU(back_err, header=header, name="ERROR"),
+            fits.ImageHDU(back_err, header=header, name="ERR"),
         ]
     )
     hdul.writeto(outpath, overwrite=True)
@@ -298,7 +300,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
         header["BACKFILE"] = back_path.name, "File used for background subtraction"
         with fits.open(back_path) as hdul:
             back = hdul[0].data
-            back_err = hdul["ERROR"].data
+            back_err = hdul["ERR"].data
         cube -= back
     else:
         cube -= header["BIAS"]
@@ -323,17 +325,19 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     header["FLATNORM"] = normval, "[adu] Flat field normalization factor"
     header["CALTYPE"] = "FLAT", "DPP calibration file type"
     # get bad pixel mask using lacosmic
-    bpmask, _ = detect_cosmics(
-        master_flat, invar=flat_err**2, inmask=np.isnan(master_flat), satlevel=satlevel
-    )
-    # mask out bad pixels with nan- use np.isnan
-    # to extract mask in future
-    master_flat[bpmask] = np.nan
+    # bpmask, _ = detect_cosmics(
+    #     master_flat, invar=flat_err**2, inmask=np.isnan(master_flat), satlevel=satlevel,
+    #     sigclip=10,
+    #     gain=header["EFFGAIN"]
+    # )
+    # # mask out bad pixels with nan- use np.isnan
+    # # to extract mask in future
+    # master_flat[bpmask] = np.nan
     # save to disk
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_flat, header=header),
-            fits.ImageHDU(flat_err, header=header, name="ERROR"),
+            fits.ImageHDU(flat_err, header=header, name="ERR"),
         ]
     )
     hdul.writeto(outpath, overwrite=True)
@@ -355,7 +359,7 @@ def match_calib_files(filenames, calib_files):
         if "U_EMGAIN" in cal_table.columns:
             mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
         else:
-            mask = subset["DET-MOD"] == hdr["DET-MOD"]
+            mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
 
         # background files
         back_mask = mask & (subset["CALTYPE"] == "BACKGROUND")
@@ -369,9 +373,13 @@ def match_calib_files(filenames, calib_files):
         # flat files
         flat_mask = mask & (subset["CALTYPE"] == "FLAT")
         if np.any(flat_mask):
-            flat_mask &= subset["FILTER01"] == hdr["FILTER01"]
+            _mask = subset["FILTER01"] == hdr["FILTER01"]
+            if np.any(_mask):
+                flat_mask &= _mask
         if np.any(flat_mask):
-            flat_mask &= subset["FILTER02"] == hdr["FILTER02"]
+            _mask = subset["FILTER02"] == hdr["FILTER02"]
+            if np.any(_mask):
+                flat_mask &= _mask
         if np.any(flat_mask):
             flat_subset = subset.loc[flat_mask]
             delta_time = Time(flat_subset["MJD"], format="mjd", scale="utc") - obstime

@@ -158,7 +158,7 @@ def update_header_from_obs(
     header["MAG"] = obs_mag.value, "[mag] Source magnitude after color correction"
     header["FLUX"] = obs_jy.value, "[Jy] Source flux after color correction"
     # get calibrated flux (adu / s)
-    inst_flux = flux / header["EXPTIME"]
+    inst_flux = np.maximum(flux / header["EXPTIME"], 0)
     inst_mag = -2.5 * np.log10(inst_flux)
     header["INSTFLUX"] = inst_flux, "[adu/s] Instrumental flux"
     header["INSTMAG"] = inst_mag, "[mag] Instrumental magnitude"
@@ -242,7 +242,7 @@ def specphot_calibration(header, outdir: Path, config: SpecphotConfig):
     else:
         filt = header["FILTER01"]
     obs_filt = load_vampires_filter(filt)
-    save_filter_fits(obs_filt, outdir / f"{filt}_filter.fits")
+    save_filter_fits(obs_filt, outdir / f"VAMPIRES_{filt}_filter.fits")
     match config.flux_metric:
         case "photometry":
             flux = header["PHOTF"]

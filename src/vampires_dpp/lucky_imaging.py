@@ -97,7 +97,7 @@ def lucky_image_file(
             return hdul
 
     cube = hdul[0].data
-    cube_err = hdul["ERROR"].data
+    cube_err = hdul["ERR"].data
     header = hdul[0].header
 
     if crop_width is None:
@@ -186,7 +186,7 @@ def lucky_image_file(
         hdu = fits.ImageHDU(frame, header=hdr, name=field)
         hdul.append(hdu)
     for field, frame_err, hdr in zip(fields.keys(), frame_errs, headers):
-        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{field}ERROR")
+        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{field}ERR")
         hdul.append(hdu)
     # write to disk
     hdul.writeto(outpath, overwrite=True)
@@ -203,6 +203,7 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "photr": "[pix] Photometric aperture radius",
     "photf": "[adu] Photometric flux{}in window {}",
     "phote": "[adu] Photometric fluxerr{}in window {}",
+    "psff": "[adu] PSF flux{}in window {}",
     "comx": "[pix] COM x{}in window {}",
     "comy": "[pix] COM y{}in window {}",
     "peakx": "[pix] Peak index x{}in window {}",

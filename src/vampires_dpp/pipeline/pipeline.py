@@ -35,7 +35,7 @@ from vampires_dpp.pipeline.config import PipelineConfig
 
 from ..lucky_imaging import lucky_image_file
 from ..paths import Paths, any_file_newer, get_paths, make_dirs
-from ..specphot import specphot_calibration
+from ..synthpsf import create_synth_psf
 from ..util import load_fits
 from .modules import get_psf_centroids_mpl
 
@@ -48,8 +48,9 @@ class Pipeline:
         self.config = config
         self.workdir = workdir
         self.paths = Paths(workdir=self.workdir)
-        self._conn = None
         self.output_table_path = self.paths.products_dir / f"{self.config.name}_table.csv"
+        # cache for PSFs
+        self.synthpsf_cache = {}
 
     def create_input_table(self, filenames) -> pd.DataFrame:
         input_table = header_table(filenames, quiet=True).sort_values("MJD")
@@ -229,7 +230,7 @@ class Pipeline:
             if not force and outpath.exists():
                 hdul = fits.open(outpath)
                 return hdul[0]
-
+        back_filename = flat_filename = None
         if config.back_subtract:
             back_filename = fileinfo["backfile"]
         if config.flat_correct:
@@ -249,14 +250,32 @@ class Pipeline:
         logger.debug("Data calibration completed")
         return calib_hdul
 
-    def analyze_one(self, hdul: fits.PrimaryHDU, fileinfo, force=False):
+    def analyze_one(self, hdul: fits.HDUList, fileinfo, force=False):
         logger.debug("Starting frame analysis")
         config = self.config.analysis
+
+        mod = hdul[0].header["OBS-MOD"]
+        if mod.endswith("MBIR"):
+            filts = ("F670", "F720", "F760")
+        elif mod.endswith("MBI"):
+            filts = ("F610", "F670", "F720", "F760")
+        elif mod.endswith("SDI"):
+            filts = (hdul[0].header["FILTER02"],)
+        else:
+            filts = (hdul[0].header["FILTER01"],)
+
+        psfs = []
+        for filt in filts:
+            if filt not in self.synthpsf_cache:
+                psf = create_synth_psf(fileinfo, filt, output_directory=self.paths.preproc_dir)
+                self.synthpsf_cache[filt] = psf
+            psfs.append(self.synthpsf_cache[filt])
 
         key = f"cam{fileinfo['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdul,
             centroids=self.centroids.get(key, None),
+            psfs=psfs,
             subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
             ann_rad=config.ann_rad,
@@ -452,11 +471,11 @@ class Pipeline:
                     for i in range(nfields + 1):
                         stokes_hdrs[i].append(hdul[i].header)
                     for i in range(nfields):
-                        err_extname = f"{hdul[i + 1].header['FIELD']}ERROR"
+                        err_extname = f"{hdul[i + 1].header['FIELD']}ERR"
                         stokes_err[i].append(hdul[err_extname].data)
         remain_files = filter(lambda f: Path(f).exists(), stokes_files)
         ## Save CSV of Stokes values
-        stokes_tbl = header_table(remain_files, quiet=True)
+        stokes_tbl = header_table(remain_files, fix=False, quiet=True)
         stokes_tbl_path = self.paths.pdi_dir / f"{self.config.name}_stokes_table.csv"
         stokes_tbl.to_csv(stokes_tbl_path)
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
@@ -477,10 +496,10 @@ class Pipeline:
             hdr = coll_hdrs[i]
             coll_err = np.sqrt(collapse_frames(np.power(err_list, 2))[0])
             coll_errs.append(coll_err)
-            hdu_err = fits.ImageHDU(coll_err, header=hdr, name=f"{hdr['FIELD']}ERROR")
+            hdu_err = fits.ImageHDU(coll_err, header=hdr, name=f"{hdr['FIELD']}ERR")
             hdul.append(hdu_err)
         # In the case we have multi-wavelength data, save 4D Stokes cube
-        if coll_frame.shape[0] > 1:
+        if nfields > 1:
             stokes_cube_path = self.paths.pdi_dir / f"{self.config.name}_stokes_cube.fits"
             write_stokes_products(hdul, outname=stokes_cube_path, force=True)
             logger.info(f"Saved Stokes cube to {stokes_cube_path}")
@@ -489,13 +508,13 @@ class Pipeline:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
-                wave_err_frame = np.sqrt(np.nansum(np.power(coll_errs, 2), axis=0, keepdims=True))
-            wave_coll_hdr = combine_frames_hdrs(coll_hdrs)
+                wave_err_frame = np.sqrt(np.nanmean(np.power(coll_errs, 2), axis=0, keepdims=True))
+            wave_coll_hdr = combine_frames_headers(coll_hdrs, wcs=True)
             # TODO some fits keywords here are screwed up
             hdul = fits.HDUList(
                 [
                     fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr),
-                    fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERROR"),
+                    fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERR"),
                 ]
             )
         # save single-wavelength (or wavelength-collapsed) Stokes cube
