@@ -193,8 +193,8 @@ class CollapseConfig(BaseModel):
     """
 
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
-    frame_select: Optional[Literal["max", "l2norm", "normvar"]] = "normvar"
-    centroid: Optional[Literal["com", "peak", "gauss"]] = "com"
+    frame_select: Literal["max", "l2norm", "normvar"] | None = "normvar"
+    centroid: Literal["com", "peak", "gauss", "dft"] | None = "com"
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     recenter: bool = True
 
@@ -235,8 +235,7 @@ class AnalysisConfig(BaseModel):
     aper_rad: float | Literal["auto"] = "auto"
     ann_rad: Optional[Sequence[float]] = None
     window_size: int = 30
-    # dft_factor: int = 5
-    # dft_ref: Literal["centroid", "peak"] | Path = "centroid"
+    dft_factor: int = 100
 
 
 class PolarimetryConfig(BaseModel):

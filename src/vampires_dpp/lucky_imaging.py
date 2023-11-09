@@ -78,7 +78,7 @@ def lucky_image_file(
     metric_file: Path,
     method: str = "median",
     register: Optional[Literal["com", "peak", "gauss"]] = "com",
-    frame_select: Optional[Literal["peak", "normvar", "var", "strehl", "model", "fwhm"]] = None,
+    frame_select: Optional[Literal["peak", "normvar", "var", "strehl", "fwhm"]] = None,
     force: bool = False,
     recenter: bool = True,
     select_cutoff: float = 0,
@@ -161,7 +161,7 @@ def lucky_image_file(
         coll_err_frame = np.sqrt(coll_var_frame / N)
         ## Step 4: Recenter
         if recenter:
-            recenter_offset = get_recenter_offset(coll_frame, method=register, offsets=offs)
+            recenter_offset = get_recenter_offset(coll_frame, method="gauss", offsets=offs)
             coll_frame = shift_frame(coll_frame, recenter_offset)
             coll_err_frame = shift_frame(coll_err_frame, recenter_offset)
         hdr = header.copy()
@@ -210,6 +210,8 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "peaky": "[pix] Peak index y{}in window {}",
     "gausx": "[pix] Gauss. fit x{}in window {}",
     "gausy": "[pix] Gauss. fit y{}in window {}",
+    "dftx": "[pix] Cross-corr. x{}in window {}",
+    "dfty": "[pix] Cross-corr. y{}in window {}",
     "fwhm": "[pix] Gauss. fit fwhm{}in window {}",
 }
 

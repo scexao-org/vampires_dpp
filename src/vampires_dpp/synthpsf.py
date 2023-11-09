@@ -27,10 +27,16 @@ def field_combine(field1, field2):
     return lambda grid: field1(grid) * field2(grid)
 
 
-def create_synth_psf(header, filt, npix=31, output_directory=None, **kwargs):
+def create_synth_psf(header, filt, npix=30, output_directory=None, **kwargs):
+    if output_directory is not None:
+        outfile = output_directory / f"VAMPIRES_{filt}_synthpsf.fits"
+        if outfile.exists():
+            psf = fits.getdata(outfile)
+            if psf.shape == (npix, npix):
+                return psf
     # assume header is fixed already
     inst = get_instrument_from(header)
-    pupil_data = generate_pupil(angle=inst.pupil_offset)
+    pupil_data = generate_pupil(angle=-inst.pupil_offset)
     pupil_grid = hp.make_pupil_grid(pupil_data.shape, diameter=PUPIL_DIAMETER)
     pupil_field = hp.Field(pupil_data.ravel(), pupil_grid)
     plate_scale = np.deg2rad(inst.pixel_scale / 1e3 / 60 / 60)  # mas/px -> rad/px
@@ -51,7 +57,6 @@ def create_synth_psf(header, filt, npix=31, output_directory=None, **kwargs):
         field_sum += focal_plane.shaped
     normed_field = np.float32(field_sum / field_sum.sum())
     if output_directory is not None:
-        outfile = output_directory / f"VAMPIRES_{filt}_synthpsf.fits"
         fits.writeto(outfile, normed_field, overwrite=True)
     return normed_field
 

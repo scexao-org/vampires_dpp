@@ -37,6 +37,7 @@ from ..lucky_imaging import lucky_image_file
 from ..paths import Paths, any_file_newer, get_paths, make_dirs
 from ..synthpsf import create_synth_psf
 from ..util import load_fits
+from ..wcs import apply_wcs
 from .modules import get_psf_centroids_mpl
 
 
@@ -266,10 +267,10 @@ class Pipeline:
 
         psfs = []
         for filt in filts:
-            if filt not in self.synthpsf_cache:
-                psf = create_synth_psf(fileinfo, filt, output_directory=self.paths.preproc_dir)
-                self.synthpsf_cache[filt] = psf
-            psfs.append(self.synthpsf_cache[filt])
+            psf = create_synth_psf(
+                fileinfo, filt, npix=config.window_size, output_directory=self.paths.preproc_dir
+            )
+            psfs.append(psf)
 
         key = f"cam{fileinfo['U_CAMERA']:.0f}"
         outpath = analyze_file(
@@ -481,19 +482,21 @@ class Pipeline:
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
         logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
         ## Collapse outputs
-        coll_frame, coll_hdr = collapse_frames(stokes_data, headers=stokes_hdrs[0])
+        coll_frame, _ = collapse_frames(stokes_data)
         coll_hdrs = [
-            combine_frames_headers(stokes_hdrs[i], wcs=True) for i in range(1, nfields + 1)
+            apply_wcs(combine_frames_headers(stokes_hdrs[i]), 0) for i in range(nfields + 1)
         ]
         coll_errs = []
-        prim_hdu = fits.PrimaryHDU(coll_frame, header=coll_hdr)
+        prim_hdu = fits.PrimaryHDU(coll_frame, header=coll_hdrs[0])
         hdul = fits.HDUList(prim_hdu)
         for i in range(nfields):
-            hdu = fits.ImageHDU(coll_frame[i], header=coll_hdrs[i], name=coll_hdrs[i]["FIELD"])
+            hdu = fits.ImageHDU(
+                coll_frame[i], header=coll_hdrs[i + 1], name=coll_hdrs[i + 1]["FIELD"]
+            )
             hdul.append(hdu)
         for i in range(nfields):
             err_list = stokes_err[i]
-            hdr = coll_hdrs[i]
+            hdr = coll_hdrs[i + 1]
             coll_err = np.sqrt(collapse_frames(np.power(err_list, 2))[0])
             coll_errs.append(coll_err)
             hdu_err = fits.ImageHDU(coll_err, header=hdr, name=f"{hdr['FIELD']}ERR")
@@ -508,8 +511,9 @@ class Pipeline:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
-                wave_err_frame = np.sqrt(np.nanmean(np.power(coll_errs, 2), axis=0, keepdims=True))
-            wave_coll_hdr = combine_frames_headers(coll_hdrs, wcs=True)
+                wave_err_frame = np.sqrt(np.nansum(np.power(coll_errs, 2), axis=0, keepdims=True))
+            wave_coll_hdr = combine_frames_headers(coll_hdrs[1:], wcs=True)
+            wave_coll_hdr["FIELD"] = "COMB"
             # TODO some fits keywords here are screwed up
             hdul = fits.HDUList(
                 [

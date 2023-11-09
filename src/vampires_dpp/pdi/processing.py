@@ -17,6 +17,7 @@ from vampires_dpp.image_processing import (
 
 from ..paths import any_file_newer
 from ..util import append_or_create, load_fits
+from ..wcs import apply_wcs
 from .utils import (
     instpol_correct,
     measure_instpol,
@@ -87,7 +88,8 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
 
     stokes_hdrs = {}
     for key, hdrs in headers.items():
-        stokes_hdr = combine_frames_headers(hdrs, wcs=True)
+        stokes_hdr = combine_frames_headers(hdrs)
+        stokes_hdr = apply_wcs(stokes_hdr, angle=0)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
         if "TINT" in stokes_hdr:
             stokes_hdr["TINT"] /= 2
@@ -142,7 +144,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
 
     stokes_hdrs = {}
     for key, hdrs in headers.items():
-        stokes_hdr = combine_frames_headers(hdrs, wcs=True)
+        stokes_hdr = apply_wcs(combine_frames_headers(hdrs), angle=0)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
         if "TINT" in stokes_hdr:
             stokes_hdr["TINT"] /= 2
@@ -412,13 +414,12 @@ def make_stokes_image(
             stokes_err_data[2] = np.hypot(
                 stokes_err_data[2], stokes_header["IP_FU"] * stokes_err_data[0]
             )
-        stokes_header["CTYPE3"] = "STOKES"
         stokes_header["STOKES"] = "I,Q,U", "Stokes axis data type"
         output_data.append(stokes_data)
         output_data_err.append(stokes_err_data)
         output_hdrs.append(stokes_header)
 
-    prim_hdr = combine_frames_headers(output_hdrs)
+    prim_hdr = apply_wcs(combine_frames_headers(output_hdrs), angle=0)
     prim_hdu = fits.PrimaryHDU(np.array(output_data), prim_hdr)
     hdul = fits.HDUList(prim_hdu)
     for frame, hdr in zip(output_data, output_hdrs):

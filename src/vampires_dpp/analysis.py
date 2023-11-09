@@ -5,6 +5,7 @@ import sep
 from astropy.convolution import convolve, convolve_fft
 from photutils import profiles
 from photutils.utils import calc_total_error
+from skimage.registration import phase_cross_correlation
 
 from .image_processing import radial_profile_image
 from .image_registration import offset_centroids
@@ -77,6 +78,7 @@ def analyze_fields(
     ann_rad=None,
     strehl: bool = False,
     window_size=30,
+    dft_factor=10,
     psf=None,
     **kwargs,
 ):
@@ -95,7 +97,7 @@ def analyze_fields(
     for fidx in range(cube.shape[0]):
         frame = cube[fidx]
         frame_err = cube_err[fidx]
-        centroids = offset_centroids(frame, frame_err, inds)
+        centroids = offset_centroids(frame, frame_err, inds, psf, dft_factor)
 
         append_or_create(output, "comx", centroids["com"][1])
         append_or_create(output, "comy", centroids["com"][0])
@@ -103,6 +105,9 @@ def analyze_fields(
         append_or_create(output, "peaky", centroids["peak"][0])
         append_or_create(output, "gausx", centroids["gauss"][1])
         append_or_create(output, "gausy", centroids["gauss"][0])
+        if "dft" in centroids:
+            append_or_create(output, "dftx", centroids["dft"][1])
+            append_or_create(output, "dfty", centroids["dft"][0])
 
         ctr_est = centroids["com"]
         with warnings.catch_warnings():
@@ -125,7 +130,6 @@ def analyze_fields(
         append_or_create(output, "photf", phot)
         append_or_create(output, "phote", photerr)
 
-    # if psf is not None:
     #     # assume PSF is already normalized
     #     kernel = psf[None, ...]
     #     psfphots = convolve(cutout, kernel, normalize_kernel=False).max()

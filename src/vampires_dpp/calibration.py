@@ -21,6 +21,7 @@ from tqdm.auto import tqdm
 
 from .constants import CMOSVAMPIRES, EMCCDVAMPIRES
 from .headers import get_instrument_from
+from .indexing import cutout_inds
 from .organization import header_table
 
 # need to safely import astroscrappy because it
@@ -207,15 +208,9 @@ def calibrate_file(
         cube_err = np.abs(cube) * np.sqrt((cube_err / unnorm_cube) ** 2 + (flat_err / flat) ** 2)
     # bad pixel correction
     if bpmask:
-        for i in range(cube.shape[0]):
-            mask, _ = detect_cosmics(
-                cube[i],
-                invar=cube_err[i] ** 2,
-                inmask=np.isnan(cube[i]),
-                satlevel=satlevel,
-            )
-            cube[i][mask] = np.nan
-            cube_err[i][mask] = np.nan
+        mask = adaptive_sigma_clip_mask(cube)
+        cube[mask] = np.nan
+        cube_err[mask] = np.nan
 
     # flip cam 1 data on y-axis
     if header["U_CAMERA"] == 1:
@@ -262,6 +257,8 @@ def make_background_file(filename: str, force=False, **kwargs):
     header["NOISEADU"] = noise, "[adu] median noise in background file"
     header["NOISE"] = noise * header["GAIN"], "[e-] median noise in background file"
     header["CALTYPE"] = "BACKGROUND", "DPP calibration file type"
+    # get bad pixel mask from adaptive sigma clip
+    bpmask = adaptive_sigma_clip_mask(master_background)
     # get bad pixel mask using lacosmic
     # bpmask, _ = detect_cosmics(
     #     master_background,
@@ -273,7 +270,8 @@ def make_background_file(filename: str, force=False, **kwargs):
     # )
     # mask out bad pixels with nan- use np.isnan
     # to extract mask in future
-    # master_background[bpmask] = np.nan
+    master_background[bpmask] = np.nan
+    back_err[bpmask] = np.nan
     # save to disk
     hdul = fits.HDUList(
         [
@@ -324,15 +322,17 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     flat_err /= normval
     header["FLATNORM"] = normval, "[adu] Flat field normalization factor"
     header["CALTYPE"] = "FLAT", "DPP calibration file type"
+    bpmask = adaptive_sigma_clip_mask(master_flat)
     # get bad pixel mask using lacosmic
     # bpmask, _ = detect_cosmics(
     #     master_flat, invar=flat_err**2, inmask=np.isnan(master_flat), satlevel=satlevel,
     #     sigclip=10,
     #     gain=header["EFFGAIN"]
     # )
-    # # mask out bad pixels with nan- use np.isnan
-    # # to extract mask in future
-    # master_flat[bpmask] = np.nan
+    # mask out bad pixels with nan- use np.isnan
+    # to extract mask in future
+    master_flat[bpmask] = np.nan
+    flat_err[bpmask] = np.nan
     # save to disk
     hdul = fits.HDUList(
         [
@@ -455,3 +455,18 @@ def process_flat_files(
         frames = [job.get() for job in job_iter]
 
     return frames
+
+
+def adaptive_sigma_clip_mask(data, sigma=6, boxsize=8):
+    grid = np.arange(boxsize // 2, data.shape[0], step=boxsize)
+    output_mask = np.zeros_like(data, dtype=bool)
+    boxsize / 2
+    for yi in grid:
+        for xi in grid:
+            inds = cutout_inds(data, center=(yi, xi), window=boxsize)
+            cutout = data[inds]
+            med = np.nanmedian(cutout, keepdims=True)
+            std = np.nanstd(cutout, keepdims=True)
+            output_mask[inds] = np.abs(cutout - med) > sigma * std
+
+    return output_mask

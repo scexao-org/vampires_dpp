@@ -116,4 +116,8 @@ def cutout_inds(frame, window, center=None, **kwargs):
     Ny, Nx = frame.shape[-2:]
     lower = np.maximum(0, np.round(center - half_width), dtype=int, casting="unsafe")
     upper = np.minimum((Ny - 1, Nx - 1), np.round(center + half_width), dtype=int, casting="unsafe")
+    if np.any(upper - lower + 1 > window):
+        upper -= 1
+    elif np.any(upper - lower + 1 < window):
+        upper += 1
     return np.s_[..., lower[0] : upper[0] + 1, lower[1] : upper[1] + 1]

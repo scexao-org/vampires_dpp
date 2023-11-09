@@ -23,7 +23,7 @@ def offset_dft(frame, inds, psf, *, upsample_factor):
     return ctr
 
 
-def offset_centroids(frame, frame_err, inds):
+def offset_centroids(frame, frame_err, inds, psf=None, dft_factor=10):
     """NaN-friendly centroids"""
     # wy, wx = np.ogrid[inds[-2], inds[-1]]
     cutout = frame[inds]
@@ -46,4 +46,12 @@ def offset_centroids(frame, frame_err, inds):
         "com": np.array((com_xy[1] + offy, com_xy[0] + offx)),
         "gauss": np.array((gauss_xy[1] + offy, gauss_xy[0] + offx)),
     }
+    if psf is not None:
+        dft_off = phase_cross_correlation(
+            psf, cutout, return_error=False, upsample_factor=dft_factor
+        )
+        # need to update with center of frame
+        ctr_off = frame_center(cutout) - dft_off
+        ctrs["dft"] = np.array((ctr_off[0] + offy, ctr_off[1] + offx))
+
     return ctrs

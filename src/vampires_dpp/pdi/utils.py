@@ -149,8 +149,7 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
         else:
             stokes_data = hdul[0].data[0]
             hdr = hdul[0].header
-            stokes_err = hdul["ERR"].data[0]
-            hdr["FIELD"] = "COMB"
+            stokes_err = hdul[f"{hdr['FIELD']}ERR"].data
 
         data, data_err = stokes_products(stokes_data, stokes_err, phi=phi)
 
@@ -163,7 +162,7 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
         hdus.append((hdu, hdu_err))
 
     prim_data = [hdu[0].data for hdu in hdus]
-    prim_hdr = combine_frames_headers([hdu[0].header for hdu in hdus], wcs=True)
+    prim_hdr = apply_wcs(combine_frames_headers([hdu[0].header for hdu in hdus]), angle=0)
     prim_hdu = fits.PrimaryHDU(np.squeeze(np.array(prim_data)), header=prim_hdr)
     hdul_out = fits.HDUList(prim_hdu)
     # add data hdus
