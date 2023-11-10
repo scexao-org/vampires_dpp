@@ -5,8 +5,6 @@ from astropy.io import fits
 from .headers import get_instrument_from
 from .specphot import load_vampires_filter
 
-__all__ = ["generate_pupil"]
-
 ## constants
 PUPIL_DIAMETER = 7.92  # m
 OBSTRUCTION_DIAMETER = 2.403  # m
@@ -17,7 +15,7 @@ SPIDER_ANGLE = 51.75  # deg
 ACTUATOR_SPIDER_WIDTH = 0.089  # m
 ACTUATOR_SPIDER_OFFSET = (0.521, -1.045)
 ACTUATOR_DIAMETER = 0.632  # m
-ACTUATOR_OFFSET = ((1.765, 1.431), (-0.498, -2.331))  # (x, y), m  # (x, y), m
+ACTUATOR_OFFSET = ((1.765, 1.431), (-0.498, -2.331))  # (x, y), m
 
 # -------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------
