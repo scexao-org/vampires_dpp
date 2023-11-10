@@ -55,7 +55,7 @@ def create_synth_psf(header, filt, npix=30, output_directory=None, **kwargs):
         wf = hp.Wavefront(pupil_field, wave.to("m").value)
         focal_plane = prop(wf).intensity * through.value
         field_sum += focal_plane.shaped
-    normed_field = np.float32(field_sum / field_sum.sum())
+    normed_field = np.flip(field_sum / field_sum.sum(), axis=-2).astype("f4")
     if output_directory is not None:
         fits.writeto(outfile, normed_field, overwrite=True)
     return normed_field

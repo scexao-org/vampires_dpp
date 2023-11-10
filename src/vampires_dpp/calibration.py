@@ -186,20 +186,18 @@ def calibrate_file(
     # background subtraction
     if back_filename is not None:
         back_path = Path(back_filename)
-        header["BACKFILE"] = back_path.name, "File used for back subtraction"
+        header["BACKFILE"] = back_path.name
         with fits.open(back_path) as hdul:
             background = hdul[0].data.astype("f4")
             back_err = hdul["ERR"].data.astype("f4")
-        cube = cube - background
+        cube = cube - np.where(np.isnan(background), header["BIAS"], background)
         cube_err = np.sqrt(
-            np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2
-            + back_err**2
-            + cube_err**2
+            np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2
         )
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
-        header["FLATFILE"] = flat_path.name, "File used for flat-field correction"
+        header["FLATFILE"] = flat_path.name
         with fits.open(flat_path) as hdul:
             flat = hdul[0].data.astype("f4")
             flat_err = hdul["ERR"].data.astype("f4")
@@ -467,6 +465,7 @@ def adaptive_sigma_clip_mask(data, sigma=6, boxsize=8):
             cutout = data[inds]
             med = np.nanmedian(cutout, keepdims=True)
             std = np.nanstd(cutout, keepdims=True)
-            output_mask[inds] = np.abs(cutout - med) > sigma * std
+            print(med, std)
+            np.abs(cutout - med) > sigma * std
 
     return output_mask
