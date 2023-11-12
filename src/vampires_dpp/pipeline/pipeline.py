@@ -165,7 +165,8 @@ class Pipeline:
             self.save_adi_cubes(force=force)
         ## diff images
         if self.config.make_diff_images:
-            raise NotImplementedError("Making diff images needs reworking")
+            msg = "Making diff images needs reworking"
+            raise NotImplementedError(msg)
             # self.make_diff_images(force=force)
 
         logger.success("Finished processing files")
@@ -332,7 +333,8 @@ class Pipeline:
         self.num_proc = num_proc
 
         if not self.output_table_path.exists():
-            raise RuntimeError(f"Output table {self.output_table_path} cannot be found")
+            msg = f"Output table {self.output_table_path} cannot be found"
+            raise RuntimeError(msg)
 
         working_table = pd.read_csv(self.output_table_path, index_col=0)
 
@@ -380,7 +382,8 @@ class Pipeline:
             case "doublediff":
                 pol_func = partial(get_doublediff_set, table)
             case _:
-                raise ValueError(f"Invalid polarimetric difference method '{method}'")
+                msg = f"Invalid polarimetric difference method '{method}'"
+                raise ValueError(msg)
 
         with mp.Pool(self.num_proc) as pool:
             jobs = []
@@ -498,7 +501,8 @@ class Pipeline:
         logger.info(f"Saved collapsed Stokes cube to {stokes_coll_path}")
 
     def polarimetry_leastsq(self, table, force=False):
-        raise NotImplementedError("Need to rewrite this, sorry.")
+        msg = "Need to rewrite this, sorry."
+        raise NotImplementedError(msg)
         # self.stokes_collapsed_file = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
         # if (
         #     force

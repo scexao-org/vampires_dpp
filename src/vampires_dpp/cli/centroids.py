@@ -17,6 +17,8 @@ from vampires_dpp.util import load_fits
 
 from . import logger
 
+__all__ = "centroid"
+
 
 def get_psf_centroids_manual(cams: Sequence[int], npsfs: int) -> dict[str, NDArray]:
     centroids = {f"cam{cam:.01f}": np.empty((npsfs, 2), dtype="f4") for cam in cams}
@@ -33,9 +35,7 @@ def get_mbi_centroids_mpl(mean_image, coronagraphic=False, suptitle=None):
     pass
 
 
-def get_mbi_centroids_manual(
-    cams: Sequence[int], fields: Sequence[str], npsfs: Literal[1, 4]
-) -> NDArray:
+def get_mbi_centroids_manual(cams: Sequence[int], fields: Sequence[str], npsfs: int) -> NDArray:
     centroids = np.empty((len(fields), npsfs, 2), dtype="f4")
     for i, field in enumerate(fields):
         click.echo(f"Field: {field}")
@@ -116,13 +116,19 @@ def get_mbi_cutout_inds(
     return cutout_inds(data, window=500, center=(y, x))
 
 
-def create_raw_input_psfs(outpath, table, max_files=10) -> dict[str, Path]:
+def create_raw_input_psfs(output_directory, table, max_files=10) -> dict[str, Path]:
     # group by cameras
     outfiles = {}
     for cam_num, group in table.groupby("U_CAMERA"):
         paths = group["path"].sample(n=max_files)
         outpath.parent.mkdir(parents=True, exist_ok=True)
-        outfile = collapse_frames_files(paths, output=outpath, cubes=True, quiet=False)
+        outfile = collapse_frames_files(
+            paths,
+            output_directory=output_directory,
+            suffix=f"_raw_psf_cam{cam_num:.01f}",
+            cubes=True,
+            quiet=False,
+        )
         outfiles[f"cam{cam_num:.0f}"] = outfile
         logger.info(f"Saved raw PSF frame to {outpath.absolute()}")
     return outfiles
@@ -165,6 +171,8 @@ def create_raw_input_psfs(outpath, table, max_files=10) -> dict[str, Path]:
 def centroid(config: Path, filenames, num_proc, manual=False):
     # make sure versions match within SemVar
     pipeline_config = PipelineConfig.from_file(config)
+    # figure out outpath
+    outpath = "TODO"
     npsfs = 4 if pipeline_config.coronagraphic else 1
     table = header_table(filenames, num_proc=num_proc)
     obsmodes = table["OBS-MOD"].unique()
@@ -172,21 +180,21 @@ def centroid(config: Path, filenames, num_proc, manual=False):
         cams = table["U_CAMERA"].unique()
         if "MBIR" in obsmodes.iloc[0]:
             fields = ("F670", "F720", "F760")
-            get_mbi_centroids_manual(cams=cams, fields=fields, nspfs=npsfs)
+            get_mbi_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
         elif "MBI" in obsmodes.iloc[0]:
             fields = ("F610", "F670", "F720", "F760")
-            get_mbi_centroids_manual(cams=cams, fields=fields, nspfs=npsfs)
+            get_mbi_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
         else:
-            get_psf_centroids_manual(cams=cams, nspfs=npsfs)
+            get_psf_centroids_manual(cams=cams, npsfs=npsfs)
 
     else:
-        raw_psf_dict = create_raw_input_psfs(table)
+        raw_psf_dict = create_raw_input_psfs(table, output_directory=outpath)
 
         if "MBIR" in obsmodes.iloc[0]:
             fields = ("F670", "F720", "F760")
-            get_mbi_centroids_mpl(cams=raw_psf_dict, fields=fields, nspfs=npsfs)
+            get_mbi_centroids_mpl(cams=raw_psf_dict, fields=fields, npsfs=npsfs)
         elif "MBI" in obsmodes.iloc[0]:
             fields = ("F610", "F670", "F720", "F760")
-            get_mbi_centroids_mpl(cams=raw_psf_dict, fields=fields, nspfs=npsfs)
+            get_mbi_centroids_mpl(cams=raw_psf_dict, fields=fields, npsfs=npsfs)
         else:
-            get_psf_centroids_mpl(cams=raw_psf_dict, nspfs=npsfs)
+            get_psf_centroids_mpl(cams=raw_psf_dict, npsfs=npsfs)

@@ -36,7 +36,8 @@ VAMPIRES_FILTER_URL: Final[
 
 def load_vampires_filter(name: str) -> SpectralElement:
     if name not in VAMPIRES_FILTERS:
-        raise ValueError(f"VAMPIRES filter '{name}' not recognized")
+        msg = f"VAMPIRES filter '{name}' not recognized"
+        raise ValueError(msg)
     csv_path = download_file(VAMPIRES_FILTER_URL, cache=True)
     return SpectralElement.from_file(csv_path, wave_unit="nm", include_names=["wave", name])
 

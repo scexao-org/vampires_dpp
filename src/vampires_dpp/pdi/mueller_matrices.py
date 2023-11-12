@@ -414,7 +414,8 @@ def mueller_matrix_from_header(header, adi_sync=True, ideal=False):
     elif filt in CAL_DICT:
         filt_dict = CAL_DICT[filt]
     else:
-        raise RuntimeError(f"Could not find Mueller matrix coefficients for {filt} filter")
+        msg = f"Could not find Mueller matrix coefficients for {filt} filter"
+        raise RuntimeError(msg)
 
     pa_theta = np.deg2rad(header["PA"])
     alt = np.deg2rad(header["ALTITUDE"])

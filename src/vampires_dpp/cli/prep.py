@@ -8,6 +8,8 @@ import tqdm.auto as tqdm
 from vampires_dpp.calibration import normalize_file, process_background_files, process_flat_files
 from vampires_dpp.constants import DEFAULT_NPROC
 
+__all__ = ("prep", "back", "flat", "norm")
+
 ########## prep ##########
 
 

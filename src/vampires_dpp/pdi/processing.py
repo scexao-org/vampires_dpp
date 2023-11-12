@@ -43,9 +43,8 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
         (4, t, y, x) Stokes cube from all 16 frame sets.
     """
     if len(filenames) % 16 != 0:
-        raise ValueError(
-            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
-        )
+        msg = "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
+        raise ValueError(msg)
     # now do triple-differential calibration
     cube_dict = {}
     cube_errs = []
@@ -99,9 +98,8 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
 
 def polarization_calibration_doublediff(filenames: Sequence[str]):
     if len(filenames) % 8 != 0:
-        raise ValueError(
-            "Cannot do double-differential calibration without exact sets of 8 frames for each HWP cycle"
-        )
+        msg = "Cannot do double-differential calibration without exact sets of 8 frames for each HWP cycle"
+        raise ValueError(msg)
     # now do double-differential calibration
     cube_dict = {}
     cube_errs = []
@@ -354,7 +352,8 @@ def make_stokes_image(
             mm_dict = make_doublediff_dict(mm_paths)
             _, mmQs, mmUs = double_diff_dict(mm_dict)
     else:
-        raise ValueError(f"Unrecognized method {method}")
+        msg = f"Unrecognized method {method}"
+        raise ValueError(msg)
 
     output_data = []
     output_data_err = []

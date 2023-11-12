@@ -9,6 +9,8 @@ from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.deprecation import upgrade_config
 
+__all__ = ("sort_raw", "table", "upgrade")
+
 ########## sort ##########
 
 
@@ -126,7 +128,7 @@ def upgrade(config, output, edit):
     if output is None:
         click.confirm("Are you sure you want to modify your configuration in-place?", abort=True)
         output = config
-    with open(config, "rb") as fh:
+    with Path(config).open("rb") as fh:
         input_toml = tomli.load(fh)
     output_config = upgrade_config(input_toml)
     output_config.to_file(output)

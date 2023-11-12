@@ -497,7 +497,8 @@ class FileSet:
         N = len(self.paths)
         if N not in (1, 2, 4):
             if N > 4:
-                raise ValueError(f"Too many input files, should be 4 at max, got {N}")
+                msg = f"Too many input files, should be 4 at max, got {N}"
+                raise ValueError(msg)
             if N == 3:
                 missing = set((1, "A"), (1, "B"), (2, "A"), (2, "B")) - set(self.paths.keys())
                 print(

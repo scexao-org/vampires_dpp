@@ -418,13 +418,13 @@ class PipelineConfig(BaseModel):
         --------
         >>> Pipeline.from_file("config.toml")
         """
-        with open(filename, "rb") as fh:
+        with Path(filename).open("rb") as fh:
             config = tomli.load(fh)
         if not check_version(config["dpp_version"], dpp.__version__):
-            raise ValueError(
-                f"Input pipeline version ({config['dpp_version']}) is not compatible with installed \
-                    version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
-            )
+            msg = f"Input pipeline version ({config['dpp_version']}) is not compatible \
+                    with installed version of `vampires_dpp` ({dpp.__version__}). Try running \
+                    `dpp upgrade {config}`."
+            raise ValueError(msg)
         cls.model_validate(config)
 
     def to_toml(self):

@@ -68,8 +68,8 @@ source = ["vampires_dpp"]
 
 
 [tool.ruff.lint]
-# pycodestyle, pydocstyle, isort, pyupgrade, pylint, tidyimports
-select = ["E", "F", "B", "SIM", "I", "UP", "TID"]
+# pycodestyle, pydocstyle, isort, pyupgrade, pylint, tidyimports, use-pathlib, numpy, errmsg
+select = ["E", "F", "B", "SIM", "I", "UP", "TID", "PTH", "NPY", "EM"]
 
 [tool.ruff]
 line-length = 100
@@ -82,3 +82,6 @@ ban-relative-imports = "parents"
 
 [tool.ruff.lint.isort]
 split-on-trailing-comma = false
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"

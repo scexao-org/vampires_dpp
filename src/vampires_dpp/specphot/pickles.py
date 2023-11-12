@@ -20,11 +20,8 @@ def get_pickles_url(sptype: str) -> str:
         mask = np.where(tbl["SPTYPE"] == sptype)[0][0]
         return PICKLES_URL + f"{tbl[mask]['FILENAME']}.fits"
     else:
-        raise ValueError(
-            f"""No pickles model found for sptype: {sptype}
-        Please see the STScI pickles atlas documentation for info on available spectral types.
-        List of available spectral types:\n{', '.join(tbl['SPTYPE'])}"""
-        )
+        msg = f"No pickles model found for sptype: {sptype}\n        Please see the STScI pickles atlas documentation for info on available spectral types.\n        List of available spectral types:\n{', '.join(tbl['SPTYPE'])}"
+        raise ValueError(msg)
 
 
 def load_pickles_model(sptype: str) -> SourceSpectrum:

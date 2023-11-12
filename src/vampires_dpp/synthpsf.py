@@ -72,33 +72,6 @@ def generate_pupil(
     spiders: bool = True,
     actuators: bool = True,
 ):
-    rf"""
-    Generate a SCExAO pupil parametrically.
-
-    Parameters
-    ----------
-    n : int, optional
-        Grid size in pixels. Default is 256
-    outer : float, optional
-        Outer pupil diameter as a fraction of the true diameter. Default is 1.0
-    inner : float, optional
-        Diameter of central obstruction as a fraction of the true diameter. Default is {INNER_RATIO:.03f}
-    scale : float, optional
-        Scale factor for over-sizing spiders and actuator masks. Default is 1.0
-    angle : float, optional
-        Pupil rotation angle, in degrees. Default is 0
-    oversample : int, optional
-        Oversample factor for supersampling the pupil grid. Default is 8
-    spiders : bool, optional
-        Add spiders to pupil. Default is True
-    actuators : bool, optional
-        Add bad actuator masks and spider. Default is True
-
-    Notes
-    -----
-    The smallest element in the SCExAO pupil is the bad actuator spider, which is approximately {ACTUATOR_SPIDER_WIDTH*1e3:.1f} mm wide. This is about 0.7\% of the telescope diameter, which means you need to have a miinimum of ~142 pixels across the aperture to sample this element.
-
-    """
     pupil_diameter = PUPIL_DIAMETER * outer
     # make grid over full diameter so undersized pupils look undersized
     max_diam = PUPIL_DIAMETER if outer <= 1 else pupil_diameter
@@ -185,3 +158,32 @@ def generate_pupil(
 
     pupil = hp.evaluate_supersampled(rotated_pupil_field, grid, oversample)
     return pupil.shaped
+
+
+generate_pupil.__doc__ = rf"""
+Generate a SCExAO pupil parametrically.
+
+Parameters
+----------
+n : int, optional
+    Grid size in pixels. Default is 256
+outer : float, optional
+    Outer pupil diameter as a fraction of the true diameter. Default is 1.0
+inner : float, optional
+    Diameter of central obstruction as a fraction of the true diameter. Default is {INNER_RATIO:.03f}
+scale : float, optional
+    Scale factor for over-sizing spiders and actuator masks. Default is 1.0
+angle : float, optional
+    Pupil rotation angle, in degrees. Default is 0
+oversample : int, optional
+    Oversample factor for supersampling the pupil grid. Default is 8
+spiders : bool, optional
+    Add spiders to pupil. Default is True
+actuators : bool, optional
+    Add bad actuator masks and spider. Default is True
+
+Notes
+-----
+The smallest element in the SCExAO pupil is the bad actuator spider, which is approximately {ACTUATOR_SPIDER_WIDTH*1e3:.1f} mm wide. This is about 0.7\% of the telescope diameter, which means you need to have a miinimum of ~142 pixels across the aperture to sample this element.
+
+"""

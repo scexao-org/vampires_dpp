@@ -1,6 +1,4 @@
 import contextlib
-import glob
-import os
 import re
 import readline
 from pathlib import Path
@@ -24,22 +22,25 @@ from vampires_dpp.specphot.filters import FILTERS
 from vampires_dpp.specphot.query import get_simbad_table, get_ucac_flux, get_ucac_table
 from vampires_dpp.wcs import get_gaia_astrometry
 
+__all__ = "new_config"
+
 ########## new ##########
 
 
-def pathCompleter(text, state):
+def pathCompleter(text: str, state: int) -> str:
     """This is the tab completer for systems paths.
     Only tested on *nix systems
     """
     # replace ~ with the user's home dir. See https://docs.python.org/2/library/os.path.html
-    if "~" in text:
-        text = os.path.expanduser(text)
+    path = Path(text).expanduser()
 
     # autocomplete directories with having a trailing slash
-    if os.path.isdir(text):
+    if path.is_dir():
         text += "/"
 
-    return [x for x in glob.glob(text + "*")][state]
+    matches = path.glob(text + "*")
+    result = list(matches)[state]
+    return str(result)
 
 
 def createListCompleter(items):
