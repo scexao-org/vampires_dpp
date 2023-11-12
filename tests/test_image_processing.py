@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from vampires_dpp.image_processing import derotate_frame, frame_center, shift_frame
 
 

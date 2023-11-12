@@ -1,7 +1,7 @@
 import itertools
 import warnings
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
 import tqdm.auto as tqdm
@@ -27,8 +27,7 @@ from .utils import (
 
 
 def polarization_calibration_triplediff(filenames: Sequence[str]):
-    """
-    Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
+    """Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
     .. admonition:: Pupil-tracking mode
         :class: tip
@@ -54,7 +53,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     """
     if len(filenames) % 16 != 0:
         raise ValueError(
-            f"Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
+            "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
         )
     # now do triple-differential calibration
     cube_dict = {}
@@ -110,7 +109,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
 def polarization_calibration_doublediff(filenames: Sequence[str]):
     if len(filenames) % 8 != 0:
         raise ValueError(
-            f"Cannot do double-differential calibration without exact sets of 8 frames for each HWP cycle"
+            "Cannot do double-differential calibration without exact sets of 8 frames for each HWP cycle"
         )
     # now do double-differential calibration
     cube_dict = {}
@@ -274,7 +273,9 @@ def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=Fal
     headers = []
     mueller_mats = []
     for file, mm_file in tqdm.tqdm(
-        zip(filenames, mm_filenames), total=len(filenames), desc="Least-squares calibration"
+        zip(filenames, mm_filenames),
+        total=len(filenames),
+        desc="Least-squares calibration",
     ):
         cube, hdr = load_fits(file, header=True, memmap=False)
         # rotate to N up E left

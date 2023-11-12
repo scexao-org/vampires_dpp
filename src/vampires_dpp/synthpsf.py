@@ -1,9 +1,10 @@
 import hcipy as hp
 import numpy as np
 from astropy.io import fits
+from loguru import logger
 
 from .headers import get_instrument_from
-from .specphot import load_vampires_filter
+from .specphot.filters import load_vampires_filter
 
 ## constants
 PUPIL_DIAMETER = 7.92  # m
@@ -25,18 +26,20 @@ def field_combine(field1, field2):
     return lambda grid: field1(grid) * field2(grid)
 
 
-def create_synth_psf(header, filt, npix=30, output_directory=None, **kwargs):
+def create_synth_psf(header, filt, npix=30, output_directory=None, nwave=7, **kwargs):
     if output_directory is not None:
         outfile = output_directory / f"VAMPIRES_{filt}_synthpsf.fits"
         if outfile.exists():
             psf = fits.getdata(outfile)
             if psf.shape == (npix, npix):
                 return psf
+    logger.info(f"Making synthetic PSF for {filt}")
     # assume header is fixed already
     inst = get_instrument_from(header)
     pupil_data = generate_pupil(angle=-inst.pupil_offset)
     pupil_grid = hp.make_pupil_grid(pupil_data.shape, diameter=PUPIL_DIAMETER)
     pupil_field = hp.Field(pupil_data.ravel(), pupil_grid)
+    # create detector grid
     plate_scale = np.deg2rad(inst.pixel_scale / 1e3 / 60 / 60)  # mas/px -> rad/px
     focal_grid = hp.make_uniform_grid((npix, npix), (plate_scale * npix, plate_scale * npix))
     prop = hp.FraunhoferPropagator(pupil_grid, focal_grid)
@@ -45,7 +48,7 @@ def create_synth_psf(header, filt, npix=30, output_directory=None, **kwargs):
     waves = obs_filt.waveset
     through = obs_filt.model.lookup_table
     above_50 = np.nonzero(through >= 0.5 * np.nanmax(through))
-    waves = np.linspace(waves[above_50].min(), waves[above_50].max(), 11)
+    waves = np.linspace(waves[above_50].min(), waves[above_50].max(), nwave)
     through = obs_filt(waves)
 
     field_sum = 0
@@ -55,6 +58,7 @@ def create_synth_psf(header, filt, npix=30, output_directory=None, **kwargs):
         field_sum += focal_plane.shaped
     normed_field = np.flip(field_sum / field_sum.sum(), axis=-2).astype("f4")
     if output_directory is not None:
+        logger.info(f"Saving synthetic PSF to {outfile}")
         fits.writeto(outfile, normed_field, overwrite=True)
     return normed_field
 
@@ -69,7 +73,7 @@ def generate_pupil(
     spiders: bool = True,
     actuators: bool = True,
 ):
-    f"""
+    rf"""
     Generate a SCExAO pupil parametrically.
 
     Parameters

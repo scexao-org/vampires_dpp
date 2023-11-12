@@ -37,15 +37,11 @@ repository = "https://github.com/scexao-org/vampires_dpp"
 documentation = "https://scexao-org.github.io/vampires_dpp/"
 
 [project.optional-dependencies]
-dev = [
-    "ruff"
-]
+dev = ["ruff"]
 test = [
     "pytest",
     "pytest-cov",
-    "pytest-randomly",
-    "black",
-    "pytest-black",
+    "pytest-randomly"
 ]
 docs = [
     "proplot",
@@ -74,11 +70,5 @@ source = ["vampires_dpp"]
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "W", "D", "I", "UP", "PL"] # pycodestyle, pydocstyle, isort, pyupgrade, pylint
-
-[tool.black]
-line-length = 100
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+# pycodestyle, pydocstyle, isort, pyupgrade, pylint
+select = ["E", "W", "D", "I", "UP", "PL"]

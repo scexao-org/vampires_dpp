@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 import tomli
-
 from vampires_dpp.pipeline.config import (
     CalibrateOptions,
     CamFileInput,
@@ -107,7 +106,11 @@ class TestFrameSelectOptions:
     @pytest.mark.parametrize("metric", ["peak", "l2norm", "normvar"])
     def test_creation(self, metric, tmp_path):
         conf = FrameSelectOptions(
-            cutoff=0.2, metric=metric, window_size=20, force=True, output_directory=tmp_path
+            cutoff=0.2,
+            metric=metric,
+            window_size=20,
+            force=True,
+            output_directory=tmp_path,
         )
         assert conf.cutoff == 0.2
         assert conf.metric == metric

@@ -2,7 +2,6 @@ import os
 from datetime import date
 
 from pkg_resources import DistributionNotFound, get_distribution
-
 from vampires_dpp.pipeline.templates import (
     VAMPIRES_PDI,
     VAMPIRES_SDI,

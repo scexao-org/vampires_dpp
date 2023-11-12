@@ -7,18 +7,16 @@ from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.analysis import safe_annulus_sum, safe_aperture_sum
-from vampires_dpp.indexing import cutout_inds, frame_angles
+from vampires_dpp.indexing import frame_angles
 from vampires_dpp.wcs import apply_wcs
 
 from ..image_processing import combine_frames_headers
-from .mueller_matrices import mueller_matrix_from_header
 
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
 
 def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):
-    """
-    Use aperture photometry to estimate the instrument polarization.
+    """Use aperture photometry to estimate the instrument polarization.
 
     Parameters
     ----------
@@ -47,8 +45,7 @@ def measure_instpol_ann(I: NDArray, X: NDArray, Rin, Rout, expected=0):
 
 
 def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
-    """
-    Apply instrument polarization correction to stokes cube.
+    """Apply instrument polarization correction to stokes cube.
 
     Parameters
     ----------
@@ -74,8 +71,7 @@ def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
 
 
 def radial_stokes(stokes_cube: ArrayLike, stokes_err: Optional[ArrayLike] = None, phi: float = 0):
-    r"""
-    Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)
+    r"""Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)
 
     .. math::
         Q_\phi = -Q\cos(2\theta) - U\sin(2\theta) \\
@@ -202,6 +198,14 @@ def stokes_products(stokes_frame, stokes_err, phi=0):
 
     data = np.asarray((stokes_frame[0], stokes_frame[1], stokes_frame[2], Qphi, Uphi, pi, aolp))
     data_err = np.asarray(
-        (stokes_err[0], stokes_err[1], stokes_err[2], Qphi_err, Uphi_err, pi_err, aolp_err)
+        (
+            stokes_err[0],
+            stokes_err[1],
+            stokes_err[2],
+            Qphi_err,
+            Uphi_err,
+            pi_err,
+            aolp_err,
+        )
     )
     return data, data_err

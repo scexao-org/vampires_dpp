@@ -18,8 +18,7 @@ __all__ = (
 
 
 def hwp(theta=0) -> NDArray:
-    """
-    Return the Mueller matrix for an ideal half-wave plate (HWP) with fast-axis oriented to the given angle, in radians.
+    """Return the Mueller matrix for an ideal half-wave plate (HWP) with fast-axis oriented to the given angle, in radians.
 
     Parameters
     ----------
@@ -61,8 +60,7 @@ def hwp(theta=0) -> NDArray:
 
 
 def qwp(theta=0) -> NDArray:
-    """
-    Return the Mueller matrix for an ideal quarter-wave plate (QWP) with fast-axis oriented to the given angle, in radians.
+    """Return the Mueller matrix for an ideal quarter-wave plate (QWP) with fast-axis oriented to the given angle, in radians.
 
     Parameters
     ----------
@@ -102,8 +100,7 @@ def qwp(theta=0) -> NDArray:
 
 
 def waveplate(theta=0, delta=0) -> NDArray:
-    """
-    Return the Mueller matrix for a waveplate with arbitrary phase retardance.
+    """Return the Mueller matrix for a waveplate with arbitrary phase retardance.
 
     Parameters
     ----------
@@ -148,8 +145,7 @@ def waveplate(theta=0, delta=0) -> NDArray:
 
 
 def generic(theta=0, epsilon=0, delta=0) -> NDArray:
-    """
-    Return a generic optic with diattenuation ``epsilon`` and phase retardance ``delta`` oriented at angle ``theta``.
+    """Return a generic optic with diattenuation ``epsilon`` and phase retardance ``delta`` oriented at angle ``theta``.
 
     Parameters
     ----------
@@ -207,8 +203,7 @@ def generic(theta=0, epsilon=0, delta=0) -> NDArray:
 
 
 def rotator(theta=0) -> NDArray:
-    """
-    Return the Mueller matrix for rotation clockwise about the optical axis.
+    """Return the Mueller matrix for rotation clockwise about the optical axis.
 
     Parameters
     ----------
@@ -241,8 +236,7 @@ def rotator(theta=0) -> NDArray:
 
 
 def linear_polarizer(theta=0) -> NDArray:
-    """
-    Return the Mueller matrix for an ideal linear polarizer oriented at the given angle.
+    """Return the Mueller matrix for an ideal linear polarizer oriented at the given angle.
 
     Parameters
     ----------
@@ -282,8 +276,7 @@ def linear_polarizer(theta=0) -> NDArray:
 
 
 def mirror() -> NDArray:
-    """
-    Return the Mueller matrix for an ideal mirror.
+    """Return the Mueller matrix for an ideal mirror.
 
     Returns
     -------
@@ -302,8 +295,7 @@ def mirror() -> NDArray:
 
 
 def wollaston(ordinary: bool = True, eta=1) -> NDArray:
-    """
-    Return the Mueller matrix for a Wollaston prism or polarizing beamsplitter.
+    """Return the Mueller matrix for a Wollaston prism or polarizing beamsplitter.
 
     Parameters
     ----------
@@ -465,7 +457,9 @@ def mueller_matrix_from_header(header, adi_sync=True, ideal=False):
             wollaston(beam),
             waveplate(flc_theta, filt_dict["flc_delta"]),
             generic(
-                filt_dict["optics_theta"], filt_dict["optics_diatt"], filt_dict["optics_delta"]
+                filt_dict["optics_theta"],
+                filt_dict["optics_diatt"],
+                filt_dict["optics_delta"],
             ),
             waveplate(imr_theta, filt_dict["imr_delta"]),
             waveplate(hwp_theta, filt_dict["hwp_delta"]),

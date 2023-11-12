@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from skimage.measure import centroid
-
 from vampires_dpp.image_registration import offset_centroids
 
 

@@ -1,5 +1,4 @@
 import numpy as np
-
 from vampires_dpp.indexing import cutout_slice, frame_center, window_centers
 
 

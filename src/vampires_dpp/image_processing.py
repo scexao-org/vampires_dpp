@@ -1,7 +1,8 @@
 import re
 import warnings
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Tuple
 
 import astropy.units as u
 import cv2
@@ -20,9 +21,8 @@ from vampires_dpp.util import delta_angle, load_fits
 from .paths import any_file_newer, get_paths
 
 
-def shift_frame(data: ArrayLike, shift: list | Tuple, **kwargs) -> NDArray:
-    """
-    Shifts a single frame by the given offset
+def shift_frame(data: ArrayLike, shift: list | tuple, **kwargs) -> NDArray:
+    """Shifts a single frame by the given offset
 
     Parameters
     ----------
@@ -43,10 +43,9 @@ def shift_frame(data: ArrayLike, shift: list | Tuple, **kwargs) -> NDArray:
 
 
 def derotate_frame(
-    data: ArrayLike, angle: float, center: Optional[list | Tuple] = None, **kwargs
+    data: ArrayLike, angle: float, center: Optional[list | tuple] = None, **kwargs
 ) -> NDArray:
-    """
-    Derotates a single frame by the given angle.
+    """Derotates a single frame by the given angle.
 
     Parameters
     ----------
@@ -71,8 +70,7 @@ def derotate_frame(
 
 
 def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
-    """
-    Geometric frame warping. By default will use bicubic interpolation with `NaN` padding.
+    """Geometric frame warping. By default will use bicubic interpolation with `NaN` padding.
 
     Parameters
     ----------
@@ -99,8 +97,7 @@ def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
 
 
 def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArray:
-    """
-    Derotates a cube frame-by-frame with the corresponding derotation angle vector.
+    """Derotates a cube frame-by-frame with the corresponding derotation angle vector.
 
     Parameters
     ----------
@@ -127,8 +124,7 @@ def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArr
 
 
 def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs) -> NDArray:
-    """
-    Translate each frame in a cube.
+    """Translate each frame in a cube.
 
     Parameters
     ----------
@@ -149,8 +145,7 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs) -> NDArray:
 
 
 def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
-    """
-    Do a variance-weighted simultaneous derotation and collapse of ADI data based on the algorithm presented in `Bottom 2017 <https://ui.adsabs.harvard.edu/abs/2017RNAAS...1...30B>`_.
+    """Do a variance-weighted simultaneous derotation and collapse of ADI data based on the algorithm presented in `Bottom 2017 <https://ui.adsabs.harvard.edu/abs/2017RNAAS...1...30B>`_.
 
     Parameters
     ----------
@@ -185,10 +180,12 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
 
 
 def collapse_cube(
-    cube: NDArray, method: str = "median", header: Optional[fits.Header] = None, **kwargs
-) -> Tuple[NDArray, Optional[fits.Header]]:
-    """
-    Collapse a cube along its time axis
+    cube: NDArray,
+    method: str = "median",
+    header: Optional[fits.Header] = None,
+    **kwargs,
+) -> tuple[NDArray, Optional[fits.Header]]:
+    """Collapse a cube along its time axis
 
     Parameters
     ----------
@@ -322,7 +319,10 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     ## everything below here has special rules for combinations
     # sum exposure times
     if "TINT" in table:
-        output_header["TINT"] = table["TINT"].sum(), "[s] total integrated exposure time"
+        output_header["TINT"] = (
+            table["TINT"].sum(),
+            "[s] total integrated exposure time",
+        )
 
     # get PA rotation
     if "PA" in table.keys():
@@ -420,8 +420,7 @@ def correct_distortion(
     center=None,
     **kwargs,
 ):
-    """
-    Rotate and scale a single frame to match with a pinhole grid
+    """Rotate and scale a single frame to match with a pinhole grid
 
     Parameters
     ----------
@@ -464,8 +463,7 @@ def correct_distortion_cube(
     center=None,
     **kwargs,
 ):
-    """
-    Rotate and scale a all frames in a cube to match with a pinhole grid
+    """Rotate and scale a all frames in a cube to match with a pinhole grid
 
     Parameters
     ----------
@@ -613,11 +611,18 @@ def radial_profile_image(frame, fwhm=3):
 
 
 def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
-    new_shape = (cube.shape[0], cube.shape[1] + 2 * pad_width, cube.shape[2] + 2 * pad_width)
+    new_shape = (
+        cube.shape[0],
+        cube.shape[1] + 2 * pad_width,
+        cube.shape[2] + 2 * pad_width,
+    )
     output = np.empty_like(cube, shape=new_shape)
 
     for idx in range(cube.shape[0]):
         output[idx] = np.pad(cube[idx], pad_width, constant_values=np.nan)
-    if header is not None:
-        pass  # TODO
     return output, header
+
+
+def generate_footprint(cube):
+    mask = np.isfinite(cube).astype(int)
+    return np.mean(mask, axis=0)

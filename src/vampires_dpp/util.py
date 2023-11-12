@@ -8,8 +8,7 @@ from scipy.stats import circmean
 
 
 def wrap_angle(angle: float) -> float:
-    """
-    Wraps an angle into the range [-180, 180]
+    """Wraps an angle into the range [-180, 180]
 
     Parameters
     ----------
@@ -29,8 +28,7 @@ def wrap_angle(angle: float) -> float:
 
 
 def average_angle(angles: ArrayLike):
-    """
-    Return the circular mean of the given angles in degrees.
+    """Return the circular mean of the given angles in degrees.
 
     Parameters
     ----------
@@ -48,17 +46,14 @@ def average_angle(angles: ArrayLike):
 
 
 def delta_angle(alpha: float, beta: float) -> float:
-    """
-    Given two angles, determine the total rotation between them
-    """
+    """Given two angles, determine the total rotation between them"""
     alpha_mod = np.mod(alpha, 360)
     beta_mod = np.mod(beta, 360)
     return beta_mod - alpha_mod
 
 
 def check_version(config: str, dpp: str) -> bool:
-    """
-    Checks compatibility between versions following semantic versioning.
+    """Checks compatibility between versions following semantic versioning.
 
     Parameters
     ----------

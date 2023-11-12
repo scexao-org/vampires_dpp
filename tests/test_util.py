@@ -2,7 +2,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from vampires_dpp.util import average_angle, check_version, get_paths
 
 
@@ -42,8 +41,16 @@ def test_check_version(cver, vpver, exp):
     [
         ("test.fits", dict(outname="test_out.fits"), "test_out.fits"),
         ("test.fits", dict(output_directory="test"), "test/test.fits"),
-        ("test.fits", dict(output_directory="test", outname="test_out.fits"), "test/test_out.fits"),
-        ("test.fits", dict(output_directory="test", suffix="calib"), "test/test_calib.fits"),
+        (
+            "test.fits",
+            dict(output_directory="test", outname="test_out.fits"),
+            "test/test_out.fits",
+        ),
+        (
+            "test.fits",
+            dict(output_directory="test", suffix="calib"),
+            "test/test_calib.fits",
+        ),
         ("test.fits", dict(suffix="calib"), "test_calib.fits"),
         ("test.fits", dict(suffix="coef", filetype=".csv"), "test_coef.csv"),
         ("test.fits.fz", dict(outname="test_out.fits"), "test_out.fits"),
@@ -53,7 +60,11 @@ def test_check_version(cver, vpver, exp):
             dict(output_directory="test", outname="test_out.fits"),
             "test/test_out.fits",
         ),
-        ("test.fits.fz", dict(output_directory="test", suffix="calib"), "test/test_calib.fits"),
+        (
+            "test.fits.fz",
+            dict(output_directory="test", suffix="calib"),
+            "test/test_calib.fits",
+        ),
         ("test.fits.fz", dict(suffix="calib"), "test_calib.fits"),
         ("test.fits.fz", dict(suffix="coef", filetype=".csv"), "test_coef.csv"),
         ("test.fits.gz", dict(outname="test_out.fits"), "test_out.fits"),
@@ -63,7 +74,11 @@ def test_check_version(cver, vpver, exp):
             dict(output_directory="test", outname="test_out.fits"),
             "test/test_out.fits",
         ),
-        ("test.fits.gz", dict(output_directory="test", suffix="calib"), "test/test_calib.fits"),
+        (
+            "test.fits.gz",
+            dict(output_directory="test", suffix="calib"),
+            "test/test_calib.fits",
+        ),
         ("test.fits.gz", dict(suffix="calib"), "test_calib.fits"),
         ("test.fits.gz", dict(suffix="coef", filetype=".csv"), "test_coef.csv"),
     ],

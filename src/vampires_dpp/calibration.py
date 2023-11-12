@@ -4,23 +4,19 @@ import functools
 import itertools
 import multiprocessing as mp
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Optional
 
 import astropy.units as u
-import cv2
 import numpy as np
 import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
-from astropy.stats import biweight_location
 from astropy.time import Time
 from loguru import logger
-from scipy import stats
 from tqdm.auto import tqdm
 
-from .constants import CMOSVAMPIRES, EMCCDVAMPIRES
-from .headers import get_instrument_from
 from .indexing import cutout_inds
 from .organization import header_table
 
@@ -28,25 +24,21 @@ from .organization import header_table
 # forces CPU affinity to drop to 0
 try:
     _CORES = os.sched_getaffinity(0)
-    from astroscrappy import detect_cosmics
 
     os.sched_setaffinity(0, _CORES)
 except AttributeError:
     # not on a UNIX system
-    from astroscrappy import detect_cosmics
+    pass
 
 from vampires_dpp.constants import DEFAULT_NPROC, SUBARU_LOC
 from vampires_dpp.headers import fix_header, parallactic_angle
 from vampires_dpp.image_processing import (
     collapse_cube,
-    collapse_frames_files,
     correct_distortion_cube,
 )
 from vampires_dpp.util import (
-    append_or_create,
     load_fits,
     load_fits_header,
-    load_fits_key,
     wrap_angle,
 )
 from vampires_dpp.wcs import apply_wcs, get_coord_header
@@ -408,7 +400,11 @@ def process_background_files(
         jobs = []
         for path in map(Path, filenames):
             func = functools.partial(
-                make_background_file, path, output_directory=outdir, method=collapse, force=force
+                make_background_file,
+                path,
+                output_directory=outdir,
+                method=collapse,
+                force=force,
             )
             jobs.append(pool.apply_async(func))
         job_iter = jobs if quiet else tqdm(jobs, desc="Collapsing background frames")

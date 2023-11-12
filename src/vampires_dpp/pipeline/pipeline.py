@@ -20,7 +20,6 @@ from vampires_dpp.image_processing import (
     collapse_frames_files,
     combine_frames_files,
     combine_frames_headers,
-    make_diff_image,
 )
 from vampires_dpp.organization import header_table
 from vampires_dpp.pdi.mueller_matrices import mueller_matrix_from_file
@@ -28,13 +27,12 @@ from vampires_dpp.pdi.processing import (
     get_doublediff_set,
     get_triplediff_set,
     make_stokes_image,
-    polarization_calibration_leastsq,
 )
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
 
 from ..lucky_imaging import lucky_image_file
-from ..paths import Paths, any_file_newer, get_paths, make_dirs
+from ..paths import Paths, get_paths, make_dirs
 from ..synthpsf import create_synth_psf
 from ..util import load_fits
 from ..wcs import apply_wcs
@@ -88,7 +86,11 @@ class Pipeline:
                 field_keys = ("PSF",)
                 nfields = 1
             ctrs = get_psf_centroids_mpl(
-                np.squeeze(im), npsfs=npsfs, nfields=nfields, suptitle=key, outpath=outpath
+                np.squeeze(im),
+                npsfs=npsfs,
+                nfields=nfields,
+                suptitle=key,
+                outpath=outpath,
             )
             ctrs_as_dict = dict(zip(field_keys, ctrs.tolist()))
             with path.open("wb") as fh:
@@ -117,19 +119,28 @@ class Pipeline:
         input_paths = table["path"].apply(Path)
         # figure out which metrics need to be calculated, which is necessary to collapse files
         func = lambda p: get_paths(
-            p, suffix="metrics", filetype=".npz", output_directory=self.paths.metrics_dir
+            p,
+            suffix="metrics",
+            filetype=".npz",
+            output_directory=self.paths.metrics_dir,
         )[1]
         table["metric_file"] = input_paths.apply(func)
 
         if self.config.collapse is not None:
             func = lambda p: get_paths(
-                p, suffix="coll", filetype=".fits", output_directory=self.paths.collapsed_dir
+                p,
+                suffix="coll",
+                filetype=".fits",
+                output_directory=self.paths.collapsed_dir,
             )[1]
             table["collapse_file"] = input_paths.apply(func)
 
         if self.config.calibrate.save_intermediate:
             func = lambda p: get_paths(
-                p, suffix="calib", filetype=".fits", output_directory=self.paths.calibrated_dir
+                p,
+                suffix="calib",
+                filetype=".fits",
+                output_directory=self.paths.calibrated_dir,
             )[1]
             table["calib_file"] = input_paths.apply(func)
 
@@ -268,7 +279,10 @@ class Pipeline:
         psfs = []
         for filt in filts:
             psf = create_synth_psf(
-                fileinfo, filt, npix=config.window_size, output_directory=self.paths.preproc_dir
+                fileinfo,
+                filt,
+                npix=config.window_size,
+                output_directory=self.paths.preproc_dir,
             )
             psfs.append(psf)
 
@@ -486,6 +500,13 @@ class Pipeline:
         coll_hdrs = [
             apply_wcs(combine_frames_headers(stokes_hdrs[i]), 0) for i in range(nfields + 1)
         ]
+        # correct TINT to account for actual number of files used
+        unique_files = []
+        for paths in full_path_set:
+            unique_files.extend(paths)
+        tint = np.sum([fits.getval(path, "TINT") for path in np.unique(unique_files)])
+        for hdr in coll_hdrs:
+            hdr["TINT"] = tint
         coll_errs = []
         prim_hdu = fits.PrimaryHDU(coll_frame, header=coll_hdrs[0])
         hdul = fits.HDUList(prim_hdu)
@@ -497,7 +518,8 @@ class Pipeline:
         for i in range(nfields):
             err_list = stokes_err[i]
             hdr = coll_hdrs[i + 1]
-            coll_err = np.sqrt(collapse_frames(np.power(err_list, 2))[0])
+            coll_var, _ = collapse_frames(np.power(err_list, 2))
+            coll_err = np.sqrt(coll_var / len(err_list))
             coll_errs.append(coll_err)
             hdu_err = fits.ImageHDU(coll_err, header=hdr, name=f"{hdr['FIELD']}ERR")
             hdul.append(hdu_err)

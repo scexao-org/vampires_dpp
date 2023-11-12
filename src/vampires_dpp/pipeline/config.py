@@ -1,25 +1,27 @@
+from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
-from typing import Annotated, Literal, Optional, Sequence
+from typing import Annotated, Literal, Optional
 
 import astropy.units as u
 import tomli
 import tomli_w
 from annotated_types import Interval
 from astropy.coordinates import Angle, SkyCoord
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 import vampires_dpp as dpp
+from vampires_dpp.util import check_version
 
 
 ## Some base classes for repeated functionality
 class CamFileInput(BaseModel):
-    cam1: Optional[Path] = None
-    cam2: Optional[Path] = None
+    cam1: Path | None = None
+    cam2: Path | None = None
 
 
 class ObjectConfig(BaseModel):
-    """Astronomical coordinate options
+    """Astronomical coordinate options.
 
     .. admonition:: Tip: GAIA
         :class: Tip
@@ -71,14 +73,14 @@ class ObjectConfig(BaseModel):
             dec=self.dec_ang,
             pm_ra_cosdec=self.pm_ra * u.mas / u.year,
             pm_dec=self.pm_dec * u.mas / u.year,
-            distance=1e3 / self.parallax * u.pc,
+            distance=1e3 * u.pc / self.parallax,
             frame=self.frame,
             obstime=self.obstime,
         )
 
 
 class SpecphotConfig(BaseModel):
-    source: Literal["pickles", "zeropoint"] | Path = "pickles"
+    source: Literal["pickles"] | Path = "pickles"
     sptype: Optional[str] = None
     mag: Optional[float] = None
     mag_band: Optional[Literal["U", "B", "V", "r", "i", "J", "H", "K"]] = "V"
@@ -86,7 +88,7 @@ class SpecphotConfig(BaseModel):
 
 
 class CalibrateConfig(BaseModel):
-    """Config for general image calibration
+    """Config for general image calibration.
 
     The calibration strategy is generally
 
@@ -158,8 +160,7 @@ class CalibrateConfig(BaseModel):
 
 
 class CollapseConfig(BaseModel):
-    """
-    Cube collapse options
+    """Cube collapse options
 
     * median - Pixel-by-pixel median
     * mean - Pixel-by-pixel mean
@@ -399,8 +400,7 @@ class PipelineConfig(BaseModel):
 
     @classmethod
     def from_file(cls, filename: PathLike):
-        """
-        Load configuration from TOML file
+        """Load configuration from TOML file
 
         Parameters
         ----------
@@ -418,8 +418,11 @@ class PipelineConfig(BaseModel):
         """
         with open(filename, "rb") as fh:
             config = tomli.load(fh)
-        cls.model_rebuild()
-        return cls.model_validate(config)
+        if not check_version(config["dpp_version"], dpp.__version__):
+            raise ValueError(
+                f"Input pipeline version ({config['dpp_version']}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
+            )
+        pipeline_config = cls.model_validate(config)
 
     def to_toml(self):
         # get serializable output using pydantic
@@ -427,8 +430,7 @@ class PipelineConfig(BaseModel):
         return tomli_w.dumps(model_dict)
 
     def save(self, filename: Path):
-        """
-        Save configuration settings to TOML file
+        """Save configuration settings to TOML file
 
         Parameters
         ----------

@@ -38,23 +38,13 @@ from vampires_dpp.pipeline.templates import (
     VAMPIRES_SDI,
     VAMPIRES_SINGLECAM,
 )
-from vampires_dpp.specphot import FILTERS, PICKLES_MAP, get_simbad_table, get_ucac_flux
+from vampires_dpp.specphot.filters import FILTERS
+from vampires_dpp.specphot.query import get_simbad_table, get_ucac_flux, get_ucac_table
 from vampires_dpp.util import check_version, load_fits_key
 from vampires_dpp.wcs import get_gaia_astrometry
 
 logger.remove(0)
 logger.add(sys.stderr, level="INFO")
-
-
-# callback that will confirm if a flag is false
-def abort_if_false(ctx, param, value):
-    if not value:
-        ctx.abort()
-
-
-def abort_if_true(ctx, param, value):
-    if value:
-        ctx.abort()
 
 
 ########## main ##########
@@ -64,59 +54,6 @@ def abort_if_true(ctx, param, value):
 @click.version_option(dpp.__version__, "--version", "-v", prog_name="vampires_dpp")
 def main():
     pass
-
-
-########## sort ##########
-
-
-@main.command(
-    name="sort",
-    short_help="Sort raw data",
-    help="Sorts raw data based on the data type. This will either use the `DATA-TYP` header value or the `U_OGFNAM` header, depending on when your data was taken.",
-)
-@click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
-@click.option(
-    "--outdir",
-    "-o",
-    type=click.Path(file_okay=False, writable=True, path_type=Path),
-    default=Path.cwd(),
-    help="Output directory.",
-)
-@click.option(
-    "--num-proc",
-    "-j",
-    default=DEFAULT_NPROC,
-    type=click.IntRange(1, cpu_count()),
-    help="Number of processes to use.",
-    show_default=True,
-)
-@click.option("--ext", "-e", default=0, help="HDU extension")
-@click.option(
-    "--copy/--no-copy",
-    "-c/-nc",
-    default=False,
-    prompt="Would you like to copy files?",
-    help="copy files instead of moving them",
-)
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
-def sort_raw(filenames, outdir=Path.cwd(), num_proc=DEFAULT_NPROC, ext=0, copy=False, quiet=False):
-    sort_files(
-        filenames,
-        copy=copy,
-        ext=ext,
-        output_directory=outdir,
-        num_proc=num_proc,
-        quiet=quiet,
-    )
 
 
 ########## prep ##########
@@ -267,8 +204,7 @@ def centroid(config: Path, filenames, num_proc, outdir):
 
 
 def pathCompleter(text, state):
-    """
-    This is the tab completer for systems paths.
+    """This is the tab completer for systems paths.
     Only tested on *nix systems
     """
     # replace ~ with the user's home dir. See https://docs.python.org/2/library/os.path.html
@@ -283,8 +219,7 @@ def pathCompleter(text, state):
 
 
 def createListCompleter(items):
-    """
-    This is a closure that creates a method that autocompletes from
+    """This is a closure that creates a method that autocompletes from
     the given list.
 
     Since the autocomplete function can't be given a list to complete from
@@ -465,16 +400,9 @@ def new_config(ctx, config, edit):
         if source == "pickles":
             if tpl.object is not None:
                 simbad_table = get_simbad_table(tpl.object.object)
-                ucac_table = get_ucac_flux(tpl.object.object)
-                if not ucac_table["rmag"].mask[0]:
-                    mag = ucac_table["rmag"][0]
-                    mag_band = "r"
-                elif not ucac_table["imag"].mask[0]:
-                    mag = ucac_table["imag"][0]
-                    mag_band = "i"
-                else:
-                    mag = ucac_table["Vmag"][0]
-                    mag_band = "V"
+                ucac_table = get_ucac_table(tpl.object.object)
+                mag, mag_band = get_ucac_flux(ucac_table)
+
                 sptype = re.match(r"\w\d[IV]{1,3}", simbad_table["SP_TYPE"][0]).group()
                 click.echo(f" * Found UCAC4 info: {sptype} {mag_band}={mag:.02f}")
             else:

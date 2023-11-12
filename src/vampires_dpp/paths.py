@@ -66,7 +66,13 @@ def make_dirs(paths, config):
 
 
 def get_paths(
-    filename, /, suffix=None, outname=None, output_directory=None, filetype=".fits", **kwargs
+    filename,
+    /,
+    suffix=None,
+    outname=None,
+    output_directory=None,
+    filetype=".fits",
+    **kwargs,
 ):
     path = Path(filename)
     _suffix = "" if suffix is None else f"_{suffix}"
@@ -76,7 +82,7 @@ def get_paths(
         output_directory = Path(output_directory)
         output_directory.mkdir(parents=True, exist_ok=True)
     if outname is None:
-        outname = re.sub("\.fits(\..*)?", f"{_suffix}{filetype}", path.name)
+        outname = re.sub(r"\.fits(\..*)?", f"{_suffix}{filetype}", path.name)
     outpath = output_directory / outname
     return path, outpath
 
@@ -84,7 +90,7 @@ def get_paths(
 def any_file_newer(filenames, outpath):
     out_mt = Path(outpath).stat().st_mtime
     # check if input is only a single file
-    if isinstance(filenames, Path) or isinstance(filenames, str):
+    if isinstance(filenames, Path | str):
         return Path(filenames).stat().st_mtime > out_mt
     else:
         gen = (Path(f).stat().st_mtime > out_mt for f in filenames)

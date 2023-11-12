@@ -64,7 +64,7 @@ class EMCCDVAMPIRES(InstrumentInfo):
         return 9.6 if self.emgain == 0 else 89
 
     def get_psf_size(self, filt_name):
-        if not filt_name in self.filters:
+        if filt_name not in self.filters:
             raise ValueError(f"{filt_name} not recognized as a filter")
         ## TODO
         raise NotImplementedError()
@@ -122,7 +122,7 @@ class CMOSVAMPIRES(InstrumentInfo):
         return min(7000, 2**16 * self.gain)  # e-
 
     def get_psf_size(self, filt_name):
-        if not filt_name in self.filters:
+        if filt_name not in self.filters:
             raise ValueError(f"{filt_name} not recognized as a filter")
         ## TODO
         raise NotImplementedError()

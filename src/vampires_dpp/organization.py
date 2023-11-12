@@ -15,8 +15,7 @@ from .util import load_fits_header
 
 
 def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
-    """
-    Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
+    """Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
     Parameters
     ----------
@@ -39,8 +38,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
 
 
 def dict_from_header(header: fits.Header, excluded=("COMMENT", "HISTORY"), fix=True) -> OrderedDict:
-    """
-    Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
+    """Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
     Parameters
     ----------
@@ -61,10 +59,12 @@ def dict_from_header(header: fits.Header, excluded=("COMMENT", "HISTORY"), fix=T
 
 
 def header_table(
-    filenames: list[PathLike], num_proc: int = min(8, mp.cpu_count()), quiet: bool = False, **kwargs
+    filenames: list[PathLike],
+    num_proc: int = min(8, mp.cpu_count()),
+    quiet: bool = False,
+    **kwargs,
 ) -> pd.DataFrame:
-    """
-    Generate a pandas dataframe from the FITS headers parsed from the given files.
+    """Generate a pandas dataframe from the FITS headers parsed from the given files.
 
     Parameters
     ----------
@@ -221,8 +221,7 @@ def foldername_old(outdir: Path, path: Path, header: fits.Header):
 
 
 def check_file(filename) -> bool:
-    """
-    Checks if file can be loaded and if there are empty slices
+    """Checks if file can be loaded and if there are empty slices
 
     Parameters
     ----------

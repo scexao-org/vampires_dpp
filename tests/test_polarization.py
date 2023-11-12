@@ -1,5 +1,4 @@
 import numpy as np
-
 from vampires_dpp.polarization import pol_inds
 
 

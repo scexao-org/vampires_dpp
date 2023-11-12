@@ -5,8 +5,7 @@ from numpy.typing import ArrayLike, NDArray
 
 
 def frame_center(image: ArrayLike) -> tuple[float, float]:
-    """
-    Find the center of the frame or cube in pixel coordinates
+    """Find the center of the frame or cube in pixel coordinates
 
     Parameters
     ----------
@@ -24,8 +23,7 @@ def frame_center(image: ArrayLike) -> tuple[float, float]:
 
 
 def frame_radii(frame: ArrayLike, center=None) -> NDArray:
-    """
-    Return the radii of pixels around ``center`` in the image
+    """Return the radii of pixels around ``center`` in the image
 
     Parameters
     ----------
@@ -47,8 +45,7 @@ def frame_radii(frame: ArrayLike, center=None) -> NDArray:
 
 
 def frame_angles(frame: ArrayLike, center=None, conv: Literal["image", "astro"] = "image"):
-    """
-    Return the angles of pixels around ``center`` in the image
+    """Return the angles of pixels around ``center`` in the image
 
     Parameters
     ----------
@@ -93,8 +90,7 @@ def frame_angles_astro(frame, center):
 
 
 def cutout_inds(frame, window, center=None, **kwargs):
-    """
-    Get the index slices for a window with size `window` at `center`, clipped to the boundaries of `frame`
+    """Get the index slices for a window with size `window` at `center`, clipped to the boundaries of `frame`
 
     Parameters
     ----------
