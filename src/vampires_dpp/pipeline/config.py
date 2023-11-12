@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal
 
 import astropy.units as u
 import tomli
@@ -81,9 +81,9 @@ class ObjectConfig(BaseModel):
 
 class SpecphotConfig(BaseModel):
     source: Literal["pickles"] | Path = "pickles"
-    sptype: Optional[str] = None
-    mag: Optional[float] = None
-    mag_band: Optional[Literal["U", "B", "V", "r", "i", "J", "H", "K"]] = "V"
+    sptype: str | None = None
+    mag: float | None = None
+    mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = "V"
     flux_metric: Literal["photometry", "sum"] = "photometry"
 
 
@@ -151,10 +151,10 @@ class CalibrateConfig(BaseModel):
         transform_filename = "20230102_fcs16000_params.csv"
     """
 
-    calib_directory: Optional[Path] = None
+    calib_directory: Path | None = None
     back_subtract: bool = True
     flat_correct: bool = True
-    distortion_file: Optional[Path] = None
+    distortion_file: Path | None = None
     fix_bad_pixels: bool = False
     save_intermediate: bool = False
 
@@ -234,7 +234,7 @@ class AnalysisConfig(BaseModel):
     strehl: Literal[False] = False
     subtract_radprof: bool = False
     aper_rad: float | Literal["auto"] = "auto"
-    ann_rad: Optional[Sequence[float]] = None
+    ann_rad: Sequence[float] | None = None
     window_size: int = 30
     dft_factor: int = 100
 
@@ -294,7 +294,7 @@ class PolarimetryConfig(BaseModel):
     ip_correct: bool = True
     ip_method: Literal["aperture", "annulus"] = "aperture"
     ip_radius: float = 15
-    ip_radius2: Optional[float] = None
+    ip_radius2: float | None = None
 
 
 class PipelineConfig(BaseModel):
@@ -391,12 +391,12 @@ class PipelineConfig(BaseModel):
     save_adi_cubes: bool = True
     coronagraphic: bool = False
     dpp_version: str = dpp.__version__
-    object: Optional[ObjectConfig] = None
+    object: ObjectConfig | None = None
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
-    specphot: Optional[SpecphotConfig] = None
+    specphot: SpecphotConfig | None = None
     collapse: CollapseConfig = CollapseConfig()
-    polarimetry: Optional[PolarimetryConfig] = None
+    polarimetry: PolarimetryConfig | None = None
 
     @classmethod
     def from_file(cls, filename: PathLike):
@@ -422,7 +422,7 @@ class PipelineConfig(BaseModel):
             raise ValueError(
                 f"Input pipeline version ({config['dpp_version']}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
             )
-        pipeline_config = cls.model_validate(config)
+        cls.model_validate(config)
 
     def to_toml(self):
         # get serializable output using pydantic

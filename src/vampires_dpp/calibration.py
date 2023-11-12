@@ -6,7 +6,6 @@ import multiprocessing as mp
 import os
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Optional
 
 import astropy.units as u
 import numpy as np
@@ -89,7 +88,7 @@ def normalize_file(
             fits.writeto(outpath, data_filt, header=fix_header(header), overwrite=True)
 
 
-def filter_empty_frames(cube) -> Optional[np.ndarray]:
+def filter_empty_frames(cube) -> np.ndarray | None:
     finite_mask = np.isfinite(cube)
     nonzero_mask = cube != 0
     combined = finite_mask & nonzero_mask
@@ -102,7 +101,7 @@ def filter_empty_frames(cube) -> Optional[np.ndarray]:
 
 def deinterleave_cube(
     data: np.ndarray, header: fits.Header, discard_empty: bool = True
-) -> tuple[Optional[fits.PrimaryHDU], Optional[fits.PrimaryHDU]]:
+) -> tuple[fits.PrimaryHDU | None, fits.PrimaryHDU | None]:
     flc1_filt = data[::2]
     if discard_empty:
         flc1_filt = filter_empty_frames(flc1_filt)
@@ -126,14 +125,11 @@ def deinterleave_cube(
     return hdu1, hdu2
 
 
-def apply_coordinate(header, coord: Optional[SkyCoord] = None):
+def apply_coordinate(header, coord: SkyCoord | None = None):
     time_str = Time(header["MJD-STR"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time_end = Time(header["MJD-END"], format="mjd", scale="ut1", location=SUBARU_LOC)
-    if coord is None:
-        coord_now = get_coord_header(header, time)
-    else:
-        coord_now = coord.apply_space_motion(time)
+    coord_now = get_coord_header(header, time) if coord is None else coord.apply_space_motion(time)
     for _time, _key in zip((time_str, time_end), ("STR", "END")):
         if coord is None:
             _coord = get_coord_header(header, _time)
@@ -153,12 +149,12 @@ def apply_coordinate(header, coord: Optional[SkyCoord] = None):
 
 def calibrate_file(
     filename: str,
-    back_filename: Optional[str] = None,
-    flat_filename: Optional[str] = None,
-    transform_filename: Optional[str] = None,
+    back_filename: str | None = None,
+    flat_filename: str | None = None,
+    transform_filename: str | None = None,
     force: bool = False,
     bpmask: bool = False,
-    coord: Optional[SkyCoord] = None,
+    coord: SkyCoord | None = None,
     **kwargs,
 ) -> fits.HDUList:
     path, outpath = get_paths(filename, suffix="calib", **kwargs)

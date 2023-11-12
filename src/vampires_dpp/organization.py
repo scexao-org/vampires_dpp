@@ -3,7 +3,6 @@ import shutil
 from collections import OrderedDict
 from os import PathLike
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -90,15 +89,12 @@ def header_table(
 def sort_files(
     filenames: list[PathLike],
     copy: bool = False,
-    output_directory: Optional[PathLike] = None,
+    output_directory: PathLike | None = None,
     num_proc: int = min(8, mp.cpu_count()),
     quiet: bool = False,
     **kwargs,
 ) -> list[Path]:
-    if output_directory is not None:
-        outdir = Path(output_directory)
-    else:
-        outdir = Path(filenames[0]).parent
+    outdir = Path(output_directory) if output_directory is not None else Path(filenames[0]).parent
     jobs = []
     with mp.Pool(num_proc) as pool:
         for filename in filenames:

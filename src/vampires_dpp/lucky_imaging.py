@@ -1,18 +1,15 @@
 from pathlib import Path
-from typing import Final, Literal, Optional
+from typing import Final, Literal
 
 import numpy as np
 import scipy.stats as st
 from astropy.io import fits
 from astropy.nddata import Cutout2D
-from numpy.typing import ArrayLike
 
 from .analysis import add_frame_statistics
 from .image_processing import (
     collapse_cube,
     combine_frames_headers,
-    pad_cube,
-    shift_cube,
     shift_frame,
 )
 from .image_registration import offset_centroids
@@ -76,8 +73,8 @@ def lucky_image_file(
     centroids,
     metric_file: Path,
     method: str = "median",
-    register: Optional[Literal["com", "peak", "gauss"]] = "com",
-    frame_select: Optional[Literal["peak", "normvar", "var", "strehl", "fwhm"]] = None,
+    register: Literal["com", "peak", "gauss"] | None = "com",
+    frame_select: Literal["peak", "normvar", "var", "strehl", "fwhm"] | None = None,
     force: bool = False,
     recenter: bool = True,
     select_cutoff: float = 0,
@@ -100,17 +97,11 @@ def lucky_image_file(
     header = hdul[0].header
 
     if crop_width is None:
-        if "MBI" in header.get("OBS-MOD", ""):
-            crop_width = 536
-        else:
-            crop_width = np.min(cube.shape[-2:])
+        crop_width = 536 if "MBI" in header.get("OBS-MOD", "") else np.min(cube.shape[-2:])
 
     cam_num = header["U_CAMERA"]
     cam_key = f"cam{cam_num:.0f}"
-    if cam_key in centroids:
-        fields = centroids[cam_key]
-    else:
-        fields = {"": [frame_center(cube)]}
+    fields = centroids[cam_key] if cam_key in centroids else {"": [frame_center(cube)]}
 
     metrics = np.load(metric_file)
 

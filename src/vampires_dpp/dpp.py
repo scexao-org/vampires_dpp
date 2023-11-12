@@ -1,3 +1,4 @@
+import contextlib
 import glob
 import multiprocessing as mp
 import os
@@ -11,7 +12,6 @@ import astropy.units as u
 import click
 import tomli
 import tqdm.auto as tqdm
-from astropy.io import fits
 from loguru import logger
 
 import vampires_dpp as dpp
@@ -21,9 +21,8 @@ from vampires_dpp.calibration import (
     process_flat_files,
 )
 from vampires_dpp.constants import DEFAULT_NPROC
-from vampires_dpp.organization import header_table, sort_files
+from vampires_dpp.organization import header_table
 from vampires_dpp.pipeline.config import (
-    CamFileInput,
     CollapseConfig,
     ObjectConfig,
     PipelineConfig,
@@ -40,7 +39,7 @@ from vampires_dpp.pipeline.templates import (
 )
 from vampires_dpp.specphot.filters import FILTERS
 from vampires_dpp.specphot.query import get_simbad_table, get_ucac_flux, get_ucac_table
-from vampires_dpp.util import check_version, load_fits_key
+from vampires_dpp.util import check_version
 from vampires_dpp.wcs import get_gaia_astrometry
 
 logger.remove(0)
@@ -282,7 +281,7 @@ def new_config(ctx, config, edit):
 
     ## get name
     name_guess = config.stem
-    name = click.prompt(f"Path-friendly name for this reduction", default=name_guess)
+    name = click.prompt("Path-friendly name for this reduction", default=name_guess)
     tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
 
     ## get target
@@ -362,10 +361,8 @@ def new_config(ctx, config, edit):
     # )
 
     aper_rad = click.prompt('Enter aperture radius (px/"auto")', default=tpl.analysis.aper_rad)
-    try:
+    with contextlib.suppress(ValueError):
         aper_rad = float(aper_rad)
-    except ValueError:
-        pass
     if not isinstance(aper_rad, str) and aper_rad > tpl.analysis.window_size / 2:
         aper_rad = tpl.analysis.window_size / 2
         click.echo(f" ! Reducing aperture radius to match window size ({aper_rad:.0f} px)")
@@ -410,7 +407,7 @@ def new_config(ctx, config, edit):
                 mag_band = "V"
                 sptype = "G0V"
             sptype = click.prompt(" - Enter spectral type", default=sptype)
-            if sptype not in PICKLES_MAP.keys():
+            if sptype not in PICKLES_MAP:
                 click.echo(
                     " ! No match in pickles stellar library - you will have to edit manually"
                 )
@@ -467,7 +464,7 @@ def new_config(ctx, config, edit):
 
         ## Registration
         do_register = click.confirm(
-            f"Would you like to do frame registration?", default=tpl.collapse.centroid is not None
+            "Would you like to do frame registration?", default=tpl.collapse.centroid is not None
         )
         if do_register:
             centroid_choices = ["com", "peak", "gauss", "quad"]

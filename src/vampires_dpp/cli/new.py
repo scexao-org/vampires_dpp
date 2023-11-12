@@ -1,3 +1,4 @@
+import contextlib
 import glob
 import os
 import re
@@ -189,10 +190,8 @@ def new_config(ctx, config, edit):
     # )
 
     aper_rad = click.prompt('Enter aperture radius (px/"auto")', default=tpl.analysis.aper_rad)
-    try:
+    with contextlib.suppress(ValueError):
         aper_rad = float(aper_rad)
-    except ValueError:
-        pass
     if not isinstance(aper_rad, str) and aper_rad > tpl.analysis.window_size / 2:
         aper_rad = tpl.analysis.window_size / 2
         click.echo(f" ! Reducing aperture radius to match window size ({aper_rad:.0f} px)")
@@ -238,7 +237,7 @@ def new_config(ctx, config, edit):
                 mag_band = "V"
                 sptype = "G0V"
             sptype = click.prompt(" - Enter spectral type", default=sptype)
-            if sptype not in PICKLES_MAP.keys():
+            if sptype not in PICKLES_MAP:
                 click.echo(
                     " ! No match in pickles stellar library - you will have to edit manually"
                 )

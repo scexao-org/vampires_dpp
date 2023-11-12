@@ -71,4 +71,4 @@ line-length = 100
 
 [tool.ruff.lint]
 # pycodestyle, pydocstyle, isort, pyupgrade, pylint
-select = ["E", "W", "D", "I", "UP", "PL"]
+select = ["E", "F", "B", "SIM", "I", "UP"]

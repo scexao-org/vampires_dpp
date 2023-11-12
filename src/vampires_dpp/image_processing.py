@@ -2,7 +2,6 @@ import re
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Tuple
 
 import astropy.units as u
 import cv2
@@ -43,7 +42,7 @@ def shift_frame(data: ArrayLike, shift: list | tuple, **kwargs) -> NDArray:
 
 
 def derotate_frame(
-    data: ArrayLike, angle: float, center: Optional[list | tuple] = None, **kwargs
+    data: ArrayLike, angle: float, center: list | tuple | None = None, **kwargs
 ) -> NDArray:
     """Derotates a single frame by the given angle.
 
@@ -182,9 +181,9 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
 def collapse_cube(
     cube: NDArray,
     method: str = "median",
-    header: Optional[fits.Header] = None,
+    header: fits.Header | None = None,
     **kwargs,
-) -> tuple[NDArray, Optional[fits.Header]]:
+) -> tuple[NDArray, fits.Header | None]:
     """Collapse a cube along its time axis
 
     Parameters
@@ -325,7 +324,7 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
         )
 
     # get PA rotation
-    if "PA" in table.keys():
+    if "PA" in table:
         output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
         output_header["PA-END"] = table["PA-END"].iloc[-1], "[deg] par. angle at end"
         total_rot = delta_angle(output_header["PA-STR"], output_header["PA-END"])
@@ -394,10 +393,7 @@ def collapse_frames_files(filenames, output, force=False, cubes=False, quiet=Tru
 
     frames = []
     headers = []
-    if not quiet:
-        _iter = tqdm.tqdm(filenames, "Collecting files")
-    else:
-        _iter = filenames
+    _iter = tqdm.tqdm(filenames, "Collecting files") if not quiet else filenames
     for filename in _iter:
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>
@@ -490,10 +486,7 @@ def correct_distortion_cube(
     corr_cube = np.empty_like(cube)
     for i in range(cube.shape[0]):
         # if downsizing, low-pass filter to reduce moire effect
-        if scale < 1:
-            frame = cv2.GaussianBlur(cube[i], (0, 0), sigmaX=0.5 / scale)
-        else:
-            frame = cube[i]
+        frame = cv2.GaussianBlur(cube[i], (0, 0), sigmaX=0.5 / scale) if scale < 1 else cube[i]
         corr_cube[i] = warp_frame(frame, M, **kwargs)
     # update header
     if header is not None:

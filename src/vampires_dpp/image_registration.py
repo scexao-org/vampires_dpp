@@ -23,10 +23,7 @@ def offset_centroids(frame, frame_err, inds, psf=None, dft_factor=10):
     """NaN-friendly centroids"""
     # wy, wx = np.ogrid[inds[-2], inds[-1]]
     cutout = frame[inds]
-    if frame_err is not None:
-        cutout_err = frame_err[inds]
-    else:
-        cutout_err = None
+    cutout_err = frame_err[inds] if frame_err is not None else None
 
     peak_yx = np.unravel_index(np.nanargmax(cutout), cutout.shape)
     com_xy = centroids.centroid_com(cutout)

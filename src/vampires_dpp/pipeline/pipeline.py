@@ -2,7 +2,6 @@ import multiprocessing as mp
 import warnings
 from functools import partial
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -117,31 +116,31 @@ class Pipeline:
 
     def add_paths_to_db(self, table):
         input_paths = table["path"].apply(Path)
+
         # figure out which metrics need to be calculated, which is necessary to collapse files
-        func = lambda p: get_paths(
-            p,
-            suffix="metrics",
-            filetype=".npz",
-            output_directory=self.paths.metrics_dir,
-        )[1]
+        def func(p):
+            return get_paths(
+                p, suffix="metrics", filetype=".npz", output_directory=self.paths.metrics_dir
+            )[1]
+
         table["metric_file"] = input_paths.apply(func)
 
         if self.config.collapse is not None:
-            func = lambda p: get_paths(
-                p,
-                suffix="coll",
-                filetype=".fits",
-                output_directory=self.paths.collapsed_dir,
-            )[1]
+
+            def func(p):
+                return get_paths(
+                    p, suffix="coll", filetype=".fits", output_directory=self.paths.collapsed_dir
+                )[1]
+
             table["collapse_file"] = input_paths.apply(func)
 
         if self.config.calibrate.save_intermediate:
-            func = lambda p: get_paths(
-                p,
-                suffix="calib",
-                filetype=".fits",
-                output_directory=self.paths.calibrated_dir,
-            )[1]
+
+            def func(p):
+                return get_paths(
+                    p, suffix="calib", filetype=".fits", output_directory=self.paths.calibrated_dir
+                )[1]
+
             table["calib_file"] = input_paths.apply(func)
 
         return table
@@ -149,7 +148,10 @@ class Pipeline:
     def determine_execution(self, table, force=False):
         if force:
             return table
-        file_doesnt_exist = lambda p: not Path(p).exists()
+
+        def file_doesnt_exist(p):
+            return not Path(p).exists()
+
         files_to_calibrate = table["metric_file"].apply(file_doesnt_exist)
         if self.config.collapse is not None:
             files_to_calibrate |= table["collapse_file"].apply(file_doesnt_exist)
@@ -157,7 +159,7 @@ class Pipeline:
         subset = table.loc[files_to_calibrate]
         return subset
 
-    def run(self, filenames, num_proc: Optional[int] = None, force=False):
+    def run(self, filenames, num_proc: int | None = None, force=False):
         """Run the pipeline
 
         Parameters
@@ -331,7 +333,7 @@ class Pipeline:
         self.cam1_cube_path = self.cam2_cube_path = None
 
         # save cubes for each camera
-        if "U_FLC" in self.output_table.keys():
+        if "U_FLC" in self.output_table:
             self.output_table.sort_values(["MJD", "U_FLC"], inplace=True)
         else:
             self.output_table.sort_values("MJD", inplace=True)

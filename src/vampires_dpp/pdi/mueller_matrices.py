@@ -323,10 +323,7 @@ def wollaston(ordinary: bool = True, eta=1) -> NDArray:
            [ 0. ,  0. ,  0.3,  0. ],
            [ 0. ,  0. ,  0. ,  0.3]])
     """
-    if ordinary:
-        eta = eta
-    else:
-        eta = -eta
+    eta = eta if ordinary else -eta
 
     radicand = (1 - eta) * (1 + eta)
     M = np.array(

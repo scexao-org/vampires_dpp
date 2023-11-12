@@ -1,6 +1,5 @@
 import warnings
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 from astropy.io import fits
@@ -70,7 +69,7 @@ def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
     )
 
 
-def radial_stokes(stokes_cube: ArrayLike, stokes_err: Optional[ArrayLike] = None, phi: float = 0):
+def radial_stokes(stokes_cube: ArrayLike, stokes_err: ArrayLike | None = None, phi: float = 0):
     r"""Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)
 
     .. math::
@@ -127,10 +126,7 @@ def collapse_stokes_cube(stokes_cube, header=None):
 
 
 def write_stokes_products(hdul, outname=None, force=False, phi=0):
-    if outname is None:
-        path = Path("stokes_cube.fits")
-    else:
-        path = Path(outname)
+    path = Path("stokes_cube.fits") if outname is None else Path(outname)
 
     if not force and path.is_file():
         return path
