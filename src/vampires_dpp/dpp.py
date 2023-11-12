@@ -15,11 +15,7 @@ import tqdm.auto as tqdm
 from loguru import logger
 
 import vampires_dpp as dpp
-from vampires_dpp.calibration import (
-    normalize_file,
-    process_background_files,
-    process_flat_files,
-)
+from vampires_dpp.calibration import normalize_file, process_background_files, process_flat_files
 from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table
 from vampires_dpp.pipeline.config import (
@@ -78,12 +74,7 @@ def main():
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 @click.pass_context
 def prep(ctx, outdir, quiet, num_proc):
     # prepare context
@@ -99,9 +90,7 @@ def prep(ctx, outdir, quiet, num_proc):
     help="Create background files from darks/skies. Each input file will be collapsed. Groups of files with the same exposure time, EM gain, and frame size will be median-combined together to create a super-background file.",
 )
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option(
     "--collapse",
@@ -130,9 +119,7 @@ def back(ctx, filenames, collapse, force):
     help="Create flat-field files. Each input file will be collapsed with background-subtraction if files are provided. Groups of files with the same exposure time, EM gain, frame size, and filter will be median-combined together to create a super-flat file.",
 )
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option(
     "--back",
@@ -170,14 +157,9 @@ def flat(ctx, filenames, back, collapse, force):
 
 
 @main.command(name="centroid", help="Fit the centroids")
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
-@click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
@@ -238,10 +220,7 @@ def createListCompleter(items):
 
 
 @main.command(name="new", help="Generate configuration files")
-@click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.option(
     "--edit", "-e", is_flag=True, help="Launch configuration file in editor after creation."
 )
@@ -407,10 +386,6 @@ def new_config(ctx, config, edit):
                 mag_band = "V"
                 sptype = "G0V"
             sptype = click.prompt(" - Enter spectral type", default=sptype)
-            if sptype not in PICKLES_MAP:
-                click.echo(
-                    " ! No match in pickles stellar library - you will have to edit manually"
-                )
             mag = click.prompt(" - Enter source magnitude", default=mag, type=float)
             mag_band = click.prompt(
                 " - Enter source magnitude passband",
@@ -524,8 +499,7 @@ def new_config(ctx, config, edit):
                 )
             elif tpl.polarimetry.ip_method == "annulus":
                 resp = click.prompt(
-                    " - Enter comma-separated inner and outer radius (px)",
-                    default="10, 16",
+                    " - Enter comma-separated inner and outer radius (px)", default="10, 16"
                 )
                 ann_rad = list(map(float, resp.replace(" ", "").split(",")))
                 tpl.polarimetry.ip_radius = ann_rad[0]
@@ -547,9 +521,7 @@ def new_config(ctx, config, edit):
 
 @main.command(name="norm", help="Normalize VAMPIRES data files")
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option("-o", "--outdir", type=Path, default=Path.cwd() / "prep", help="Output directory")
 @click.option(
@@ -572,12 +544,7 @@ def new_config(ctx, config, edit):
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool, outdir: Path):
     jobs = []
     kwargs = dict(deinterleave=deint, filter_empty=filter_empty, output_directory=outdir)
@@ -595,14 +562,9 @@ def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool,
 
 
 @main.command(name="run", help="Run the data processing pipeline")
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
-@click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
@@ -631,14 +593,9 @@ def run(config: Path, filenames, num_proc, outdir):
 
 
 @main.command(name="pdi", help="Run the polarimetric differential imaging pipeline")
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
-@click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
@@ -649,12 +606,7 @@ def run(config: Path, filenames, num_proc, outdir):
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 def pdi(config, filenames, num_proc, quiet, outdir):
     # make sure versions match within SemVar
     logger.add(outdir / "debug.log", level="DEBUG", enqueue=True, colorize=False)
@@ -675,9 +627,7 @@ def pdi(config, filenames, num_proc, quiet, outdir):
     help="Go through each file and combine the header information into a single CSV.",
 )
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option(
     "-t",
@@ -701,12 +651,7 @@ def pdi(config, filenames, num_proc, quiet, outdir):
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 def table(filenames, _type, output, num_proc, quiet):
     # handle name clashes
     outpath = Path(output).resolve()
@@ -735,10 +680,7 @@ def table(filenames, _type, output, num_proc, quiet):
     short_help="Upgrade configuration file",
     help=f"Tries to automatically upgrade a configuration file to the current version ({dpp.__version__}), prompting where necessary.",
 )
-@click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.option(
     "--output",
     "-o",

@@ -2,11 +2,7 @@ import os
 from datetime import date
 
 from pkg_resources import DistributionNotFound, get_distribution
-from vampires_dpp.pipeline.templates import (
-    VAMPIRES_PDI,
-    VAMPIRES_SDI,
-    VAMPIRES_SINGLECAM,
-)
+from vampires_dpp.pipeline.templates import VAMPIRES_PDI, VAMPIRES_SDI, VAMPIRES_SINGLECAM
 
 # -- Project information -----------------------------------------------------
 try:
@@ -64,11 +60,7 @@ sdi_toml = f"""
 </details>
 """
 
-myst_substitutions = {
-    "singlecam_toml": singlecam_toml,
-    "pdi_toml": pdi_toml,
-    "sdi_toml": sdi_toml,
-}
+myst_substitutions = {"singlecam_toml": singlecam_toml, "pdi_toml": pdi_toml, "sdi_toml": sdi_toml}
 myst_heading_anchors = 2
 source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}
 nb_execution_mode = "cache"

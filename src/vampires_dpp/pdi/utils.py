@@ -6,10 +6,9 @@ from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.analysis import safe_annulus_sum, safe_aperture_sum
+from vampires_dpp.image_processing import combine_frames_headers
 from vampires_dpp.indexing import frame_angles
 from vampires_dpp.wcs import apply_wcs
-
-from ..image_processing import combine_frames_headers
 
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
@@ -61,11 +60,7 @@ def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
         (3, ...) stokes cube with corrected parameters
     """
     return np.array(
-        (
-            stokes_cube[0],
-            stokes_cube[1] - pQ * stokes_cube[0],
-            stokes_cube[2] - pU * stokes_cube[0],
-        )
+        (stokes_cube[0], stokes_cube[1] - pQ * stokes_cube[0], stokes_cube[2] - pU * stokes_cube[0])
     )
 
 
@@ -194,14 +189,6 @@ def stokes_products(stokes_frame, stokes_err, phi=0):
 
     data = np.asarray((stokes_frame[0], stokes_frame[1], stokes_frame[2], Qphi, Uphi, pi, aolp))
     data_err = np.asarray(
-        (
-            stokes_err[0],
-            stokes_err[1],
-            stokes_err[2],
-            Qphi_err,
-            Uphi_err,
-            pi_err,
-            aolp_err,
-        )
+        (stokes_err[0], stokes_err[1], stokes_err[2], Qphi_err, Uphi_err, pi_err, aolp_err)
     )
     return data, data_err

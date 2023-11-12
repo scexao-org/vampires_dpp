@@ -66,13 +66,7 @@ def make_dirs(paths, config):
 
 
 def get_paths(
-    filename,
-    /,
-    suffix=None,
-    outname=None,
-    output_directory=None,
-    filetype=".fits",
-    **kwargs,
+    filename, /, suffix=None, outname=None, output_directory=None, filetype=".fits", **kwargs
 ):
     path = Path(filename)
     _suffix = "" if suffix is None else f"_{suffix}"

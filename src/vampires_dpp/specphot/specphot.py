@@ -7,7 +7,8 @@ from astropy.io import fits
 from synphot import Observation, SourceSpectrum, SpectralElement
 from synphot.units import VEGAMAG
 
-from ..pipeline.config import SpecphotConfig
+from vampires_dpp.pipeline.config import SpecphotConfig
+
 from .filters import FILTERS, load_vampires_filter, save_filter_fits, update_header_with_filt_info
 from .pickles import load_pickles_model
 

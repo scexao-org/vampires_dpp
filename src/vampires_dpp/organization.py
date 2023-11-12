@@ -58,10 +58,7 @@ def dict_from_header(header: fits.Header, excluded=("COMMENT", "HISTORY"), fix=T
 
 
 def header_table(
-    filenames: list[PathLike],
-    num_proc: int = min(8, mp.cpu_count()),
-    quiet: bool = False,
-    **kwargs,
+    filenames: list[PathLike], num_proc: int = min(8, mp.cpu_count()), quiet: bool = False, **kwargs
 ) -> pd.DataFrame:
     """Generate a pandas dataframe from the FITS headers parsed from the given files.
 
@@ -230,21 +227,16 @@ def check_file(filename) -> bool:
     """
     path = Path(filename)
     ext = 1 if ".fits.fz" in path.name else 0
-    try:
-        with fits.open(filename) as hdus:
-            hdr = hdus[ext].header
-            data = hdus[ext].data
-            if "U_FLCSTT" not in hdr:
-                data = data[2:]
-            return np.any(data, axis=(-2, -1)).all()
-    except:
-        return False
+    with fits.open(path) as hdus:
+        hdr = hdus[ext].header
+        data = hdus[ext].data
+        if "U_FLCSTT" not in hdr:
+            data = data[2:]
+        return np.any(data, axis=(-2, -1)).all()
 
 
 def check_files(
-    filenames: list[PathLike],
-    num_proc: int = min(8, mp.cpu_count()),
-    quiet: bool = False,
+    filenames: list[PathLike], num_proc: int = min(8, mp.cpu_count()), quiet: bool = False
 ) -> list[bool]:
     jobs = []
     with mp.Pool(num_proc) as pool:

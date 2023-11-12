@@ -3,7 +3,7 @@ import click
 import vampires_dpp as dpp
 
 from .centroids import centroid
-from .new import new
+from .new import new_config
 from .organization import sort, table, upgrade
 from .prep import norm, prep
 from .run import pdi, run
@@ -18,7 +18,7 @@ def main():
 main.add_command(sort)
 main.add_command(norm)
 main.add_command(prep)
-main.add_command(new)
+main.add_command(new_config)
 main.add_command(centroid)
 main.add_command(run)
 main.add_command(pdi)

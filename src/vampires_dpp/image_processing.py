@@ -179,10 +179,7 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
 
 
 def collapse_cube(
-    cube: NDArray,
-    method: str = "median",
-    header: fits.Header | None = None,
-    **kwargs,
+    cube: NDArray, method: str = "median", header: fits.Header | None = None, **kwargs
 ) -> tuple[NDArray, fits.Header | None]:
     """Collapse a cube along its time axis
 
@@ -232,10 +229,7 @@ def collapse_cube_file(filename, force: bool = False, **kwargs) -> Path:
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
 
-    cube, header = load_fits(
-        path,
-        header=True,
-    )
+    cube, header = load_fits(path, header=True)
     frame, header = collapse_cube(cube, header=header, **kwargs)
 
     fits.writeto(outpath, frame, header=header, overwrite=True)
@@ -318,10 +312,7 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     ## everything below here has special rules for combinations
     # sum exposure times
     if "TINT" in table:
-        output_header["TINT"] = (
-            table["TINT"].sum(),
-            "[s] total integrated exposure time",
-        )
+        output_header["TINT"] = (table["TINT"].sum(), "[s] total integrated exposure time")
 
     # get PA rotation
     if "PA" in table:
@@ -409,12 +400,7 @@ def collapse_frames_files(filenames, output, force=False, cubes=False, quiet=Tru
 
 
 def correct_distortion(
-    frame: ArrayLike,
-    angle: float = 0,
-    scale: float = 1,
-    header=None,
-    center=None,
-    **kwargs,
+    frame: ArrayLike, angle: float = 0, scale: float = 1, header=None, center=None, **kwargs
 ):
     """Rotate and scale a single frame to match with a pinhole grid
 
@@ -452,12 +438,7 @@ def correct_distortion(
 
 
 def correct_distortion_cube(
-    cube: NDArray,
-    angle: float = 0,
-    scale: float = 1,
-    header=None,
-    center=None,
-    **kwargs,
+    cube: NDArray, angle: float = 0, scale: float = 1, header=None, center=None, **kwargs
 ):
     """Rotate and scale a all frames in a cube to match with a pinhole grid
 
@@ -561,22 +542,15 @@ def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
     if not force and outname.is_file() and not any_file_newer((cam1_file, cam2_file), outname):
         return outname
 
-    cam1_frame, header = load_fits(
-        cam1_file,
-        header=True,
-    )
-    cam2_frame, header2 = load_fits(
-        cam2_file,
-        header=True,
-    )
+    cam1_frame, header = load_fits(cam1_file, header=True)
+    cam2_frame, header2 = load_fits(cam2_file, header=True)
 
     if header["MJD"] != header2["MJD"]:
         msg = f"{cam1_file.name} has MJD {header['MJD']}\n{cam2_file.name} has MJD {header2['MJD']}"
         raise ValueError(msg)
-    if "U_FLC" in header:
-        if header["U_FLC"] != header2["U_FLC"]:
-            msg = f"{cam1_file.name} has FLC state {header['U_FLC']}\n{cam2_file.name} has FLC state {header2['U_FLC']}"
-            raise ValueError(msg)
+    if "U_FLC" in header and header["U_FLC"] != header2["U_FLC"]:
+        msg = f"{cam1_file.name} has FLC state {header['U_FLC']}\n{cam2_file.name} has FLC state {header2['U_FLC']}"
+        raise ValueError(msg)
 
     diff = cam1_frame - cam2_frame
     summ = cam1_frame + cam2_frame
@@ -604,11 +578,7 @@ def radial_profile_image(frame, fwhm=3):
 
 
 def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
-    new_shape = (
-        cube.shape[0],
-        cube.shape[1] + 2 * pad_width,
-        cube.shape[2] + 2 * pad_width,
-    )
+    new_shape = (cube.shape[0], cube.shape[1] + 2 * pad_width, cube.shape[2] + 2 * pad_width)
     output = np.empty_like(cube, shape=new_shape)
 
     for idx in range(cube.shape[0]):

@@ -63,15 +63,9 @@ def createListCompleter(items):
 
 
 @click.command(name="new", help="Generate configuration files")
-@click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.option(
-    "--edit",
-    "-e",
-    is_flag=True,
-    help="Launch configuration file in editor after creation.",
+    "--edit", "-e", is_flag=True, help="Launch configuration file in editor after creation."
 )
 @click.pass_context
 def new_config(ctx, config, edit):
@@ -171,8 +165,7 @@ def new_config(ctx, config, edit):
         tpl.calibrate.calib_directory = None
 
     tpl.calibrate.save_intermediate = click.confirm(
-        "Would you like to save calibrated files?",
-        default=tpl.calibrate.save_intermediate,
+        "Would you like to save calibrated files?", default=tpl.calibrate.save_intermediate
     )
 
     ## Coronagraph
@@ -220,8 +213,7 @@ def new_config(ctx, config, edit):
     if click.confirm("Would you like to do flux calibration?", default=tpl.specphot is not None):
         readline.set_completer(pathCompleter)
         source = click.prompt(
-            ' - Enter source type ("pickles"/"zeropoint"/path to spectrum)',
-            default="pickles",
+            ' - Enter source type ("pickles"/"zeropoint"/path to spectrum)', default="pickles"
         )
         readline.set_completer()
         if source == "pickles":
@@ -237,10 +229,6 @@ def new_config(ctx, config, edit):
                 mag_band = "V"
                 sptype = "G0V"
             sptype = click.prompt(" - Enter spectral type", default=sptype)
-            if sptype not in PICKLES_MAP:
-                click.echo(
-                    " ! No match in pickles stellar library - you will have to edit manually"
-                )
             mag = click.prompt(" - Enter source magnitude", default=mag, type=float)
             mag_band = click.prompt(
                 " - Enter source magnitude passband",
@@ -275,12 +263,10 @@ def new_config(ctx, config, edit):
 
         ## Frame selection
         if click.confirm(
-            "Would you like to do frame selection?",
-            default=tpl.collapse.frame_select is not None,
+            "Would you like to do frame selection?", default=tpl.collapse.frame_select is not None
         ):
             tpl.collapse.select_cutoff = click.prompt(
-                " - Enter a cutoff quantile (0 to 1, larger means more discarding)",
-                type=float,
+                " - Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
             )
 
             metric_choices = ["normvar", "peak", "strehl"]
@@ -296,8 +282,7 @@ def new_config(ctx, config, edit):
 
         ## Registration
         do_register = click.confirm(
-            "Would you like to do frame registration?",
-            default=tpl.collapse.centroid is not None,
+            "Would you like to do frame registration?", default=tpl.collapse.centroid is not None
         )
         if do_register:
             centroid_choices = ["com", "peak", "gauss", "quad"]
@@ -314,8 +299,7 @@ def new_config(ctx, config, edit):
             tpl.collapse.centroid = None
 
         tpl.collapse.recenter = click.confirm(
-            " - Would you like to recenter the collapsed data after a model PSF fit?",
-            default=True,
+            " - Would you like to recenter the collapsed data after a model PSF fit?", default=True
         )
 
     tpl.make_diff_images = click.confirm(
@@ -343,8 +327,7 @@ def new_config(ctx, config, edit):
             default=tpl.polarimetry.use_ideal_mm,
         )
         tpl.polarimetry.ip_correct = click.confirm(
-            " - Would you like to do IP touchup?",
-            default=tpl.polarimetry.ip_correct is not None,
+            " - Would you like to do IP touchup?", default=tpl.polarimetry.ip_correct is not None
         )
         if tpl.polarimetry.ip_correct:
             default = "annulus" if tpl.coronagraphic else "aperture"
@@ -359,8 +342,7 @@ def new_config(ctx, config, edit):
                 )
             elif tpl.polarimetry.ip_method == "annulus":
                 resp = click.prompt(
-                    " - Enter comma-separated inner and outer radius (px)",
-                    default="10, 16",
+                    " - Enter comma-separated inner and outer radius (px)", default="10, 16"
                 )
                 ann_rad = list(map(float, resp.replace(" ", "").split(",")))
                 tpl.polarimetry.ip_radius = ann_rad[0]

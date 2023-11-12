@@ -9,21 +9,12 @@ from astropy.io import fits
 from astropy.time import Time
 from numpy.typing import NDArray
 
-from vampires_dpp.image_processing import (
-    combine_frames_headers,
-    derotate_cube,
-    derotate_frame,
-)
+from vampires_dpp.image_processing import combine_frames_headers, derotate_cube, derotate_frame
+from vampires_dpp.paths import any_file_newer
+from vampires_dpp.util import append_or_create, load_fits
+from vampires_dpp.wcs import apply_wcs
 
-from ..paths import any_file_newer
-from ..util import append_or_create, load_fits
-from ..wcs import apply_wcs
-from .utils import (
-    instpol_correct,
-    measure_instpol,
-    measure_instpol_ann,
-    write_stokes_products,
-)
+from .utils import instpol_correct, measure_instpol, measure_instpol_ann, write_stokes_products
 
 
 def polarization_calibration_triplediff(filenames: Sequence[str]):
@@ -78,9 +69,9 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
         cube_dict[key] = cube_derot
         cube_errs.append(cube_err_derot)
 
-    I, Q, U = triple_diff_dict(cube_dict)
+    stokes_cube = triple_diff_dict(cube_dict)
     # swap stokes and field axes so field is first
-    stokes_cube = np.swapaxes((I, Q, U), 0, 1)
+    stokes_cube = np.swapaxes(stokes_cube, 0, 1)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         stokes_err = np.sqrt(np.nanmean(np.power(cube_errs, 2), axis=0) / len(cube_errs))
@@ -273,9 +264,7 @@ def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=Fal
     headers = []
     mueller_mats = []
     for file, mm_file in tqdm.tqdm(
-        zip(filenames, mm_filenames),
-        total=len(filenames),
-        desc="Least-squares calibration",
+        zip(filenames, mm_filenames), total=len(filenames), desc="Least-squares calibration"
     ):
         cube, hdr = load_fits(file, header=True, memmap=False)
         # rotate to N up E left

@@ -66,9 +66,19 @@ addopts = "--randomly-seed=4796"
 [tool.coverage.run]
 source = ["vampires_dpp"]
 
+
+[tool.ruff.lint]
+# pycodestyle, pydocstyle, isort, pyupgrade, pylint, tidyimports
+select = ["E", "F", "B", "SIM", "I", "UP", "TID"]
+
 [tool.ruff]
 line-length = 100
 
-[tool.ruff.lint]
-# pycodestyle, pydocstyle, isort, pyupgrade, pylint
-select = ["E", "F", "B", "SIM", "I", "UP"]
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false

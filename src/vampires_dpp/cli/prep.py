@@ -5,11 +5,7 @@ from pathlib import Path
 import click
 import tqdm.auto as tqdm
 
-from vampires_dpp.calibration import (
-    normalize_file,
-    process_background_files,
-    process_flat_files,
-)
+from vampires_dpp.calibration import normalize_file, process_background_files, process_flat_files
 from vampires_dpp.constants import DEFAULT_NPROC
 
 ########## prep ##########
@@ -35,12 +31,7 @@ from vampires_dpp.constants import DEFAULT_NPROC
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 @click.pass_context
 def prep(ctx, outdir, quiet, num_proc):
     # prepare context
@@ -56,9 +47,7 @@ def prep(ctx, outdir, quiet, num_proc):
     help="Create background files from darks/skies. Each input file will be collapsed. Groups of files with the same exposure time, EM gain, and frame size will be median-combined together to create a super-background file.",
 )
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option(
     "--collapse",
@@ -87,9 +76,7 @@ def back(ctx, filenames, collapse, force):
     help="Create flat-field files. Each input file will be collapsed with background-subtraction if files are provided. Groups of files with the same exposure time, EM gain, frame size, and filter will be median-combined together to create a super-flat file.",
 )
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option(
     "--back",
@@ -125,9 +112,7 @@ def flat(ctx, filenames, back, collapse, force):
 
 @click.command(name="norm", help="Normalize VAMPIRES data files")
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option("-o", "--outdir", type=Path, default=Path.cwd() / "prep", help="Output directory")
 @click.option(
@@ -150,12 +135,7 @@ def flat(ctx, filenames, back, collapse, force):
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool, outdir: Path):
     jobs = []
     kwargs = dict(deinterleave=deint, filter_empty=filter_empty, output_directory=outdir)

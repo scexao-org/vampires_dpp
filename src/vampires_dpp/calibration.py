@@ -31,35 +31,14 @@ except AttributeError:
 
 from vampires_dpp.constants import DEFAULT_NPROC, SUBARU_LOC
 from vampires_dpp.headers import fix_header, parallactic_angle
-from vampires_dpp.image_processing import (
-    collapse_cube,
-    correct_distortion_cube,
-)
-from vampires_dpp.util import (
-    load_fits,
-    load_fits_header,
-    wrap_angle,
-)
+from vampires_dpp.image_processing import collapse_cube, correct_distortion_cube
+from vampires_dpp.util import load_fits, load_fits_header, wrap_angle
 from vampires_dpp.wcs import apply_wcs, get_coord_header
 
 from .paths import get_paths
 
-__all__ = [
-    "normalize_file",
-    "calibrate_file",
-    "make_background_file",
-    "make_flat_file",
-    "make_master_background",
-    "make_master_flat",
-]
 
-
-def normalize_file(
-    filename: str,
-    deinterleave: bool = False,
-    discard_empty: bool = True,
-    **kwargs,
-):
+def normalize_file(filename: str, deinterleave: bool = False, discard_empty: bool = True, **kwargs):
     if deinterleave:
         # determine if files already exist
         path, outpath1 = get_paths(filename, suffix="FLC1_fix", **kwargs)
@@ -396,11 +375,7 @@ def process_background_files(
         jobs = []
         for path in map(Path, filenames):
             func = functools.partial(
-                make_background_file,
-                path,
-                output_directory=outdir,
-                method=collapse,
-                force=force,
+                make_background_file, path, output_directory=outdir, method=collapse, force=force
             )
             jobs.append(pool.apply_async(func))
         job_iter = jobs if quiet else tqdm(jobs, desc="Collapsing background frames")
@@ -457,7 +432,6 @@ def adaptive_sigma_clip_mask(data, sigma=6, boxsize=8):
             cutout = data[inds]
             med = np.nanmedian(cutout, keepdims=True)
             std = np.nanstd(cutout, keepdims=True)
-            print(med, std)
-            np.abs(cutout - med) > sigma * std
+            output_mask[inds] = np.abs(cutout - med) > sigma * std
 
     return output_mask

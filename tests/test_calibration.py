@@ -1,11 +1,7 @@
 import numpy as np
 import pytest
 from astropy.io import fits
-from vampires_dpp.calibration import (
-    calibrate_file,
-    make_background_file,
-    make_flat_file,
-)
+from vampires_dpp.calibration import calibrate_file, make_background_file, make_flat_file
 
 
 class TestCalibrationFrames:
@@ -43,19 +39,14 @@ class TestCalibrationFrames:
     def test_make_flat_file(self, flat_cube):
         outpath = make_flat_file(flat_cube)
         assert outpath == flat_cube.with_name(f"{flat_cube.stem}_collapsed{flat_cube.suffix}")
-        c, h = fits.getdata(
-            outpath,
-            header=True,
-        )
+        c, h = fits.getdata(outpath, header=True)
         assert c.dtype == np.dtype(">f4")
         assert "DPP_BACK" not in h
         assert np.isclose(np.median(c), 1)
 
     def test_make_flat_file_with_back(self, tmp_path, background_frame, flat_cube):
         outpath = make_flat_file(
-            flat_cube,
-            back_filename=background_frame,
-            outname=tmp_path / "master_flat_cam1.fits",
+            flat_cube, back_filename=background_frame, outname=tmp_path / "master_flat_cam1.fits"
         )
         assert outpath == tmp_path / "master_flat_cam1.fits"
         c, h = fits.getdata(outpath, header=True)

@@ -19,38 +19,7 @@ def test_pol_inds_filter():
     assert np.allclose(states[inds], [1, 1, 2, 2, 3, 3, 4, 4])
 
     states = np.array(
-        [
-            1,
-            1,
-            1,
-            1,
-            2,
-            2,
-            2,
-            2,
-            3,
-            3,
-            3,
-            3,
-            4,
-            4,
-            4,
-            4,
-            1,
-            1,
-            1,
-            1,
-            2,
-            2,
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            4,
-            4,
-        ]
+        [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 4, 4]
     )
     inds = pol_inds(states, 4)
     assert np.allclose(inds, range(16))

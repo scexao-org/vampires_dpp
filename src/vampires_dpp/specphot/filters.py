@@ -3,24 +3,13 @@ from pathlib import Path
 from typing import Final
 
 import astropy.units as u
+import numpy as np
 from astropy.io import fits
 from astropy.utils.data import download_file
 from synphot import SpectralElement
 
-VAMPIRES_STD_FILTERS: Final[set] = {
-    "Open",
-    "625-50",
-    "675-50",
-    "725-50",
-    "750-50",
-    "775-50",
-}
-VAMPIRES_MBI_FILTERS: Final[set] = {
-    "F610",
-    "F670",
-    "F720",
-    "F760",
-}
+VAMPIRES_STD_FILTERS: Final[set] = {"Open", "625-50", "675-50", "725-50", "750-50", "775-50"}
+VAMPIRES_MBI_FILTERS: Final[set] = {"F610", "F670", "F720", "F760"}
 VAMPIRES_NB_FILTERS: Final[set] = {"Halpha", "Ha-Cont", "SII", "SII-Cont"}
 VAMPIRES_FILTERS: Final[set] = set.union(
     VAMPIRES_STD_FILTERS, VAMPIRES_MBI_FILTERS, VAMPIRES_NB_FILTERS
@@ -59,18 +48,12 @@ def update_header_with_filt_info(header: fits.Header, filt: SpectralElement) -> 
     waveset = waves[above_50]
     header["WAVEMIN"] = waveset[0].to(u.nm).value, "[nm] Cut-on wavelength (50%)"
     header["WAVEMAX"] = waveset[-1].to(u.nm).value, "[nm] Cut-off wavelength (50%)"
-    header["WAVEAVE"] = (
-        filt.avgwave(waveset).to(u.nm).value,
-        "[nm] Average bandpass wavelength",
-    )
+    header["WAVEAVE"] = (filt.avgwave(waveset).to(u.nm).value, "[nm] Average bandpass wavelength")
     header["WAVEFWHM"] = (
         header["WAVEMAX"] - header["WAVEMIN"],
         "[nm] Bandpass full width at half-max",
     )
-    header["DLAMLAM"] = (
-        header["WAVEFWHM"] / header["WAVEAVE"],
-        "Filter relative bandwidth",
-    )
+    header["DLAMLAM"] = (header["WAVEFWHM"] / header["WAVEAVE"], "Filter relative bandwidth")
     return header
 
 
@@ -78,6 +61,6 @@ def save_filter_fits(filt: SpectralElement, outpath: Path, force=False) -> Path:
     if not force and outpath.exists():
         return outpath
     filt.to_fits(outpath, overwrite=True)
-    with fits.open(outhpath, "update") as hdul:
+    with fits.open(outpath, "update") as hdul:
         update_header_with_filt_info(hdul[0].header, filt)
     return outpath

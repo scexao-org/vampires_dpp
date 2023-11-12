@@ -1,3 +1,4 @@
+import itertools
 import warnings
 
 import numpy as np
@@ -14,29 +15,17 @@ def add_frame_statistics(frame, frame_err, header):
     N = frame.size
     header["TOTMAX"] = np.nanmax(frame), "[adu] Peak signal in frame"
     header["TOTSUM"] = np.nansum(frame), "[adu] Summed signal in frame"
-    header["TOTSUME"] = (
-        np.sqrt(np.nansum(frame_err**2)),
-        "[adu] Summed signal error in frame",
-    )
+    header["TOTSUME"] = (np.sqrt(np.nansum(frame_err**2)), "[adu] Summed signal error in frame")
     header["TOTMEAN"] = np.nanmean(frame), "[adu] Mean signal in frame"
-    header["TOMEANE"] = (
-        np.sqrt(np.nanmean(frame_err**2)),
-        "[adu] Mean signal error in frame",
-    )
+    header["TOMEANE"] = (np.sqrt(np.nanmean(frame_err**2)), "[adu] Mean signal error in frame")
     header["TOTMED"] = np.nanmedian(frame), "[adu] Median signal in frame"
     header["TOTMEDE"] = (
         header["TOMEANE"] * np.sqrt(np.pi / 2),
         "[adu] Median signal error in frame",
     )
     header["TOTVAR"] = np.nanvar(frame), "[adu^2] Signal variance in frame"
-    header["TOTVARE"] = (
-        header["TOTVAR"] / N**2,
-        "[adu^2] Signal variance error in frame",
-    )
-    header["TOTNVAR"] = (
-        header["TOTVAR"] / header["TOTMEAN"],
-        "[adu] Normed variance in frame",
-    )
+    header["TOTVARE"] = (header["TOTVAR"] / N**2, "[adu^2] Signal variance error in frame")
+    header["TOTNVAR"] = (header["TOTVAR"] / header["TOTMEAN"], "[adu] Normed variance in frame")
     header["TONVARE"] = (
         header["TOTNVAR"]
         * np.hypot(header["TOTVARE"] / header["TOTVAR"], header["TOMEANE"] / header["TOTMEAN"]),
@@ -66,12 +55,7 @@ def safe_annulus_sum(frame, Rin, Rout, center=None):
         center = frame_center(frame)
     mask = ~np.isfinite(frame)
     flux, fluxerr, flag = sep.sum_circann(
-        np.ascontiguousarray(frame).astype("f4"),
-        (center[1],),
-        (center[0],),
-        Rin,
-        Rout,
-        mask=mask,
+        np.ascontiguousarray(frame).astype("f4"), (center[1],), (center[0],), Rin, Rout, mask=mask
     )
 
     return flux[0], fluxerr[0]
@@ -174,7 +158,7 @@ def analyze_file(
         centroids = {"": [frame_center(data)]}
     if psfs is None:
         psfs = itertools.repeat(None)
-    for (_field, ctrs), psf in zip(centroids.items(), psfs):
+    for ctrs, psf in zip(centroids.values(), psfs, strict=True):
         field_metrics = {}
         for ctr in ctrs:
             inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)

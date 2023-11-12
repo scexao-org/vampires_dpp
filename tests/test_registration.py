@@ -21,6 +21,7 @@ def test_centroid_nan():
     data = np.arange(1, 101).reshape(10, 10)
     data[3, 5] = np.nan
     dpp_centroid = offset_centroids(data, np.s_[0 : data.shape[-2], 0 : data.shape[-1]])
+    skimage_centroid = centroid(data)
     np.testing.assert_allclose(dpp_centroid, skimage_centroid)
 
 

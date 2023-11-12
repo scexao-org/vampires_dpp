@@ -175,9 +175,11 @@ class CollapseConfig(BaseModel):
     Parameters
     ----------
     method : str
-        The collapse method, one of `"median"`, `"mean"`, `"varmean"`, or `"biweight"`. By default `"median"`.
+        The collapse method, one of `"median"`, `"mean"`, `"varmean"`, or `"biweight"`. By default
+        `"median"`.
     output_directory : Optional[Path]
-        The collapsed files will be saved to the output directory. If not provided, will use the current working directory. By default None.
+        The collapsed files will be saved to the output directory. If not provided, will use the
+        current working directory. By default None.
     force : bool
         If true, will force this processing step to occur.
 
@@ -420,7 +422,8 @@ class PipelineConfig(BaseModel):
             config = tomli.load(fh)
         if not check_version(config["dpp_version"], dpp.__version__):
             raise ValueError(
-                f"Input pipeline version ({config['dpp_version']}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
+                f"Input pipeline version ({config['dpp_version']}) is not compatible with installed \
+                    version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
             )
         cls.model_validate(config)
 

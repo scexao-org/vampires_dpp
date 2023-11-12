@@ -2,7 +2,7 @@ import click
 from packaging.version import Version
 
 from vampires_dpp import __version__
-from vampires_dpp.pipeline.config import *
+from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.pipeline.pipeline import Pipeline
 
 
@@ -34,7 +34,7 @@ def upgrade_config(config_dict: dict) -> Pipeline:
     if config_version < Version("0.9"):
         config_dict = upgrade_to_0p8(config_dict)
     config_dict["version"] = __version__
-    pipeline = Pipeline(**config_dict)
+    pipeline = PipelineConfig(**config_dict)
     return pipeline
 
 

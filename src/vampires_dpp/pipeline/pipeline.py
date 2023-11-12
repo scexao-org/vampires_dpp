@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import tomli
-import tomli_w
 from astropy.io import fits
 from loguru import logger
 from tqdm.auto import tqdm
@@ -16,39 +15,29 @@ from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calibration import calibrate_file, match_calib_files
 from vampires_dpp.image_processing import (
     collapse_frames,
-    collapse_frames_files,
     combine_frames_files,
     combine_frames_headers,
 )
+from vampires_dpp.lucky_imaging import lucky_image_file
 from vampires_dpp.organization import header_table
+from vampires_dpp.paths import Paths, get_paths, make_dirs
 from vampires_dpp.pdi.mueller_matrices import mueller_matrix_from_file
-from vampires_dpp.pdi.processing import (
-    get_doublediff_set,
-    get_triplediff_set,
-    make_stokes_image,
-)
+from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
-
-from ..lucky_imaging import lucky_image_file
-from ..paths import Paths, get_paths, make_dirs
-from ..synthpsf import create_synth_psf
-from ..util import load_fits
-from ..wcs import apply_wcs
-from .modules import get_psf_centroids_mpl
+from vampires_dpp.synthpsf import create_synth_psf
+from vampires_dpp.wcs import apply_wcs
 
 
 class Pipeline:
-    def __init__(self, config: PipelineConfig, workdir=Path.cwd()):
+    def __init__(self, config: PipelineConfig, workdir: Path | None = None):
         self.master_backgrounds = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}
         self.diff_files = None
         self.config = config
-        self.workdir = workdir
+        self.workdir = workdir if workdir is not None else Path.cwd()
         self.paths = Paths(workdir=self.workdir)
         self.output_table_path = self.paths.products_dir / f"{self.config.name}_table.csv"
-        # cache for PSFs
-        self.synthpsf_cache = {}
 
     def create_input_table(self, filenames) -> pd.DataFrame:
         input_table = header_table(filenames, quiet=True).sort_values("MJD")
@@ -56,45 +45,6 @@ class Pipeline:
         input_table.to_csv(table_path)
         logger.info(f"Saved input header table to: {table_path}")
         return input_table
-
-    def create_raw_input_psf(self, table, max_files=5) -> dict[str, Path]:
-        # group by cameras
-        outfiles = {}
-        for cam_num, group in table.groupby("U_CAMERA"):
-            paths = group["path"].sample(n=max_files)
-            outpath = self.paths.preproc_dir / f"{self.config.name}_raw_psf_cam{cam_num:.0f}.fits"
-            outpath.parent.mkdir(parents=True, exist_ok=True)
-            outfile = collapse_frames_files(paths, output=outpath, cubes=True, quiet=False)
-            outfiles[f"cam{cam_num:.0f}"] = outfile
-            logger.info(f"Saved raw PSF frame to {outpath.absolute()}")
-        return outfiles
-
-    def save_centroids(self, table):
-        raw_psf_filenames = self.create_raw_input_psf(table)
-        for key in ("cam1", "cam2"):
-            path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
-
-            im, hdr = load_fits(raw_psf_filenames[key], header=True)
-            npsfs = 4 if self.config.coronagraphic else 1
-            outpath = self.paths.preproc_dir / f"{self.config.name}_{key}.png"
-            outpath.parent.mkdir(parents=True, exist_ok=True)
-            if "MBI" in hdr.get("OBS-MOD", ""):
-                field_keys = "F610", "F670", "F720", "F760"
-                nfields = 4
-            else:
-                field_keys = ("PSF",)
-                nfields = 1
-            ctrs = get_psf_centroids_mpl(
-                np.squeeze(im),
-                npsfs=npsfs,
-                nfields=nfields,
-                suptitle=key,
-                outpath=outpath,
-            )
-            ctrs_as_dict = dict(zip(field_keys, ctrs.tolist()))
-            with path.open("wb") as fh:
-                tomli_w.dump(ctrs_as_dict, fh)
-            logger.debug(f"Saved {key} centroids to {path}")
 
     def get_centroids(self):
         self.centroids = {}
@@ -281,10 +231,7 @@ class Pipeline:
         psfs = []
         for filt in filts:
             psf = create_synth_psf(
-                fileinfo,
-                filt,
-                npix=config.window_size,
-                output_directory=self.paths.preproc_dir,
+                fileinfo, filt, npix=config.window_size, output_directory=self.paths.preproc_dir
             )
             psfs.append(psf)
 
@@ -468,7 +415,7 @@ class Pipeline:
         # TODO this is kind of ugly
         with mp.Pool(self.num_proc) as pool:
             jobs = []
-            for outpath, path_set in zip(stokes_files, full_path_set):
+            for outpath, path_set in zip(stokes_files, full_path_set, strict=True):
                 if config.mm_correct:
                     mm_paths = table.loc[table["path"].apply(lambda p: p in path_set), "mm_file"]
                 else:

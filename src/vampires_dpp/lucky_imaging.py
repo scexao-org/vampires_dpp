@@ -7,11 +7,7 @@ from astropy.io import fits
 from astropy.nddata import Cutout2D
 
 from .analysis import add_frame_statistics
-from .image_processing import (
-    collapse_cube,
-    combine_frames_headers,
-    shift_frame,
-)
+from .image_processing import collapse_cube, combine_frames_headers, shift_frame
 from .image_registration import offset_centroids
 from .indexing import cutout_inds, frame_center
 from .specphot.specphot import convert_to_surface_brightness, specphot_calibration
@@ -147,7 +143,7 @@ def lucky_image_file(
         coll_frame, header = collapse_cube(np.array(aligned_frames), header=header)
         # collapse error in quadrature
         N = len(aligned_frames)
-        headder["TINT"] = header["EXPTIME"] * N
+        header["TINT"] = header["EXPTIME"] * N
         coll_var_frame, _ = collapse_cube(np.power(aligned_err_frames, 2))
         coll_err_frame = np.sqrt(coll_var_frame / N)
         ## Step 4: Recenter

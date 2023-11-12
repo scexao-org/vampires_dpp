@@ -2,12 +2,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.time import Time
 
-from vampires_dpp.constants import (
-    CMOSVAMPIRES,
-    EMCCDVAMPIRES,
-    SUBARU_LOC,
-    InstrumentInfo,
-)
+from vampires_dpp.constants import CMOSVAMPIRES, EMCCDVAMPIRES, SUBARU_LOC, InstrumentInfo
 from vampires_dpp.util import wrap_angle
 
 
@@ -97,27 +92,18 @@ def fix_header(header):
         header["MJD"] = fix_typical_time_mjd(header)
     # add RET-ANG1 and similar headers to be more consistent
     if "DETECTOR" not in header:
-        header["DETECTOR"] = (
-            f"VCAM{header['U_CAMERA']} - Ultra 897",
-            "Name of the detector",
-        )
+        header["DETECTOR"] = (f"VCAM{header['U_CAMERA']} - Ultra 897", "Name of the detector")
     if "OBS-MOD" not in header:
         header["OBS-MOD"] = "IPOL", "Observation mode"
     if "U_EMGAIN" in header:
         header["DETGAIN"] = header["U_EMGAIN"], "Detector multiplication factor"
     if "U_HWPANG" in header:
-        header["RET-ANG1"] = (
-            header["U_HWPANG"],
-            "[deg] Position angle of first retarder plate",
-        )
+        header["RET-ANG1"] = (header["U_HWPANG"], "[deg] Position angle of first retarder plate")
         header["RETPLAT1"] = "HWP(NIR)", "Identifier of first retarder plate"
     if "U_FLCSTT" in header:
         header["U_FLC"] = "A" if header["U_FLCSTT"] == 1 else "B", "VAMPIRES FLC State"
     if "EXPTIME" not in header:
-        header["EXPTIME"] = (
-            header["U_AQTINT"] / 1e6,
-            "[s] Total integration time of the frame",
-        )
+        header["EXPTIME"] = (header["U_AQTINT"] / 1e6, "[s] Total integration time of the frame")
     if "FILTER01" not in header:
         header["FILTER01"] = header["U_FILTER"]
         header["FILTER02"] = "Unknown"

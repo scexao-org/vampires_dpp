@@ -6,15 +6,7 @@ from numpy.typing import NDArray
 
 from vampires_dpp.constants import SUBARU_LOC
 
-__all__ = (
-    "hwp",
-    "qwp",
-    "waveplate",
-    "rotator",
-    "generic",
-    "linear_polarizer",
-    "wollaston",
-)
+__all__ = ("hwp", "qwp", "waveplate", "rotator", "generic", "linear_polarizer", "wollaston")
 
 
 def hwp(theta=0) -> NDArray:
@@ -327,12 +319,7 @@ def wollaston(ordinary: bool = True, eta=1) -> NDArray:
 
     radicand = (1 - eta) * (1 + eta)
     M = np.array(
-        (
-            (1, eta, 0, 0),
-            (eta, 1, 0, 0),
-            (0, 0, np.sqrt(radicand), 0),
-            (0, 0, 0, np.sqrt(radicand)),
-        )
+        ((1, eta, 0, 0), (eta, 1, 0, 0), (0, 0, np.sqrt(radicand), 0), (0, 0, 0, np.sqrt(radicand)))
     )
     return 0.5 * M
 
@@ -454,9 +441,7 @@ def mueller_matrix_from_header(header, adi_sync=True, ideal=False):
             wollaston(beam),
             waveplate(flc_theta, filt_dict["flc_delta"]),
             generic(
-                filt_dict["optics_theta"],
-                filt_dict["optics_diatt"],
-                filt_dict["optics_delta"],
+                filt_dict["optics_theta"], filt_dict["optics_diatt"], filt_dict["optics_delta"]
             ),
             waveplate(imr_theta, filt_dict["imr_delta"]),
             waveplate(hwp_theta, filt_dict["hwp_delta"]),

@@ -41,13 +41,8 @@ class EMCCDVAMPIRES(InstrumentInfo):
 
     @property
     def fullwell(self) -> float:
-        if self.emgain == 0:
-            # with EM gain off, using 180K register
-            fullwell = 1.8e5  # e-
-        else:
-            # with EM gain on, limited by 16-bit register almost always
-            fullwell = min(8e5, 2**16 * self.gain)
-        return fullwell
+        fullwell = 180000 if self.emgain == 0 else min(800000, 2**16 * self.gain)
+        return float(fullwell)
 
     @property
     def effgain(self) -> float:

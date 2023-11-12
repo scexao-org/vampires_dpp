@@ -18,9 +18,7 @@ from vampires_dpp.pipeline.deprecation import upgrade_config
     help="Sorts raw data based on the data type. This will either use the `DATA-TYP` header value or the `U_OGFNAM` header, depending on when your data was taken.",
 )
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option(
     "--outdir",
@@ -45,35 +43,23 @@ from vampires_dpp.pipeline.deprecation import upgrade_config
     prompt="Would you like to copy files?",
     help="copy files instead of moving them",
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
-def sort_raw(filenames, outdir=Path.cwd(), num_proc=DEFAULT_NPROC, ext=0, copy=False, quiet=False):
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
+def sort_raw(filenames, outdir, num_proc=DEFAULT_NPROC, ext=0, copy=False, quiet=False):
     sort_files(
-        filenames,
-        copy=copy,
-        ext=ext,
-        output_directory=outdir,
-        num_proc=num_proc,
-        quiet=quiet,
+        filenames, copy=copy, ext=ext, output_directory=outdir, num_proc=num_proc, quiet=quiet
     )
 
 
 ########## table ##########
 
 
-@main.command(
+@click.command(
     name="table",
     short_help="Create CSV from headers",
     help="Go through each file and combine the header information into a single CSV.",
 )
 @click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option(
     "-t",
@@ -97,12 +83,7 @@ def sort_raw(filenames, outdir=Path.cwd(), num_proc=DEFAULT_NPROC, ext=0, copy=F
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 def table(filenames, _type, output, num_proc, quiet):
     # handle name clashes
     outpath = Path(output).resolve()
@@ -113,8 +94,7 @@ def table(filenames, _type, output, num_proc, quiet):
 
     if outname.exists():
         click.confirm(
-            f"{outname.name} already exists in the output directory. Overwrite?",
-            abort=True,
+            f"{outname.name} already exists in the output directory. Overwrite?", abort=True
         )
     df = header_table(filenames, num_proc=num_proc, quiet=quiet)
     if _type == "csv":
@@ -127,15 +107,12 @@ def table(filenames, _type, output, num_proc, quiet):
 ########## upgrade ##########
 
 
-@main.command(
+@click.command(
     name="upgrade",
     short_help="Upgrade configuration file",
     help=f"Tries to automatically upgrade a configuration file to the current version ({dpp.__version__}), prompting where necessary.",
 )
-@click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.option(
     "--output",
     "-o",
@@ -143,10 +120,7 @@ def table(filenames, _type, output, num_proc, quiet):
     help="Output path.",
 )
 @click.option(
-    "--edit",
-    "-e",
-    is_flag=True,
-    help="Launch configuration file in editor after creation.",
+    "--edit", "-e", is_flag=True, help="Launch configuration file in editor after creation."
 )
 def upgrade(config, output, edit):
     if output is None:

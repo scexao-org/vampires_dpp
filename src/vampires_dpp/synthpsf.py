@@ -49,10 +49,9 @@ def create_synth_psf(header, filt, npix=30, output_directory=None, nwave=7, **kw
     through = obs_filt.model.lookup_table
     above_50 = np.nonzero(through >= 0.5 * np.nanmax(through))
     waves = np.linspace(waves[above_50].min(), waves[above_50].max(), nwave)
-    through = obs_filt(waves)
 
     field_sum = 0
-    for wave, through in zip(waves, through):
+    for wave, through in zip(waves, obs_filt(waves), strict=True):
         wf = hp.Wavefront(pupil_field, wave.to("m").value)
         focal_plane = prop(wf).intensity * through.value
         field_sum += focal_plane.shaped

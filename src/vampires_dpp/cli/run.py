@@ -5,9 +5,7 @@ import click
 
 import vampires_dpp as dpp
 from vampires_dpp.constants import DEFAULT_NPROC
-from vampires_dpp.pipeline.config import (
-    PipelineConfig,
-)
+from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.util import check_version
 
@@ -17,14 +15,9 @@ from . import logger
 
 
 @click.command(name="run", help="Run the data processing pipeline")
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
-@click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
@@ -53,14 +46,9 @@ def run(config: Path, filenames, num_proc, outdir):
 
 
 @click.command(name="pdi", help="Run the polarimetric differential imaging pipeline")
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
 @click.argument(
-    "config",
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
-)
-@click.argument(
-    "filenames",
-    nargs=-1,
-    type=click.Path(dir_okay=False, readable=True, path_type=Path),
+    "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
@@ -71,12 +59,7 @@ def run(config: Path, filenames, num_proc, outdir):
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="Silence progress bars and extraneous logging.",
-)
+@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 def pdi(config, filenames, num_proc, quiet, outdir):
     # make sure versions match within SemVar
     logger.add(outdir / "debug.log", level="DEBUG", enqueue=True, colorize=False)
