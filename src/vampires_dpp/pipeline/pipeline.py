@@ -420,7 +420,9 @@ class Pipeline:
             jobs = []
             for outpath, path_set in zip(stokes_files, full_path_set, strict=True):
                 if config.mm_correct:
-                    mm_paths = table.loc[table["path"].apply(lambda p: p in path_set), "mm_file"]
+                    mask = np.logical_or.reduce(table["path"] == p for p in path_set)
+                    subset = table.loc[mask]
+                    mm_paths = subset["mm_file"]
                 else:
                     mm_paths = None
                 if len(path_set) not in (8, 16):

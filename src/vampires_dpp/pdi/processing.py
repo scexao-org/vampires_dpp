@@ -87,10 +87,10 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     # reform hdulist
     prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs.pop("PRIMARY"))
     hdul = fits.HDUList(prim_hdu)
-    for frame, hdr in zip(stokes_cube, stokes_hdrs.values()):
+    for frame, hdr in zip(stokes_cube, stokes_hdrs.values(), strict=True):
         hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
         hdul.append(hdu)
-    for frame_err, hdr in zip(stokes_err, stokes_hdrs.values()):
+    for frame_err, hdr in zip(stokes_err, stokes_hdrs.values(), strict=True):
         hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERR")
         hdul.append(hdu)
     return hdul
@@ -141,10 +141,10 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
     # reform hdulist
     prim_hdu = fits.PrimaryHDU(stokes_cube, stokes_hdrs.pop("PRIMARY"))
     hdul = fits.HDUList(prim_hdu)
-    for frame, hdr in zip(stokes_cube, stokes_hdrs.values()):
+    for frame, hdr in zip(stokes_cube, stokes_hdrs.values(), strict=True):
         hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
         hdul.append(hdu)
-    for frame_err, hdr in zip(stokes_err, stokes_hdrs.values()):
+    for frame_err, hdr in zip(stokes_err, stokes_hdrs.values(), strict=True):
         hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERR")
         hdul.append(hdu)
     return hdul
@@ -262,7 +262,9 @@ def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=Fal
     headers = []
     mueller_mats = []
     for file, mm_file in tqdm.tqdm(
-        zip(filenames, mm_filenames), total=len(filenames), desc="Least-squares calibration"
+        zip(filenames, mm_filenames, strict=True),
+        total=len(filenames),
+        desc="Least-squares calibration",
     ):
         cube, hdr = load_fits(file, header=True, memmap=False)
         # rotate to N up E left
@@ -411,10 +413,10 @@ def make_stokes_image(
     prim_hdr = apply_wcs(combine_frames_headers(output_hdrs), angle=0)
     prim_hdu = fits.PrimaryHDU(np.array(output_data), prim_hdr)
     hdul = fits.HDUList(prim_hdu)
-    for frame, hdr in zip(output_data, output_hdrs):
+    for frame, hdr in zip(output_data, output_hdrs, strict=True):
         hdu = fits.ImageHDU(frame, header=hdr, name=hdr["FIELD"])
         hdul.append(hdu)
-    for frame_err, hdr in zip(output_data_err, output_hdrs):
+    for frame_err, hdr in zip(output_data_err, output_hdrs, strict=True):
         hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{hdr['FIELD']}ERR")
         hdul.append(hdu)
     hdul.writeto(outpath, overwrite=True)

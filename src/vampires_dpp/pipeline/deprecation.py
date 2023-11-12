@@ -7,24 +7,6 @@ from vampires_dpp.pipeline.pipeline import Pipeline
 
 
 def upgrade_config(config_dict: dict) -> Pipeline:
-    f"""
-    Tries to upgrade an old configuration to a new version, appropriately reflecting name changes and prompting the user for input when needed.
-
-    .. admonition::
-        :class: tip
-
-        In some cases (e.g. pre v0.6) it is necessary to recreate a configuration using `dpp new` because this function is not able to convert those version ranges.
-
-    Parameters
-    ----------
-    config : Pipeline
-        Input Pipeline configuration
-
-    Returns
-    -------
-    Pipeline
-        Pipeline configuration upgraded to the current package version ({__version__}).
-    """
     config_version = Version(config_dict["version"])
     ## start with version 0.7, first breaking changes
     if config_version < Version("0.7"):
@@ -36,6 +18,28 @@ def upgrade_config(config_dict: dict) -> Pipeline:
     config_dict["version"] = __version__
     pipeline = PipelineConfig(**config_dict)
     return pipeline
+
+
+upgrade_config.__doc__ = f"""
+Tries to upgrade an old configuration to a new version, appropriately reflecting name changes and 
+prompting the user for input when needed.
+
+.. admonition::
+    :class: tip
+
+    In some cases (e.g. pre v0.6) it is necessary to recreate a configuration using `dpp new` 
+    because this function is not able to convert those version ranges.
+
+Parameters
+----------
+config : Pipeline
+    Input Pipeline configuration
+
+Returns
+-------
+Pipeline
+    Pipeline configuration upgraded to the current package version ({__version__}).
+"""
 
 
 def upgrade_to_0p7(config_dict):

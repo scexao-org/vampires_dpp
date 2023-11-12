@@ -470,7 +470,7 @@ def mueller_matrix_from_file(filename, outpath, force=False, **kwargs):
             headers.append(hdu.header)
             mms.append(mueller_matrix_from_header(hdu.header, **kwargs).astype("f4"))
         prim_hdu = fits.PrimaryHDU(np.array(mms), hdul[0].header)
-    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(mms, headers))
+    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(mms, headers, strict=True))
     hdul = fits.HDUList([prim_hdu, *hdus])
     hdul.writeto(outpath, overwrite=True)
     return outpath

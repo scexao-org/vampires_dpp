@@ -1,10 +1,11 @@
 import multiprocessing
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal
+from typing import Final, Literal
 
 import click
 import numpy as np
+import tomli_w
 from numpy.typing import NDArray
 
 from vampires_dpp.constants import DEFAULT_NPROC
@@ -12,6 +13,7 @@ from vampires_dpp.image_processing import collapse_frames_files
 from vampires_dpp.image_registration import offset_centroids
 from vampires_dpp.indexing import cutout_inds, frame_center
 from vampires_dpp.organization import header_table
+from vampires_dpp.paths import Paths
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.util import load_fits
 
@@ -21,68 +23,110 @@ __all__ = "centroid"
 
 
 def get_psf_centroids_manual(cams: Sequence[int], npsfs: int) -> dict[str, NDArray]:
-    centroids = {f"cam{cam:.01f}": np.empty((npsfs, 2), dtype="f4") for cam in cams}
-    for key in centroids:
-        click.echo(f"Enter comma-separated x, y centroids for {click.style(key, bold=True)}")
+    centroids = {f"cam{cam:.0f}": np.empty((1, npsfs, 2), dtype="f4") for cam in cams}
+    for key, cent_arr in centroids.items():
+        click.echo(f"Enter comma-separated x, y centroids for {click.style(key, bold=True)}:")
         for i in range(npsfs):
-            response = click.prompt(f" - PSF {i} (x, y)")
-            centroids[key][i] = map(float, response.split(","))
+            response = click.prompt(f" - PSF: {i} (x, y)")
+            cent_arr[0, i] = [float(r) for r in response.split(",")]
     # output is (nspfs, (x, y)) with +1 in x and y, following FITS/DS9 standard
     return centroids
 
 
-def get_mbi_centroids_mpl(mean_image, coronagraphic=False, suptitle=None):
-    pass
-
-
-def get_mbi_centroids_manual(cams: Sequence[int], fields: Sequence[str], npsfs: int) -> NDArray:
-    centroids = np.empty((len(fields), npsfs, 2), dtype="f4")
-    for i, field in enumerate(fields):
-        click.echo(f"Field: {field}")
-        for j in range(npsfs):
-            response = click.prompt(f" - Enter (x, y) centroid for PSF {i} (comma-separated)")
-            centroids[i, j] = map(float, response.split(","))
+def get_mbi_centroids_manual(
+    cams: Sequence[int], fields: Sequence[str], npsfs: int
+) -> dict[str, NDArray]:
+    centroids = {f"cam{cam:.0f}": np.empty((len(fields), npsfs, 2), dtype="f4") for cam in cams}
+    for cam_key, cent_arr in centroids.items():
+        click.echo(f"Enter comma-separated x, y centroids for {click.style(cam_key, bold=True)}:")
+        for i, field in enumerate(fields):
+            for j in range(npsfs):
+                response = click.prompt(f" - Field: {field} PSF: {i} (x, y)")
+                cent_arr[i, j] = [float(r) for r in response.split(",")]
     return centroids
 
 
-def get_psf_centroids_mpl(cams: dict[str, Path], fields: Sequence[str], npsfs=1):
+MPL_INSTRUCTIONS: Final[str] = "<left-click> select, <right-click> delete"
+
+
+def get_psf_centroids_mpl(cams: dict[str, Path], npsfs=1) -> dict[str, NDArray]:
     import matplotlib.colors as col
     import matplotlib.pyplot as plt
 
     plt.ion()
     fig, ax = plt.subplots()
+    fig.supxlabel(MPL_INSTRUCTIONS)
+    ax.set_xlabel("x (px)")
+    ax.set_ylabel("y (px)")
 
+    # for each cam
+    centroids = {cam: np.empty((1, npsfs, 2), dtype="f4") for cam in cams}
+    for cam, img_path in cams.items():
+        data = load_fits(img_path)
+        # get list of (x, y) tuples from user clicks
+        cent_arr = centroids[cam]
+        ax.imshow(data, origin="lower", cmap="magma", norm=col.LogNorm())
+        ax.set_title(f"Please select {cam} centroids")
+
+        fig.tight_layout()
+        fig.show()
+        points = fig.ginput(npsfs, show_clicks=True)
+
+        for i, point in enumerate(points):
+            inds = cutout_inds(data, center=(point[1], point[0]), window=15)
+            cent_arr[0, i] = offset_centroids(data, None, inds)["com"]
+            ax.text(cent_arr[0, i, 1] + 2, cent_arr[0, i, 0] + 2, str(i), c="green")
+        ax.scatter(cent_arr[0, i, 1], cent_arr[0, i, 0], marker="+", c="green")
+        fig.show()
+        # flip output so orientation is (cam, field, x, y)
+        centroids[cam] = np.flip(cent_arr, axis=-1)
+    plt.show(block=False)
+    plt.ioff()
+
+    return centroids
+
+
+def get_mbi_centroids_mpl(
+    cams: dict[str, Path], fields: Sequence[str], npsfs=1
+) -> dict[str, NDArray]:
+    import matplotlib.colors as col
+    import matplotlib.pyplot as plt
+
+    plt.ion()
+    fig, ax = plt.subplots()
+    fig.supxlabel(MPL_INSTRUCTIONS)
     ax.set_xlabel("x (px)")
     ax.set_ylabel("y (px)")
 
     nfields = len(fields)
+    is_mbir = nfields == 3
     # for each cam
-    centroids = {}
+    centroids = {cam: np.empty((nfields, npsfs, 2), dtype="f4") for cam in cams}
     for cam, img_path in cams.items():
         data = load_fits(img_path)
         # get list of (x, y) tuples from user clicks
-        output = np.empty((nfields, npsfs, 2))
-        fig.suptitle(cam)
+        cent_arr = centroids[cam]
         for i, field in enumerate(fields):
-            inds = get_mbi_cutout_inds(
-                data, camera=int(cam[-1]), field=field, reduced=len(fields) == 3
-            )
-            ext = (inds[1].start, inds[1].stop, inds[0].start, inds[1].stop)
-            ax.imshow(data[inds], origin="lower", cmap="magma", norm=col.LogNorm(), extent=ext)
-            ax.set_title(f"Please select centroids for field: {field}")
+            inds = get_mbi_cutout_inds(data, camera=int(cam[-1]), field=field, reduced=is_mbir)
+            field_cutout = data[inds]
+            ax.imshow(field_cutout, origin="lower", cmap="magma", norm=col.LogNorm())
+            ax.set_title(f"Please select {cam} centroids for field: {field}")
 
             fig.tight_layout()
             fig.show()
             points = fig.ginput(npsfs, show_clicks=True)
 
             for j, point in enumerate(points):
-                inds = cutout_inds(data[inds], center=(point[1], point[0]), window=15)
-                output[i, j] = offset_centroids(data[inds], None, inds)["com"]
-                ax.text(output[i, j, 1] + 2, output[i, j, 0] + 2, str(i), c="green")
-            ax.scatter(output[i, :, 1], output[i, :, 0], marker="+", c="green")
+                wind_inds = cutout_inds(field_cutout, center=(point[1], point[0]), window=15)
+                cent_arr[i, j] = offset_centroids(field_cutout, None, wind_inds)["com"]
+                # ax.text(cent_arr[i, j, 1] + 2, cent_arr[i, j, 0] + 2, str(i), c="green")
+            # ax.scatter(cent_arr[i, :, 1], cent_arr[i, :, 0], marker="+", c="green")
             fig.show()
+            # offset by mbi inds
+            cent_arr[i, :, 0] += inds[-2].start
+            cent_arr[i, :, 1] += inds[-1].start
         # flip output so orientation is (cam, field, x, y)
-        centroids[cam] = np.flip(output, axis=-1)
+        centroids[cam] = np.flip(cent_arr, axis=-1)
     plt.show(block=False)
     plt.ioff()
 
@@ -107,49 +151,41 @@ def get_mbi_cutout_inds(
         case "F760":
             x = hx * 1.75
             y = hy * 0.5
+        case _:
+            msg = f"Invalid MBI field {field}"
+            raise ValueError(msg)
     if reduced:
         y *= 2
     # flip y axis for cam 1 indices
     if camera == 1:
         y = data.shape[-2] - y
-
     return cutout_inds(data, window=500, center=(y, x))
 
 
-def create_raw_input_psfs(output_directory, table, max_files=10) -> dict[str, Path]:
+def create_raw_input_psfs(table, basename: Path, max_files=10) -> dict[str, Path]:
     # group by cameras
     outfiles = {}
     for cam_num, group in table.groupby("U_CAMERA"):
         paths = group["path"].sample(n=max_files)
-        outpath.parent.mkdir(parents=True, exist_ok=True)
-        outfile = collapse_frames_files(
-            paths,
-            output_directory=output_directory,
-            suffix=f"_raw_psf_cam{cam_num:.01f}",
-            cubes=True,
-            quiet=False,
-        )
+        outname = basename.with_name(f"{basename.name}_cam{cam_num:.0f}.fits")
+        outfile = collapse_frames_files(paths, output=outname, cubes=True, quiet=False)
         outfiles[f"cam{cam_num:.0f}"] = outfile
-        logger.info(f"Saved raw PSF frame to {outpath.absolute()}")
+        logger.info(f"Saved raw PSF frame to {outname}")
     return outfiles
 
 
-# def save_centroids(self, table):
-#     raw_psf_filenames = create_raw_input_psfs(table)
-#     for key in ("cam1", "cam2"):
-#         path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
+def save_centroids(
+    centroids: dict[str, NDArray], fields: Sequence[str], basename: Path
+) -> dict[str, Path]:
+    outpaths = {}
+    for cam_key, cent_arr in centroids.items():
+        outpaths[cam_key] = basename.with_name(f"{basename.name}_{cam_key}.toml")
+        cent_dict = dict(zip(fields, cent_arr.tolist(), strict=True))
+        with outpaths[cam_key].open("wb") as fh:
+            tomli_w.dump(cent_dict, fh)
+        logger.info(f"Saved {cam_key} centroids to {outpaths[cam_key]}")
+    return outpaths
 
-#         im, hdr = load_fits(raw_psf_filenames[key], header=True)
-#         outpath = self.paths.preproc_dir / f"{self.config.name}_{key}.png"
-#         outpath.parent.mkdir(parents=True, exist_ok=True)
-
-#         ctrs = get_psf_centroids_mpl(
-#             np.squeeze(im), npsfs=npsfs, nfields=nfields, suptitle=key, outpath=outpath
-#         )
-#         ctrs_as_dict = dict(zip(field_keys, ctrs.tolist()))
-#         with path.open("wb") as fh:
-#             tomli_w.dump(ctrs_as_dict, fh)
-#         logger.debug(f"Saved {key} centroids to {path}")
 
 ########## centroid ##########
 
@@ -172,29 +208,37 @@ def centroid(config: Path, filenames, num_proc, manual=False):
     # make sure versions match within SemVar
     pipeline_config = PipelineConfig.from_file(config)
     # figure out outpath
-    outpath = "TODO"
+    paths = Paths(Path.cwd())
+    paths.preproc_dir.mkdir(parents=True, exist_ok=True)
     npsfs = 4 if pipeline_config.coronagraphic else 1
     table = header_table(filenames, num_proc=num_proc)
     obsmodes = table["OBS-MOD"].unique()
+    # default for standard obs, overwritten by MBI
+    fields = ("SCI",)
     if manual:
         cams = table["U_CAMERA"].unique()
-        if "MBIR" in obsmodes.iloc[0]:
+        if "MBIR" in obsmodes[0]:
             fields = ("F670", "F720", "F760")
-            get_mbi_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
-        elif "MBI" in obsmodes.iloc[0]:
+            centroids = get_mbi_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
+        elif "MBI" in obsmodes[0]:
             fields = ("F610", "F670", "F720", "F760")
-            get_mbi_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
+            centroids = get_mbi_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
         else:
-            get_psf_centroids_manual(cams=cams, npsfs=npsfs)
+            centroids = get_psf_centroids_manual(cams=cams, npsfs=npsfs)
 
     else:
-        raw_psf_dict = create_raw_input_psfs(table, output_directory=outpath)
+        name = paths.preproc_dir / f"{pipeline_config.name}_raw_psf"
+        raw_psf_dict = create_raw_input_psfs(table, basename=name)
 
-        if "MBIR" in obsmodes.iloc[0]:
+        if "MBIR" in obsmodes[0]:
             fields = ("F670", "F720", "F760")
-            get_mbi_centroids_mpl(cams=raw_psf_dict, fields=fields, npsfs=npsfs)
-        elif "MBI" in obsmodes.iloc[0]:
+            centroids = get_mbi_centroids_mpl(cams=raw_psf_dict, fields=fields, npsfs=npsfs)
+        elif "MBI" in obsmodes[0]:
             fields = ("F610", "F670", "F720", "F760")
-            get_mbi_centroids_mpl(cams=raw_psf_dict, fields=fields, npsfs=npsfs)
+            centroids = get_mbi_centroids_mpl(cams=raw_psf_dict, fields=fields, npsfs=npsfs)
         else:
-            get_psf_centroids_mpl(cams=raw_psf_dict, npsfs=npsfs)
+            centroids = get_psf_centroids_mpl(cams=raw_psf_dict, npsfs=npsfs)
+
+    # save outputs
+    basename = paths.preproc_dir / f"{pipeline_config.name}_centroids"
+    save_centroids(centroids, fields=fields, basename=basename)

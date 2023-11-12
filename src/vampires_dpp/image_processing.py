@@ -390,7 +390,8 @@ def collapse_frames_files(filenames, output, force=False, cubes=False, quiet=Tru
         # another way would be to set ulimit -n <MAX_FILES>
         frame, header = load_fits(filename, header=True, memmap=False)
         if cubes:
-            frame = frame[np.random.randint(0, len(frame))]
+            rand_idx = np.random.default_rng().integers(low=0, high=len(frame))
+            frame = frame[rand_idx]
         frames.append(frame)
         headers.append(header)
 

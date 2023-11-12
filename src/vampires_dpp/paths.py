@@ -3,8 +3,8 @@ from pathlib import Path
 
 
 class Paths:
-    def __init__(self, workdir=Path.cwd()):
-        self.workdir = Path(workdir)
+    def __init__(self, workdir=None):
+        self.workdir = Path.cwd() if workdir is None else Path(workdir)
 
     @property
     def preproc_dir(self) -> Path:

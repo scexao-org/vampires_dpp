@@ -425,7 +425,7 @@ class PipelineConfig(BaseModel):
                     with installed version of `vampires_dpp` ({dpp.__version__}). Try running \
                     `dpp upgrade {config}`."
             raise ValueError(msg)
-        cls.model_validate(config)
+        return cls.model_validate(config)
 
     def to_toml(self):
         # get serializable output using pydantic

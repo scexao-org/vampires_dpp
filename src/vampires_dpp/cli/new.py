@@ -63,25 +63,7 @@ def createListCompleter(items):
     return listCompleter
 
 
-@click.command(name="new", help="Generate configuration files")
-@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
-@click.option(
-    "--edit", "-e", is_flag=True, help="Launch configuration file in editor after creation."
-)
-@click.pass_context
-def new_config(ctx, config, edit):
-    readline.set_completer_delims(" \t\n;")
-    readline.parse_and_bind("tab: complete")
-
-    ## check if output file exists
-    if config.is_file():
-        overwrite = click.confirm(
-            f"{config.name} already exists in output directory, would you like to overwrite it?",
-            default=False,
-        )
-        if not overwrite:
-            ctx.exit()
-
+def get_starting_template():
     ## get template
     template_choices = ["none", "singlecam", "pdi", "sdi"]
 
@@ -101,12 +83,10 @@ def new_config(ctx, config, edit):
         case _:
             tpl = VAMPIRES_BLANK
     readline.set_completer()
+    return tpl
 
-    ## get name
-    name_guess = config.stem
-    name = click.prompt("Path-friendly name for this reduction", default=name_guess)
-    tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
 
+def get_target_settings(template):
     ## get target
     obj = click.prompt("SIMBAD-friendly object name (optional)", default="")
     coord = None
@@ -138,7 +118,7 @@ def new_config(ctx, config, edit):
                         obj = _input
 
         if coord is not None:
-            tpl.object = ObjectConfig(
+            template.object = ObjectConfig(
                 object=obj,
                 ra=coord.ra.to_string("hour", sep=":", pad=True),
                 dec=coord.dec.to_string("deg", sep=":", pad=True),
@@ -150,6 +130,46 @@ def new_config(ctx, config, edit):
             )
     if coord is None:
         click.echo(" - No coordinate information set; will only use header values.")
+
+    return template
+
+
+def get_base_settings(template):
+    ## Coronagraph
+    template.coronagraphic = click.confirm("Did you use a coronagraph?", default=False)
+    template.save_adi_cubes = click.confirm(
+        "Would you like to save ADI cubes?", default=template.save_adi_cubes
+    )
+
+
+@click.command(name="new", help="Generate configuration files")
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
+@click.option(
+    "--edit", "-e", is_flag=True, help="Launch configuration file in editor after creation."
+)
+@click.pass_context
+def new_config(ctx, config, edit):
+    readline.set_completer_delims(" \t\n;")
+    readline.parse_and_bind("tab: complete")
+
+    ## check if output file exists
+    if config.is_file():
+        overwrite = click.confirm(
+            f"{config.name} already exists in output directory, would you like to overwrite it?",
+            default=False,
+        )
+        if not overwrite:
+            ctx.exit()
+
+    ## get name
+    name_guess = config.stem
+    name = click.prompt("Path-friendly name for this reduction", default=name_guess)
+
+    tpl = get_starting_template()
+
+    tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
+
+    tpl = get_target_settings(tpl)
 
     readline.set_completer(pathCompleter)
     calib_dir = click.prompt("Enter path to calibration files", default="")
@@ -168,9 +188,6 @@ def new_config(ctx, config, edit):
     tpl.calibrate.save_intermediate = click.confirm(
         "Would you like to save calibrated files?", default=tpl.calibrate.save_intermediate
     )
-
-    ## Coronagraph
-    tpl.coronagraphic = click.confirm("Did you use a coronagraph?", default=False)
 
     ## Analysis
     tpl.analysis.window_size = click.prompt(
