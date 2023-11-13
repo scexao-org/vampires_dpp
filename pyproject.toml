@@ -16,6 +16,7 @@ dependencies = [
     "astroquery",
     "astroscrappy",
     "click",
+    "hcipy",
     "loguru",
     "numpy",
     "opencv-python",

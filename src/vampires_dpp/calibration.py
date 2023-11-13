@@ -287,6 +287,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     flat_err /= normval
     header["FLATNORM"] = normval, "[adu] Flat field normalization factor"
     header["CALTYPE"] = "FLAT", "DPP calibration file type"
+    header["BUNIT"] = "", "Unit of original values"
     bpmask = adaptive_sigma_clip_mask(master_flat)
     # get bad pixel mask using lacosmic
     # bpmask, _ = detect_cosmics(
@@ -321,31 +322,40 @@ def match_calib_files(filenames, calib_files):
         if len(subset) == 0:
             rows.append(dict(path=path, backfile=None, flatfile=None))
             continue
-        if "U_EMGAIN" in cal_table.columns:
-            mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
-        else:
-            mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
 
         # background files
-        back_mask = mask & (subset["CALTYPE"] == "BACKGROUND")
-        back_mask &= np.abs(subset["EXPTIME"] - hdr["EXPTIME"]) < 0.1
+        back_mask = subset["CALTYPE"] == "BACKGROUND"
         if np.any(back_mask):
+            if "U_EMGAIN" in cal_table.columns:
+                mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
+            else:
+                mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
+            if np.any(mask):
+                back_mask &= mask
+                mask = np.abs(subset["EXPTIME"] - hdr["EXPTIME"]) < 0.1
+                if np.any(mask):
+                    back_mask &= mask
             back_subset = subset.loc[back_mask]
             delta_time = Time(back_subset["MJD"], format="mjd", scale="utc") - obstime
             back_path = back_subset["path"].iloc[np.abs(delta_time.jd).argmin()]
         else:
             back_path = None
+
         # flat files
-        flat_mask = mask & (subset["CALTYPE"] == "FLAT")
+        flat_mask = subset["CALTYPE"] == "FLAT"
         if np.any(flat_mask):
-            _mask = subset["FILTER01"] == hdr["FILTER01"]
-            if np.any(_mask):
-                flat_mask &= _mask
-        if np.any(flat_mask):
-            _mask = subset["FILTER02"] == hdr["FILTER02"]
-            if np.any(_mask):
-                flat_mask &= _mask
-        if np.any(flat_mask):
+            if "U_EMGAIN" in cal_table.columns:
+                mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
+            else:
+                mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
+            if np.any(mask):
+                flat_mask &= mask
+                mask = subset["FILTER01"] == hdr["FILTER01"]
+                if np.any(mask):
+                    flat_mask &= mask
+                    mask = subset["FILTER02"] == hdr["FILTER02"]
+                    if np.any(mask):
+                        flat_mask &= mask
             flat_subset = subset.loc[flat_mask]
             delta_time = Time(flat_subset["MJD"], format="mjd", scale="utc") - obstime
             flat_path = flat_subset["path"].iloc[np.abs(delta_time.jd).argmin()]
