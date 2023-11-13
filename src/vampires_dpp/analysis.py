@@ -66,6 +66,10 @@ def safe_annulus_sum(frame, Rin, Rout, center=None):
 def estimate_strehl(*args, **kwargs):
     raise NotImplementedError()
 
+    ## use PSF centers to recenter
+    if recenter:
+        offsets = np.subtract(old_ctr, ctr)
+        frame = shift_frame(frame, offsets)
 
 def analyze_fields(
     cube,
