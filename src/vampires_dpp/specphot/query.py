@@ -9,8 +9,20 @@ from astroquery.vizier import Vizier
 def get_simbad_table(obj: str) -> QTable:
     sim = Simbad()
     sim.remove_votable_fields("coordinates")
-    sim.add_votable_fields("sptype")
+    sim.add_votable_fields("sptype", "flux(V)", "flux(R)", "flux(I)", "flux(r)", "flux(i)")
     return sim.query_object(obj)
+
+
+def get_simbad_flux(
+    table: QTable, preference: Iterable[str] = ("r", "R", "i", "I", "V")
+) -> tuple[float, str] | None:
+    for band in preference:
+        key = f"FLUX_{band}"
+        if not table[key].mask[0]:
+            if band in ("R", "I"):
+                band = band.lower()
+            return table[key][0], band
+    return None
 
 
 def get_ucac_table(obj: str, radius=1) -> QTable:
@@ -21,8 +33,12 @@ def get_ucac_table(obj: str, radius=1) -> QTable:
     return ucac4_list[0]
 
 
-def get_ucac_flux(table: QTable, preference: Iterable[str] = ("r", "i", "V")) -> tuple[float, str]:
+def get_ucac_flux(
+    table: QTable, preference: Iterable[str] = ("r", "i", "V")
+) -> tuple[float, str] | None:
     for band in preference:
         key = f"{band}mag"
         if not table[key].mask[0]:
             return table[key][0], band
+
+    return None
