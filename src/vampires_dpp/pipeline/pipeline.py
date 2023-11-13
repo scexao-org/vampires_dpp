@@ -61,7 +61,7 @@ class Pipeline:
             for field, ctrs in centroids.items():
                 self.centroids[key][field] = np.flip(np.atleast_2d(ctrs), axis=-1)
 
-            logger.debug(f"{key} frame center is {self.centroids['cam1']} (y, x)")
+            logger.debug(f"{key} frame center is {self.centroids[key]} (y, x)")
         return self.centroids
 
     def add_paths_to_db(self, table):
@@ -246,7 +246,7 @@ class Pipeline:
             ann_rad=config.ann_rad,
             outpath=fileinfo["metric_file"],
             force=force,
-            window=config.window_size,
+            window_size=config.window_size,
         )
         return outpath
 

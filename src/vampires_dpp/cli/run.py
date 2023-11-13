@@ -40,7 +40,8 @@ def run(config: Path, filenames, num_proc, outdir):
         msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
         raise ValueError(msg)
     pipeline.run(filenames, num_proc=num_proc)
-    pipeline.run_polarimetry(num_proc=num_proc)
+    if pipeline.config.polarimetry is not None:
+        pipeline.run_polarimetry(num_proc=num_proc)
 
 
 ########## pdi ##########
