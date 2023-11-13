@@ -71,7 +71,8 @@ class CMOSVAMPIRES(InstrumentInfo):
     readmode: Literal["fast", "slow"]
     dark_current: ClassVar[float] = 3.6e-3  # e-/s/px
     pixel_scale: ClassVar[float] = 6.018378804429752  # mas / px
-    pupil_offset: ClassVar[float] = -41.323163723676146  # deg
+    # pupil_offset: ClassVar[float] = -41.323163723676146  # deg
+    pupil_offset: ClassVar[float] = 138.67683627632385  # deg
     excess_noise_factor: ClassVar[float] = 1
     bias: ClassVar[int] = 200
 
