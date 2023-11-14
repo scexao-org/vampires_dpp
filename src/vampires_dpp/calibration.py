@@ -167,10 +167,16 @@ def calibrate_file(
         header["FLATFILE"] = flat_path.name
         with fits.open(flat_path) as hdul:
             flat = hdul[0].data.astype("f4")
+            flat[flat == 0] = np.nan
             flat_err = hdul["ERR"].data.astype("f4")
+
         unnorm_cube = cube.copy()
+        unnorm_cube[unnorm_cube == 0] = np.nan
+        rel_err = cube_err / unnorm_cube
+        rel_flat_err = flat_err / flat
+
         cube = cube / flat
-        cube_err = np.abs(cube) * np.sqrt((cube_err / unnorm_cube) ** 2 + (flat_err / flat) ** 2)
+        cube_err = np.abs(cube) * np.hypot(rel_err, rel_flat_err)
     # bad pixel correction
     if bpmask:
         mask = adaptive_sigma_clip_mask(cube)
@@ -330,10 +336,10 @@ def match_calib_files(filenames, calib_files):
                 mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
             else:
                 mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
-            if np.any(mask):
+            if np.any(back_mask & mask):
                 back_mask &= mask
                 mask = np.abs(subset["EXPTIME"] - hdr["EXPTIME"]) < 0.1
-                if np.any(mask):
+                if np.any(back_mask & mask):
                     back_mask &= mask
             back_subset = subset.loc[back_mask]
             delta_time = Time(back_subset["MJD"], format="mjd", scale="utc") - obstime
@@ -343,18 +349,18 @@ def match_calib_files(filenames, calib_files):
 
         # flat files
         flat_mask = subset["CALTYPE"] == "FLAT"
-        if np.any(flat_mask):
+        if flat_mask.any():
             if "U_EMGAIN" in cal_table.columns:
                 mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
             else:
                 mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
-            if np.any(mask):
+            if np.any(flat_mask & mask):
                 flat_mask &= mask
                 mask = subset["FILTER01"] == hdr["FILTER01"]
-                if np.any(mask):
+                if np.any(flat_mask & mask):
                     flat_mask &= mask
                     mask = subset["FILTER02"] == hdr["FILTER02"]
-                    if np.any(mask):
+                    if np.any(flat_mask & mask):
                         flat_mask &= mask
             flat_subset = subset.loc[flat_mask]
             delta_time = Time(flat_subset["MJD"], format="mjd", scale="utc") - obstime
@@ -432,7 +438,7 @@ def process_flat_files(
     return frames
 
 
-def adaptive_sigma_clip_mask(data, sigma=6, boxsize=8):
+def adaptive_sigma_clip_mask(data, sigma=10, boxsize=8):
     grid = np.arange(boxsize // 2, data.shape[0], step=boxsize)
     output_mask = np.zeros_like(data, dtype=bool)
     boxsize / 2
