@@ -46,7 +46,7 @@ class EMCCDVAMPIRES(InstrumentInfo):
 
     @property
     def effgain(self) -> float:
-        return self.gain / self.emgain
+        return self.gain / max(self.emgain, 1)
 
     @property
     def excess_noise_factor(self) -> float:
