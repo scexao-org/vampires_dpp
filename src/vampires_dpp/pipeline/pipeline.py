@@ -420,7 +420,7 @@ class Pipeline:
             jobs = []
             for outpath, path_set in zip(stokes_files, full_path_set, strict=True):
                 if config.mm_correct:
-                    mask = np.logical_or.reduce(table["path"] == p for p in path_set)
+                    mask = [p in path_set for p in table["path"]]
                     subset = table.loc[mask]
                     mm_paths = subset["mm_file"]
                 else:
@@ -487,14 +487,15 @@ class Pipeline:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
-                wave_err_frame = np.sqrt(np.nansum(np.power(coll_errs, 2), axis=0, keepdims=True))
-            wave_coll_hdr = combine_frames_headers(coll_hdrs[1:], wcs=True)
+                wave_err_frame = np.sqrt(np.nansum(np.power(coll_errs, 2), axis=0))
+            wave_coll_hdr = apply_wcs(combine_frames_headers(coll_hdrs[1:]), angle=0)
             wave_coll_hdr["FIELD"] = "COMB"
             # TODO some fits keywords here are screwed up
             hdul = fits.HDUList(
                 [
                     fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr),
-                    fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERR"),
+                    fits.ImageHDU(wave_coll_frame[0], header=wave_coll_hdr, name="COMB"),
+                    fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="COMBERR"),
                 ]
             )
         # save single-wavelength (or wavelength-collapsed) Stokes cube

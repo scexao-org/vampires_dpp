@@ -69,10 +69,10 @@ def lucky_image_file(
     centroids,
     metric_file: Path,
     method: str = "median",
-    register: Literal["com", "peak", "gauss"] | None = "com",
+    register: Literal["com", "peak", "gauss", "dft"] | None = "com",
     frame_select: Literal["peak", "normvar", "var", "strehl", "fwhm"] | None = None,
     force: bool = False,
-    recenter: bool = True,
+    recenter: Literal["com", "peak", "gauss", "dft"] | None = None,
     select_cutoff: float = 0,
     crop_width=None,
     preproc_dir=None,
@@ -122,7 +122,7 @@ def lucky_image_file(
         offsets = psf_centroids[i] - field_ctr
         aligned_frames = []
         aligned_err_frames = []
-        for frame, frame_err, offset in zip(cube, cube_err, offsets):
+        for frame, frame_err, offset in zip(cube, cube_err, offsets, strict=True):
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
             cutout_err = Cutout2D(frame_err, field_ctr[::-1], size=crop_width, mode="partial")
             if register:
@@ -140,15 +140,15 @@ def lucky_image_file(
                 aligned_frames.append(cutout.data)
                 aligned_err_frames.append(shifted_err)
         ## Step 3: Collapse
-        coll_frame, header = collapse_cube(np.array(aligned_frames), header=header)
+        coll_frame, header = collapse_cube(np.array(aligned_frames), header=header, method=method)
         # collapse error in quadrature
         N = len(aligned_frames)
         header["TINT"] = header["EXPTIME"] * N
-        coll_var_frame, _ = collapse_cube(np.power(aligned_err_frames, 2))
+        coll_var_frame, _ = collapse_cube(np.power(aligned_err_frames, 2), method=method)
         coll_err_frame = np.sqrt(coll_var_frame / N)
         ## Step 4: Recenter
-        if recenter:
-            recenter_offset = get_recenter_offset(coll_frame, method="gauss", offsets=offs)
+        if recenter is not None:
+            recenter_offset = get_recenter_offset(coll_frame, method=recenter, offsets=offs)
             coll_frame = shift_frame(coll_frame, recenter_offset)
             coll_err_frame = shift_frame(coll_err_frame, recenter_offset)
         hdr = header.copy()
@@ -169,10 +169,10 @@ def lucky_image_file(
     comb_header = combine_frames_headers(headers, wcs=True)
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=comb_header)
     hdul = fits.HDUList(prim_hdu)
-    for field, frame, hdr in zip(fields.keys(), frames, headers):
+    for field, frame, hdr in zip(fields.keys(), frames, headers, strict=True):
         hdu = fits.ImageHDU(frame, header=hdr, name=field)
         hdul.append(hdu)
-    for field, frame_err, hdr in zip(fields.keys(), frame_errs, headers):
+    for field, frame_err, hdr in zip(fields.keys(), frame_errs, headers, strict=True):
         hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{field}ERR")
         hdul.append(hdu)
     # write to disk
