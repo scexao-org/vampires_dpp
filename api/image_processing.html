@@ -321,6 +321,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.collapse_cube"><code class="docutils literal notranslate"><span class="pre">collapse_cube()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.correct_distortion"><code class="docutils literal notranslate"><span class="pre">correct_distortion()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.correct_distortion_cube"><code class="docutils literal notranslate"><span class="pre">correct_distortion_cube()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.crop_to_nans_inds"><code class="docutils literal notranslate"><span class="pre">crop_to_nans_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.derotate_cube"><code class="docutils literal notranslate"><span class="pre">derotate_cube()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.derotate_frame"><code class="docutils literal notranslate"><span class="pre">derotate_frame()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.shift_cube"><code class="docutils literal notranslate"><span class="pre">shift_cube()</span></code></a></li>
@@ -403,6 +404,21 @@ document.write(`
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>corrected_cube, header</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.image_processing.crop_to_nans_inds">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">crop_to_nans_inds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.crop_to_nans_inds" title="Link to this definition">#</a></dt>
+<dd><p>Crop numpy array to min/max indices that have finite values. In other words,
+trims the edges off where everything is NaN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>ndarray</em>[<em>Any</em>, <em>dtype</em>[<em>_ScalarType_co</em>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -580,6 +596,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.collapse_cube"><code class="docutils literal notranslate"><span class="pre">collapse_cube()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.correct_distortion"><code class="docutils literal notranslate"><span class="pre">correct_distortion()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.correct_distortion_cube"><code class="docutils literal notranslate"><span class="pre">correct_distortion_cube()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.crop_to_nans_inds"><code class="docutils literal notranslate"><span class="pre">crop_to_nans_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.derotate_cube"><code class="docutils literal notranslate"><span class="pre">derotate_cube()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.derotate_frame"><code class="docutils literal notranslate"><span class="pre">derotate_frame()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.shift_cube"><code class="docutils literal notranslate"><span class="pre">shift_cube()</span></code></a></li>
