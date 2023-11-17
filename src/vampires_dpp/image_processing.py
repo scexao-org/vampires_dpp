@@ -13,7 +13,7 @@ from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
 
-from vampires_dpp.indexing import frame_center, frame_radii
+from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.util import delta_angle, load_fits
 
@@ -352,7 +352,7 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     return output_header
 
 
-def combine_frames_files(filenames, output, force=False, **kwargs):
+def combine_frames_files(filenames, output, *, force: bool = False, crop: bool = False, **kwargs):
     path = Path(output)
     if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
@@ -366,8 +366,10 @@ def combine_frames_files(filenames, output, force=False, **kwargs):
         frames.append(frame)
         headers.append(header)
 
+    if crop:
+        inds = crop_to_nans_inds(np.array(frames))
+        frames = frames[inds]
     cube, header = combine_frames(frames, headers, **kwargs)
-
     fits.writeto(path, cube, header=header, overwrite=True)
     return path
 
@@ -591,3 +593,25 @@ def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
 def generate_footprint(cube):
     mask = np.isfinite(cube).astype(int)
     return np.mean(mask, axis=0)
+
+
+def crop_to_nans_inds(data: NDArray) -> NDArray:
+    """
+    Crop numpy array to min/max indices that have finite values. In other words,
+    trims the edges off where everything is NaN.
+    """
+    # determine first index that contains finite value
+    is_finite = np.isfinite(data)
+    ndim_range = range(data.ndim)
+    # reduce over every axis except the image axes
+    axes = tuple(set(ndim_range) - set(ndim_range[-2:]))
+    finite_x = np.where(np.any(is_finite, axis=axes))[0]
+    finite_y = np.where(np.any(is_finite, axis=axes))[0]
+
+    min_x, max_x = finite_x[0], finite_x[-1]
+    min_y, max_y = finite_y[0], finite_y[-1]
+    cy, cx = frame_center(data)
+    # don't just take min to max indices, calculate the radius
+    # of each extreme to the center and keep everything centered
+    radius = max(max_x - cx, cx - min_x, max_y - cy, cy - min_y)
+    return cutout_inds(data, center=(cy, cx), window=int(radius * 2))

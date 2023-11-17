@@ -17,6 +17,7 @@ from vampires_dpp.image_processing import (
     collapse_frames,
     combine_frames_files,
     combine_frames_headers,
+    crop_to_nans_inds,
 )
 from vampires_dpp.lucky_imaging import lucky_image_file
 from vampires_dpp.organization import header_table
@@ -288,7 +289,7 @@ class Pipeline:
 
         for cam_num, group in self.output_table.groupby("U_CAMERA"):
             cube_path = self.paths.adi_dir / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
-            combine_frames_files(group["path"], output=cube_path, force=force)
+            combine_frames_files(group["path"], output=cube_path, force=force, crop=True)
             logger.info(f"Saved cam {cam_num:.0f} ADI cube to {cube_path}")
             angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
             angles = np.asarray(group["DEROTANG"], dtype="f4")
@@ -450,7 +451,9 @@ class Pipeline:
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
         logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
         ## Collapse outputs
-        coll_frame, _ = collapse_frames(stokes_data)
+        stokes_data = np.array(stokes_data)
+        inds = crop_to_nans_inds(stokes_data)
+        coll_frame, _ = collapse_frames(stokes_data[inds])
         coll_hdrs = [
             apply_wcs(combine_frames_headers(stokes_hdrs[i]), 0) for i in range(nfields + 1)
         ]
@@ -469,6 +472,7 @@ class Pipeline:
                 coll_frame[i], header=coll_hdrs[i + 1], name=coll_hdrs[i + 1]["FIELD"]
             )
             hdul.append(hdu)
+        stokes_err = np.array(stokes_err)[inds]
         for i in range(nfields):
             err_list = stokes_err[i]
             hdr = coll_hdrs[i + 1]
