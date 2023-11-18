@@ -191,9 +191,10 @@ def get_analysis_settings(template):
     if template.analysis.aper_rad != "auto" and click.confirm(
         "Would you like to subtract background annulus?", default=False
     ):
+        in_rad = max(aper_rad, template.analysis.window_size / 2 - 5)
+        out_rad = template.analysis.window_size / 2
         resp = click.prompt(
-            " - Enter comma-separated inner and outer radius (px)",
-            default=f"{max(aper_rad, template.analysis.window_size / 2 - 5)}, {template.analysis.window_size / 2}",
+            " - Enter comma-separated inner and outer radius (px)", default=f"{in_rad}, {out_rad}"
         )
         ann_rad = list(map(float, resp.replace(" ", "").split(",")))
         if ann_rad[1] > template.analysis.window_size / 2:
@@ -305,11 +306,10 @@ def get_collapse_settings(template):
             template.collapse.frame_select = None
 
         ## Registration
-        do_register = click.confirm(
+        if click.confirm(
             "Would you like to do frame registration?",
             default=template.collapse.centroid is not None,
-        )
-        if do_register:
+        ):
             centroid_choices = ["dft", "com", "peak", "gauss", "quad"]
             readline.set_completer(createListCompleter(centroid_choices))
             template.collapse.centroid = click.prompt(
@@ -321,9 +321,14 @@ def get_collapse_settings(template):
         else:
             template.collapse.centroid = None
 
-        template.collapse.recenter = click.confirm(
-            " - Would you like to recenter the collapsed data after a model PSF fit?", default=True
-        )
+        if click.confirm("Would you like to recenter the collapsed data?", default=True):
+            template.collapse.recenter = click.prompt(
+                " - Enter recenter registration method",
+                type=click.Choice(["com", "peak", "gauss"], case_sensitive=False),
+                default="gauss",
+            )
+        else:
+            template.collapse.recenter = None
     else:
         template.collapse = None
     return template

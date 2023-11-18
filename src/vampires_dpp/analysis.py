@@ -110,7 +110,10 @@ def analyze_fields(
             prof = profiles.RadialProfile(
                 frame, ctr_est[::-1], radii, error=frame_err, mask=np.isnan(frame)
             )
-            fwhm = prof.gaussian_fwhm
+            try:
+                fwhm = prof.gaussian_fwhm
+            except Exception:
+                fwhm = 0
             append_or_create(output, "fwhm", fwhm)
 
         if aper_rad == "auto":

@@ -37,9 +37,12 @@ def run(config: Path, filenames, num_proc, outdir):
     logger.add(logfile, level="DEBUG", enqueue=True, colorize=False)
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
     if not check_version(pipeline.config.dpp_version, dpp.__version__):
-        msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
+        msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with \
+        installed version of `vampires_dpp` ({dpp.__version__}). Try running \
+        `dpp upgrade {config}`."
         raise ValueError(msg)
     pipeline.run(filenames, num_proc=num_proc)
+    # only run PDI if specified
     if pipeline.config.polarimetry is not None:
         pipeline.run_polarimetry(num_proc=num_proc)
 
@@ -67,6 +70,8 @@ def pdi(config, filenames, num_proc, quiet, outdir):
     logger.add(outdir / "debug.log", level="DEBUG", enqueue=True, colorize=False)
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
     if not check_version(pipeline.config.dpp_version, dpp.__version__):
-        msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with installed version of `vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade {config}`."
+        msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with \
+                installed version of `vampires_dpp` ({dpp.__version__}). Try running \
+                `dpp upgrade {config}`."
         raise ValueError(msg)
     pipeline.run_polarimetry(num_proc=num_proc)

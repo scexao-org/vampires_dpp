@@ -145,6 +145,7 @@ class Pipeline:
             cal_files = list(self.config.calibrate.calib_directory.glob("**/[!.]*.fits"))
             if len(cal_files) > 0:
                 calib_table = match_calib_files(working_table["path"], cal_files)
+                working_table = working_table.merge(calib_table, on="path")
                 working_table["backfile"] = calib_table["backfile"]
                 working_table["flatfile"] = calib_table["flatfile"]
 

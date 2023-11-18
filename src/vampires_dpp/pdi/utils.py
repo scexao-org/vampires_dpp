@@ -13,7 +13,7 @@ from vampires_dpp.wcs import apply_wcs
 HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
 
-def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):
+def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):  # noqa: E741
     """Use aperture photometry to estimate the instrument polarization.
 
     Parameters
@@ -36,7 +36,7 @@ def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):
     return pX / (np.pi * r**2) - expected
 
 
-def measure_instpol_ann(I: NDArray, X: NDArray, Rin, Rout, expected=0):
+def measure_instpol_ann(I: NDArray, X: NDArray, Rin, Rout, expected=0):  # noqa: E741
     x = X / I
     pX, _ = safe_annulus_sum(x, Rin, Rout)
     return pX / (np.pi * (Rout**2 - Rin**2)) - expected

@@ -4,11 +4,13 @@ import numpy as np
 import pytest
 from vampires_dpp.util import average_angle, check_version, get_paths
 
+rng = np.random.default_rng(4796)
+
 
 def test_average_angle():
     # generate random angles
-    xs = np.random.rand(100) * 2 - 1
-    ys = np.random.rand(100) * 2 - 1
+    xs = rng.uniform(-1, 1, size=100)
+    ys = rng.uniform(-1, 1, size=100)
     angles = np.arctan2(ys, xs)
     angles_deg = np.rad2deg(angles)
     expected = np.arctan2(np.sin(angles).mean(), np.cos(angles).mean())

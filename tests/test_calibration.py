@@ -3,26 +3,28 @@ import pytest
 from astropy.io import fits
 from vampires_dpp.calibration import calibrate_file, make_background_file, make_flat_file
 
+rng = np.random.default_rng(4796)
+
 
 class TestCalibrationFrames:
     @pytest.fixture()
     def background_frame(self, tmp_path):
         path = tmp_path / "master_back_cam1.fits"
-        back = np.random.randn(512, 512) + 200
+        back = rng.normal(scale=200, size=(512, 512))
         fits.writeto(path, back.astype("uint16"), overwrite=True)
         return path
 
     @pytest.fixture()
     def flat_cube(self, tmp_path):
-        data = 10 * np.random.randn(100, 512, 512) + 1.5e4
+        data = rng.normal(loc=1.5e4, scale=10, size=(100, 512, 512))
         # add photon noise
-        data = np.random.poisson(data)
+        data = rng.poisson(data)
         path = tmp_path / "flat_file_cam1.fits"
         fits.writeto(path, data.astype("uint16"))
         return path
 
     def test_make_background_file(self, tmp_path):
-        cube = 10 * np.random.randn(100, 512, 512) + 200
+        cube = rng.normal(loc=200, scale=10, size=(100, 512, 512))
         path = tmp_path / "back_file_cam1.fits"
         fits.writeto(path, cube.astype("uint16"))
         outpath = make_background_file(path)
@@ -58,7 +60,7 @@ class TestCalibrationFrames:
 class TestCalibrate:
     @pytest.fixture()
     def background_frame(self):
-        data = np.random.randn(512, 512) + 200
+        data = rng.normal(loc=200, size=(512, 512))
         return data.astype("f4")
 
     @pytest.fixture()
@@ -67,14 +69,14 @@ class TestCalibrate:
 
     @pytest.fixture()
     def data_cube_cam1(self, background_frame):
-        cube = 10 * np.random.randn(102, 512, 512) + background_frame
-        cube += np.random.poisson(2e4, (102, 512, 512))
+        cube = rng.normal(loc=background_frame, scale=10, size=(102, 512, 512))
+        cube += rng.poisson(2e4, (102, 512, 512))
         return np.flipud(cube).astype("uint16")
 
     @pytest.fixture()
     def data_cube_cam2(self, background_frame):
-        cube = 10 * np.random.randn(102, 512, 512) + background_frame
-        cube += np.random.poisson(2.3e4, (102, 512, 512))
+        cube = rng.normal(loc=background_frame, scale=10, size=(102, 512, 512))
+        cube += rng.poisson(2.3e4, (102, 512, 512))
         return cube.astype("uint16")
 
     def test_calibrate_files_dark(self, tmp_path, data_cube_cam1, data_cube_cam2, dark_frame):

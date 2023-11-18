@@ -71,6 +71,9 @@ source = ["vampires_dpp"]
 [tool.ruff.lint]
 # pycodestyle, pydocstyle, isort, pyupgrade, pylint, tidyimports, use-pathlib, numpy, errmsg
 select = ["E", "F", "B", "SIM", "I", "UP", "TID", "PTH", "NPY", "EM"]
+ignore = [
+    "E501", # line too long
+]
 
 [tool.ruff]
 line-length = 100

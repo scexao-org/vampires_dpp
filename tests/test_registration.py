@@ -3,11 +3,12 @@ import pytest
 from skimage.measure import centroid
 from vampires_dpp.image_registration import offset_centroids
 
+rng = np.random.default_rng(4796)
+
 
 @pytest.fixture
 def random_array(shape):
-    np.random.seed(8865)
-    return np.random.randn(shape)
+    return rng.normal(size=shape)
 
 
 def test_centroid_skimage():

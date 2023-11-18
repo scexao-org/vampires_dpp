@@ -109,7 +109,7 @@ def apply_coordinate(header, coord: SkyCoord | None = None):
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time_end = Time(header["MJD-END"], format="mjd", scale="ut1", location=SUBARU_LOC)
     coord_now = get_coord_header(header, time) if coord is None else coord.apply_space_motion(time)
-    for _time, _key in zip((time_str, time_end), ("STR", "END")):
+    for _time, _key in zip((time_str, time_end), ("STR", "END"), strict=True):
         if coord is None:
             _coord = get_coord_header(header, _time)
         else:
@@ -156,19 +156,24 @@ def calibrate_file(
         header["BACKFILE"] = back_path.name
         with fits.open(back_path) as hdul:
             background = hdul[0].data.astype("f4")
+            back_hdr = hdul[0].header
             back_err = hdul["ERR"].data.astype("f4")
+            header["NOISEADU"] = back_hdr["NOISEADU"], back_hdr.comments["NOISEADU"]
+            header["NOISE"] = back_hdr["NOISE"], back_hdr.comments["NOISEADU"]
         cube = cube - np.where(np.isnan(background), header["BIAS"], background)
-        cube_err = np.sqrt(
-            np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2
-        )
+    else:
+        back_err = 0
+    cube_err = np.sqrt(np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2)
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
         header["FLATFILE"] = flat_path.name
         with fits.open(flat_path) as hdul:
             flat = hdul[0].data.astype("f4")
+            flat_hdr = hdul[0].header
             flat[flat == 0] = np.nan
             flat_err = hdul["ERR"].data.astype("f4")
+            header["FLATNORM"] = flat_hdr["FLATNORM"], flat_hdr.comments["FLATNORM"]
 
         unnorm_cube = cube.copy()
         unnorm_cube[unnorm_cube == 0] = np.nan
@@ -196,9 +201,9 @@ def calibrate_file(
         cube, header = correct_distortion_cube(cube, *params, header=header)
         cube_err, _ = correct_distortion_cube(cube_err, *params)
 
+    # clip fot float32 to limit data size
     prim_hdu = fits.PrimaryHDU(cube.astype("f4"), header=header)
     err_hdu = fits.ImageHDU(cube_err.astype("f4"), header=header, name="ERR")
-    # clip fot float32 to limit data size
     return fits.HDUList([prim_hdu, err_hdu])
 
 
@@ -326,7 +331,7 @@ def match_calib_files(filenames, calib_files):
             f"NAXIS1 == {hdr['NAXIS1']} and NAXIS2 == {hdr['NAXIS2']} and U_CAMERA == {hdr['U_CAMERA']}"
         )
         if len(subset) == 0:
-            rows.append(dict(path=path, backfile=None, flatfile=None))
+            rows.append(dict(path=str(path.absolute()), backfile=None, flatfile=None))
             continue
 
         # background files
@@ -368,7 +373,7 @@ def match_calib_files(filenames, calib_files):
         else:
             flat_path = None
 
-        rows.append(dict(path=path, backfile=back_path, flatfile=flat_path))
+        rows.append(dict(path=str(path.absolute()), backfile=back_path, flatfile=flat_path))
     return pd.DataFrame(rows)
 
 
@@ -417,9 +422,9 @@ def process_flat_files(
 
     if background_files is not None:
         calib_match_table = match_calib_files(filenames, background_files)
-        mapping = zip(calib_match_table["path"], calib_match_table["backfile"])
+        mapping = zip(calib_match_table["path"], calib_match_table["backfile"], strict=True)
     else:
-        mapping = zip(filenames, itertools.repeat(None))
+        mapping = zip(filenames, itertools.repeat(None), strict=False)
     with mp.Pool(num_proc) as pool:
         jobs = []
         for path, back_path in mapping:

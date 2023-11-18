@@ -123,7 +123,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
         cube_dict[key] = cube_derot
         cube_errs.append(cube_err_derot)
 
-    I, Q, U = double_diff_dict(cube_dict)
+    I, Q, U = double_diff_dict(cube_dict)  # noqa: E741
     # swap stokes and field axes so field is first
     stokes_cube = np.swapaxes((I, Q, U), 0, 1)
     with warnings.catch_warnings():
@@ -213,7 +213,7 @@ def triple_diff_dict(input_dict):
     IQ = 0.5 * (pIQ + mIQ)
     U = 0.5 * (pU - mU)
     IU = 0.5 * (pIU + mIU)
-    I = 0.5 * (IQ + IU)
+    I = 0.5 * (IQ + IU)  # noqa: E741
 
     return I, Q, U
 
@@ -238,7 +238,7 @@ def double_diff_dict(input_dict):
     IQ = 0.5 * (pIQ + mIQ)
     U = 0.5 * (pU - mU)
     IU = 0.5 * (pIU + mIU)
-    I = 0.5 * (IQ + IU)
+    I = 0.5 * (IQ + IU)  # noqa: E741
 
     return I, Q, U
 
@@ -369,7 +369,7 @@ def make_stokes_image(
         stokes_header = hdu.header
         error_extname = f"{stokes_header['FIELD']}ERR"
         stokes_err = stokes_hdul[error_extname].data
-        I, Q, U = stokes_data
+        I, Q, U = stokes_data  # noqa: E741
         I_err = stokes_err
         # mm correct
         if mm_correct:
