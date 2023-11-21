@@ -160,7 +160,7 @@ def calibrate_file(
             back_err = hdul["ERR"].data.astype("f4")
             header["NOISEADU"] = back_hdr["NOISEADU"], back_hdr.comments["NOISEADU"]
             header["NOISE"] = back_hdr["NOISE"], back_hdr.comments["NOISEADU"]
-        cube = cube - np.where(np.isnan(background), header["BIAS"], background)
+        cube -= np.where(np.isnan(background), header["BIAS"], background)
     else:
         back_err = 0
     cube_err = np.sqrt(np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2)
@@ -180,7 +180,7 @@ def calibrate_file(
         rel_err = cube_err / unnorm_cube
         rel_flat_err = flat_err / flat
 
-        cube = cube / flat
+        cube /= flat
         cube_err = np.abs(cube) * np.hypot(rel_err, rel_flat_err)
     # bad pixel correction
     if bpmask:
