@@ -265,6 +265,7 @@ class Pipeline:
             force=force,
             specphot=self.config.specphot,
             preproc_dir=self.paths.preproc_dir,
+            window=self.config.analysis.window_size,
         )
         logger.debug("Data collapsing completed")
         logger.debug(f"Saved collapsed data to {outpath}")

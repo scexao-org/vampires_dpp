@@ -79,6 +79,7 @@ def lucky_image_file(
     crop_width=None,
     preproc_dir=None,
     specphot=None,
+    window: int = 30,
     **kwargs,
 ) -> Path:
     if (
@@ -160,7 +161,9 @@ def lucky_image_file(
         coll_err_frame = np.sqrt(coll_var_frame / N)
         ## Step 4: Recenter
         if recenter is not None:
-            recenter_offset = get_recenter_offset(coll_frame, method=recenter, offsets=offs)
+            recenter_offset = get_recenter_offset(
+                coll_frame, method=recenter, offsets=offs, window=window
+            )
             coll_frame = shift_frame(coll_frame, recenter_offset)
             coll_err_frame = shift_frame(coll_err_frame, recenter_offset)
         hdr = header.copy()
