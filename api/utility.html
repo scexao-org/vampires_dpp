@@ -340,6 +340,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_angles"><code class="docutils literal notranslate"><span class="pre">frame_angles()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_center"><code class="docutils literal notranslate"><span class="pre">frame_center()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_radii"><code class="docutils literal notranslate"><span class="pre">frame_radii()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.get_mbi_centers"><code class="docutils literal notranslate"><span class="pre">get_mbi_centers()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.average_angle"><code class="docutils literal notranslate"><span class="pre">average_angle()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.check_version"><code class="docutils literal notranslate"><span class="pre">check_version()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.delta_angle"><code class="docutils literal notranslate"><span class="pre">delta_angle()</span></code></a></li>
@@ -511,6 +512,25 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.indexing.get_mbi_centers">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.indexing.</span></span><span class="sig-name descname"><span class="pre">get_mbi_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduced</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.indexing.get_mbi_centers" title="Link to this definition">#</a></dt>
+<dd><p>Return (y, x) rough centers for MBI data.</p>
+<p>Note this is just multiples of the frame size, not based on anything sensible.</p>
+<p>Assumes cam 1 data has already been flipped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>reduced</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, tuple[float, float]]</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function" id="module-vampires_dpp.util">
 <dt class="sig sig-object py" id="vampires_dpp.util.average_angle">
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">average_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.average_angle" title="Link to this definition">#</a></dt>
@@ -644,6 +664,7 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_angles"><code class="docutils literal notranslate"><span class="pre">frame_angles()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_center"><code class="docutils literal notranslate"><span class="pre">frame_center()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_radii"><code class="docutils literal notranslate"><span class="pre">frame_radii()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.get_mbi_centers"><code class="docutils literal notranslate"><span class="pre">get_mbi_centers()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.average_angle"><code class="docutils literal notranslate"><span class="pre">average_angle()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.check_version"><code class="docutils literal notranslate"><span class="pre">check_version()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.delta_angle"><code class="docutils literal notranslate"><span class="pre">delta_angle()</span></code></a></li>
