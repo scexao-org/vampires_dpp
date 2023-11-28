@@ -155,6 +155,7 @@ def calibrate_file(
         back_path = Path(back_filename)
         header["BACKFILE"] = back_path.name
         with fits.open(back_path) as hdul:
+            assert hdul[0].header["U_CAMERA"] == header["U_CAMERA"]
             background = hdul[0].data.astype("f4")
             back_hdr = hdul[0].header
             back_err = hdul["ERR"].data.astype("f4")
@@ -169,6 +170,7 @@ def calibrate_file(
         flat_path = Path(flat_filename)
         header["FLATFILE"] = flat_path.name
         with fits.open(flat_path) as hdul:
+            assert hdul[0].header["U_CAMERA"] == header["U_CAMERA"]
             flat = hdul[0].data.astype("f4")
             flat_hdr = hdul[0].header
             flat[flat == 0] = np.nan
@@ -327,9 +329,8 @@ def match_calib_files(filenames, calib_files):
     for path in tqdm(map(Path, filenames), total=len(filenames), desc="Matching calibration files"):
         hdr = fix_header(load_fits_header(path))
         obstime = Time(hdr["MJD"], format="mjd", scale="utc")
-        subset = cal_table.query(
-            f"NAXIS1 == {hdr['NAXIS1']} and NAXIS2 == {hdr['NAXIS2']} and U_CAMERA == {hdr['U_CAMERA']}"
-        )
+        keys_to_match = ("PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "U_CAMERA")
+        subset = cal_table.query(" and ".join(f"`{k}` == {hdr[k]}" for k in keys_to_match))
         if len(subset) == 0:
             rows.append(dict(path=str(path.absolute()), backfile=None, flatfile=None))
             continue

@@ -117,3 +117,28 @@ def cutout_inds(frame, window, center=None, **kwargs):
     elif np.any(upper - lower + 1 < window):
         upper += 1
     return np.s_[..., lower[0] : upper[0] + 1, lower[1] : upper[1] + 1]
+
+
+def get_mbi_centers(frame: NDArray, reduced: bool = False) -> dict[str, tuple[float, float]]:
+    """
+    Return (y, x) rough centers for MBI data.
+
+    Note this is just multiples of the frame size, not based on anything sensible.
+
+    Assumes cam 1 data has already been flipped.
+    """
+    hy, hx = frame_center(frame)
+    # for reduced data, multiply by two to hack around it
+    if reduced:
+        hy *= 2
+    # use cam2 as reference
+
+    ctrs = {
+        "F610": (hy * 1.5, hx * 0.25),
+        "F670": (hy * 0.5, hx * 0.25),
+        "F720": (hy * 0.5, hx * 0.75),
+        "F760": (hy * 0.5, hx * 1.75),
+    }
+    if reduced:
+        del ctrs["F610"]
+    return ctrs

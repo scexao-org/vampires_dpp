@@ -108,7 +108,7 @@ class Pipeline:
             files_to_calibrate |= table["collapse_file"].apply(file_doesnt_exist)
 
         subset = table.loc[files_to_calibrate]
-        return subset
+        return subset.copy()
 
     def run(self, filenames, num_proc: int | None = None, force=False):
         """Run the pipeline
@@ -138,11 +138,12 @@ class Pipeline:
         logger.info(
             f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
         )
+
         if self.config.calibrate.calib_directory is not None:
             cal_files = list(self.config.calibrate.calib_directory.glob("**/[!.]*.fits"))
             if len(cal_files) > 0:
                 calib_table = match_calib_files(working_table["path"], cal_files)
-                working_table = working_table.merge(calib_table, on="path")
+                working_table = pd.merge(working_table, calib_table, on="path")
 
         ## For each file do
         logger.info("Starting file-by-file processing")

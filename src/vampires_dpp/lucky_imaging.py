@@ -10,7 +10,7 @@ from loguru import logger
 from .analysis import add_frame_statistics
 from .image_processing import collapse_cube, combine_frames_headers, shift_frame
 from .image_registration import offset_centroids
-from .indexing import cutout_inds, frame_center
+from .indexing import cutout_inds, frame_center, get_mbi_centers
 from .specphot.specphot import convert_to_surface_brightness, specphot_calibration
 from .util import get_center
 
@@ -116,6 +116,14 @@ def lucky_image_file(
 
     if register:
         psf_centroids = get_centroids_from(masked_metrics, input_key=register)
+    elif "MBIR" in header["OBS-MOD"]:
+        ctr_dict = get_mbi_centers(cube, reduced=True)
+        psf_centroids = [ctr_dict[k] for k in fields]
+    elif "MBI" in header["OBS-MOD"]:
+        ctr_dict = get_mbi_centers(cube)
+        psf_centroids = [ctr_dict[k] for k in fields]
+    else:
+        psf_centroids = [frame_center(cube)]
     frames = []
     frame_errs = []
     headers = []

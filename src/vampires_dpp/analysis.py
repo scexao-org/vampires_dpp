@@ -6,8 +6,8 @@ import sep
 from photutils import profiles
 
 from .image_registration import offset_centroids
-from .indexing import cutout_inds, frame_center
-from .util import append_or_create, get_center
+from .indexing import cutout_inds, frame_center, get_mbi_centers
+from .util import create_or_append, get_center
 
 
 def add_frame_statistics(frame, frame_err, header):
@@ -94,15 +94,15 @@ def analyze_fields(
         frame_err = cube_err[fidx]
         centroids = offset_centroids(frame, frame_err, inds, psf, dft_factor)
 
-        append_or_create(output, "comx", centroids["com"][1])
-        append_or_create(output, "comy", centroids["com"][0])
-        append_or_create(output, "peakx", centroids["peak"][1])
-        append_or_create(output, "peaky", centroids["peak"][0])
-        append_or_create(output, "gausx", centroids["gauss"][1])
-        append_or_create(output, "gausy", centroids["gauss"][0])
+        create_or_append(output, "comx", centroids["com"][1])
+        create_or_append(output, "comy", centroids["com"][0])
+        create_or_append(output, "peakx", centroids["peak"][1])
+        create_or_append(output, "peaky", centroids["peak"][0])
+        create_or_append(output, "gausx", centroids["gauss"][1])
+        create_or_append(output, "gausy", centroids["gauss"][0])
         if "dft" in centroids:
-            append_or_create(output, "dftx", centroids["dft"][1])
-            append_or_create(output, "dfty", centroids["dft"][0])
+            create_or_append(output, "dftx", centroids["dft"][1])
+            create_or_append(output, "dfty", centroids["dft"][0])
 
         ctr_est = centroids["com"]
         with warnings.catch_warnings():
@@ -114,24 +114,19 @@ def analyze_fields(
                 fwhm = prof.gaussian_fwhm
             except Exception:
                 fwhm = 0
-            append_or_create(output, "fwhm", fwhm)
+            create_or_append(output, "fwhm", fwhm)
 
         if aper_rad == "auto":
             r = max(min(fwhm, radii.max() / 2), 3)
             ann_rad = r + 5, r + fwhm + 5
         else:
             r = aper_rad
-        append_or_create(output, "photr", r)
+        create_or_append(output, "photr", r)
         phot, photerr = safe_aperture_sum(
             frame, err=frame_err, r=r, center=ctr_est, ann_rad=ann_rad
         )
-        append_or_create(output, "photf", phot)
-        append_or_create(output, "phote", photerr)
-
-    #     # assume PSF is already normalized
-    #     kernel = psf[None, ...]
-    #     psfphots = convolve(cutout, kernel, normalize_kernel=False).max()
-    #     append_or_create(output, "psff", psfphot)
+        create_or_append(output, "photf", phot)
+        create_or_append(output, "phote", photerr)
 
     return output
 
@@ -158,7 +153,12 @@ def analyze_file(
     cam_num = hdr["U_CAMERA"]
     metrics: dict[str, list[list[list]]] = {}
     if centroids is None:
-        centroids = {"": [frame_center(data)]}
+        if "MBIR" in hdr["OBS-MOD"]:
+            centroids = get_mbi_centers(data, reduced=True)
+        elif "MBI" in hdr["OBS-MOD"]:
+            centroids = get_mbi_centers(data)
+        else:
+            centroids = {"": frame_center(data)}
     if psfs is None:
         psfs = itertools.repeat(None)
     for ctrs, psf in zip(centroids.values(), psfs, strict=True):
@@ -179,10 +179,10 @@ def analyze_file(
             )
             # append psf result to this field's dictionary
             for k, v in results.items():
-                append_or_create(field_metrics, k, v)
+                create_or_append(field_metrics, k, v)
         # append this field's results to the global output
         for k, v in field_metrics.items():
-            append_or_create(metrics, k, v)
+            create_or_append(metrics, k, v)
 
     np.savez_compressed(outpath, **metrics)
     return outpath

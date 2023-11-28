@@ -98,7 +98,7 @@ def load_fits_key(filename, key, ext=0, **kwargs):
     return fits.getval(path, key, ext=ext, **kwargs)
 
 
-def append_or_create(dict, key, value):
+def create_or_append(dict, key, value):
     if key in dict:
         dict[key].append(value)
     else:

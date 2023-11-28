@@ -162,7 +162,7 @@ def get_mbi_cutout_inds(
     return cutout_inds(data, window=500, center=(y, x))
 
 
-def create_raw_input_psfs(table, basename: Path, max_files=10) -> dict[str, Path]:
+def create_raw_input_psfs(table, basename: Path, max_files=5) -> dict[str, Path]:
     # group by cameras
     outfiles = {}
     for cam_num, group in table.groupby("U_CAMERA"):

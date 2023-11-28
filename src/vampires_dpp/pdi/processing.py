@@ -11,7 +11,7 @@ from numpy.typing import NDArray
 
 from vampires_dpp.image_processing import combine_frames_headers, derotate_cube, derotate_frame
 from vampires_dpp.paths import any_file_newer
-from vampires_dpp.util import append_or_create, load_fits
+from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs
 
 from .utils import instpol_correct, measure_instpol, measure_instpol_ann, write_stokes_products
@@ -54,11 +54,11 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
             cube = hdul[0].data
             nfields = cube.shape[0]
             prim_hdr = hdul[0].header
-            append_or_create(headers, "PRIMARY", prim_hdr)
+            create_or_append(headers, "PRIMARY", prim_hdr)
             cube_err = []
             for hdu in hdul[1 : nfields + 1]:
                 hdr = hdu.header
-                append_or_create(headers, hdr["FIELD"], hdr)
+                create_or_append(headers, hdr["FIELD"], hdr)
                 cube_err.append(hdul[f"{hdr['FIELD']}ERR"].data)
         # derotate frame - necessary for crosstalk correction
         cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
@@ -109,11 +109,11 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
             cube = hdul[0].data
             nfields = cube.shape[0]
             prim_hdr = hdul[0].header
-            append_or_create(headers, "PRIMARY", prim_hdr)
+            create_or_append(headers, "PRIMARY", prim_hdr)
             cube_err = []
             for hdu in hdul[1 : nfields + 1]:
                 hdr = hdu.header
-                append_or_create(headers, hdr["FIELD"], hdr)
+                create_or_append(headers, hdr["FIELD"], hdr)
                 cube_err.append(hdul[f"{hdr['FIELD']}ERR"].data)
         # derotate frame - necessary for crosstalk correction
         cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
