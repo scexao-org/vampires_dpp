@@ -5,6 +5,7 @@ import numpy as np
 import scipy.stats as st
 from astropy.io import fits
 from astropy.nddata import Cutout2D
+from loguru import logger
 
 from .analysis import add_frame_statistics
 from .image_processing import collapse_cube, combine_frames_headers, shift_frame
@@ -20,6 +21,7 @@ FRAME_SELECT_MAP: Final[dict[str, str]] = {
     "var": "var",
     "fwhm": "fwhm",
 }
+logger.disable(__name__)
 
 
 def get_frame_select_mask(metrics, input_key, quantile=0):
@@ -85,6 +87,7 @@ def lucky_image_file(
         and metric_file
         and Path(metric_file).stat().st_mtime < outpath.stat().st_mtime
     ):
+        logger.debug(f"Skipped lucky imaging loading {outpath} from disk.")
         with fits.open(outpath) as hdul:
             return hdul
 
@@ -99,6 +102,7 @@ def lucky_image_file(
     cam_key = f"cam{cam_num:.0f}"
     fields = centroids[cam_key] if cam_key in centroids else {"": [frame_center(cube)]}
 
+    logger.debug(f"Loading metric file: {metric_file}")
     metrics = np.load(metric_file)
 
     # mask metrics
@@ -176,6 +180,7 @@ def lucky_image_file(
         hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{field}ERR")
         hdul.append(hdu)
     # write to disk
+    logger.debug(f"Saving collapsed output to {outpath}")
     hdul.writeto(outpath, overwrite=True)
     return hdul
 

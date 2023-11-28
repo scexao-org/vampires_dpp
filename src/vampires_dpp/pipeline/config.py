@@ -14,12 +14,6 @@ import vampires_dpp as dpp
 from vampires_dpp.util import check_version
 
 
-## Some base classes for repeated functionality
-class CamFileInput(BaseModel):
-    cam1: Path | None = None
-    cam2: Path | None = None
-
-
 class ObjectConfig(BaseModel):
     """Astronomical coordinate options.
 
@@ -235,7 +229,7 @@ class AnalysisConfig(BaseModel):
 
     strehl: Literal[False] = False
     subtract_radprof: bool = False
-    aper_rad: float | Literal["auto"] = "auto"
+    aper_rad: float | Literal["auto"] = 8
     ann_rad: Sequence[float] | None = None
     window_size: int = 30
     dft_factor: int = 100
@@ -263,16 +257,8 @@ class PolarimetryConfig(BaseModel):
         Determines the polarization calibration method, either the double/triple-difference method (`difference`) or using the inverse least-squares solution from Mueller calculus (`leastsq`). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.
     mm_correct : bool
         Apply Mueller-matrix correction (only applicable to data reduced using the `"difference"` method). By default, True.
-    ip : Optional[IPConfig]
-        Instrumental polarization (IP) correction options, by default None.
-    order : str
-        HWP iteration order, one of `"QQUU"` or `"QUQU"`. By default `"QQUU"`.
-    adi_sync : bool
+    hwp_adi_sync : bool
         If true, will assume the HWP is in pupil-tracking mode. By default, True.
-    output_directory : Optional[Path]
-        The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.
-    force : bool
-        If true, will force this processing step to occur.
 
     Examples
     --------

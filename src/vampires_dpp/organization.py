@@ -58,7 +58,7 @@ def dict_from_header(header: fits.Header, excluded=("COMMENT", "HISTORY"), fix=T
 
 
 def header_table(
-    filenames: list[PathLike], num_proc: int = min(8, mp.cpu_count()), quiet: bool = False, **kwargs
+    filenames: list[PathLike], num_proc: int | None = None, quiet: bool = False, **kwargs
 ) -> pd.DataFrame:
     """Generate a pandas dataframe from the FITS headers parsed from the given files.
 
@@ -74,6 +74,8 @@ def header_table(
     -------
     pandas.DataFrame
     """
+    if num_proc is None:
+        num_proc = min(8, mp.cpu_count())
     with mp.Pool(num_proc) as pool:
         jobs = [pool.apply_async(dict_from_header_file, args=(f,), kwds=kwargs) for f in filenames]
         iter = jobs if quiet else tqdm(jobs, desc="Parsing FITS headers")
@@ -130,26 +132,26 @@ def foldername_new(outdir: Path, header: fits.Header):
     filt1 = header["FILTER01"]
     filt2 = header["FILTER02"]
     filt_str = f"{filt1}_{filt2}"
-    exptime = header["EXPTIME"] * 1e3  # ms
+    exptime = header["EXPTIME"] * 1e6  # us
     sz = f"{header['NAXIS1']:03d}x{header['NAXIS2']:03d}"
     match header["DATA-TYP"]:
         case "OBJECT":
             # subsort based on filter, EM gain, and exposure time
-            subdir = f"{filt_str}_{exptime:07.02f}ms_{sz}"
+            subdir = f"{filt_str}_{exptime:09.0f}us_{sz}"
             foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
         case "DARK":
-            subdir = f"{exptime:07.02f}ms_{sz}"
+            subdir = f"{exptime:09.0f}us_{sz}"
             foldname = outdir / "darks" / subdir
         # put sky flats separately because they are usually
         # background frames, not flats
         case "SKYFLAT":
-            subdir = f"{exptime:07.02f}ms_{sz}"
+            subdir = f"{exptime:09.0f}us_{sz}"
             foldname = outdir / "skies" / subdir
         case "FLAT" | "DOMEFLAT":
-            subdir = f"{filt_str}_{exptime:07.02f}ms_{sz}"
+            subdir = f"{filt_str}_{exptime:09.0f}us_{sz}"
             foldname = outdir / "flats" / subdir
         case "COMPARISON":
-            subdir = f"{filt_str}_{exptime:07.02f}ms_{sz}"
+            subdir = f"{filt_str}_{exptime:09.0f}us_{sz}"
             foldname = outdir / "pinholes" / subdir
         case _:
             foldname = outdir

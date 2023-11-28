@@ -40,8 +40,8 @@ class Pipeline:
         self.paths = Paths(workdir=self.workdir)
         self.output_table_path = self.paths.products_dir / f"{self.config.name}_table.csv"
 
-    def create_input_table(self, filenames) -> pd.DataFrame:
-        input_table = header_table(filenames, quiet=True).sort_values("MJD")
+    def create_input_table(self, filenames, num_proc) -> pd.DataFrame:
+        input_table = header_table(filenames, quiet=True, num_proc=num_proc).sort_values("MJD")
         table_path = self.paths.preproc_dir / f"{self.config.name}_headers.csv"
         input_table.to_csv(table_path)
         logger.info(f"Saved input header table to: {table_path}")
@@ -126,8 +126,7 @@ class Pipeline:
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
 
-        self.num_proc = num_proc
-        input_table = self.create_input_table(filenames=filenames)
+        input_table = self.create_input_table(filenames=filenames, num_proc=num_proc)
         self.add_paths_to_db(input_table)
         self.get_centroids()
         self.get_coordinate()
@@ -139,28 +138,24 @@ class Pipeline:
         logger.info(
             f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
         )
-        working_table["backfile"] = None
-        working_table["flatfile"] = None
         if self.config.calibrate.calib_directory is not None:
             cal_files = list(self.config.calibrate.calib_directory.glob("**/[!.]*.fits"))
             if len(cal_files) > 0:
                 calib_table = match_calib_files(working_table["path"], cal_files)
                 working_table = working_table.merge(calib_table, on="path")
-                working_table["backfile"] = calib_table["backfile"]
-                working_table["flatfile"] = calib_table["flatfile"]
 
         ## For each file do
         logger.info("Starting file-by-file processing")
-        self.output_files = []
-        with mp.Pool(self.num_proc) as pool:
+        with mp.Pool(num_proc) as pool:
             jobs = []
             for row in working_table.itertuples(index=False):
                 jobs.append(pool.apply_async(self.process_one, args=(row._asdict(),)))
 
             for job in tqdm(jobs, desc="Processing files"):
-                result = job.get()
-                self.output_files.append(result)
-        self.output_table = header_table(self.output_files, quiet=True)
+                job.get()
+        logger.info("Creating table from collapsed headers")
+        self.output_files = input_table["collapse_file"]
+        self.output_table = header_table(self.output_files, num_proc=num_proc)
         self.save_output_header()
         ## products
         if self.config.save_adi_cubes:
@@ -297,7 +292,7 @@ class Pipeline:
             fits.writeto(angles_path, angles, overwrite=True)
             logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
 
-    # def make_diff_images(self, force=False):
+    # def make_diff_images(self, num_proc=None, force=False):
     #     logger.info("Making difference frames")
     #     # table should still be sorted by MJD
     #     groups = self.output_table.groupby(["MJD", "U_CAMERA"])
@@ -309,7 +304,7 @@ class Pipeline:
     #         elif key[1] == 2:
     #             cam2_paths.append(group["path"].iloc[0])
 
-    #     with mp.Pool(self.num_proc) as pool:
+    #     with mp.Pool(num_proc) as pool:
     #         jobs = []
     #         for cam1_file, cam2_file in zip(cam1_paths, cam2_paths):
     #             stem = re.sub("_cam[12]", "", cam1_file.name)
@@ -332,8 +327,6 @@ class Pipeline:
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
 
-        self.num_proc = num_proc
-
         if not self.output_table_path.exists():
             msg = f"Output table {self.output_table_path} cannot be found"
             raise RuntimeError(msg)
@@ -341,20 +334,23 @@ class Pipeline:
         working_table = pd.read_csv(self.output_table_path, index_col=0)
 
         if self.config.polarimetry.mm_correct or self.config.polarimetry.method == "leastsq":
-            working_table["mm_file"] = self.make_mueller_mats(working_table)
+            working_table["mm_file"] = self.make_mueller_mats(working_table, num_proc=num_proc)
 
         logger.info("Performing polarimetric calibration")
         logger.debug(f"Saving Stokes data to {self.paths.pdi_dir.absolute()}")
         match self.config.polarimetry.method:
             case "doublediff" | "triplediff":
                 self.polarimetry_difference(
-                    working_table, method=self.config.polarimetry.method, force=force
+                    working_table,
+                    method=self.config.polarimetry.method,
+                    force=force,
+                    num_proc=num_proc,
                 )
             case "leastsq":
-                self.polarimetry_leastsq(working_table, force=force)
+                self.polarimetry_leastsq(working_table, force=force, num_proc=num_proc)
         logger.success("Finished PDI")
 
-    def make_mueller_mats(self, table, force=False):
+    def make_mueller_mats(self, table, num_proc=None, force=False):
         logger.info("Creating Mueller matrices")
         mm_paths = []
         kwds = dict(
@@ -362,7 +358,7 @@ class Pipeline:
             ideal=self.config.polarimetry.use_ideal_mm,
             force=force,
         )
-        with mp.Pool(self.num_proc) as pool:
+        with mp.Pool(num_proc) as pool:
             jobs = []
             for row in table.itertuples(index=False):
                 _, outpath = get_paths(row.path, suffix="mm", output_directory=self.paths.mm_dir)
@@ -375,7 +371,7 @@ class Pipeline:
 
         return mm_paths
 
-    def polarimetry_difference(self, table, method, force=False):
+    def polarimetry_difference(self, table, method, num_proc=None, force=False):
         config = self.config.polarimetry
         full_paths = []
         match method.lower():
@@ -387,7 +383,7 @@ class Pipeline:
                 msg = f"Invalid polarimetric difference method '{method}'"
                 raise ValueError(msg)
 
-        with mp.Pool(self.num_proc) as pool:
+        with mp.Pool(num_proc) as pool:
             jobs = []
             for _, row in table.iterrows():
                 jobs.append(pool.apply_async(pol_func, args=(row,)))
@@ -418,7 +414,7 @@ class Pipeline:
             force=force,
         )
         # TODO this is kind of ugly
-        with mp.Pool(self.num_proc) as pool:
+        with mp.Pool(num_proc) as pool:
             jobs = []
             for outpath, path_set in zip(stokes_files, full_path_set, strict=True):
                 if config.mm_correct:
@@ -437,7 +433,9 @@ class Pipeline:
 
             for job in tqdm(jobs, desc="Creating Stokes images"):
                 outpath = job.get()
-                with fits.open(outpath) as hdul:
+                # use memmap=False to avoid "too many files open" effects
+                # another way would be to set ulimit -n <MAX_FILES>
+                with fits.open(outpath, memmap=False) as hdul:
                     stokes_data.append(hdul[0].data)
                     for i in range(nfields + 1):
                         stokes_hdrs[i].append(hdul[i].header)

@@ -14,7 +14,7 @@ from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii
-from vampires_dpp.organization import dict_from_header, header_table
+from vampires_dpp.organization import dict_from_header
 from vampires_dpp.util import delta_angle, load_fits
 
 from .paths import any_file_newer, get_paths
@@ -367,8 +367,9 @@ def combine_frames_files(filenames, output, *, force: bool = False, crop: bool =
         headers.append(header)
 
     if crop:
-        inds = crop_to_nans_inds(np.array(frames))
-        frames = frames[inds]
+        frames_arr = np.array(frames)
+        inds = crop_to_nans_inds(frames_arr)
+        frames = frames_arr[inds]
     cube, header = combine_frames(frames, headers, **kwargs)
     fits.writeto(path, cube, header=header, overwrite=True)
     return path
@@ -477,63 +478,6 @@ def correct_distortion_cube(
         header["DPP_SCAL"] = scale, "scaling ratio for distortion correction"
         header["DPP_ANGL"] = angle, "deg, offset angle for distortion correction"
     return corr_cube, header
-
-
-class FileSet:
-    def __init__(self, filenames, ext=None) -> None:
-        self.paths = {}
-        self.headers = {}
-        # get the headers
-        for path in map(Path, filenames):
-            if ext is None:
-                ext = 1 if ".fits.fz" in path.name else 0
-            with fits.open(path) as hdus:
-                prim_hdu = hdus[ext]
-                header = prim_hdu.header
-            cam = header["U_CAMERA"]
-            flc = header.get("U_FLC", None)
-            key = (cam, flc)
-            self.paths[key] = path
-            self.headers[key] = header
-
-        # try and understand what we just got
-        N = len(self.paths)
-        if N not in (1, 2, 4):
-            if N > 4:
-                msg = f"Too many input files, should be 4 at max, got {N}"
-                raise ValueError(msg)
-            if N == 3:
-                missing = set((1, "A"), (1, "B"), (2, "A"), (2, "B")) - set(self.paths.keys())
-                print(
-                    f"Expected set of 4 files, one for each camera and FLC state combination. Missing camera {missing[0][0]} FLC state {missing[0][1]}"
-                )
-
-    @property
-    def keys(self):
-        return self.paths.keys()
-
-    @property
-    def cam1_paths(self):
-        return [self.paths[k] for k in self.cam1_keys]
-
-    @property
-    def cam2_paths(self):
-        return [self.paths[k] for k in self.cam2_keys]
-
-    @property
-    def cam1_keys(self):
-        return filter(lambda k: k[0] == 1, self.keys)
-
-    @property
-    def cam2_keys(self):
-        return filter(lambda k: k[0] == 2, self.keys)
-
-
-def make_file_sets(filenames):
-    # group files by identifiers that are unique to a simultaneous capture
-    table = header_table(filenames)
-    groups = table.groupby("MJD")
-    return [FileSet(grp["path"]) for _, grp in groups]
 
 
 def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
