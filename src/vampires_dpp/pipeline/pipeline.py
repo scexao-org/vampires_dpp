@@ -22,7 +22,7 @@ from vampires_dpp.image_processing import (
 from vampires_dpp.lucky_imaging import lucky_image_file
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths, get_paths, make_dirs
-from vampires_dpp.pdi.mueller_matrices import mueller_matrix_from_file
+from vampires_dpp.pdi.models import mueller_matrix_from_file
 from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
@@ -356,7 +356,7 @@ class Pipeline:
         logger.info("Creating Mueller matrices")
         mm_paths = []
         kwds = dict(
-            adi_sync=self.config.polarimetry.hwp_adi_sync,
+            hwp_adi_sync=self.config.polarimetry.hwp_adi_sync,
             ideal=self.config.polarimetry.use_ideal_mm,
             force=force,
         )

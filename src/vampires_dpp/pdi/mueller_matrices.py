@@ -1,7 +1,4 @@
-from pathlib import Path
-
 import numpy as np
-from astropy.io import fits
 from numpy.typing import NDArray
 
 from vampires_dpp.constants import SUBARU_LOC
@@ -407,70 +404,7 @@ CAL_DICT = {
 }
 
 
-def mueller_matrix_from_header(header, adi_sync=True, ideal=False):
-    filt = header["FILTER01"]
-    if ideal:
-        filt_dict = CAL_DICT["ideal"]
-    elif filt in CAL_DICT:
-        filt_dict = CAL_DICT[filt]
-    else:
-        msg = f"Could not find Mueller matrix coefficients for {filt} filter"
-        raise RuntimeError(msg)
-
-    pa_theta = np.deg2rad(header["PA"])
-    alt = np.deg2rad(header["ALTITUDE"])
-    az = np.deg2rad(header["AZIMUTH"] - 180)
-    if adi_sync:
-        lat = SUBARU_LOC.lat.rad
-        hwp_offset = (
-            0.5 * np.arctan2(np.sin(az), np.sin(alt) * np.cos(az) + np.cos(alt) * np.tan(lat)) + alt
-        )
-    else:
-        hwp_offset = 0
-
-    hwp_theta = np.deg2rad(header["RET-ANG1"]) + filt_dict["hwp_offset"] + hwp_offset
-    imr_theta = np.deg2rad(header["D_IMRANG"]) + filt_dict["imr_offset"]
-    flc_ang = 0 if header["U_FLC"] == "A" else np.pi / 4
-    flc_theta = flc_ang + filt_dict["flc_offset"]
-    beam = header["U_CAMERA"] == 1  # true if ordinary
-    if "U_MBI" in header:
-        flc_theta *= -1
-        beam = not beam
-
-    M = np.linalg.multi_dot(
-        (
-            wollaston(beam),
-            waveplate(flc_theta, filt_dict["flc_delta"]),
-            generic(
-                filt_dict["optics_theta"], filt_dict["optics_diatt"], filt_dict["optics_delta"]
-            ),
-            waveplate(imr_theta, filt_dict["imr_delta"]),
-            waveplate(hwp_theta, filt_dict["hwp_delta"]),
-            rotator(-alt),
-            mirror(),
-            rotator(pa_theta),
-        )
-    )
-
-    return M
-
-
-def mueller_matrix_from_file(filename, outpath, force=False, **kwargs):
-    if (
-        not force
-        and Path(outpath).exists()
-        and Path(filename).stat().st_mtime < Path(outpath).stat().st_mtime
-    ):
-        return outpath
-
-    headers = []
-    mms = []
-    with fits.open(filename) as hdul:
-        for hdu in hdul[1:]:
-            headers.append(hdu.header)
-            mms.append(mueller_matrix_from_header(hdu.header, **kwargs).astype("f4"))
-        prim_hdu = fits.PrimaryHDU(np.array(mms), hdul[0].header)
-    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(mms, headers, strict=True))
-    hdul = fits.HDUList([prim_hdu, *hdus])
-    hdul.writeto(outpath, overwrite=True)
-    return outpath
+def hwp_adi_sync_offset(alt, az, lat=SUBARU_LOC.lat.rad):
+    alpha = np.sin(az)
+    beta = np.sin(alt) * np.cos(az) + np.cos(alt) * np.tan(lat)
+    return 0.5 * np.arctan2(alpha, beta) + alt
