@@ -59,9 +59,8 @@ class EMCCDMuellerMatrix(BaseModel):
 
         # telescope
         alt = np.deg2rad(header["ALTITUDE"])
-        M = mm.rotator(np.deg2rad(header["PA"]))
-        M = mm.mirror() @ M
-        M = mm.rotator(-alt) @ M
+        pa = np.deg2rad(header["PA"])
+        tel_mm = mm.rotator(-alt) @ mm.mirror() @ mm.rotator(pa)
 
         # HWP
         # get adi sync offset
@@ -71,33 +70,31 @@ class EMCCDMuellerMatrix(BaseModel):
         else:
             hwp_sync_offset = 0
         # add instrumental offset
-        hwp_theta = np.deg2rad(header["RET-ANG1"] + hwp_sync_offset + self.hwp_offset)
-        M = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi) @ M
+        hwp_theta = np.deg2rad(header["RET-ANG1"] + self.hwp_offset) + hwp_sync_offset
+        hwp_mm = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi)
 
         # Image rotator
         imr_theta = np.deg2rad(header["D_IMRANG"] + self.imr_offset)
-        M = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi) @ M
+        imr_mm = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi)
 
         # SCExAO optics
-        M = (
-            mm.generic(
-                epsilon=self.optics_diat,
-                theta=np.deg2rad(self.optics_theta),
-                delta=self.optics_phi * 2 * np.pi,
-            )
-            @ M
+        optics_mm = mm.generic(
+            epsilon=self.optics_diat,
+            theta=np.deg2rad(self.optics_theta),
+            delta=self.optics_phi * 2 * np.pi,
         )
 
         # FLC
         flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
-        M = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi) @ M
+        flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
 
         # beamsplitter
         is_ordinary = header["U_CAMERA"] == 1
-        M = mm.wollaston(is_ordinary) @ M
+        pbs_mm = mm.wollaston(is_ordinary)
         if is_ordinary:
-            M *= self.pbs_ratio
+            pbs_mm *= self.pbs_ratio
 
+        M = pbs_mm @ flc_mm @ optics_mm @ imr_mm @ hwp_mm @ tel_mm
         return M.astype("f4")
 
 
@@ -119,9 +116,8 @@ class CMOSMuellerMatrix(BaseModel):
 
         # telescope
         alt = np.deg2rad(header["ALTITUDE"])
-        M = mm.rotator(np.deg2rad(header["PA"]))
-        M = mm.mirror() @ M
-        M = mm.rotator(-alt) @ M
+        pa = np.deg2rad(header["PA"])
+        tel_mm = mm.rotator(-alt) @ mm.mirror() @ mm.rotator(pa)
 
         # HWP
         # get adi sync offset
@@ -131,12 +127,12 @@ class CMOSMuellerMatrix(BaseModel):
         else:
             hwp_sync_offset = 0
         # add instrumental offset
-        hwp_theta = np.deg2rad(header["RET-ANG1"] + hwp_sync_offset + self.hwp_offset)
-        M = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi) @ M
+        hwp_theta = np.deg2rad(header["RET-ANG1"] + self.hwp_offset) + hwp_sync_offset
+        hwp_mm = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi)
 
         # Image rotator
         imr_theta = np.deg2rad(header["D_IMRANG"] + self.imr_offset)
-        M = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi) @ M
+        imr_mm = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi)
 
         # SCExAO optics
         optics_mm = mm.generic(
@@ -144,18 +140,21 @@ class CMOSMuellerMatrix(BaseModel):
             theta=np.deg2rad(self.optics_theta),
             delta=self.optics_phi * 2 * np.pi,
         )
-        M = optics_mm @ M
 
         # FLC
-        flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
-        M = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi) @ M
+        if header["U_FLCST"].strip() == "IN":
+            flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
+            flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
+        else:
+            flc_mm = np.eye(4)
 
         # beamsplitter
         is_ordinary = header["U_CAMERA"] == 1
-        M = mm.wollaston(is_ordinary) @ M
+        pbs_mm = mm.wollaston(is_ordinary)
         if is_ordinary:
-            M *= self.pbs_ratio
+            pbs_mm *= self.pbs_ratio
 
+        M = pbs_mm @ flc_mm @ optics_mm @ imr_mm @ hwp_mm @ tel_mm
         return M.astype("f4")
 
 
