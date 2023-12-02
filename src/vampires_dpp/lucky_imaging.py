@@ -53,13 +53,13 @@ def get_centroids_from(metrics, input_key):
     return centroids
 
 
-def get_recenter_offset(frame, method, offsets, window=30, **kwargs):
+def get_recenter_offset(frame, method, offsets, window=30, psf=None, **kwargs):
     frame_ctr = frame_center(frame)
     ctr = 0
     n = 1
     for off in offsets - offsets.mean(0):
         inds = cutout_inds(frame, window=window, center=frame_ctr + off)
-        offsets = offset_centroids(frame, None, inds)
+        offsets = offset_centroids(frame, None, inds, psf=psf)
         ctr += (offsets[method] - ctr) / n
         n += 1
     return frame_ctr - ctr
@@ -80,6 +80,7 @@ def lucky_image_file(
     preproc_dir=None,
     specphot=None,
     window: int = 30,
+    psfs=None,
     **kwargs,
 ) -> Path:
     if (
@@ -128,6 +129,8 @@ def lucky_image_file(
     frames = []
     frame_errs = []
     headers = []
+    if psfs is None:
+        psfs = [None for _ in range(len(fields))]
     for i, (field, psf_ctr) in enumerate(fields.items()):
         ctr = np.mean(psf_ctr, axis=0)
         offs = psf_ctr - ctr
@@ -162,7 +165,7 @@ def lucky_image_file(
         ## Step 4: Recenter
         if recenter is not None:
             recenter_offset = get_recenter_offset(
-                coll_frame, method=recenter, offsets=offs, window=window
+                coll_frame, method=recenter, offsets=offs, window=window, psf=psfs[i]
             )
             coll_frame = shift_frame(coll_frame, recenter_offset)
             coll_err_frame = shift_frame(coll_err_frame, recenter_offset)

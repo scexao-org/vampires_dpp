@@ -193,7 +193,7 @@ class CollapseConfig(BaseModel):
     frame_select: Literal["max", "l2norm", "normvar"] | None = "normvar"
     centroid: Literal["com", "peak", "gauss", "dft"] | None = "com"
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
-    recenter: Literal["com", "peak", "gauss"] | None = "com"
+    recenter: Literal["com", "peak", "gauss", "dft"] | None = "com"
 
 
 class AnalysisConfig(BaseModel):

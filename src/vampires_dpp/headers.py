@@ -107,6 +107,14 @@ def fix_header(header):
     if "FILTER01" not in header:
         header["FILTER01"] = header["U_FILTER"]
         header["FILTER02"] = "Unknown"
+    if "PRD-MIN1" not in header:
+        full_size = 512
+        crop_size = header["NAXIS2"], header["NAXIS1"]
+        start_idx = np.round((full_size - np.array(crop_size)) / 2)
+        header["PRD-MIN1"] = start_idx[-1]
+        header["PRD-MIN2"] = start_idx[-2]
+        header["PRD-RNG1"] = crop_size[-1]
+        header["PRD-RNG2"] = crop_size[-2]
 
     # add in detector charracteristics
     inst = get_instrument_from(header)

@@ -227,18 +227,18 @@ class Pipeline:
         else:
             filts = (hdul[0].header["FILTER01"],)
 
-        psfs = []
+        self.psfs = []
         for filt in filts:
             psf = create_synth_psf(
                 fileinfo, filt, npix=config.window_size, output_directory=self.paths.preproc_dir
             )
-            psfs.append(psf)
+            self.psfs.append(psf)
 
         key = f"cam{fileinfo['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdul,
             centroids=self.centroids.get(key, None),
-            psfs=psfs,
+            psfs=self.psfs,
             subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
             ann_rad=config.ann_rad,
@@ -266,6 +266,7 @@ class Pipeline:
             specphot=self.config.specphot,
             preproc_dir=self.paths.preproc_dir,
             window=self.config.analysis.window_size,
+            psfs=self.psfs,
         )
         logger.debug("Data collapsing completed")
         logger.debug(f"Saved collapsed data to {outpath}")

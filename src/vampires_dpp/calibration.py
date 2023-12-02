@@ -237,15 +237,6 @@ def make_background_file(filename: str, force=False, **kwargs):
     header["CALTYPE"] = "BACKGROUND", "DPP calibration file type"
     # get bad pixel mask from adaptive sigma clip
     bpmask = adaptive_sigma_clip_mask(master_background)
-    # get bad pixel mask using lacosmic
-    # bpmask, _ = detect_cosmics(
-    #     master_background,
-    #     invar=back_std**2,
-    #     inmask=np.isnan(master_background),
-    #     satlevel=satlevel,
-    #     sigclip=10,
-    #     gain=header["EFFGAIN"]
-    # )
     # mask out bad pixels with nan- use np.isnan
     # to extract mask in future
     master_background[bpmask] = np.nan
@@ -298,16 +289,13 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     normval = np.nanmedian(master_flat)
     master_flat /= normval
     flat_err /= normval
+    mask = master_flat < 0.2
+    master_flat[mask] = np.nan
+    master_flat[mask] = np.nan
     header["FLATNORM"] = normval, "[adu] Flat field normalization factor"
     header["CALTYPE"] = "FLAT", "DPP calibration file type"
     header["BUNIT"] = "", "Unit of original values"
     bpmask = adaptive_sigma_clip_mask(master_flat)
-    # get bad pixel mask using lacosmic
-    # bpmask, _ = detect_cosmics(
-    #     master_flat, invar=flat_err**2, inmask=np.isnan(master_flat), satlevel=satlevel,
-    #     sigclip=10,
-    #     gain=header["EFFGAIN"]
-    # )
     # mask out bad pixels with nan- use np.isnan
     # to extract mask in future
     master_flat[bpmask] = np.nan
