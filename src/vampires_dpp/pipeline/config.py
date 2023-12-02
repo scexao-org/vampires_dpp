@@ -375,7 +375,7 @@ class PipelineConfig(BaseModel):
     """
 
     name: str = ""
-    make_diff_images: bool = False
+    diff_images: Literal["doublediff", "singlediff"] | None = None
     save_adi_cubes: bool = True
     coronagraphic: bool = False
     dpp_version: str = dpp.__version__

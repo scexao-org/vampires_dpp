@@ -55,7 +55,7 @@ def make_dirs(paths, config):
         paths.calibrated_dir.mkdir(parents=True, exist_ok=True)
     if config.collapse:
         paths.collapsed_dir.mkdir(parents=True, exist_ok=True)
-    if config.make_diff_images:
+    if config.diff_images is not None:
         paths.diff_dir.mkdir(parents=True, exist_ok=True)
     if config.save_adi_cubes:
         paths.adi_dir.mkdir(parents=True, exist_ok=True)

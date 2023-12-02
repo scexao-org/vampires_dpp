@@ -22,6 +22,12 @@ from vampires_dpp.image_processing import (
 from vampires_dpp.lucky_imaging import lucky_image_file
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths, get_paths, make_dirs
+from vampires_dpp.pdi.diff_images import (
+    doublediff_images,
+    get_doublediff_sets,
+    get_singlediff_sets,
+    singlediff_images,
+)
 from vampires_dpp.pdi.models import mueller_matrix_from_file
 from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
 from vampires_dpp.pdi.utils import write_stokes_products
@@ -121,7 +127,7 @@ class Pipeline:
             Number of processes to use for multi-processing, by default None.
         """
         make_dirs(self.paths, self.config)
-        logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
+        logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
         conf_copy_path = self.paths.preproc_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
@@ -134,26 +140,26 @@ class Pipeline:
         working_table = self.determine_execution(input_table, force=force)
         if len(working_table) == 0:
             logger.success("Finished processing files (No files to process)")
-            return
-        logger.info(
-            f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
-        )
+        else:
+            logger.info(
+                f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
+            )
 
-        if self.config.calibrate.calib_directory is not None:
-            cal_files = list(self.config.calibrate.calib_directory.glob("**/[!.]*.fits"))
-            if len(cal_files) > 0:
-                calib_table = match_calib_files(working_table["path"], cal_files)
-                working_table = pd.merge(working_table, calib_table, on="path")
+            if self.config.calibrate.calib_directory is not None:
+                cal_files = list(self.config.calibrate.calib_directory.glob("**/[!.]*.fits"))
+                if len(cal_files) > 0:
+                    calib_table = match_calib_files(working_table["path"], cal_files)
+                    working_table = pd.merge(working_table, calib_table, on="path")
 
-        ## For each file do
-        logger.info("Starting file-by-file processing")
-        with mp.Pool(num_proc) as pool:
-            jobs = []
-            for row in working_table.itertuples(index=False):
-                jobs.append(pool.apply_async(self.process_one, args=(row._asdict(),)))
+            ## For each file do
+            logger.info("Starting file-by-file processing")
+            with mp.Pool(num_proc) as pool:
+                jobs = []
+                for row in working_table.itertuples(index=False):
+                    jobs.append(pool.apply_async(self.process_one, args=(row._asdict(),)))
 
-            for job in tqdm(jobs, desc="Processing files"):
-                job.get()
+                for job in tqdm(jobs, desc="Processing files"):
+                    job.get()
         logger.info("Creating table from collapsed headers")
         self.output_files = input_table["collapse_file"]
         self.output_table = header_table(self.output_files, num_proc=num_proc)
@@ -162,10 +168,8 @@ class Pipeline:
         if self.config.save_adi_cubes:
             self.save_adi_cubes(force=force)
         ## diff images
-        if self.config.make_diff_images:
-            msg = "Making diff images needs reworking"
-            raise NotImplementedError(msg)
-            # self.make_diff_images(force=force)
+        if self.config.diff_images is not None:
+            self.make_diff_images(self.output_table, force=force)
 
         logger.success("Finished processing files")
 
@@ -295,33 +299,26 @@ class Pipeline:
             fits.writeto(angles_path, angles, overwrite=True)
             logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
 
-    # def make_diff_images(self, num_proc=None, force=False):
-    #     logger.info("Making difference frames")
-    #     # table should still be sorted by MJD
-    #     groups = self.output_table.groupby(["MJD", "U_CAMERA"])
-    #     cam1_paths = []
-    #     cam2_paths = []
-    #     for key, group in groups:
-    #         if key[1] == 1:
-    #             cam1_paths.append(group["path"].iloc[0])
-    #         elif key[1] == 2:
-    #             cam2_paths.append(group["path"].iloc[0])
+    def make_diff_images(self, table, num_proc=None, force=False):
+        logger.info("Making difference frames")
+        if self.config.diff_images == "singlediff":
+            path_sets = get_singlediff_sets(table)
+            diff_func = partial(singlediff_images, force=force)
+            outdir = self.paths.diff_dir / "single"
+        elif self.config.diff_images == "doublediff":
+            path_sets = get_doublediff_sets(table)
+            diff_func = partial(doublediff_images, force=force)
+            outdir = self.paths.diff_dir / "double"
+        outdir.mkdir(exist_ok=True)
+        with mp.Pool(num_proc) as pool:
+            jobs = []
+            for i, paths in enumerate(path_sets):
+                outpath = outdir / f"{self.config.name}_diff_{i:04d}.fits"
+                jobs.append(pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath)))
 
-    #     with mp.Pool(num_proc) as pool:
-    #         jobs = []
-    #         for cam1_file, cam2_file in zip(cam1_paths, cam2_paths):
-    #             stem = re.sub("_cam[12]", "", cam1_file.name)
-    #             outname = outdir / stem.replace(".fits", "_diff.fits")
-    #             logger.debug(f"loading cam1 image from {cam1_file.absolute()}")
-    #             logger.debug(f"loading cam2 image from {cam2_file.absolute()}")
-    #             kwds = dict(outname=outname, force=force)
-    #             jobs.append(
-    #                 pool.apply_async(make_diff_image, args=(cam1_file, cam2_file), kwds=kwds)
-    #             )
-
-    #         self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
-    #     logger.info("Done making difference frames")
-    #     return self.diff_files
+            self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
+        logger.info("Done making difference frames")
+        return self.diff_files
 
     def run_polarimetry(self, num_proc, force=False):
         make_dirs(self.paths, self.config)

@@ -414,11 +414,14 @@ def new_config(ctx, config, edit):
     tpl = get_analysis_settings(tpl)
     tpl = get_specphot_settings(tpl)
     tpl = get_collapse_settings(tpl)
-
-    # tpl.make_diff_images = click.confirm(
-    #     "Would you like to make difference images?", default=tpl.make_diff_images
-    # )
     tpl = get_pdi_settings(tpl)
+
+    if click.confirm("Would you like to make difference images?", default=False):
+        tpl.diff_images = click.prompt(
+            " - Select difference method", type=click.Choice(("singlediff", "doublediff"))
+        )
+    else:
+        tpl.diff_images = None
 
     tpl.save(config)
     click.echo(f"File saved to {config.name}")
