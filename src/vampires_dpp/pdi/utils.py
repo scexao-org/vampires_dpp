@@ -1,4 +1,3 @@
-import warnings
 from pathlib import Path
 
 import numpy as np
@@ -9,8 +8,6 @@ from vampires_dpp.analysis import safe_annulus_sum, safe_aperture_sum
 from vampires_dpp.image_processing import combine_frames_headers
 from vampires_dpp.indexing import frame_angles
 from vampires_dpp.wcs import apply_wcs
-
-HWP_POS_STOKES = {0: "Q", 45: "-Q", 22.5: "U", 67.5: "-U"}
 
 
 def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):  # noqa: E741
@@ -109,71 +106,34 @@ def rotate_stokes(stokes_cube, theta):
     return out
 
 
-def collapse_stokes_cube(stokes_cube, header=None):
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        stokes_out = np.nanmedian(stokes_cube, axis=1, overwrite_input=True)
-    # now that cube is derotated we can apply WCS
-    if header is not None:
-        apply_wcs(header)
-
-    return stokes_out, header
-
-
 def write_stokes_products(hdul, outname=None, force=False, phi=0):
     path = Path("stokes_cube.fits") if outname is None else Path(outname)
 
     if not force and path.is_file():
         return path
 
-    hdus = []
-    nfields = hdul[0].shape[0]
-    for i in range(1, nfields + 1):
-        if nfields > 1:
-            stokes_data = hdul[i].data
-            hdr = hdul[i].header
-            stokes_err = hdul[f"{hdr['FIELD']}ERR"].data
-        else:
-            stokes_data = hdul[0].data[0]
-            hdr = hdul[0].header
-            stokes_err = hdul[f"{hdr['FIELD']}ERR"].data
+    output_data = []
+    output_err = []
+    output_hdrs = []
+    stokes_data = hdul[0].data
+    stokes_err = hdul["ERR"].data
+    for i in range(stokes_data.shape[0]):
+        data, err = stokes_products(stokes_data[i], stokes_err[i], phi=phi)
 
-        data, data_err = stokes_products(stokes_data, stokes_err, phi=phi)
-
+        hdr = hdul[2 + i].header
         hdr["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
         if phi is not None:
             hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
 
-        hdu = fits.ImageHDU(data, hdr, name=hdr["FIELD"])
-        hdu_err = fits.ImageHDU(data_err, hdr, name=f"{hdr['FIELD']}ERR")
-        hdus.append((hdu, hdu_err))
+        output_data.append(data)
+        output_err.append(err)
+        output_hdrs.append(hdr)
 
-    prim_data = [hdu[0].data for hdu in hdus]
-    prim_hdr = apply_wcs(combine_frames_headers([hdu[0].header for hdu in hdus]), angle=0)
-    prim_hdu = fits.PrimaryHDU(np.squeeze(np.array(prim_data)), header=prim_hdr)
-    hdul_out = fits.HDUList(prim_hdu)
-    # add data hdus
-    if nfields > 1:
-        for hdu in hdus:
-            hdul_out.append(hdu[0])
-    # add err hdus
-    for hdu in hdus:
-        hdul_out.append(hdu[1])
-    # else:
-    #     stokes_data = hdul[0].data
-    #     hdr = hdul[0].data
-    #     stokes_err = hdul[1].data
-    #     print(stokes_data.shape)
-    #     data, data_err = stokes_products(stokes_data, stokes_err, phi=phi)
-
-    #     hdr["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
-    #     if phi is not None:
-    #         hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
-
-    #     prim_hdu = fits.PrimaryHDU(data, hdr)
-    #     hdu_err = fits.ImageHDU(data_err, hdr, name=f"ERR")
-    #     hdul_out = fits.HDUList([prim_hdu, hdu_err])
-
+    prim_hdr = apply_wcs(stokes_data, combine_frames_headers(output_hdrs), angle=0)
+    prim_hdu = fits.PrimaryHDU(np.squeeze(output_data), header=prim_hdr)
+    err_hdu = fits.ImageHDU(np.squeeze(output_err), header=prim_hdr, name="ERR")
+    hdul_out = fits.HDUList([prim_hdu, err_hdu])
+    hdul_out.extend([fits.ImageHDU(header=hdr) for hdr in output_hdrs])
     hdul_out.writeto(path, overwrite=True)
 
     return path

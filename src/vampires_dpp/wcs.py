@@ -2,15 +2,16 @@ import astropy.units as u
 import numpy as np
 from astropy import wcs
 from astropy.coordinates import Angle, SkyCoord
+from astropy.io import fits
 from astropy.time import Time
 from astroquery.vizier import Vizier
+from numpy.typing import NDArray
 
 from .constants import SUBARU_LOC
 
 
-def apply_wcs(header, angle=0):
-    nx = header["NAXIS1"]
-    ny = header["NAXIS2"]
+def apply_wcs(image: NDArray, header: fits.Header, angle: float = 0):
+    ny, nx = image.shape[-2:]
 
     w = wcs.WCS(naxis=2)
     w.wcs.crpix = [nx / 2 + 0.5, ny / 2 + 0.5]

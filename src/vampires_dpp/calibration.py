@@ -14,6 +14,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.time import Time
 from loguru import logger
+from numpy.typing import NDArray
 from tqdm.auto import tqdm
 
 from .indexing import cutout_inds
@@ -104,7 +105,7 @@ def deinterleave_cube(
     return hdu1, hdu2
 
 
-def apply_coordinate(header, coord: SkyCoord | None = None):
+def apply_coordinate(image: NDArray, header, coord: SkyCoord | None = None):
     time_str = Time(header["MJD-STR"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time = Time(header["MJD"], format="mjd", scale="ut1", location=SUBARU_LOC)
     time_end = Time(header["MJD-END"], format="mjd", scale="ut1", location=SUBARU_LOC)
@@ -123,7 +124,7 @@ def apply_coordinate(header, coord: SkyCoord | None = None):
     header["PA"] = pa, "[deg] parallactic angle of target"
     derotang = wrap_angle(pa + header["PAOFFSET"])
     header["DEROTANG"] = derotang, "[deg] derotation angle for North up"
-    return apply_wcs(header, angle=derotang)
+    return apply_wcs(image, header, angle=derotang)
 
 
 def calibrate_file(
@@ -148,7 +149,7 @@ def calibrate_file(
     satlevel = header["FULLWELL"] / header["GAIN"]
     cube = np.where(raw_cube >= satlevel, np.nan, raw_cube.astype("f4"))
     # apply proper motion correction to coordinate
-    header = apply_coordinate(header, coord)
+    header = apply_coordinate(cube, header, coord)
     cube_err = np.zeros_like(cube)
     # background subtraction
     if back_filename is not None:

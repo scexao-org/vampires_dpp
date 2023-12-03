@@ -25,9 +25,9 @@ def get_doublediff_sets(table):
     return path_sets
 
 
-def singlediff_images(paths, outpath: Path, force: bool = False) -> fits.HDUList:
+def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
     if not force and outpath.exists() and not any_file_newer(paths, outpath):
-        return fits.open(outpath)
+        return outpath
     data = {}
     errs = {}
     prim_hdrs = {}
@@ -38,14 +38,8 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> fits.HDUList
             key = prim_hdr["U_CAMERA"]
             prim_hdrs[key] = prim_hdr
             data[key] = hdul[0].data
-            _hdrs = []
-            _errs = []
-            for i in range(1, len(hdul), 2):
-                extname = hdul[i].name
-                _hdrs.append(hdul[i].header)
-                _errs.append(hdul[f"{extname}ERR"].data)
-            errs[key] = np.array(_errs)
-            hdrs[key] = _hdrs
+            errs[key] = hdul["ERR"].data
+            hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
 
     single_diff = data[1] - data[2]
     single_sum = data[1] + data[2]
@@ -63,16 +57,15 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> fits.HDUList
             fits.ImageHDU(single_err, header=prim_hdr, name="ERR"),
         ]
     )
-    for i in range(single_diff.shape[0]):
-        hdul.append(fits.ImageHDU(header=comb_hdrs[i]))
+    hdul.extend([fits.ImageHDU(header=hdr) for hdr in comb_hdrs])
 
     hdul.writeto(outpath, overwrite=True)
-    return hdul
+    return outpath
 
 
-def doublediff_images(paths, outpath: Path, force: bool = False) -> fits.HDUList:
+def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
     if not force and outpath.exists() and not any_file_newer(paths, outpath):
-        return fits.open(outpath)
+        return outpath
     data = {}
     errs = {}
     prim_hdrs = {}
@@ -83,25 +76,14 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> fits.HDUList
             key = (prim_hdr["U_CAMERA"], prim_hdr["U_FLC"])
             prim_hdrs[key] = prim_hdr
             data[key] = hdul[0].data
-            _hdrs = []
-            _errs = []
-            for i in range(1, len(hdul), 2):
-                extname = hdul[i].name
-                _hdrs.append(hdul[i].header)
-                _errs.append(hdul[f"{extname}ERR"].data)
-            errs[key] = np.array(_errs)
-            hdrs[key] = _hdrs
+            errs[key] = hdul["ERR"].data
+            hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
 
-    double_diff = 0.5 * ((data[1, "A"] - data[2, "A"]) - (data[1, "B"] - data[2, "B"]))
-    double_sum = 0.5 * ((data[1, "A"] + data[2, "A"]) + (data[1, "B"] + data[2, "B"]))
-    double_err = np.sqrt(
-        0.5 * (errs[1, "A"] ** 2 + errs[2, "A"] ** 2 + errs[1, "B"] ** 2 + errs[2, "B"] ** 2)
-    )
-    comb_hdrs = []
-    for i in range(double_diff.shape[0]):
-        headers = (hdrs[1, "A"][i], hdrs[2, "A"][i], hdrs[1, "B"][i], hdrs[2, "B"][i])
-        hdr = combine_frames_headers(headers)
-        comb_hdrs.append(hdr)
+    diff_A = data[1, "A"] - data[2, "A"]
+    diff_B = data[1, "B"] - data[2, "B"]
+    double_diff = 0.5 * (diff_A - diff_B)
+    double_sum = 2 * np.mean(list(data.values()), axis=0)
+    double_err = 0.5 * np.sqrt(np.sum(np.power(list(errs.values()), 2), axis=0))
     prim_hdr = combine_frames_headers(list(prim_hdrs.values()))
     hdul = fits.HDUList(
         [
@@ -111,7 +93,9 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> fits.HDUList
         ]
     )
     for i in range(double_diff.shape[0]):
-        hdul.append(fits.ImageHDU(header=comb_hdrs[i]))
+        headers = [hdr[i] for hdr in hdrs.values()]
+        hdr = combine_frames_headers(headers)
+        hdul.append(fits.ImageHDU(header=hdr))
 
     hdul.writeto(outpath, overwrite=True)
-    return hdul
+    return outpath

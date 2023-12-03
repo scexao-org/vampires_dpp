@@ -402,9 +402,10 @@ class Pipeline:
             nfields = hdul[0].shape[0]
 
         stokes_data = []
-        stokes_hdrs = [[] for _ in range(nfields + 1)]
-        stokes_err = [[] for _ in range(nfields)]
-        kwds = dict(
+        stokes_err = []
+        stokes_hdrs = []
+        stokes_func = partial(
+            make_stokes_image,
             method=method,
             mm_correct=config.mm_correct,
             ip_correct=config.ip_correct,
@@ -425,11 +426,7 @@ class Pipeline:
                     mm_paths = None
                 if len(path_set) not in (8, 16):
                     continue
-                jobs.append(
-                    pool.apply_async(
-                        make_stokes_image, args=(path_set, outpath, mm_paths), kwds=kwds
-                    )
-                )
+                jobs.append(pool.apply_async(stokes_func, args=(path_set, outpath, mm_paths)))
 
             for job in tqdm(jobs, desc="Creating Stokes images"):
                 outpath = job.get()
@@ -437,11 +434,10 @@ class Pipeline:
                 # another way would be to set ulimit -n <MAX_FILES>
                 with fits.open(outpath, memmap=False) as hdul:
                     stokes_data.append(hdul[0].data)
-                    for i in range(nfields + 1):
-                        stokes_hdrs[i].append(hdul[i].header)
-                    for i in range(nfields):
-                        err_extname = f"{hdul[i + 1].header['FIELD']}ERR"
-                        stokes_err[i].append(hdul[err_extname].data)
+                    stokes_err.append(hdul["ERR"].data)
+                    hdrs = [hdul[i].header for i in range(2, len(hdul))]
+                    stokes_hdrs.append(hdrs)
+
         remain_files = filter(lambda f: Path(f).exists(), stokes_files)
         ## Save CSV of Stokes values
         stokes_tbl = header_table(remain_files, fix=False, quiet=True)
@@ -451,11 +447,17 @@ class Pipeline:
         logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
         ## Collapse outputs
         stokes_data = np.array(stokes_data)
+        stokes_err = np.array(stokes_err)
         inds = crop_to_nans_inds(stokes_data)
         coll_frame, _ = collapse_frames(stokes_data[inds])
-        coll_hdrs = [
-            apply_wcs(combine_frames_headers(stokes_hdrs[i]), 0) for i in range(nfields + 1)
-        ]
+        coll_var, _ = collapse_frames(stokes_err[inds] ** 2)
+        coll_err = np.sqrt(coll_var / len(coll_var))
+        coll_hdrs = []
+        for i in range(nfields):
+            hdrs = [hdr[i] for hdr in stokes_hdrs]
+            hdr = apply_wcs(stokes_data, combine_frames_headers(hdrs), angle=0)
+            coll_hdrs.append(hdr)
+
         # correct TINT to account for actual number of files used
         unique_files = []
         for paths in full_path_set:
@@ -464,22 +466,11 @@ class Pipeline:
         for hdr in coll_hdrs:
             hdr["TINT"] = tint
         coll_errs = []
-        prim_hdu = fits.PrimaryHDU(coll_frame, header=coll_hdrs[0])
-        hdul = fits.HDUList(prim_hdu)
-        for i in range(nfields):
-            hdu = fits.ImageHDU(
-                coll_frame[i], header=coll_hdrs[i + 1], name=coll_hdrs[i + 1]["FIELD"]
-            )
-            hdul.append(hdu)
-        stokes_err = np.array(stokes_err)[inds]
-        for i in range(nfields):
-            err_list = stokes_err[i]
-            hdr = coll_hdrs[i + 1]
-            coll_var, _ = collapse_frames(np.power(err_list, 2))
-            coll_err = np.sqrt(coll_var / len(err_list))
-            coll_errs.append(coll_err)
-            hdu_err = fits.ImageHDU(coll_err, header=hdr, name=f"{hdr['FIELD']}ERR")
-            hdul.append(hdu_err)
+        prim_hdr = apply_wcs(coll_frame, combine_frames_headers(coll_hdrs))
+        prim_hdu = fits.PrimaryHDU(coll_frame, header=prim_hdr)
+        err_hdu = fits.ImageHDU(coll_err, header=prim_hdr, name="ERR")
+        hdul = fits.HDUList([prim_hdu, err_hdu])
+        hdul.extend([fits.ImageHDU(header=hdr, name=hdr["FIELD"]) for hdr in coll_hdrs])
         # In the case we have multi-wavelength data, save 4D Stokes cube
         if nfields > 1:
             stokes_cube_path = self.paths.pdi_dir / f"{self.config.name}_stokes_cube.fits"
@@ -491,16 +482,12 @@ class Pipeline:
                 warnings.simplefilter("ignore")
                 wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
                 wave_err_frame = np.sqrt(np.nansum(np.power(coll_errs, 2), axis=0))
-            wave_coll_hdr = apply_wcs(combine_frames_headers(coll_hdrs[1:]), angle=0)
+            wave_coll_hdr = prim_hdr.copy()
             wave_coll_hdr["FIELD"] = "COMB"
             # TODO some fits keywords here are screwed up
-            hdul = fits.HDUList(
-                [
-                    fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr),
-                    fits.ImageHDU(wave_coll_frame[0], header=wave_coll_hdr, name="COMB"),
-                    fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="COMBERR"),
-                ]
-            )
+            prim_hdu = fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr)
+            err_hdu = fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERR")
+            hdul = fits.HDUList([prim_hdu, err_hdu])
         # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(hdul, outname=stokes_coll_path, force=True)

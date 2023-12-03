@@ -186,13 +186,10 @@ def lucky_image_file(
         headers.append(hdr)
     comb_header = combine_frames_headers(headers, wcs=True)
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=comb_header)
-    hdul = fits.HDUList(prim_hdu)
-    for field, frame, hdr in zip(fields.keys(), frames, headers, strict=True):
-        hdu = fits.ImageHDU(frame, header=hdr, name=field)
-        hdul.append(hdu)
-    for field, frame_err, hdr in zip(fields.keys(), frame_errs, headers, strict=True):
-        hdu = fits.ImageHDU(frame_err, header=hdr, name=f"{field}ERR")
-        hdul.append(hdu)
+    err_hdu = fits.ImageHDU(np.array(frame_errs), header=comb_header, name="ERR")
+    hdul = fits.HDUList([prim_hdu, err_hdu])
+    # add headers from each field
+    hdul.extend([fits.ImageHDU(header=hdr, name=field) for hdr in headers])
     # write to disk
     logger.debug(f"Saving collapsed output to {outpath}")
     hdul.writeto(outpath, overwrite=True)
