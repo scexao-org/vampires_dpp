@@ -465,7 +465,6 @@ class Pipeline:
         tint = np.sum([fits.getval(path, "TINT") for path in np.unique(unique_files)])
         for hdr in coll_hdrs:
             hdr["TINT"] = tint
-        coll_errs = []
         prim_hdr = apply_wcs(coll_frame, combine_frames_headers(coll_hdrs))
         prim_hdu = fits.PrimaryHDU(coll_frame, header=prim_hdr)
         err_hdu = fits.ImageHDU(coll_err, header=prim_hdr, name="ERR")
@@ -481,13 +480,14 @@ class Pipeline:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
-                wave_err_frame = np.sqrt(np.nansum(np.power(coll_errs, 2), axis=0))
+                wave_err_frame = np.sqrt(np.nansum(coll_err**2, axis=0, keepdims=True))
             wave_coll_hdr = prim_hdr.copy()
             wave_coll_hdr["FIELD"] = "COMB"
             # TODO some fits keywords here are screwed up
             prim_hdu = fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr)
             err_hdu = fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERR")
-            hdul = fits.HDUList([prim_hdu, err_hdu])
+            dummy_hdu = fits.ImageHDU(header=wave_coll_hdr, name="COMB")
+            hdul = fits.HDUList([prim_hdu, err_hdu, dummy_hdu])
         # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(hdul, outname=stokes_coll_path, force=True)

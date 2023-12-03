@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -144,8 +145,15 @@ def stokes_products(stokes_frame, stokes_err, phi=0):
     aolp = np.arctan2(stokes_frame[2], stokes_frame[1])
     Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(stokes_frame, stokes_err, phi=phi)
     # error propagation
-    pi_err = np.hypot(stokes_frame[2] * stokes_err[2], stokes_frame[1] * stokes_err[1]) / np.abs(pi)
-    aolp_err = np.hypot(stokes_frame[1] * stokes_err[2], stokes_frame[2] * stokes_err[1]) / pi**2
+    # suppress all-divide error warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        pi_err = np.hypot(
+            stokes_frame[2] * stokes_err[2], stokes_frame[1] * stokes_err[1]
+        ) / np.abs(pi)
+        aolp_err = (
+            np.hypot(stokes_frame[1] * stokes_err[2], stokes_frame[2] * stokes_err[1]) / pi**2
+        )
 
     data = np.asarray((stokes_frame[0], stokes_frame[1], stokes_frame[2], Qphi, Uphi, pi, aolp))
     data_err = np.asarray(
