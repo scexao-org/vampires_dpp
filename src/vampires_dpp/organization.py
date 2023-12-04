@@ -31,8 +31,8 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     summary = OrderedDict()
     # add path to row before the FITS header keys
     summary["path"] = str(path.resolve().absolute())
-    header = fix_header(load_fits_header(filename, **kwargs))
-    summary.update(dict_from_header(header))
+    header = load_fits_header(filename)
+    summary.update(dict_from_header(header, **kwargs))
     return summary
 
 
