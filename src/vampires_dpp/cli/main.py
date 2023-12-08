@@ -4,6 +4,7 @@ import click
 
 import vampires_dpp as dpp
 
+from .astro import astro
 from .centroids import centroid
 from .new import new_config
 from .organization import sort_raw, table, upgrade
@@ -33,6 +34,7 @@ main.add_command(norm)
 main.add_command(prep)
 main.add_command(new_config)
 main.add_command(centroid)
+main.add_command(astro)
 main.add_command(run)
 main.add_command(pdi)
 main.add_command(table)

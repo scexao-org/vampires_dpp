@@ -22,8 +22,6 @@ class InstrumentInfo(BaseModel):
 class EMCCDVAMPIRES(InstrumentInfo):
     cam_num: Literal[1, 2]
     emgain: int
-    pixel_scale: ClassVar[float] = 6.24  # mas / px
-    pupil_offset: ClassVar[float] = 140.4  # deg
     gain: ClassVar[float] = 4.5  # e-/adu
     dark_current: ClassVar[float] = 1.5e-4  # e-/s/px
     bias: ClassVar[int] = 150
@@ -38,6 +36,16 @@ class EMCCDVAMPIRES(InstrumentInfo):
         "Halpha",
         "Ha-Cont",
     }
+    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 6.06, 2: 5.90}  # mas / px
+    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: 140.325, 2: 140.475}  # deg
+
+    @property
+    def pixel_scale(self):
+        return self.PIXEL_SCALE[self.cam_num]
+
+    @property
+    def pupil_offset(self):
+        return self.PUPIL_OFFSET[self.cam_num]
 
     @property
     def fullwell(self) -> float:
@@ -70,9 +78,6 @@ class CMOSVAMPIRES(InstrumentInfo):
     cam_num: Literal[1, 2]
     readmode: Literal["fast", "slow"]
     dark_current: ClassVar[float] = 3.6e-3  # e-/s/px
-    pixel_scale: ClassVar[float] = 6.018378804429752  # mas / px
-    # pupil_offset: ClassVar[float] = -41.323163723676146  # deg
-    pupil_offset: ClassVar[float] = 138.67683627632385  # deg
     excess_noise_factor: ClassVar[float] = 1
     bias: ClassVar[int] = 200
 
@@ -100,6 +105,16 @@ class CMOSVAMPIRES(InstrumentInfo):
         ("slow", 2): 0.220,
     }
     VAMP_GAIN: ClassVar[dict[str, float]] = {"fast": 0.103, "slow": 0.105}
+    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 6.01, 2: 6.02}  # mas / px
+    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: 139.5, 2: 138.5}  # deg
+
+    @property
+    def pixel_scale(self):
+        return self.PIXEL_SCALE[self.cam_num]
+
+    @property
+    def pupil_offset(self):
+        return self.PUPIL_OFFSET[self.cam_num]
 
     @property
     def readnoise(self):

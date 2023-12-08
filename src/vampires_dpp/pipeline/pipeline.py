@@ -48,7 +48,7 @@ class Pipeline:
 
     def create_input_table(self, filenames, num_proc) -> pd.DataFrame:
         input_table = header_table(filenames, quiet=True, num_proc=num_proc).sort_values("MJD")
-        table_path = self.paths.preproc_dir / f"{self.config.name}_headers.csv"
+        table_path = self.paths.aux_dir / f"{self.config.name}_headers.csv"
         input_table.to_csv(table_path)
         logger.info(f"Saved input header table to: {table_path}")
         return input_table
@@ -56,7 +56,7 @@ class Pipeline:
     def get_centroids(self):
         self.centroids = {}
         for key in ("cam1", "cam2"):
-            path = self.paths.preproc_dir / f"{self.config.name}_centroids_{key}.toml"
+            path = self.paths.aux_dir / f"{self.config.name}_centroids_{key}.toml"
             if not path.exists():
                 logger.warning(
                     f"Could not locate centroid file for {key}, expected it to be at {path}. Using center of image as default."
@@ -128,7 +128,7 @@ class Pipeline:
         """
         make_dirs(self.paths, self.config)
         logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
-        conf_copy_path = self.paths.preproc_dir / f"{self.config.name}.bak.toml"
+        conf_copy_path = self.paths.aux_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
 
@@ -162,7 +162,7 @@ class Pipeline:
                     job.get()
         logger.info("Creating table from collapsed headers")
         self.output_files = input_table["collapse_file"]
-        self.output_table = header_table(self.output_files, num_proc=num_proc)
+        self.output_table = header_table(self.output_files, num_proc=num_proc, quiet=True)
         self.save_output_header()
         ## products
         if self.config.save_adi_cubes:
@@ -234,7 +234,7 @@ class Pipeline:
         self.psfs = []
         for filt in filts:
             psf = create_synth_psf(
-                fileinfo, filt, npix=config.window_size, output_directory=self.paths.preproc_dir
+                fileinfo, filt, npix=config.window_size, output_directory=self.paths.aux_dir
             )
             self.psfs.append(psf)
 
@@ -268,7 +268,7 @@ class Pipeline:
             outpath=outpath,
             force=force,
             specphot=self.config.specphot,
-            preproc_dir=self.paths.preproc_dir,
+            aux_dir=self.paths.aux_dir,
             window=self.config.analysis.window_size,
             psfs=self.psfs,
         )
@@ -278,6 +278,7 @@ class Pipeline:
 
     def save_output_header(self):
         self.output_table.to_csv(self.output_table_path)
+        logger.info(f"Saved output header table to {self.output_table_path}")
         return self.output_table_path
 
     def save_adi_cubes(self, force: bool = False):
@@ -290,22 +291,65 @@ class Pipeline:
         else:
             self.output_table.sort_values("MJD", inplace=True)
 
-        for cam_num, group in self.output_table.groupby("U_CAMERA"):
+        hduls = []
+        cam_groups = self.output_table.groupby("U_CAMERA")
+        for cam_num, group in cam_groups:
             cube_path = self.paths.adi_dir / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
-            combine_frames_files(group["path"], output=cube_path, force=force, crop=True)
+            combine_frames_files(group["path"], output=cube_path, force=force, crop=False)
+            hduls.append(fits.open(cube_path, memmap=False))
             logger.info(f"Saved cam {cam_num:.0f} ADI cube to {cube_path}")
             angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
             angles = np.asarray(group["DEROTANG"], dtype="f4")
             fits.writeto(angles_path, angles, overwrite=True)
             logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
+        # take cam 1 as refernce, why not
+        if len(hduls) > 1:
+            # cam1_cube, cam1_hdr, cam2_cube, cam2_hdr = reproject_data(
+            #     hduls[0][0].data, hduls[0][0].header, hduls[1][0].data, hduls[1][0].header
+            # )
+            cam1_cube = hduls[0][0].data
+            cam1_hdr = hduls[0][0].header
+            cam2_cube = hduls[1][0].data
+            # cam2_hdr = hduls[1][0].header
+
+            mean_cube = 0.5 * (cam1_cube + cam2_cube)
+            cube_path = self.paths.adi_dir / f"{self.config.name}_adi_cube_comb.fits"
+            del cam1_hdr["U_CAMERA"]
+            fits.writeto(cube_path, mean_cube, header=cam1_hdr, overwrite=True)
+            logger.info(f"Saved combined ADI cube to {cube_path}")
+            angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
+            angles = np.asarray(cam_groups.get_group(1)["DEROTANG"])
+            fits.writeto(angles_path, angles, overwrite=True)
+            logger.info(f"Saved combined ADI angles to {angles_path}")
 
     def make_diff_images(self, table, num_proc=None, force=False):
         logger.info("Making difference frames")
+        self.diff_files = []
         if self.config.diff_images == "singlediff":
             path_sets = get_singlediff_sets(table)
             diff_func = partial(singlediff_images, force=force)
             outdir = self.paths.diff_dir / "single"
         elif self.config.diff_images == "doublediff":
+            path_sets = get_doublediff_sets(table)
+            diff_func = partial(doublediff_images, force=force)
+            outdir = self.paths.diff_dir / "double"
+        elif self.config.diff_images == "both":
+            # do singlediff first, then deliberate to doublediff
+            path_sets = get_singlediff_sets(table)
+            diff_func = partial(singlediff_images, force=force)
+            outdir = self.paths.diff_dir / "single"
+            outdir.mkdir(exist_ok=True)
+            with mp.Pool(num_proc) as pool:
+                jobs = []
+                for i, paths in enumerate(path_sets):
+                    outpath = outdir / f"{self.config.name}_diff_{i:04d}.fits"
+                    jobs.append(
+                        pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath))
+                    )
+                self.diff_files.extend(
+                    job.get() for job in tqdm(jobs, desc="Making single diff images")
+                )
+            # now set for double-diff
             path_sets = get_doublediff_sets(table)
             diff_func = partial(doublediff_images, force=force)
             outdir = self.paths.diff_dir / "double"
@@ -316,14 +360,14 @@ class Pipeline:
                 outpath = outdir / f"{self.config.name}_diff_{i:04d}.fits"
                 jobs.append(pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath)))
 
-            self.diff_files = [job.get() for job in tqdm(jobs, desc="Making diff images")]
+            self.diff_files.extend(job.get() for job in tqdm(jobs, desc="Making diff images"))
         logger.info("Done making difference frames")
         return self.diff_files
 
     def run_polarimetry(self, num_proc, force=False):
         make_dirs(self.paths, self.config)
         logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
-        conf_copy_path = self.paths.preproc_dir / f"{self.config.name}.bak.toml"
+        conf_copy_path = self.paths.aux_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
 

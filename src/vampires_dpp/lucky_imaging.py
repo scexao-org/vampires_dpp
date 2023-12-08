@@ -13,6 +13,7 @@ from .image_registration import offset_centroids
 from .indexing import cutout_inds, frame_center, get_mbi_centers
 from .specphot.specphot import convert_to_surface_brightness, specphot_calibration
 from .util import get_center
+from .wcs import apply_wcs
 
 FRAME_SELECT_MAP: Final[dict[str, str]] = {
     "peak": "max",
@@ -77,7 +78,7 @@ def lucky_image_file(
     recenter: Literal["com", "peak", "gauss", "dft"] | None = None,
     select_cutoff: float = 0,
     crop_width=None,
-    preproc_dir=None,
+    aux_dir=None,
     specphot=None,
     window: int = 30,
     psfs=None,
@@ -159,6 +160,7 @@ def lucky_image_file(
         coll_frame, header = collapse_cube(np.array(aligned_frames), header=header, method=method)
         # collapse error in quadrature
         N = len(aligned_frames)
+        header["NCOADD"] = N, "Number of frames combined in collapsed file"
         header["TINT"] = header["EXPTIME"] * N
         coll_var_frame, _ = collapse_cube(np.power(aligned_err_frames, 2), method=method)
         coll_err_frame = np.sqrt(coll_var_frame / N)
@@ -174,13 +176,13 @@ def lucky_image_file(
         ## handle header metadata
         add_metrics_to_header(hdr, masked_metrics, index=i)
         if specphot is not None:
-            hdr = specphot_calibration(hdr, outdir=preproc_dir, config=specphot)
+            hdr = specphot_calibration(hdr, outdir=aux_dir, config=specphot)
             coll_frame = convert_to_surface_brightness(coll_frame, hdr)
             coll_err_frame = convert_to_surface_brightness(coll_err_frame, hdr)
             hdr["BUNIT"] = "Jy/arcsec^2"
 
         hdr = add_frame_statistics(coll_frame, coll_err_frame, hdr)
-
+        hdr = apply_wcs(coll_frame, hdr, angle=hdr["DEROTANG"])
         frames.append(coll_frame)
         frame_errs.append(coll_err_frame)
         headers.append(hdr)

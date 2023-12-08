@@ -118,8 +118,8 @@ def apply_coordinate(image: NDArray, header, coord: SkyCoord | None = None):
         pa = parallactic_angle(_time, _coord)
         header[f"PA-{_key}"] = pa, "[deg] parallactic angle of target"
 
-    header["RA"] = coord_now.ra.to_string(unit=u.hourangle, sep=":")
-    header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":")
+    header["RA"] = coord_now.ra.to_string(unit=u.hourangle, sep=":"), header.comments["RA"]
+    header["DEC"] = coord_now.dec.to_string(unit=u.deg, sep=":"), header.comments["DEC"]
     pa = parallactic_angle(time, coord_now)
     header["PA"] = pa, "[deg] parallactic angle of target"
     derotang = wrap_angle(pa + header["PAOFFSET"])
@@ -195,6 +195,8 @@ def calibrate_file(
     if header["U_CAMERA"] == 1:
         cube = np.flip(cube, axis=-2)
         cube_err = np.flip(cube_err, axis=-2)
+
+    # reproject
     # distortion correction
     # TODO tbh this is scuffed
     if transform_filename is not None:
@@ -313,7 +315,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
 
 
 def match_calib_files(filenames, calib_files):
-    cal_table = header_table(calib_files)
+    cal_table = header_table(calib_files, quiet=True)
     rows = []
     for path in tqdm(map(Path, filenames), total=len(filenames), desc="Matching calibration files"):
         hdr = fix_header(load_fits_header(path))

@@ -7,6 +7,7 @@ import tqdm.auto as tqdm
 from astropy.io import fits
 from astropy.time import Time
 from numpy.typing import NDArray
+from reproject import reproject_interp
 
 from vampires_dpp.image_processing import combine_frames_headers, derotate_cube, derotate_frame
 from vampires_dpp.paths import any_file_newer
@@ -46,7 +47,8 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
         raise ValueError(msg)
     # now do triple-differential calibration
     cube_dict = {}
-    cube_errs = []
+    header_dict = {}
+    cube_errs = {}
     headers: dict[str, fits.Header] = {}
     for file in filenames:
         with fits.open(file) as hdul:
@@ -55,20 +57,39 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
             prim_hdr = hdul[0].header
             create_or_append(headers, "PRIMARY", prim_hdr)
             for hdu in hdul[2:]:
-                hdr = hdu.header
+                hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
         cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
-        cube_err_derot = derotate_cube(np.array(cube_err), prim_hdr["DEROTANG"])
+        cube_err_derot = derotate_cube(cube_err, prim_hdr["DEROTANG"])
+        prim_hdr = apply_wcs(cube, prim_hdr, angle=0)
         # store into dictionaries
         key = prim_hdr["RET-ANG1"], prim_hdr["U_FLC"], prim_hdr["U_CAMERA"]
+        header_dict[key] = prim_hdr
         cube_dict[key] = cube_derot
-        cube_errs.append(cube_err_derot)
+        cube_errs[key] = cube_err_derot
+
+    # reproject cam 2 onto cam 1
+    for subkey in itertools.product((0, 45, 22.5, 67.5), ("A", "B")):
+        key1 = (subkey[0], subkey[1], 1)
+        key2 = (subkey[0], subkey[1], 2)
+        reproject_interp(
+            (np.nan_to_num(cube_dict[key2]), header_dict[key2]),
+            header_dict[key1],
+            output_array=cube_dict[key2],
+            order="bicubic",
+        )
+        reproject_interp(
+            (np.nan_to_num(cube_errs[key2]), header_dict[key2]),
+            header_dict[key1],
+            output_array=cube_errs[key2],
+            order="bicubic",
+        )
 
     stokes_cube = triple_diff_dict(cube_dict)
     # swap stokes and field axes so field is first
     stokes_cube = np.swapaxes(stokes_cube, 0, 1)
-    stokes_err = np.sqrt(np.mean(np.power(cube_errs, 2), axis=0) / len(cube_errs))
+    stokes_err = np.sqrt(np.mean(np.power(list(cube_errs.values()), 2), axis=0) / len(cube_errs))
     stokes_err = np.swapaxes((stokes_err, stokes_err, stokes_err), 0, 1)
 
     stokes_hdrs: dict[str, fits.Header] = {}
@@ -94,7 +115,8 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
         raise ValueError(msg)
     # now do double-differential calibration
     cube_dict = {}
-    cube_errs = []
+    header_dict = {}
+    cube_errs = {}
     headers: dict[str, fits.Header] = {}
     for file in filenames:
         with fits.open(file) as hdul:
@@ -103,20 +125,39 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
             prim_hdr = hdul[0].header
             create_or_append(headers, "PRIMARY", prim_hdr)
             for hdu in hdul[2:]:
-                hdr = hdu.header
+                hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
         cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
         cube_err_derot = derotate_cube(cube_err, prim_hdr["DEROTANG"])
         # store into dictionaries
+        prim_hdr = apply_wcs(cube, prim_hdr, angle=0)
         key = prim_hdr["RET-ANG1"], prim_hdr["U_CAMERA"]
+        header_dict[key] = prim_hdr
         cube_dict[key] = cube_derot
-        cube_errs.append(cube_err_derot)
+        cube_errs[key] = cube_err_derot
+
+    # reproject cam 2 onto cam 1
+    for subkey in (0, 45, 22.5, 67.5):
+        key1 = (subkey, 1)
+        key2 = (subkey, 2)
+        reproject_interp(
+            (np.nan_to_num(cube_dict[key2]), header_dict[key2]),
+            header_dict[key1],
+            output_array=cube_dict[key2],
+            order="bicubic",
+        )
+        reproject_interp(
+            (np.nan_to_num(cube_errs[key2]), header_dict[key2]),
+            header_dict[key1],
+            output_array=cube_errs[key2],
+            order="bicubic",
+        )
 
     I, Q, U = double_diff_dict(cube_dict)  # noqa: E741
     # swap stokes and field axes so field is first
     stokes_cube = np.swapaxes((I, Q, U), 0, 1)
-    stokes_err = np.sqrt(np.mean(np.power(cube_errs, 2), axis=0) / len(cube_errs))
+    stokes_err = np.sqrt(np.mean(np.power(list(cube_errs.values()), 2), axis=0) / len(cube_errs))
     stokes_err = np.swapaxes((stokes_err, stokes_err, stokes_err), 0, 1)
 
     stokes_hdrs: dict[str, fits.Header] = {}

@@ -162,3 +162,6 @@ md5sums.txt
 docs/**/data
 *.tmp
 .vscode
+
+docs/.jupyter_cache
+docs/jupyter_execute

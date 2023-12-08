@@ -12,24 +12,25 @@ from .util import create_or_append, get_center
 
 def add_frame_statistics(frame, frame_err, header):
     ## Simple statistics
+    unit = header["BUNIT"]
     N = frame.size
-    header["TOTMAX"] = np.nanmax(frame), "[adu] Peak signal in frame"
-    header["TOTSUM"] = np.nansum(frame), "[adu] Summed signal in frame"
-    header["TOTSUME"] = (np.sqrt(np.nansum(frame_err**2)), "[adu] Summed signal error in frame")
-    header["TOTMEAN"] = np.nanmean(frame), "[adu] Mean signal in frame"
-    header["TOMEANE"] = (np.sqrt(np.nanmean(frame_err**2)), "[adu] Mean signal error in frame")
-    header["TOTMED"] = np.nanmedian(frame), "[adu] Median signal in frame"
+    header["TOTMAX"] = np.nanmax(frame), f"[{unit}] Peak signal in frame"
+    header["TOTSUM"] = np.nansum(frame), f"[{unit}] Summed signal in frame"
+    header["TOTSUME"] = (np.sqrt(np.nansum(frame_err**2)), f"[{unit}] Summed signal error in frame")
+    header["TOTMEAN"] = np.nanmean(frame), f"[{unit}] Mean signal in frame"
+    header["TOMEANE"] = (np.sqrt(np.nanmean(frame_err**2)), f"[{unit}] Mean signal error in frame")
+    header["TOTMED"] = np.nanmedian(frame), f"[{unit}] Median signal in frame"
     header["TOTMEDE"] = (
         header["TOMEANE"] * np.sqrt(np.pi / 2),
-        "[adu] Median signal error in frame",
+        f"[{unit}] Median signal error in frame",
     )
-    header["TOTVAR"] = np.nanvar(frame), "[adu^2] Signal variance in frame"
-    header["TOTVARE"] = (header["TOTVAR"] / N**2, "[adu^2] Signal variance error in frame")
-    header["TOTNVAR"] = (header["TOTVAR"] / header["TOTMEAN"], "[adu] Normed variance in frame")
+    header["TOTVAR"] = np.nanvar(frame), f"[{unit}^2] Signal variance in frame"
+    header["TOTVARE"] = (header["TOTVAR"] / N**2, f"[{unit}^2] Signal variance error in frame")
+    header["TOTNVAR"] = (header["TOTVAR"] / header["TOTMEAN"], f"[{unit}] Normed variance in frame")
     header["TONVARE"] = (
         header["TOTNVAR"]
         * np.hypot(header["TOTVARE"] / header["TOTVAR"], header["TOMEANE"] / header["TOTMEAN"]),
-        "[adu] Normed variance error in frame",
+        f"[{unit}] Normed variance error in frame",
     )
     return header
 

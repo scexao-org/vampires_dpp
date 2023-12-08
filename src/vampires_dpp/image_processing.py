@@ -1,4 +1,3 @@
-import re
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
@@ -44,7 +43,7 @@ def shift_frame(data: ArrayLike, shift: list | tuple, **kwargs) -> NDArray:
 def derotate_frame(
     data: ArrayLike, angle: float, center: list | tuple | None = None, **kwargs
 ) -> NDArray:
-    """Derotates a single frame by the given angle.
+    """Derotates a single frame by the given angle. This will rotate the frame clockwise
 
     Parameters
     ----------
@@ -312,7 +311,10 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     ## everything below here has special rules for combinations
     # sum exposure times
     if "TINT" in table:
-        output_header["TINT"] = (table["TINT"].sum(), "[s] total integrated exposure time")
+        output_header["TINT"] = table["TINT"].sum(), test_header.comments["TINT"]
+
+    if "NCOADD" in table:
+        output_header["NCOADD"] = table["NCOADD"].sum(), test_header.comments["NCOADD"]
 
     # get PA rotation
     if "PA" in table:
@@ -320,6 +322,11 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
         output_header["PA-END"] = table["PA-END"].iloc[-1], "[deg] par. angle at end"
         total_rot = delta_angle(output_header["PA-STR"], output_header["PA-END"])
         output_header["PA-ROT"] = total_rot, "[deg] total par. angle rotation"
+
+    if "DEROTANG" in table:
+        angs = Angle(table["DEROTANG"], unit=u.deg)
+        ave_ang = np.arctan2(np.sin(angs.rad).mean(), np.cos(angs.rad).mean())
+        output_header["DEROTANG"] = np.rad2deg(ave_ang), test_header.comments["DEROTANG"]
 
     # average position using average angle formula
     ras = Angle(table["RA"], unit=u.hourangle)
@@ -336,12 +343,12 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     )
     if wcs:
         # need to get average CRVALs and PCs
-        output_header["CRVAL1"] = np.rad2deg(ave_ra)
-        output_header["CRVAL2"] = np.rad2deg(ave_dec)
-        output_header["PC1_1"] = table["PC1_1"].mean()
-        output_header["PC1_2"] = table["PC1_2"].mean()
-        output_header["PC2_1"] = table["PC2_1"].mean()
-        output_header["PC2_2"] = table["PC2_2"].mean()
+        output_header["CRVAL1"] = np.rad2deg(ave_ra), test_header.comments["CRVAL1"]
+        output_header["CRVAL2"] = np.rad2deg(ave_dec), test_header.comments["CRVAL2"]
+        output_header["PC1_1"] = table["PC1_1"].mean(), test_header.comments["PC1_1"]
+        output_header["PC1_2"] = table["PC1_2"].mean(), test_header.comments["PC1_2"]
+        output_header["PC2_1"] = table["PC2_1"].mean(), test_header.comments["PC2_1"]
+        output_header["PC2_2"] = table["PC2_2"].mean(), test_header.comments["PC2_2"]
     else:
         wcskeys = filter(
             lambda k: any(wcsk.startswith(k) for wcsk in WCS_KEYS), output_header.keys()
@@ -436,8 +443,11 @@ def correct_distortion(
     corr_frame = warp_frame(frame, M, **kwargs)
     # update header
     if header is not None:
-        header["DPP_SCAL"] = scale, "scaling ratio for distortion correction"
-        header["DPP_ANGL"] = angle, "deg, offset angle for distortion correction"
+        header["PXSCALE"] *= scale
+        header["INSTANG"] += angle
+        header["DEROTANG"] += angle
+        header["DISTSCAL"] = scale, "scaling ratio for distortion correction"
+        header["DISTANGL"] = angle, "deg, offset angle for distortion correction"
     return corr_frame, header
 
 
@@ -475,41 +485,34 @@ def correct_distortion_cube(
         corr_cube[i] = warp_frame(frame, M, **kwargs)
     # update header
     if header is not None:
-        header["DPP_SCAL"] = scale, "scaling ratio for distortion correction"
-        header["DPP_ANGL"] = angle, "deg, offset angle for distortion correction"
+        header["PXSCALE"] *= scale
+        header["INSTANG"] += angle
+        header["DEROTANG"] += angle
+        header["DISTSCAL"] = scale, "scaling ratio for distortion correction"
+        header["DISTANGL"] = angle, "deg, offset angle for distortion correction"
     return corr_cube, header
 
 
-def make_diff_image(cam1_file, cam2_file, outname=None, force=False):
-    if outname is not None:
-        outname = Path(outname)
-    else:
-        stem = re.sub("_cam[12]", "", cam1_file.stem)
-        outname = cam1_file.with_name(f"{stem}_diff.fits")
+def reproject_data(cam1_data, cam1_hdr, cam2_data, cam2_hdr):
+    # rescale onto cam 1
+    scale = cam2_hdr["PXSCALE"] / cam1_hdr["PXSCALE"]
+    theta = cam1_hdr["INSTANG"] - cam2_hdr["INSTANG"]
+    if cam2_data.ndim == 4:
+        cam2_corr = cam2_data.copy()
+        for i in range(cam2_data.shape[1]):
+            cam2_corr[:, i], cam2_hdr = correct_distortion_cube(
+                cam2_data[:, i], angle=theta, scale=scale, header=cam2_hdr
+            )
+    elif cam2_data.ndim == 3:
+        cam2_corr, cam2_hdr = correct_distortion_cube(
+            cam2_data, angle=theta, scale=scale, header=cam2_hdr
+        )
+    elif cam2_data.ndim == 2:
+        cam2_corr, cam2_hdr = correct_distortion(
+            cam2_data, angle=theta, scale=scale, header=cam2_hdr
+        )
 
-    if not force and outname.is_file() and not any_file_newer((cam1_file, cam2_file), outname):
-        return outname
-
-    cam1_frame, header = load_fits(cam1_file, header=True)
-    cam2_frame, header2 = load_fits(cam2_file, header=True)
-
-    if header["MJD"] != header2["MJD"]:
-        msg = f"{cam1_file.name} has MJD {header['MJD']}\n{cam2_file.name} has MJD {header2['MJD']}"
-        raise ValueError(msg)
-    if "U_FLC" in header and header["U_FLC"] != header2["U_FLC"]:
-        msg = f"{cam1_file.name} has FLC state {header['U_FLC']}\n{cam2_file.name} has FLC state {header2['U_FLC']}"
-        raise ValueError(msg)
-
-    diff = cam1_frame - cam2_frame
-    summ = cam1_frame + cam2_frame
-
-    stack = np.asarray((diff, summ))
-
-    # prepare header
-    del header["U_CAMERA"]
-
-    fits.writeto(outname, stack, header=header, overwrite=True)
-    return outname
+    return cam1_data, cam1_hdr, cam2_corr, cam2_hdr
 
 
 def radial_profile_image(frame, fwhm=3):
@@ -532,11 +535,6 @@ def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
     for idx in range(cube.shape[0]):
         output[idx] = np.pad(cube[idx], pad_width, constant_values=np.nan)
     return output, header
-
-
-def generate_footprint(cube):
-    mask = np.isfinite(cube).astype(int)
-    return np.mean(mask, axis=0)
 
 
 def crop_to_nans_inds(data: NDArray) -> NDArray:

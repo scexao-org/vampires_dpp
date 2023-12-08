@@ -38,10 +38,10 @@ def derotate_wcs(header, angle):
         sinang * header["PC1_1"] + cosang * header["PC2_1"],
         sinang * header["PC1_2"] + cosang * header["PC2_2"],
     )
-    header["PC1_1"] = components[0]
-    header["PC1_2"] = components[1]
-    header["PC2_1"] = components[2]
-    header["PC2_2"] = components[3]
+    header["PC1_1"] = components[0], header.comments["PC1_1"]
+    header["PC1_2"] = components[1], header.comments["PC1_2"]
+    header["PC2_1"] = components[2], header.comments["PC2_1"]
+    header["PC2_2"] = components[3], header.comments["PC2_2"]
     return header
 
 

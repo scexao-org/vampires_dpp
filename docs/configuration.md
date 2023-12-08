@@ -1,4 +1,4 @@
-# Pipeline
+# Configuration
 
 The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the `dpp run` script
 
@@ -127,17 +127,17 @@ In order to try and manage compatibility for the pipeline, your configuration fi
 1. (Recommended) Call `dpp upgrade` to try to automatically upgrade your configuration
 2. Downgrade `vampires_dpp` to match the version in your configuration
 
-### Older data and PDI
+### I'm getting warnings about centroid files, help!
 
-> I downloaded some archival VAMPIRES data and I keep getting errors during PDI that say the HWP indices can't be ordered.
+The blah blah explain it.
 
-Some antique VAMPIRES data uses a different order for the HWP cycles than modern VAMPIRES data. In other words, instead of iterating between 0° (Q), 45° (-Q), 22.5° (U), 67.5° (-U), in this data the order is 0° (Q), 22.5° (U), 45° (-Q), 67.5° (-U). To fix this behavior, you can use the least-squares polarimetry method which does not need ordering, or you can set the following in your configuration-
+TODO
 
-```toml
-[polarimetry]
-method = "difference"
-order = "QUQU"
-```
+### I keep getting an error about PrimaryHDUs when re-running the pipeline
+
+If the pipeline crashes or is stopped early there is a chance that data in the process of being written to disk will become corrupted. This appears to happen frequently when saving intermediate calibrated data while multi-processing. To address this error, you will need to replace the corrupted data with a reprocessed version.
+
+To find the file causing the problems, first try looking in the debug log file (in `pr`)
 
 ### Performance
 

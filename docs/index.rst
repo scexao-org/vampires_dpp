@@ -33,7 +33,7 @@ Contents
    installation
    introduction
    quickstart
-   pipeline
+   configuration
    tutorials/index
    api/index
 

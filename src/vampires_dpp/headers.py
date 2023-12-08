@@ -126,12 +126,16 @@ def fix_header(header):
     header["RN"] = inst.readnoise, "[e-] RMS read noise"
     header["PXSCALE"] = inst.pixel_scale, "[mas/px] Pixel scale"
     header["PAOFFSET"] = inst.pa_offset, "[deg] Parallactic angle offset"
+    header["INSTANG"] = inst.pupil_offset, "[deg] Instrument angle offset"
     header["FULLWELL"] = inst.fullwell, "[e-] Full well of detector register"
 
-    header["TINT"] = (
-        header["EXPTIME"] * header.get("NAXIS3", 1),
-        "[s] Total integration time of file",
-    )
+    if "TINT" not in header:
+        header["TINT"] = (
+            header["EXPTIME"] * header.get("NAXIS3", 1),
+            "[s] Total integration time of file",
+        )
+    if "NFRAMES" not in header:
+        header["NFRAMES"] = header.get("NAXIS3", 1), "Number of frames in original file"
 
     return header
 

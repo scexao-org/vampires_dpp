@@ -7,8 +7,8 @@ class Paths:
         self.workdir = Path.cwd() if workdir is None else Path(workdir)
 
     @property
-    def preproc_dir(self) -> Path:
-        return self.workdir / "preproc"
+    def aux_dir(self) -> Path:
+        return self.workdir / "aux"
 
     @property
     def products_dir(self) -> Path:
@@ -48,7 +48,7 @@ class Paths:
 
 
 def make_dirs(paths, config):
-    paths.preproc_dir.mkdir(parents=True, exist_ok=True)
+    paths.aux_dir.mkdir(parents=True, exist_ok=True)
     paths.products_dir.mkdir(parents=True, exist_ok=True)
     paths.metrics_dir.mkdir(parents=True, exist_ok=True)
     if config.calibrate.save_intermediate:

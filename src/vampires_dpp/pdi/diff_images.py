@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 from astropy.io import fits
+from reproject import reproject_interp
 
 from vampires_dpp.image_processing import combine_frames_headers
 from vampires_dpp.paths import any_file_newer
@@ -41,6 +42,21 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
             errs[key] = hdul["ERR"].data
             hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
 
+    # reproject cam2 onto cam1
+    reproject_interp(
+        (np.nan_to_num(data[2]), prim_hdrs[2]),
+        prim_hdrs[1],
+        return_footprint=False,
+        output_array=data[2],
+        order="bicubic",
+    )
+    reproject_interp(
+        (np.nan_to_num(errs[2]), prim_hdrs[2]),
+        prim_hdrs[1],
+        return_footprint=False,
+        output_array=errs[2],
+        order="bicubic",
+    )
     single_diff = data[1] - data[2]
     single_sum = data[1] + data[2]
     single_err = np.hypot(errs[1], errs[2])
@@ -78,6 +94,23 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
             data[key] = hdul[0].data
             errs[key] = hdul["ERR"].data
             hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
+
+    # reproject cam2 onto cam1
+    for key in ("A", "B"):
+        reproject_interp(
+            (np.nan_to_num(data[2, key]), prim_hdrs[2, key]),
+            prim_hdrs[1, key],
+            return_footprint=False,
+            output_array=data[2, key],
+            order="bicubic",
+        )
+        reproject_interp(
+            (np.nan_to_num(errs[2, key]), prim_hdrs[2, key]),
+            prim_hdrs[1, key],
+            return_footprint=False,
+            output_array=errs[2, key],
+            order="bicubic",
+        )
 
     diff_A = data[1, "A"] - data[2, "A"]
     diff_B = data[1, "B"] - data[2, "B"]

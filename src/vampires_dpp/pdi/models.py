@@ -23,7 +23,7 @@ def load_calibration_file(header):
     return table.loc[table_key]
 
 
-class EMCCDMuellerMatrix(BaseModel):
+class VAMPIRESMuellerMatrix(BaseModel):
     name: str = "ideal"
     pbs_ratio: float = 1  # cam1 / cam2 ratio
     hwp_offset: float = 0  # deg
@@ -36,6 +36,54 @@ class EMCCDMuellerMatrix(BaseModel):
     flc_theta: dict[str, float] = {"A": 0, "B": 45}  # deg
     flc_phi: float = 0.5  # wave
 
+    def evaluate(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
+        ## build up mueller matrix component by component
+        cp_mm = self.common_path_mm(header, hwp_adi_sync=hwp_adi_sync)
+
+        # FLC
+        flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
+        flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
+
+        # beamsplitter
+        is_ordinary = header["U_CAMERA"] == 1
+        pbs_mm = mm.wollaston(is_ordinary)
+        if is_ordinary:
+            pbs_mm *= self.pbs_ratio
+
+        M = pbs_mm @ flc_mm @ cp_mm
+        return M.astype("f4")
+
+    def common_path_mm(self, header, hwp_adi_sync=True):
+        # telescope
+        alt = np.deg2rad(header["ALTITUDE"])
+        pa = np.deg2rad(header["PA"])
+        tel_mm = mm.rotator(-alt) @ mm.mirror() @ mm.rotator(pa)
+
+        # HWP
+        # get adi sync offset
+        if hwp_adi_sync:
+            az = np.deg2rad(header["AZIMUTH"] - 180)
+            hwp_sync_offset = mm.hwp_adi_sync_offset(alt=alt, az=az)
+        else:
+            hwp_sync_offset = 0
+        # add instrumental offset
+        hwp_theta = np.deg2rad(header["RET-ANG1"] + self.hwp_offset) + hwp_sync_offset
+        hwp_mm = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi)
+
+        # Image rotator
+        imr_theta = np.deg2rad(header["D_IMRANG"] + self.imr_offset)
+        imr_mm = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi)
+
+        # SCExAO optics
+        optics_mm = mm.generic(
+            epsilon=self.optics_diat,
+            theta=np.deg2rad(self.optics_theta),
+            delta=self.optics_phi * 2 * np.pi,
+        )
+        return optics_mm @ imr_mm @ hwp_mm @ tel_mm
+
+
+class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
     @classmethod
     def load_calib_file(cls, header):
         table = load_calibration_file(header)
@@ -54,92 +102,13 @@ class EMCCDMuellerMatrix(BaseModel):
             flc_phi=table["flc_phi"],
         )
 
-    def evaluate(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
-        ## build up mueller matrix component by component
 
-        # telescope
-        alt = np.deg2rad(header["ALTITUDE"])
-        pa = np.deg2rad(header["PA"])
-        tel_mm = mm.rotator(-alt) @ mm.mirror() @ mm.rotator(pa)
-
-        # HWP
-        # get adi sync offset
-        if hwp_adi_sync:
-            az = np.deg2rad(header["AZIMUTH"] - 180)
-            hwp_sync_offset = mm.hwp_adi_sync_offset(alt=alt, az=az)
-        else:
-            hwp_sync_offset = 0
-        # add instrumental offset
-        hwp_theta = np.deg2rad(header["RET-ANG1"] + self.hwp_offset) + hwp_sync_offset
-        hwp_mm = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi)
-
-        # Image rotator
-        imr_theta = np.deg2rad(header["D_IMRANG"] + self.imr_offset)
-        imr_mm = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi)
-
-        # SCExAO optics
-        optics_mm = mm.generic(
-            epsilon=self.optics_diat,
-            theta=np.deg2rad(self.optics_theta),
-            delta=self.optics_phi * 2 * np.pi,
-        )
-
-        # FLC
-        flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
-        flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
-
-        # beamsplitter
-        is_ordinary = header["U_CAMERA"] == 1
-        pbs_mm = mm.wollaston(is_ordinary)
-        if is_ordinary:
-            pbs_mm *= self.pbs_ratio
-
-        M = pbs_mm @ flc_mm @ optics_mm @ imr_mm @ hwp_mm @ tel_mm
-        return M.astype("f4")
-
-
-class CMOSMuellerMatrix(BaseModel):
-    name: str = "ideal"
-    pbs_ratio: float = 1  # cam1 / cam2 ratio
-    hwp_offset: float = 0  # deg
-    hwp_phi: float = 0.5  # wave
-    imr_offset: float = 0  # deg
-    imr_phi: float = 0.5  # wave
-    optics_diat: float = 0
-    optics_theta: float = 0  # deg
-    optics_phi: float = 0  # wave
+class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
     flc_theta: dict[str, float] = {"A": 0, "B": -45}  # deg
-    flc_phi: float = 0.5  # wave
 
     def evaluate(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
         ## build up mueller matrix component by component
-
-        # telescope
-        alt = np.deg2rad(header["ALTITUDE"])
-        pa = np.deg2rad(header["PA"])
-        tel_mm = mm.rotator(-alt) @ mm.mirror() @ mm.rotator(pa)
-
-        # HWP
-        # get adi sync offset
-        if hwp_adi_sync:
-            az = np.deg2rad(header["AZIMUTH"] - 180)
-            hwp_sync_offset = mm.hwp_adi_sync_offset(alt=alt, az=az)
-        else:
-            hwp_sync_offset = 0
-        # add instrumental offset
-        hwp_theta = np.deg2rad(header["RET-ANG1"] + self.hwp_offset) + hwp_sync_offset
-        hwp_mm = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi)
-
-        # Image rotator
-        imr_theta = np.deg2rad(header["D_IMRANG"] + self.imr_offset)
-        imr_mm = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi)
-
-        # SCExAO optics
-        optics_mm = mm.generic(
-            epsilon=self.optics_diat,
-            theta=np.deg2rad(self.optics_theta),
-            delta=self.optics_phi * 2 * np.pi,
-        )
+        cp_mm = self.common_path_mm(header, hwp_adi_sync=hwp_adi_sync)
 
         # FLC
         if header["U_FLCST"].strip() == "IN":
@@ -154,7 +123,7 @@ class CMOSMuellerMatrix(BaseModel):
         if is_ordinary:
             pbs_mm *= self.pbs_ratio
 
-        M = pbs_mm @ flc_mm @ optics_mm @ imr_mm @ hwp_mm @ tel_mm
+        M = pbs_mm @ flc_mm @ cp_mm
         return M.astype("f4")
 
 
