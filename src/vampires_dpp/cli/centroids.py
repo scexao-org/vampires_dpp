@@ -8,7 +8,6 @@ import numpy as np
 import tomli_w
 from numpy.typing import NDArray
 
-from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.image_processing import collapse_frames_files
 from vampires_dpp.image_registration import offset_centroids
 from vampires_dpp.indexing import cutout_inds, frame_center
@@ -199,7 +198,7 @@ def save_centroids(
 @click.option(
     "--num-proc",
     "-j",
-    default=DEFAULT_NPROC,
+    default=1,
     type=click.IntRange(1, multiprocessing.cpu_count()),
     help="Number of processes to use.",
     show_default=True,

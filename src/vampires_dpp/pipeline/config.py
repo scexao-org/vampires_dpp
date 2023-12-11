@@ -13,6 +13,16 @@ from pydantic import BaseModel
 import vampires_dpp as dpp
 from vampires_dpp.util import check_version
 
+__all__ = (
+    "ObjectConfig",
+    "SpecphotConfig",
+    "CalibrateConfig",
+    "CollapseConfig",
+    "AnalysisConfig",
+    "PolarimetryConfig",
+    "PipelineConfig",
+)
+
 
 class ObjectConfig(BaseModel):
     """Astronomical coordinate options.
@@ -62,6 +72,9 @@ class ObjectConfig(BaseModel):
         return dec_ang
 
     def get_coord(self) -> SkyCoord:
+        """
+        Return SkyCoord from the current parameters
+        """
         return SkyCoord(
             ra=self.ra_ang,
             dec=self.dec_ang,
@@ -74,6 +87,45 @@ class ObjectConfig(BaseModel):
 
 
 class SpecphotConfig(BaseModel):
+    """Spectrophotometric Configuration
+
+    Spectrophotometric calibration requires determining the precise conversion from detector data numbers ($adu/s$) to astronomical flux ($Jy$).
+    We enable this through synthetic photometry of calibrated spectra. The synthetic photometry is accomplished with `synphot <https://synphot.readthedocs.io/en/latest/>`_.
+    We offer two input types for the stellar spectrum-
+
+    1. Calibrated spectrum data
+        * Requires an absolutely calibrated spectrum
+        * Data must be prepared such that calling `SourceSpectrum.from_file <https://synphot.readthedocs.io/en/latest/api/synphot.spectrum.SourceSpectrum.html#synphot.spectrum.SourceSpectrum.from_file>`_ loads the spectrum. Refer to their documentation for format information.
+        * Set `source` as the path
+    2. Stellar Model Library
+        * Uses `pickles uvk <https://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/pickles-atlas>`_ model library
+        * Spectral type and reference magnitude required for normalizing model
+
+    The synthetic photometry is used to determine the expected flux in Jy, which is used to determine the conversion factor. This conversion factor maps from data
+    flux in adu/s to Jy, with units of Jy s/adu. To determine the factor we take the flux metric from each collapsed frame (and average between any satellite spots) before
+    dividing by the frame exposure time (``header["EXPTIME"]``). We store the conversion factor and other derivatives, such as the Vega zero-point magnitude in the FITS
+    header of the output file. Lastly, we convert the input data pixel-by-pixel from adu to Jy using the conversion factor and integration time. We lastly convert to surface
+    brightness by dividing each pixel by its solid angle (``header["PXSCALE"]^2``).
+
+    .. admonition:: Note: combining data
+
+        Because each camera's data is calibrated independently, when you combine cam1 and cam2  data (such as PDI, ADI post-processing) you should *average* the two
+        cameras' data to maintain accurate spectrophotometric calibration.
+
+    Parameters
+    ----------
+    source:
+        Spectrum source type. If a path, must be a file that can be loaded by `synphot.SourceSpectrum.from_file`.
+    sptype:
+        Only used if `source` is "pickles". Stellar spectral type. Note: must be one of the spectral types available in the pickles model atlas. Refer to the STScI documentation for more information on available spectral types.
+    mag:
+        Only used if `source` is "pickles". Stellar reference magnitude
+    mag_band:
+        Only used if `source` is "pickles". Stellar reference magnitude band
+    flux_metric:
+        Which frame analysis statistic to use for determining flux. "photometry" uses an aperture sum, while "sum" uses the sum in the analysis cutout window.
+    """
+
     source: Literal["pickles"] | Path = "pickles"
     sptype: str | None = None
     mag: float | None = None
@@ -86,38 +138,30 @@ class CalibrateConfig(BaseModel):
 
     The calibration strategy is generally
 
-    #. Subtract background frame, if provided
-    #. Normalize by flat field, if provided
-    #. Bad pixel correction, if set
+    #. Load data and fix header values
+    #. Calculate precise coordinates if ``ObjectConfig`` is used in pipeline
+    #. Background subtraction
+    #. (Optional) flat-field normalization
+    #. (Optional) bad pixel correction
     #. Flip camera 1 data along y-axis
-    #. Apply distortion correction, if provided
-    #. Deinterleave FLC states, if set
 
-    .. admonition:: Deinterleaving
-        :class: warning
-
-        Deinterleaving should not be required for data downloaded from STARS. Only set this option if you are dealing with PDI data downloaded directly from the VAMPIRES computer.
-
-    .. admonition:: Outputs
-
-        If `deinterleave` is set, two files will be saved in the output directory for each input file, with `_FLC1` and `_FLC2` appended. The calibrated files will be saved with the "_calib" suffix.
+    We use a file-matching approach for calibrations to try and flexibly use the calibration data you have, even if it's not the ideal calibration file
+    or is from a different night. The file matching will always require the calibrations to have the same pixel crop (both size and location) and detector
+    read mode. For background files, we'll try and find files with the same exposure time and detector gain, but will accept others. Flat files will try and
+    match detector gain, filter, and exposure time, in that order. For all files, if there are multiple matches we will select the single file closest in time.
 
     Parameters
     ----------
-    master_backgrounds: Optional[dict[str, Optional[Path]]]
-        If provided, must be a dict with keys for "cam1" and "cam2" master backgrounds. You can omit one of the cameras. By default None.
-    master_flats: Optional[dict[str, Optional[Path]]]
-        If provided, must be a dict with keys for "cam1" and "cam2" master flats. You can omit one of the cameras. By default None.
-    distortion: Optional[DistortionConfig]
-        (Advanced) Config for geometric distortion correction. By default None.
-    fix_bad_pixels: bool
-        If true, will run LACosmic algorithm for one iteration on each frame and correct bad pixels. By default false.
-    deinterleave: bool
-        **(Advanced)** If true, will deinterleave every other file into the two FLC states. By default false.
-    output_directory : Optional[Path]
-        The calibrated files will be saved to the output directory. If not provided, will use the current working directory. By default None.
-    force : bool
-        If true, will force this processing step to occur.
+    calib_directory:
+        Path to calibration file directory, if not provided no calibration will be done, regardless of other settings.
+    back_subtract:
+        If true will look for background files in ``calib_directory`` and subtract them if found. If not found, will subtract detector bias value.
+    flat_correct:
+        If true will look for flat files in ``calib_directory`` and perform flat normalization if found.
+    fix_bad_pixels:
+        If true, will run adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels. By default false.
+    save_intermediate:
+        If true, will save intermediate calibrated data to ``calibrated/`` folder.
 
     Examples
     --------
@@ -143,6 +187,11 @@ class CalibrateConfig(BaseModel):
 
         [calibrate.distortion]
         transform_filename = "20230102_fcs16000_params.csv"
+
+    .. admonition:: Outputs
+
+        If the ``save_intermediate`` pipeline option is true, calibrated data will be saved in the ``calibrated`` folder (``paths.calib_dir``).
+
     """
 
     calib_directory: Path | None = None
@@ -171,11 +220,6 @@ class CollapseConfig(BaseModel):
     method : str
         The collapse method, one of `"median"`, `"mean"`, `"varmean"`, or `"biweight"`. By default
         `"median"`.
-    output_directory : Optional[Path]
-        The collapsed files will be saved to the output directory. If not provided, will use the
-        current working directory. By default None.
-    force : bool
-        If true, will force this processing step to occur.
 
 
     Examples
@@ -194,6 +238,7 @@ class CollapseConfig(BaseModel):
     centroid: Literal["com", "peak", "gauss", "dft"] | None = "com"
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     recenter: Literal["com", "peak", "gauss", "dft"] | None = "com"
+    reproject: bool = True
 
 
 class AnalysisConfig(BaseModel):
@@ -208,10 +253,6 @@ class AnalysisConfig(BaseModel):
     strehl
     recenter
     subtract_radprof
-    output_directory : Optional[Path]
-        The diff images will be saved to the output directory. If not provided, will use the current working directory. By default None.
-    force : bool
-        If true, will force this processing step to occur.
 
     Examples
     --------

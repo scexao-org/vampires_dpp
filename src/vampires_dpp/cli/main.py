@@ -23,7 +23,7 @@ class OrderedGroup(click.Group):
         return self.commands
 
 
-@click.group(name="main", cls=OrderedGroup, no_args_is_help=True)
+@click.group(name="dpp", cls=OrderedGroup, no_args_is_help=True)
 @click.version_option(dpp.__version__, "--version", "-v", prog_name="vampires_dpp")
 def main():
     pass

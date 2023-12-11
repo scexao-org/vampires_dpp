@@ -2,7 +2,6 @@ import os
 from datetime import date
 
 from pkg_resources import DistributionNotFound, get_distribution
-from vampires_dpp.pipeline.templates import VAMPIRES_PDI, VAMPIRES_SDI, VAMPIRES_SINGLECAM
 
 # -- Project information -----------------------------------------------------
 try:
@@ -29,38 +28,9 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.mathjax",
     "myst_nb",
+    "sphinx_click",
 ]
 myst_enable_extensions = ["dollarmath", "substitution"]
-
-singlecam_toml = f"""
-<details>
-<summary>Single-cam example</summary>
-
-```toml
-{VAMPIRES_SINGLECAM.to_toml()}
-```
-</details>
-"""
-pdi_toml = f"""
-<details>
-<summary>PDI example</summary>
-
-```toml
-{VAMPIRES_PDI.to_toml()}
-```
-</details>
-"""
-sdi_toml = f"""
-<details>
-<summary>H-alpha example</summary>
-
-```toml
-{VAMPIRES_SDI.to_toml()}
-```
-</details>
-"""
-
-myst_substitutions = {"singlecam_toml": singlecam_toml, "pdi_toml": pdi_toml, "sdi_toml": sdi_toml}
 myst_heading_anchors = 2
 source_suffix = {".rst": "restructuredtext", ".md": "myst-nb", ".ipynb": "myst-nb"}
 nb_execution_mode = "cache"

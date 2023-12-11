@@ -1,157 +1,37 @@
 # Configuration
 
-The VAMPIRES data processing pipeline uses a configuration file to automate the bulk reduction of VAMPIRES data. To run the pipeline, use the `dpp run` script
-
-{{dpprun_help}}
-
-or create a `Pipeline` object and call the `run` method.
-
-## Processing steps
-
-The pipeline will reduce the data in the following order
-1. Calibration
-2. Frame Selection
-3. Image Registration
-4. Collapsing
-5. Make difference images
-6. Polarimetric differential imaging
-
-```{admonition} Warning: Large data volume
-:class: warning
-This pipeline tries to minimize the number of FITS files saved to disk due to the massive volume of VAMPIRES data. To accomplish this, we skip saving intermediate files when possible. Still, you should expect your data volume to increase by a factor of \~2.5. If saving intermediate products, this factor increases to \~6.5 times the raw data size. It is strongly recommended to work with a large attached storage.
-```
-
-```{admonition} Troubleshooting
-:class: tip
-If you run into problems, take a look at the debug file, which will be saved to the same directory as the input config file with `_debug.log` appended to the file name as well as in the output directory.
-
-    dpp run config.toml VMPA*.fits
-    tail config_debug.log
-```
-
-
-## Configuration
-
-The configuration file uses the [TOML](https://toml.io) format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., `[calibration]`, `[frame_selection]`) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.
+The configuration file uses the [TOML](https://toml.io) format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., `[calibration]`, `[collapsing]`) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.
 
 We use [semantic versioning](https://semver.org/), so there are certain guarantees about the backwards compatibility of the pipeline, which means you don't have to have the exact same version of `vampires_dpp` as in the configuration- merely a version that is compatible.
 
-### General Options
-
+## General Options
 
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.pipeline.Pipeline
+.. autoclass:: vampires_dpp.pipeline.config.PipelineConfig
     :members:
-.. autoclass:: vampires_dpp.pipeline.config.CoordinateOptions
-.. autoclass:: vampires_dpp.pipeline.config.ProductOptions
+.. autoclass:: vampires_dpp.pipeline.config.ObjectConfig
 ```
 
-### Coronagraph Options
+## Calibration Options
 
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.CoronagraphOptions
-.. autoclass:: vampires_dpp.pipeline.config.SatspotOptions
+.. autoclass:: vampires_dpp.pipeline.config.CalibrateConfig
 ```
 
-### Calibration Options
+## Frame-collapsing Options
 
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.CalibrateOptions
-.. autoclass:: vampires_dpp.pipeline.config.DistortionOptions
+.. autoclass:: vampires_dpp.pipeline.config.CollapseConfig
 ```
 
-### Frame Selection Options
+## Spectrophotometric Calibration Options
 
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.FrameSelectOptions
+.. autoclass:: vampires_dpp.pipeline.config.SpecphotConfig
 ```
 
-### Image Registration Options
+## Polarimetry Options
 
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.RegisterOptions
+.. autoclass:: vampires_dpp.pipeline.config.PolarimetryConfig
 ```
-### Collapsing Options
-
-```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.CollapseOptions
-```
-
-### Difference Image Options
-
-```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.DiffOptions
-```
-
-### Polarimetry Options
-
-```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.PolarimetryOptions
-.. autoclass:: vampires_dpp.pipeline.config.IPOptions
-```
-
-
-## Templates
-
-### Polarimetric Differential Imaging (PDI)
-
-{{pdi_toml}}
-
-### Single-cam
-
-For single-cam data you can elude all of the `cam2` keys in the configuration.
-
-{{singlecam_toml}}
-
-### Spectral Differential Imaging (SDI)
-
-```{admonition} Warning: WIP
-:class: warning
-
-The full functionality for SDI is not implemented, but the difference images can be used as inputs to manual reductions, for now.
-```
-
-SDI reduction looks a lot like PDI reduction without the polarimetry.
-
-{{sdi_toml}}
-
-
-## Frequently Asked Questions (FAQ)
-
-### Pipeline and Configuration version mismatch
-
-> I can't run the pipeline because it says my TOML file has a version mismatch?
-
-In order to try and manage compatibility for the pipeline, your configuration file has a `version` key in it. This key must be compatible (within SemVer) with the installed version of `vampires_dpp`. There are two approaches to fixing this:
-
-1. (Recommended) Call `dpp upgrade` to try to automatically upgrade your configuration
-2. Downgrade `vampires_dpp` to match the version in your configuration
-
-### I'm getting warnings about centroid files, help!
-
-The blah blah explain it.
-
-TODO
-
-### I keep getting an error about PrimaryHDUs when re-running the pipeline
-
-If the pipeline crashes or is stopped early there is a chance that data in the process of being written to disk will become corrupted. This appears to happen frequently when saving intermediate calibrated data while multi-processing. To address this error, you will need to replace the corrupted data with a reprocessed version.
-
-To find the file causing the problems, first try looking in the debug log file (in `pr`)
-
-### Performance
-
-> It's slow. It's so, so slow. Help.
-
-It's hard to process data in the volumes that VAMPIRES produces, but there are some tips for speeding it up.
-1. Use an SSD (over USB 3 or thunderbolt)
-
-Faster storage media reduces slowdowns from opening and closing files, which happens *a lot* throughout the pipeline
-
-2. Don't save intermediate files
-
-The time it takes to open a file, write to disk, and close it will add a lot to your overheads, in addition to the huge increase in data volume
-
-3. Use multi-processing
-
-Using more processes should improve some parts of the pipeline, but don't expect multiplicative increases in speed since most operations are limited by the storage IO speed.

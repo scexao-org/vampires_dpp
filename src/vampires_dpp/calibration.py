@@ -30,7 +30,7 @@ except AttributeError:
     # not on a UNIX system
     pass
 
-from vampires_dpp.constants import DEFAULT_NPROC, SUBARU_LOC
+from vampires_dpp.constants import SUBARU_LOC
 from vampires_dpp.headers import fix_header, parallactic_angle
 from vampires_dpp.image_processing import collapse_cube, correct_distortion_cube
 from vampires_dpp.util import load_fits, load_fits_header, wrap_angle
@@ -374,7 +374,7 @@ def process_background_files(
     collapse: str = "median",
     output_directory: str | Path | None = None,
     force: bool = False,
-    num_proc: int = DEFAULT_NPROC,
+    num_proc: int = 1,
     quiet: bool = False,
 ) -> list[Path]:
     if output_directory is not None:
@@ -403,7 +403,7 @@ def process_flat_files(
     background_files: str | Path | None = None,
     output_directory: str | Path | None = None,
     force: bool = False,
-    num_proc: int = DEFAULT_NPROC,
+    num_proc: int = 1,
     quiet: bool = False,
 ) -> list[Path]:
     if output_directory is not None:

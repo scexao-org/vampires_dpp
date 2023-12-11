@@ -50,7 +50,8 @@ docs = [
     "sphinx",
     "myst_nb",
     "sphinx_book_theme",
-    "zenodo-get"
+    "zenodo-get",
+    "sphinx-click",
 ]
 
 [project.scripts]

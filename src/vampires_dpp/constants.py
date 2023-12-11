@@ -1,4 +1,3 @@
-from multiprocessing import cpu_count
 from typing import ClassVar, Final, Literal
 
 import astropy.units as u
@@ -6,9 +5,6 @@ import numpy as np
 from astropy.coordinates import EarthLocation
 from pydantic import BaseModel
 
-# limit default nproc since many operations are
-# throttled by file I/O
-DEFAULT_NPROC = min(cpu_count(), 8)
 # Subaru location
 SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155.4760187 * u.deg)
 

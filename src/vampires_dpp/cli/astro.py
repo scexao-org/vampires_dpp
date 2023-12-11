@@ -8,7 +8,6 @@ import numpy as np
 import tomli_w
 from numpy.typing import NDArray
 
-from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths
 from vampires_dpp.pipeline.config import PipelineConfig
@@ -98,7 +97,7 @@ def save_astrometry(
 @click.option(
     "--num-proc",
     "-j",
-    default=DEFAULT_NPROC,
+    default=1,
     type=click.IntRange(1, multiprocessing.cpu_count()),
     help="Number of processes to use.",
     show_default=True,

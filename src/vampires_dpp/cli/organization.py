@@ -5,7 +5,6 @@ import click
 import tomli
 
 import vampires_dpp as dpp
-from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.organization import header_table, sort_files
 from vampires_dpp.pipeline.deprecation import upgrade_config
 
@@ -32,7 +31,7 @@ __all__ = ("sort_raw", "table", "upgrade")
 @click.option(
     "--num-proc",
     "-j",
-    default=DEFAULT_NPROC,
+    default=1,
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
     show_default=True,
@@ -46,7 +45,7 @@ __all__ = ("sort_raw", "table", "upgrade")
     help="copy files instead of moving them",
 )
 @click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
-def sort_raw(filenames, outdir, num_proc=DEFAULT_NPROC, ext=0, copy=False, quiet=False):
+def sort_raw(filenames, outdir, num_proc=1, ext=0, copy=False, quiet=False):
     sort_files(
         filenames, copy=copy, ext=ext, output_directory=outdir, num_proc=num_proc, quiet=quiet
     )
@@ -81,7 +80,7 @@ def sort_raw(filenames, outdir, num_proc=DEFAULT_NPROC, ext=0, copy=False, quiet
 @click.option(
     "--num-proc",
     "-j",
-    default=DEFAULT_NPROC,
+    default=1,
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
 )

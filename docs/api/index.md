@@ -3,6 +3,7 @@
 ```{toctree}
 :maxdepth: 1
 
+cli
 organization
 calibration
 frame_selection

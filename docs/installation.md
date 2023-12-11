@@ -1,3 +1,4 @@
+(installation)=
 # Installation
 
 ## Python Versions
@@ -30,7 +31,7 @@ pip install -e .
 To run the unit tests, install the development dependencies using pip:
 
 ```bash
-pip install -e .[test]
+pip install -e ".[test]"
 ```
 
 and then execute:
@@ -47,11 +48,11 @@ If you would like to contribute, first off, thank you! To get started, you shoul
 
 ```bash
 cd vampires_dpp
-pip install -e .[dev]
+pip install -e ".[dev]"
 pre-commit install
 ```
 
-and you're all set! Now whenever you `git commit` the source files will be autoformatted using [`black`](https://github.com/psf/black) and imports will be sorted with [`isort`](https://github.com/pycqa/isort) and [`autoflake`](https://github.com/PyCQA/autoflake).
+and you're all set! Now whenever you `git commit` the source files will be linted and formatted using [`ruff`](https://docs.astral.sh/ruff/). Any linting errors that cannot be auto-fixed will disallow `git commit` unless overridden (`git commit -n`).
 
 Any contributions should be submitted as [pull requests](https://github.com/scexao-org/vampires_dpp/pulls). Feel free to reach out ahead of time about questions or ambitions about contributing.
 
@@ -60,11 +61,19 @@ Any contributions should be submitted as [pull requests](https://github.com/scex
 To build these docs locally, first install the documentation dependencies
 
 ```bash
-pip install -e .[docs]
+pip install -e ".[docs]"
 ```
 
 Then, run the [sphinx](https://www.sphinx-doc.org/en/master/) make script
 
 ```bash
 sphinx-build docs docs/_build
+```
+
+```{admonition} Local docs viewer
+To quickly serve the generated HTML files you can use
+
+    python -m http.server -d docs/_build/html 8000
+
+(or any port you'd like) and view them in an internet browser at the url `localhost:8000/index.html`
 ```

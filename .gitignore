@@ -165,3 +165,5 @@ docs/**/data
 
 docs/.jupyter_cache
 docs/jupyter_execute
+
+.DS_store

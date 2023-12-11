@@ -6,7 +6,6 @@ import click
 import tqdm.auto as tqdm
 
 from vampires_dpp.calibration import normalize_file, process_background_files, process_flat_files
-from vampires_dpp.constants import DEFAULT_NPROC
 
 __all__ = ("prep", "back", "flat", "norm")
 
@@ -28,7 +27,7 @@ __all__ = ("prep", "back", "flat", "norm")
 @click.option(
     "--num-proc",
     "-j",
-    default=DEFAULT_NPROC,
+    default=1,
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
     show_default=True,
@@ -81,12 +80,6 @@ def back(ctx, filenames, collapse, force):
     "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
 @click.option(
-    "--back",
-    "-b",
-    type=click.Path(exists=True, path_type=Path),
-    help="Background file to subtract from each flat-field. If a directory, will match the background files in that directory to the exposure times, EM gains, and frame sizes. Note: will search the output directory for background files if none are given.",
-)
-@click.option(
     "--collapse",
     "-c",
     type=click.Choice(["median", "mean", "varmean", "biweight"], case_sensitive=False),
@@ -96,10 +89,9 @@ def back(ctx, filenames, collapse, force):
 )
 @click.option("--force", "-f", is_flag=True, help="Force processing of files")
 @click.pass_context
-def flat(ctx, filenames, back, collapse, force):
+def flat(ctx, filenames, collapse, force):
     # if directory, filter non-FITS files and sort for background files
-    if back is None:
-        back = ctx.obj["outdir"]
+    back = ctx.obj["outdir"]
     calib_files = list(back.glob("**/[!._]*.fits")) + list(back.glob("**/[!._]*.fits.fz"))
     process_flat_files(
         filenames,
@@ -118,29 +110,29 @@ def flat(ctx, filenames, back, collapse, force):
 )
 @click.option("-o", "--outdir", type=Path, default=Path.cwd() / "prep", help="Output directory")
 @click.option(
-    "-d/-nd",
-    "--deint/--no-deint",
-    default=False,
+    "-d",
+    "--deint",
+    is_flag=True,
     help="Deinterleave files into FLC states (WARNING: only apply this to old VAMPIRES data downloaded directly from `sonne`)",
 )
 @click.option(
-    "-f/-nf",
-    "--filter-empty/--no-filter-empty",
-    default=True,
-    help="Filter empty frames from data (post deinterleaving, if applicable)",
+    "-nf",
+    "--no-filter-empty",
+    is_flag=True,
+    help="Don't filter empty frames from data (post deinterleaving, if applicable)",
 )
 @click.option(
     "--num-proc",
     "-j",
-    default=DEFAULT_NPROC,
+    default=1,
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
     show_default=True,
 )
 @click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
-def norm(filenames, deint: bool, filter_empty: bool, num_proc: int, quiet: bool, outdir: Path):
+def norm(filenames, deint: bool, no_filter_empty: bool, num_proc: int, quiet: bool, outdir: Path):
     jobs = []
-    kwargs = dict(deinterleave=deint, filter_empty=filter_empty, output_directory=outdir)
+    kwargs = dict(deinterleave=deint, filter_empty=not no_filter_empty, output_directory=outdir)
     with mp.Pool(num_proc) as pool:
         for filename in filenames:
             jobs.append(pool.apply_async(normalize_file, args=(filename,), kwds=kwargs))

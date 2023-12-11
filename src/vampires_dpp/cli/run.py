@@ -4,7 +4,6 @@ from pathlib import Path
 import click
 
 import vampires_dpp as dpp
-from vampires_dpp.constants import DEFAULT_NPROC
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.util import check_version
@@ -25,7 +24,7 @@ __all__ = ("run", "pdi")
 @click.option(
     "--num-proc",
     "-j",
-    default=DEFAULT_NPROC,
+    default=1,
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
     show_default=True,
@@ -59,7 +58,7 @@ def run(config: Path, filenames, num_proc, outdir):
 @click.option(
     "--num-proc",
     "-j",
-    default=DEFAULT_NPROC,
+    default=1,
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
     show_default=True,
