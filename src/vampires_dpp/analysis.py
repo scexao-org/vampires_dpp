@@ -40,7 +40,7 @@ def safe_aperture_sum(frame, r, err=None, center=None, ann_rad=None):
         center = frame_center(frame)
     mask = ~np.isfinite(frame)
     flux, fluxerr, flag = sep.sum_circle(
-        np.ascontiguousarray(frame).astype("f4"),
+        np.ascontiguousarray(frame.byteswap().newbyteorder()).astype("f4"),
         (center[1],),
         (center[0],),
         r,
@@ -56,7 +56,12 @@ def safe_annulus_sum(frame, Rin, Rout, center=None):
         center = frame_center(frame)
     mask = ~np.isfinite(frame)
     flux, fluxerr, flag = sep.sum_circann(
-        np.ascontiguousarray(frame).astype("f4"), (center[1],), (center[0],), Rin, Rout, mask=mask
+        np.ascontiguousarray(frame.byteswap().newbyteorder()).astype("f4"),
+        (center[1],),
+        (center[0],),
+        Rin,
+        Rout,
+        mask=mask,
     )
 
     return flux[0], fluxerr[0]

@@ -14,7 +14,7 @@ import vampires_dpp as dpp
 from vampires_dpp.util import check_version
 
 __all__ = (
-    "ObjectConfig",
+    "TargetConfig",
     "SpecphotConfig",
     "CalibrateConfig",
     "CollapseConfig",
@@ -24,18 +24,18 @@ __all__ = (
 )
 
 
-class ObjectConfig(BaseModel):
+class TargetConfig(BaseModel):
     """Astronomical coordinate options.
 
     .. admonition:: Tip: GAIA
-        :class: Tip
+       :class: Tip
 
         This can be auto-generated wtih GAIA coordinate information through the command line ``dpp new`` interface.
 
     Parameters
     ----------
-    object: str
-        SIMBAD-friendly object name
+    name: str
+        SIMBAD-friendly target name
     ra: str
         Right ascension in sexagesimal hour angles
     dec: str
@@ -52,7 +52,7 @@ class ObjectConfig(BaseModel):
         Observation time as a string, by default "J2016" (to coincide with GAIA coordinates)
     """
 
-    object: str
+    name: str
     ra: str
     dec: str
     parallax: float
@@ -139,7 +139,7 @@ class CalibrateConfig(BaseModel):
     The calibration strategy is generally
 
     #. Load data and fix header values
-    #. Calculate precise coordinates if ``ObjectConfig`` is used in pipeline
+    #. Calculate precise coordinates if ``TargetConfig`` is used in pipeline
     #. Background subtraction
     #. (Optional) flat-field normalization
     #. (Optional) bad pixel correction
@@ -149,6 +149,13 @@ class CalibrateConfig(BaseModel):
     or is from a different night. The file matching will always require the calibrations to have the same pixel crop (both size and location) and detector
     read mode. For background files, we'll try and find files with the same exposure time and detector gain, but will accept others. Flat files will try and
     match detector gain, filter, and exposure time, in that order. For all files, if there are multiple matches we will select the single file closest in time.
+
+
+
+        **File Outputs**
+
+        - If ``save_intermediate`` is true, will save calibrated data to ``calibrated/``
+
 
     Parameters
     ----------
@@ -162,36 +169,6 @@ class CalibrateConfig(BaseModel):
         If true, will run adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels. By default false.
     save_intermediate:
         If true, will save intermediate calibrated data to ``calibrated/`` folder.
-
-    Examples
-    --------
-    >>> master_backs = {"cam1": "master_back_cam1.fits", "cam2": "master_back_cam2.fits"}
-    >>> dist = {"transform_filename": "20230102_fcs16000_params.csv"}
-    >>> conf = CalibrateConfig(
-            master_backgrounds=master_backs,
-            distortion=dist,
-            output_directory="calibrated"
-        )
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        [calibrate]
-        output_directory = "calibrated"
-
-        [calibrate.master_backgrounds]
-        cam1 = "master_back_cam1.fits"
-        cam2 = "master_back_cam2.fits"
-
-        [calibrate.master_flats]
-
-        [calibrate.distortion]
-        transform_filename = "20230102_fcs16000_params.csv"
-
-    .. admonition:: Outputs
-
-        If the ``save_intermediate`` pipeline option is true, calibrated data will be saved in the ``calibrated`` folder (``paths.calib_dir``).
-
     """
 
     calib_directory: Path | None = None
@@ -210,27 +187,29 @@ class CollapseConfig(BaseModel):
     * varmean - Pixel-by-pixel mean weighted by frame variance
     * biweight - Pixel-by-pixel biweight location
 
-    .. admonition:: Outputs
 
-        For each input file, a collapsed frame will be saved in the output directory with the "_collapsed" suffix.
+        **File Outputs**
+
+        - Each input file is collapsed and saved into the ``collapsed/`` folder
 
 
     Parameters
     ----------
-    method : str
+    method:
         The collapse method, one of `"median"`, `"mean"`, `"varmean"`, or `"biweight"`. By default
         `"median"`.
-
-
-    Examples
-    --------
-    >>> conf = CollapseConfig(output_directory="collapsed")
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        [collapse]
-        output_directory = "collapsed"
+    frame_select:
+        If provided, will use the given metric to select frames for inclusions/exclusion from each data cube.
+    centroid:
+        If provided, will register each frame using the given method. If not provided for MBI data a very rough
+        estimate of the center will be used to get the cutout crops for each field.
+    select_cutoff:
+        If ``frame_select`` is provided, this is the cutoff _quantile_ (from 0 to 1), where 0.2 means 20% of the frames
+        from each cube will be discarded according the the selection metric.
+    recenter:
+        If a string is provided, will measure the centroids in the higher S/N collapsed frame using the given method.
+    reproject:
+        If true, will reproject cam2 data onto cam1's WCS coordinates
     """
 
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
@@ -239,36 +218,34 @@ class CollapseConfig(BaseModel):
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     recenter: Literal["com", "peak", "gauss", "dft"] | None = "com"
     reproject: bool = True
+    satspot_reference: dict[str, float] = {"separation": 45, "angle": 90}
 
 
 class AnalysisConfig(BaseModel):
     """PSF modeling and analysis options.
 
-    .. admonition:: Outputs
+
+        **File Outputs**
+
+        - For each file an `NPZ <https://numpy.org/doc/stable/reference/generated/numpy.savez_compressed.html>_` file is created in ``metrics/``
+            - Keys are metrics/centroids/statistics
+            - Values are arrays with dimensions ``(nfields, npsfs, nframes)``
 
 
     Parameters
     ----------
-    model
-    strehl
-    recenter
-    subtract_radprof
-
-    Examples
-    --------
-    >>> conf = AnalysisConfig()
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        [analysis]
-        output_directory = "analysis"
-        recenter = true
-        subtract_radprof = true
-        strehl = false
+    aper_rad:
+        Aperture radius in pixels for circular aperture photometry. If "auto", will use the FWHM from the file header.
+    ann_rad:
+        If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.
+    dft_factor:
+        The DFT upsampling factor for measuring phase cross-correlation centroid.
+    subtract_radprof:
+        If true, will subtract a radial profile for measuring centroids and Strehl ratio, but no other metrics
+    window_size:
+        The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate.
     """
 
-    strehl: Literal[False] = False
     subtract_radprof: bool = False
     aper_rad: float | Literal["auto"] = 8
     ann_rad: Sequence[float] | None = None
@@ -280,40 +257,40 @@ class PolarimetryConfig(BaseModel):
     """Polarimetric differential imaging (PDI) options
 
     .. admonition:: Warning: experimental
-        :class: warning
+       :class: warning
 
         The polarimetric reduction in this pipeline is an active work-in-progress. Do not consider any outputs publication-ready without further vetting and consultation with the SCExAO team.
 
     PDI is processed after all of the individual file processing since it requires sorting the files into complete sets for the triple-differential calibration.
 
-    .. admonition:: Outputs
+    **File Outputs**
 
-        If using the `difference` method, a cube of Stokes frames for each HWP set and a derotated and collapsed Stokes frame will be saved in the products directory with the suffixes `_stokes_cube` and `_stokes_cube_collapsed`, respectively.
-
-        If using the `leastsq` method, a Stokes frame will be saved in the products directory with the suffix `_stokes_frame`.
+    - All PDI outputs are in ``pdi/``
+    - Top-level products include
+        - Collapsed stokes cubes (and wavelength-collapsed cubes for MBI data)
+        - Header table for Stokes frames, if using a difference method.
+    - If using Mueller-matrices (``method="leastsq"`` or ``mm_correct=True``) FITS file with matrices for each input file in ``pdi/mm/``
+    - If using a difference method, will form individual Stokes frames and save in ``pdi/stokes/``
 
     Parameters
     ----------
-    method: Optional[str]
+    method:
         Determines the polarization calibration method, either the double/triple-difference method (`difference`) or using the inverse least-squares solution from Mueller calculus (`leastsq`). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.
-    mm_correct : bool
+    mm_correct:
         Apply Mueller-matrix correction (only applicable to data reduced using the `"difference"` method). By default, True.
-    hwp_adi_sync : bool
+    hwp_adi_sync:
         If true, will assume the HWP is in pupil-tracking mode. By default, True.
-
-    Examples
-    --------
-    >>> conf = PolarimetryConfig(ip=IPConfig(), output_directory="pdi")
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        [polarimetry]
-        output_directory = "pdi"
-
-        [polarimetry.ip]
-        method = "photometry"
-        aper_rad = 6
+    use_ideal_mm:
+        If true and doing Mueller-matrix correction (``mm_correct=True``) will use only idealized versions for the components in the
+        Mueller-matrix model.
+    ip_correct:
+        If provided, will do post-hoc IP correction from the photometric sum in the given region.
+    ip_method:
+        If ``ip_correct=True`` this determines the region type for IP measurement.
+    ip_radius:
+        The first radius for IP correction, if set. For "aperture" this is the radius, for "annulus" this is the inner radius.
+    ip_radius2:
+        The second radius for IP correction. This is only used if ``ip_method="annulus"``- this is the outer radius.
     """
 
     method: Literal["triplediff", "doublediff", "leastsq"] = "triplediff"
@@ -331,96 +308,47 @@ class PipelineConfig(BaseModel):
 
     The processing configuration is all done through this class, which can easily be converted to and from TOML. The options will set the processing steps in the pipeline. An important paradigm in the processing pipeline is skipping unnecessary operations. That means if a file already exists, the pipeline will only reprocess it if the `force` flag is set, which will reprocess all files for that step (and subsequent steps), or if the input file or files are newer. You can try this out by deleting one calibrated file from a processed output and re-running the pipeline.
 
+        **File Outputs**
+
+        - Auxilliary files in ``aux/``
+            - Copy of config., centroid file, astrometry file, mean PSFs, filter curve(s), synth. PSF(s).
+        - Data products (ADI cubes, output file header table) in ``products/``
+        - Difference images in ``diff/``
+            - ``diff/single/`` and ``diff/double/``
+
     Parameters
     ----------
-    name : str
+    name:
         filename-friendly name used for outputs from this pipeline. For example "20230101_ABAur"
-    coordinate : Optional[CoordinateConfig]
-    frame_centers : Optional[dict[str, Optional[list]]]
-        Estimates of the star position in pixels (x, y) for each camera provided as a dict with "cam1" and "cam2" keys. If not provided, will use the geometric frame center, by default None.
-    coronagraph : Optional[CoronagraphConfig]
-        If provided, sets coronagraph-specific options and processing
-    satspots : Optional[SatspotConfig]
-        If provided, sets satellite-spot specific options and enable satellite spot processing for frame selection and image registration
-    calibrate : Optional[CalibrateConfig]
-        If set, provides options for basic image calibration
-    frame_select : Optional[FrameSelectConfig]
-        If set, provides options for frame selection
-    register : Optional[RegisterConfig]
-        If set, provides options for image registration
-    collapse : Optional[CollapseConfig]
-        If set, provides options for collapsing image cubes
-    analysis : Optional[AnalysisConfig]
-        If set, provides options for PSF/flux analysis in collapsed data
-    diff : Optional[DiffConfig]
-        If set, provides options for creating difference images
-    polarimetry : Optional[PolarimetryConfig]
+    coronagraph:
+        If true will use coronagraphic routines for processing.
+    calibrate:
+        Options for basic image calibration
+    analysis:
+        Options for PSF/flux analysis in collapsed data
+    collapse:
+        Options for collapsing image cubes
+    target:
+        If set, provides options for target object, primarily coordinates. If not set, will use header values.
+    specphot:
+        If set, provides options for spectrophotometric calibration. If not set, will leave data in units of ``adu``.
+    polarimetry:
         If set, provides options for polarimetric differential imaging (PDI)
-    products : Optional[ProductConfig]
-        If set, provides options for saving metadata, ADI, and PDI outputs.
-    version : str
+    dpp_version:
         The version of vampires_dpp that this configuration file is valid with. Typically not set by user.
-
-    Notes
-    -----
-    **Frame Centers**
-
-    Frame centers need to be given as a dictionary of x, y pairs, like
-
-    .. code-block:: python
-
-        frame_centers = {
-            "cam1": (127.5, 127.5),
-            "cam2": (127.5, 127.5)
-        }
-    It is important to note that these frame centers are in the *raw* frames. If you open up the frames in DS9 and set the cross on the image center, you can copy the x, y coordinates directly into the configuration. We recommend doing this, especially for coronagraphic data since the satellite spot cutout indices depend on the frame centers and any off-center data may not register appropriately.
-
-    Examples
-    --------
-    >>> conf = PipelineConfig(
-            name="test_config",
-            coronagraph=dict(iwa=55),
-            satspots=dict(radius=11.2),
-            calibrate=dict(output_directory="calibrated"),
-            collapse=dict(output_directory="collapsed"),
-            polarimetry=dict(output_directory="pdi"),
-        )
-    >>> print(conf.to_toml())
-
-    .. code-block:: toml
-
-        name = "test_config"
-        version = "0.4.0"
-
-        [coronagraph]
-        iwa = 55
-
-        [satspots]
-        radius = 11.2
-        angle = 84.6
-        amp = 50
-
-        [calibrate]
-        output_directory = "calibrated"
-
-        [calibrate.master_backgrounds]
-
-        [calibrate.master_flats]
-
-        [collapse]
-        output_directory = "collapsed"
-
-        [polarimetry]
-        output_directory = "pdi"
+    save_adi_cubes:
+        If true, will save ADI cubes and derotation angles in product directory.
+    diff_images:
+        Diagnostic difference imaging options. Double-differencing requires an FLC.
 
     """
 
     name: str = ""
-    diff_images: Literal["doublediff", "singlediff", "both"] | None = None
+    diff_images: Literal["singlediff", "doublediff", "both"] | None = None
     save_adi_cubes: bool = True
     coronagraphic: bool = False
     dpp_version: str = dpp.__version__
-    object: ObjectConfig | None = None
+    target: TargetConfig | None = None
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
     specphot: SpecphotConfig | None = None
@@ -433,7 +361,7 @@ class PipelineConfig(BaseModel):
 
         Parameters
         ----------
-        filename : PathLike
+        filename: PathLike
             Path to TOML file with configuration settings.
 
         Raises
@@ -454,7 +382,8 @@ class PipelineConfig(BaseModel):
             raise ValueError(msg)
         return cls.model_validate(config)
 
-    def to_toml(self):
+    def to_toml(self) -> str:
+        """Create serializable TOML string"""
         # get serializable output using pydantic
         model_dict = self.model_dump(exclude_none=True, mode="json", round_trip=True)
         return tomli_w.dumps(model_dict)
@@ -464,7 +393,7 @@ class PipelineConfig(BaseModel):
 
         Parameters
         ----------
-        filename : PathLike
+        filename: PathLike
             Output filename
         """
         # get serializable output using pydantic

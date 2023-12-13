@@ -6,6 +6,7 @@ from reproject import reproject_interp
 
 from vampires_dpp.image_processing import combine_frames_headers
 from vampires_dpp.paths import any_file_newer
+from vampires_dpp.wcs import apply_wcs
 
 
 def get_singlediff_sets(table):
@@ -41,7 +42,8 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
             data[key] = hdul[0].data
             errs[key] = hdul["ERR"].data
             hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
-
+    if len(data) < 2:
+        return None
     # reproject cam2 onto cam1
     reproject_interp(
         (np.nan_to_num(data[2]), prim_hdrs[2]),
@@ -66,6 +68,7 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
         hdr = combine_frames_headers(headers)
         comb_hdrs.append(hdr)
     prim_hdr = combine_frames_headers(list(prim_hdrs.values()))
+    prim_hdr = apply_wcs(single_diff, prim_hdr, angle=prim_hdr["DEROTANG"])
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(single_diff, header=prim_hdr),
@@ -95,6 +98,8 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
             errs[key] = hdul["ERR"].data
             hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
 
+    if len(data) < 4:
+        return None
     # reproject cam2 onto cam1
     for key in ("A", "B"):
         reproject_interp(
@@ -118,6 +123,7 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
     double_sum = 2 * np.mean(list(data.values()), axis=0)
     double_err = 0.5 * np.sqrt(np.sum(np.power(list(errs.values()), 2), axis=0))
     prim_hdr = combine_frames_headers(list(prim_hdrs.values()))
+    prim_hdr = apply_wcs(double_diff, prim_hdr, angle=prim_hdr["DEROTANG"])
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(double_diff, header=prim_hdr),

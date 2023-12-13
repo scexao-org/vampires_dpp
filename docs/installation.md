@@ -28,6 +28,12 @@ pip install -e .
 
 ## Testing
 
+You can quickly check if you've installed the pipeline correctly by calling the `dpp` command
+
+```bash
+dpp --version
+```
+
 To run the unit tests, install the development dependencies using pip:
 
 ```bash

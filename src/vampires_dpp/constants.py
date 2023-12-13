@@ -32,8 +32,8 @@ class EMCCDVAMPIRES(InstrumentInfo):
         "Halpha",
         "Ha-Cont",
     }
-    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 6.06, 2: 5.90}  # mas / px
-    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: 140.325, 2: 140.475}  # deg
+    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 6.24, 2: 6.24}  # mas / px
+    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: 140.4, 2: 140.4}  # deg
 
     @property
     def pixel_scale(self):

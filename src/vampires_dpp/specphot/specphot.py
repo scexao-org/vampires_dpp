@@ -9,7 +9,7 @@ from synphot.units import VEGAMAG
 
 from vampires_dpp.pipeline.config import SpecphotConfig
 
-from .filters import FILTERS, load_vampires_filter, save_filter_fits, update_header_with_filt_info
+from .filters import FILTERS, save_filter_fits, update_header_with_filt_info
 from .pickles import load_pickles_model
 
 __all__ = ["specphot_calibration", "convert_to_surface_brightness"]
@@ -59,8 +59,6 @@ def get_observation(config: SpecphotConfig, obs_filt: SpectralElement) -> Observ
 def update_header_from_obs(
     header: fits.Header, config: SpecphotConfig, obs_filt: SpectralElement, flux: float
 ) -> fits.Header:
-    # add filter info
-    header = update_header_with_filt_info(header, obs_filt)
     # config inputs
     header["REFMAG"] = config.mag, "[mag] Source magnitude"
     header["REFFILT"] = config.mag_band, "Source filter"
@@ -109,14 +107,8 @@ def convert_to_surface_brightness(data, header):
 
 
 def specphot_calibration(header, outdir: Path, config: SpecphotConfig):
-    if "MBI" in header["OBS-MOD"]:
-        filt = header["FIELD"]
-    elif "SDI" in header["OBS-MOD"]:
-        filt = header["FILTER02"]
-    else:
-        filt = header["FILTER01"]
-    obs_filt = load_vampires_filter(filt)
-    save_filter_fits(obs_filt, outdir / f"VAMPIRES_{filt}_filter.fits")
+    header, obs_filt = update_header_with_filt_info(header)
+    save_filter_fits(obs_filt, outdir / f"VAMPIRES_{header['FILTNAME']}_filter.fits")
     match config.flux_metric:
         case "photometry":
             flux = header["PHOTF"]

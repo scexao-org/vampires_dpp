@@ -65,6 +65,7 @@ def normalize_file(filename: str, deinterleave: bool = False, discard_empty: boo
         if discard_empty:
             data_filt = filter_empty_frames(data_filt)
         if data_filt is not None:
+            header["NAXIS3"] = len(data_filt)
             fits.writeto(outpath, data_filt, header=fix_header(header), overwrite=True)
 
 
@@ -88,6 +89,7 @@ def deinterleave_cube(
     hdu1 = None
     if flc1_filt is not None:
         hdu1 = fits.PrimaryHDU(flc1_filt, header=header.copy())
+        hdu1.header["NAXIS3"] = len(flc1_filt)
         hdu1.header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
         hdu1.header["U_FLC"] = "A"
         fix_header(hdu1.header)
@@ -98,6 +100,7 @@ def deinterleave_cube(
     hdu2 = None
     if flc2_filt is not None:
         hdu2 = fits.PrimaryHDU(flc2_filt, header=header.copy())
+        hdu2.header["NAXIS3"] = len(flc2_filt)
         hdu2.header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
         hdu2.header["U_FLC"] = "B"
         fix_header(hdu2.header)
@@ -139,8 +142,7 @@ def calibrate_file(
 ) -> fits.HDUList:
     path, outpath = get_paths(filename, suffix="calib", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
-        with fits.open(outpath) as hdul:
-            return hdul
+        return fits.open(outpath)
 
     # load data and mask saturated pixels
     raw_cube, header = load_fits(path, header=True)
@@ -161,8 +163,8 @@ def calibrate_file(
             back_hdr = hdul[0].header
             back_err = hdul["ERR"].data.astype("f4")
             header["NOISEADU"] = back_hdr["NOISEADU"], back_hdr.comments["NOISEADU"]
-            header["NOISE"] = back_hdr["NOISE"], back_hdr.comments["NOISEADU"]
-        cube -= np.where(np.isnan(background), header["BIAS"], background)
+            header["NOISE"] = back_hdr["NOISE"], back_hdr.comments["NOISE"]
+        cube -= background
     else:
         back_err = 0
     cube_err = np.sqrt(np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2)
@@ -236,7 +238,7 @@ def make_background_file(filename: str, force=False, **kwargs):
 
     noise = np.nanmedian(back_std)
     header["NOISEADU"] = noise, "[adu] median noise in background file"
-    header["NOISE"] = noise * header["GAIN"], "[e-] median noise in background file"
+    header["NOISE"] = noise * header["EFFGAIN"], "[e-] median noise in background file"
     header["CALTYPE"] = "BACKGROUND", "DPP calibration file type"
     # get bad pixel mask from adaptive sigma clip
     bpmask = adaptive_sigma_clip_mask(master_background)
@@ -274,17 +276,15 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
         cube -= back
     else:
         cube -= header["BIAS"]
-        bkgnoise = np.sqrt(
-            header["DC"] * header["EXPTIME"] * header["ENF"] ** 2 + header["RN"] ** 2
-        )
+        rn = header["RN"] / header["DETGAIN"]
+        bkgnoise = np.sqrt(header["DC"] * header["EXPTIME"] * header["ENF"] ** 2 + rn**2)
         back_err = bkgnoise / header["EFFGAIN"]  # adu
 
     cube_err = np.sqrt(np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2)
     # collapse cube (median by default)
     if cube.shape[0] > 1:
         master_flat, header = collapse_cube(cube, header=header, **kwargs)
-        flat_var, _ = collapse_cube(cube_err**2, **kwargs)
-        flat_err = np.sqrt(flat_var)
+        flat_err = np.sqrt(np.sum(np.power(cube_err / cube_err.shape[0], 2), axis=0))
     else:
         master_flat = cube[0]
         flat_err = cube_err[0]

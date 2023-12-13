@@ -8,9 +8,9 @@ import click
 
 from vampires_dpp.pipeline.config import (
     CollapseConfig,
-    ObjectConfig,
     PolarimetryConfig,
     SpecphotConfig,
+    TargetConfig,
 )
 from vampires_dpp.pipeline.templates import (
     VAMPIRES_BLANK,
@@ -91,17 +91,17 @@ def get_starting_template():
 
 def get_target_settings(template):
     ## get target
-    obj = click.prompt("SIMBAD-friendly object name (optional)", default="")
+    name = click.prompt("SIMBAD-friendly object name (optional)", default="")
     coord = None
-    if obj != "":
+    if name != "":
         rad = 1
         cat = "dr3"
         while True:
-            coord = get_gaia_astrometry(obj, catalog=cat, radius=rad)
+            coord = get_gaia_astrometry(name, catalog=cat, radius=rad)
             if coord is not None:
                 break
 
-            click.echo(f'  Could not find {obj} in GAIA {cat.upper()} with {rad}" radius.')
+            click.echo(f'  Could not find {name} in GAIA {cat.upper()} with {rad}" radius.')
             _input = click.prompt(
                 "Query different catalog (dr1/dr2/dr3), enter search radius in arcsec, or enter new object name (optional)"
             )
@@ -118,11 +118,11 @@ def get_target_settings(template):
                         rad = float(_input)
                     except ValueError:
                         # otherwise try a new object
-                        obj = _input
+                        name = _input
 
         if coord is not None:
-            template.object = ObjectConfig(
-                object=obj,
+            template.target = TargetConfig(
+                name=name,
                 ra=coord.ra.to_string("hour", sep=":", pad=True),
                 dec=coord.dec.to_string("deg", sep=":", pad=True),
                 parallax=coord.distance.to(u.mas, equivalencies=u.parallax()).value,
@@ -224,10 +224,10 @@ def get_specphot_settings(template):
         )
         readline.set_completer()
         if source == "pickles":
-            if template.object is not None:
-                simbad_table = get_simbad_table(template.object.object)
+            if template.target is not None:
+                simbad_table = get_simbad_table(template.target.name)
                 sptype = re.match(r"\w\d[IV]{1,3}", simbad_table["SP_TYPE"][0]).group()
-                ucac_table = get_ucac_table(template.object.object)
+                ucac_table = get_ucac_table(template.target.name)
                 ucac_res = get_ucac_flux(ucac_table)
                 if ucac_res is not None:
                     mag, mag_band = ucac_res
@@ -329,6 +329,9 @@ def get_collapse_settings(template):
             )
         else:
             template.collapse.recenter = None
+        template.collapse.reproject = click.confirm(
+            "Would you like to reproject WCS between cameras?", default=template.collapse.reproject
+        )
     else:
         template.collapse = None
     return template

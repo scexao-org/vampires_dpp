@@ -28,7 +28,9 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.mathjax",
     "myst_nb",
+    "sphinx_autodoc_typehints",
     "sphinx_click",
+    "sphinxcontrib.eval",
 ]
 myst_enable_extensions = ["dollarmath", "substitution"]
 myst_heading_anchors = 2
@@ -45,7 +47,6 @@ autodoc_typehints_format = "short"
 
 # -- Options for HTML output -------------------------------------------------
 
-html_theme = "alabaster"
 html_static_path = ["_static"]
 html_title = "VAMPIRES DPP"
 html_theme = "sphinx_book_theme"

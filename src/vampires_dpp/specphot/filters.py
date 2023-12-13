@@ -42,11 +42,19 @@ def load_vampires_filter(name: str) -> SpectralElement:
     return SpectralElement.from_file(csv_path, wave_unit="nm", include_names=["wave", name])
 
 
-def update_header_with_filt_info(header: fits.Header, filt: SpectralElement) -> fits.Header:
+def update_header_with_filt_info(header: fits.Header) -> tuple[fits.Header, SpectralElement]:
+    if "MBI" in header["OBS-MOD"]:
+        filt_name = header["FIELD"]
+    elif "SDI" in header["OBS-MOD"]:
+        filt_name = header["FILTER02"]
+    else:
+        filt_name = header["FILTER01"]
+    filt = load_vampires_filter(filt_name)
     waves = filt.waveset
     through = filt.model.lookup_table
     above_50 = np.nonzero(through >= 0.5 * np.nanmax(through))
     waveset = waves[above_50]
+    header["FILTNAME"] = filt_name, "DPP filter name"
     header["WAVEMIN"] = waveset[0].to(u.nm).value, "[nm] Cut-on wavelength (50%)"
     header["WAVEMAX"] = waveset[-1].to(u.nm).value, "[nm] Cut-off wavelength (50%)"
     header["WAVEAVE"] = (filt.avgwave(waveset).to(u.nm).value, "[nm] Average bandpass wavelength")
@@ -55,7 +63,12 @@ def update_header_with_filt_info(header: fits.Header, filt: SpectralElement) -> 
         "[nm] Bandpass full width at half-max",
     )
     header["DLAMLAM"] = (header["WAVEFWHM"] / header["WAVEAVE"], "Filter relative bandwidth")
-    return header
+    header["DIAMETER"] = 7.92, "[m] Telescope aperture diameter"
+    header["RESELEM"] = (
+        np.rad2deg(header["WAVEAVE"] * 1e-9 / header["DIAMETER"]) * 3.6e6,
+        "[mas] Resolution element (WAVEAVE/DIAMETER)",
+    )
+    return header, filt
 
 
 def save_filter_fits(filt: SpectralElement, outpath: Path, force=False) -> Path:
@@ -63,5 +76,5 @@ def save_filter_fits(filt: SpectralElement, outpath: Path, force=False) -> Path:
         return outpath
     filt.to_fits(outpath, overwrite=True)
     with fits.open(outpath, "update") as hdul:
-        update_header_with_filt_info(hdul[0].header, filt)
+        update_header_with_filt_info(hdul[0].header)
     return outpath

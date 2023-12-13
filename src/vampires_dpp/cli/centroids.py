@@ -7,10 +7,11 @@ import click
 import numpy as np
 import tomli_w
 from numpy.typing import NDArray
+from skimage import filters
 
 from vampires_dpp.image_processing import collapse_frames_files
 from vampires_dpp.image_registration import offset_centroids
-from vampires_dpp.indexing import cutout_inds, frame_center
+from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths
 from vampires_dpp.pipeline.config import PipelineConfig
@@ -48,7 +49,18 @@ def get_mbi_centroids_manual(
 MPL_INSTRUCTIONS: Final[str] = "<left-click> select, <right-click> delete"
 
 
-def get_psf_centroids_mpl(cams: dict[str, Path], npsfs=1) -> dict[str, NDArray]:
+def smooth_and_mask(data, smooth=True, mask=0):
+    if smooth:
+        data = filters.gaussian(data, sigma=2, preserve_range=True)
+    if mask > 1:
+        rs = frame_radii(data)
+        data[rs <= mask] = np.nan
+    return data
+
+
+def get_psf_centroids_mpl(
+    cams: dict[str, Path], npsfs=1, smooth=True, mask=0
+) -> dict[str, NDArray]:
     import matplotlib.colors as col
     import matplotlib.pyplot as plt
 
@@ -62,6 +74,7 @@ def get_psf_centroids_mpl(cams: dict[str, Path], npsfs=1) -> dict[str, NDArray]:
     centroids = {cam: np.empty((1, npsfs, 2), dtype="f4") for cam in cams}
     for cam, img_path in cams.items():
         data = load_fits(img_path)
+        data = smooth_and_mask(data, smooth=smooth, mask=mask)
         # get list of (x, y) tuples from user clicks
         cent_arr = centroids[cam]
         ax.imshow(data, origin="lower", cmap="magma", norm=col.LogNorm())
@@ -86,7 +99,7 @@ def get_psf_centroids_mpl(cams: dict[str, Path], npsfs=1) -> dict[str, NDArray]:
 
 
 def get_mbi_centroids_mpl(
-    cams: dict[str, Path], fields: Sequence[str], npsfs=1
+    cams: dict[str, Path], fields: Sequence[str], npsfs=1, smooth=True, mask=0
 ) -> dict[str, NDArray]:
     import matplotlib.colors as col
     import matplotlib.pyplot as plt
@@ -107,7 +120,8 @@ def get_mbi_centroids_mpl(
         cent_arr = centroids[cam]
         for i, field in enumerate(fields):
             inds = get_mbi_cutout_inds(data, camera=int(cam[-1]), field=field, reduced=is_mbir)
-            field_cutout = data[inds]
+            field_cutout = smooth_and_mask(data[inds], smooth=smooth, mask=mask)
+
             ax.imshow(field_cutout, origin="lower", cmap="magma", norm=col.LogNorm())
             ax.set_title(f"Please select {cam} centroids for field: {field}")
 

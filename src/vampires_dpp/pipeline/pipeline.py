@@ -184,10 +184,10 @@ class Pipeline:
         return path
 
     def get_coordinate(self):
-        if self.config.object is None:
+        if self.config.target is None:
             self.coord = None
         else:
-            self.coord = self.config.object.get_coord()
+            self.coord = self.config.target.get_coord()
 
     def calibrate_one(self, path, fileinfo, force=False):
         logger.debug("Starting data calibration")
@@ -195,8 +195,7 @@ class Pipeline:
         if config.save_intermediate:
             outpath = Path(fileinfo["calib_file"])
             if not force and outpath.exists():
-                hdul = fits.open(outpath)
-                return hdul[0]
+                return fits.open(outpath)
         back_filename = flat_filename = None
         if config.back_subtract:
             back_filename = fileinfo["backfile"]
@@ -256,6 +255,11 @@ class Pipeline:
         logger.debug("Starting data collapsing")
         config = self.config.collapse
         outpath = Path(fileinfo["collapse_file"])
+        if config.reproject:
+            with Path(self.paths.aux_dir / f"{self.config.name}_astrometry.toml").open("rb") as fh:
+                astrometry = tomli.load(fh)
+        else:
+            astrometry = None
         lucky_image_file(
             hdul,
             method=config.method,
@@ -264,6 +268,10 @@ class Pipeline:
             register=config.centroid,
             metric_file=fileinfo["metric_file"],
             recenter=config.recenter,
+            reproject=config.reproject,
+            astrometry=astrometry,
+            refsep=config.satspot_reference.get("separation", 45),
+            refang=config.satspot_reference.get("angle", 90),
             centroids=self.centroids,
             outpath=outpath,
             force=force,
@@ -303,24 +311,24 @@ class Pipeline:
             fits.writeto(angles_path, angles, overwrite=True)
             logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
         # take cam 1 as refernce, why not
-        if len(hduls) > 1:
-            # cam1_cube, cam1_hdr, cam2_cube, cam2_hdr = reproject_data(
-            #     hduls[0][0].data, hduls[0][0].header, hduls[1][0].data, hduls[1][0].header
-            # )
-            cam1_cube = hduls[0][0].data
-            cam1_hdr = hduls[0][0].header
-            cam2_cube = hduls[1][0].data
-            # cam2_hdr = hduls[1][0].header
+        # if len(hduls) > 1:
+        #     # cam1_cube, cam1_hdr, cam2_cube, cam2_hdr = reproject_data(
+        #     #     hduls[0][0].data, hduls[0][0].header, hduls[1][0].data, hduls[1][0].header
+        #     # )
+        #     cam1_cube = hduls[0][0].data
+        #     cam1_hdr = hduls[0][0].header
+        #     cam2_cube = hduls[1][0].data
+        #     # cam2_hdr = hduls[1][0].header
 
-            mean_cube = 0.5 * (cam1_cube + cam2_cube)
-            cube_path = self.paths.adi_dir / f"{self.config.name}_adi_cube_comb.fits"
-            del cam1_hdr["U_CAMERA"]
-            fits.writeto(cube_path, mean_cube, header=cam1_hdr, overwrite=True)
-            logger.info(f"Saved combined ADI cube to {cube_path}")
-            angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
-            angles = np.asarray(cam_groups.get_group(1)["DEROTANG"])
-            fits.writeto(angles_path, angles, overwrite=True)
-            logger.info(f"Saved combined ADI angles to {angles_path}")
+        #     mean_cube = 0.5 * (cam1_cube + cam2_cube)
+        #     cube_path = self.paths.adi_dir / f"{self.config.name}_adi_cube_comb.fits"
+        #     del cam1_hdr["U_CAMERA"]
+        #     fits.writeto(cube_path, mean_cube, header=cam1_hdr, overwrite=True)
+        #     logger.info(f"Saved combined ADI cube to {cube_path}")
+        #     angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
+        #     angles = np.asarray(cam_groups.get_group(1)["DEROTANG"])
+        #     fits.writeto(angles_path, angles, overwrite=True)
+        #     logger.info(f"Saved combined ADI angles to {angles_path}")
 
     def make_diff_images(self, table, num_proc=None, force=False):
         logger.info("Making difference frames")
@@ -431,7 +439,7 @@ class Pipeline:
             jobs = []
             for _, row in table.iterrows():
                 jobs.append(pool.apply_async(pol_func, args=(row,)))
-            for job in tqdm(jobs, desc="Forming Stokes sets"):
+            for job in tqdm(jobs, desc="Determing Stokes frame combinations"):
                 stokes_set = job.get()
                 full_paths.append(tuple(sorted(stokes_set.values())))
 
@@ -509,7 +517,7 @@ class Pipeline:
         tint = np.sum([fits.getval(path, "TINT") for path in np.unique(unique_files)])
         for hdr in coll_hdrs:
             hdr["TINT"] = tint
-        prim_hdr = apply_wcs(coll_frame, combine_frames_headers(coll_hdrs))
+        prim_hdr = apply_wcs(coll_frame, combine_frames_headers(coll_hdrs), angle=0)
         prim_hdu = fits.PrimaryHDU(coll_frame, header=prim_hdr)
         err_hdu = fits.ImageHDU(coll_err, header=prim_hdr, name="ERR")
         hdul = fits.HDUList([prim_hdu, err_hdu])

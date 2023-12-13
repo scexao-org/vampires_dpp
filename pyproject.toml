@@ -11,7 +11,7 @@ authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
 requires-python = ">=3.10"
 dynamic = ["version"]
 dependencies = [
-    "annotated-types",
+    "annotated_types",
     "astropy",
     "astroquery",
     "astroscrappy",
@@ -19,16 +19,16 @@ dependencies = [
     "hcipy",
     "loguru",
     "numpy",
-    "opencv-python",
+    "opencv_python",
     "pandas",
     "photutils",
     "pydantic",
     "reproject",
     "synphot",
-    "scikit-image",
+    "scikit_image",
     "scipy",
     "sep",
-    "tomli-w",
+    "tomli_w",
     "tomli",
     "tqdm",
 ]
@@ -42,16 +42,18 @@ documentation = "https://scexao-org.github.io/vampires_dpp/"
 dev = ["ruff"]
 test = [
     "pytest",
-    "pytest-cov",
-    "pytest-randomly"
+    "pytest_cov",
+    "pytest_randomly"
 ]
 docs = [
     "proplot",
     "sphinx",
     "myst_nb",
     "sphinx_book_theme",
-    "zenodo-get",
-    "sphinx-click",
+    "sphinxcontrib-eval",
+    "sphinx_autodoc_typehints",
+    "zenodo_get",
+    "sphinx_click",
 ]
 
 [project.scripts]

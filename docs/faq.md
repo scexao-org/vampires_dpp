@@ -16,13 +16,6 @@ The blah blah explain it.
 
 TODO
 
-## I keep getting an error about PrimaryHDUs when re-running the pipeline
-
-If the pipeline crashes or is stopped early there is a chance that data in the process of being written to disk will become corrupted. This appears to happen frequently when saving intermediate calibrated data while multi-processing. To address this error, you will need to replace the corrupted data with a reprocessed version.
-
-To find the file causing the problems, first try looking in the debug log file (`debug.log`) and look for a line describing which file was opened before the exception was thrown. Another way to find a file is to check if the file size matches what is expected (compare it to nearby files' sizes). Lastly, you can force the reprocessing completely through the command line or by removing the intermediate folder, but this will reprocess all files. To reprocess only one file if you have found it, just delete it and re-run the pipeline.
-
-
 ## Performance
 
 > It's slow. It's so, so slow. Help.

@@ -115,6 +115,13 @@ def fix_header(header):
         header["PRD-MIN2"] = start_idx[-2]
         header["PRD-RNG1"] = crop_size[-1]
         header["PRD-RNG2"] = crop_size[-2]
+    if "TINT" not in header:
+        header["TINT"] = (
+            header["EXPTIME"] * header.get("NAXIS3", 1),
+            "[s] Total integration time of file",
+        )
+    if "NFRAMES" not in header:
+        header["NFRAMES"] = header.get("NAXIS3", 1), "Number of frames in original file"
 
     # add in detector charracteristics
     inst = get_instrument_from(header)
@@ -124,18 +131,10 @@ def fix_header(header):
     header["ENF"] = inst.excess_noise_factor, "Detector excess noise factor"
     header["EFFGAIN"] = inst.effgain, "[e-/adu] Detector effective gain"
     header["RN"] = inst.readnoise, "[e-] RMS read noise"
-    header["PXSCALE"] = inst.pixel_scale, "[mas/px] Pixel scale"
+    header["PXSCALE"] = inst.pixel_scale, "[mas/pix] Pixel scale"
     header["PAOFFSET"] = inst.pa_offset, "[deg] Parallactic angle offset"
     header["INSTANG"] = inst.pupil_offset, "[deg] Instrument angle offset"
     header["FULLWELL"] = inst.fullwell, "[e-] Full well of detector register"
-
-    if "TINT" not in header:
-        header["TINT"] = (
-            header["EXPTIME"] * header.get("NAXIS3", 1),
-            "[s] Total integration time of file",
-        )
-    if "NFRAMES" not in header:
-        header["NFRAMES"] = header.get("NAXIS3", 1), "Number of frames in original file"
 
     return header
 

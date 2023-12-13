@@ -11,6 +11,7 @@ from .analysis import add_frame_statistics
 from .image_processing import collapse_cube, combine_frames_headers, shift_frame
 from .image_registration import offset_centroids
 from .indexing import cutout_inds, frame_center, get_mbi_centers
+from .specphot.filters import update_header_with_filt_info
 from .specphot.specphot import convert_to_surface_brightness, specphot_calibration
 from .util import get_center
 from .wcs import apply_wcs
@@ -66,6 +67,27 @@ def get_recenter_offset(frame, method, offsets, window=30, psf=None, **kwargs):
     return frame_ctr - ctr
 
 
+def reproject_header(header: fits.Header, astrometry: dict, field: str, refsep=45, refang=90):
+    match header["U_CAMERA"]:
+        case 1:
+            astrom_info = astrometry["cam1"]
+            instang = astrom_info["angle"] + refang
+        case 2:
+            astrom_info = astrometry["cam2"]
+            instang = 90 - astrom_info["angle"] + refang
+
+    field_idx = astrom_info["fields"].index(field)
+    astrometry["cam1"]
+    # Get expected separation
+    waffle_sep = refsep * header["RESELEM"]  # mas
+    platescale = waffle_sep / astrom_info["separation"][field_idx]
+    header["PXSCALE"] = platescale, header.comments["PXSCALE"]
+    header["INSTANG"] = instang, header.comments["INSTANG"]
+    header["PAOFFSET"] = header["INSTANG"] - 180 - 39, header.comments["PAOFFSET"]
+    header["DEROTANG"] = header["PA"] + header["PAOFFSET"], header.comments["DEROTANG"]
+    return header
+
+
 def lucky_image_file(
     hdul,
     outpath,
@@ -73,9 +95,13 @@ def lucky_image_file(
     metric_file: Path,
     method: str = "median",
     register: Literal["com", "peak", "gauss", "dft"] | None = "com",
-    frame_select: Literal["peak", "normvar", "var", "strehl", "fwhm"] | None = None,
+    frame_select: Literal["peak", "normvar", "var", "fwhm"] | None = None,
     force: bool = False,
     recenter: Literal["com", "peak", "gauss", "dft"] | None = None,
+    reproject: bool = True,
+    astrometry=None,
+    refsep=45,
+    refang=90,
     select_cutoff: float = 0,
     crop_width=None,
     aux_dir=None,
@@ -127,6 +153,7 @@ def lucky_image_file(
         psf_centroids = [ctr_dict[k] for k in fields]
     else:
         psf_centroids = [frame_center(cube)]
+
     frames = []
     frame_errs = []
     headers = []
@@ -162,8 +189,7 @@ def lucky_image_file(
         N = len(aligned_frames)
         header["NCOADD"] = N, "Number of frames combined in collapsed file"
         header["TINT"] = header["EXPTIME"] * N
-        coll_var_frame, _ = collapse_cube(np.power(aligned_err_frames, 2), method=method)
-        coll_err_frame = np.sqrt(coll_var_frame / N)
+        coll_err_frame = np.sqrt(np.mean(np.power(aligned_err_frames, 2), axis=0) / N)
         ## Step 4: Recenter
         if recenter is not None:
             recenter_offset = get_recenter_offset(
@@ -175,6 +201,14 @@ def lucky_image_file(
         hdr["FIELD"] = field
         ## handle header metadata
         add_metrics_to_header(hdr, masked_metrics, index=i)
+        hdr, _ = update_header_with_filt_info(hdr)
+
+        ## Step 5. Reprojection
+        if reproject:
+            hdr = reproject_header(hdr, astrometry, field=field, refsep=refsep, refang=refang)
+        hdr = apply_wcs(coll_frame, hdr, angle=hdr["DEROTANG"])
+
+        ## Step 6. Specphot cal
         if specphot is not None:
             hdr = specphot_calibration(hdr, outdir=aux_dir, config=specphot)
             coll_frame = convert_to_surface_brightness(coll_frame, hdr)
@@ -182,7 +216,6 @@ def lucky_image_file(
             hdr["BUNIT"] = "Jy/arcsec^2"
 
         hdr = add_frame_statistics(coll_frame, coll_err_frame, hdr)
-        hdr = apply_wcs(coll_frame, hdr, angle=hdr["DEROTANG"])
         frames.append(coll_frame)
         frame_errs.append(coll_err_frame)
         headers.append(hdr)

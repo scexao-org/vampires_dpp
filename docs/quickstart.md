@@ -1,14 +1,12 @@
 # Quick-start guide
 
-We strive to make the VAMPIRES DPP as automated as possible- the following setup should get you 90% of the way towards successful data reduction, depending on the complexity of your dataset! We assume that you have already successfully installed the `vampires_dpp` package. If not, see {ref}`installation`. 
+We strive to make the VAMPIRES DPP as automated as possible- the following setup should get you 90% of the way towards successful data reduction, depending on the complexity of your dataset! We assume that you have already successfully installed the `vampires_dpp` package. If not, see {ref}`installation`. For help with the command-line interface we recommend using the built-in docstrings (`-h`/`--help`) or the {ref}`documentation <cli>`.
 
-You can quickly check if you've installed the pipeline correctly by calling the `dpp` command
 
+```{contents}
+:local:
+:depth: 1
 ```
-dpp --version
-```
-
-For the command-line interface we recommend using the built-in docstrings (`-h`/`--help`) or the {ref}`documentation <cli>`.
 
 ```{admonition} Multi-processing
 :class: tip
@@ -22,6 +20,7 @@ When possible, we indicate a command that has multi-processing enabled with the 
 :class: warning
 This pipeline tries to minimize the number of FITS files saved to disk due to the massive volume of VAMPIRES data. To accomplish this, we skip saving intermediate files when possible. Still, you should expect your data volume to increase by a factor of \~2.5. If saving intermediate products, this factor increases to \~6.5 times the raw data size. It is strongly recommended to work with a large attached storage.
 ```
+
 
 ## Sorting raw data
 
@@ -129,7 +128,7 @@ After your data has been downloaded and sorted, you'll want to create configurat
 dpp new 20230101_ABAur.toml
 ```
 
-At this point, we highly recommend viewing the [pipeline options]() and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.
+At this point, we highly recommend viewing the {ref}`configuration options <configuration>` and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.
 
 ## Prepare image centroids estimates
 
@@ -154,7 +153,7 @@ dpp centroid [-j 1] 20230101_ABAur.toml 750-50_em300_00100ms_512x512/*.fits
 and you will be prompted with matplotlib figures to click on the PSFs you want to centroid. For non-coronagraphic data you should click on the central star, and for coronagraphic data you can choose any set of four satellite spots. Multi-band imaging data will show you one field at a time.
 
 ```{admonition} VCAM1 orientation
-:class: warning
+:class: important
 
 Because camera 1 gets flipped along the y-axis during calibration, if you care about having consistently labeled PSF statistics (i.e., PSF sum for field 1 on cam 1 matches PSF sum for field 1 on cam 2) you should start with the top satellite PSF and go counter-clockwise for camera 1 and use the bottom satellite PSF and proceed clockwise for comera 2
 
@@ -177,7 +176,7 @@ We have discovered that frequently the VCAM1 and VCAM2 astrometry is not perfect
 
 
 ```{admonition} Imperfect difference images
-:class: warning
+:class: important
 
 The effects of differing astrometric solutions between cam1 and cam2 can be seen in the following image- if we subtract `cam1 - cam2` without *post hoc* reprojection there is clear over/under-subtraction around the astrogrid speckles
 
@@ -296,8 +295,9 @@ The pipeline will save data in a strict folder format-
     └── stokes # stokes frames
 ```
 
-If you want to experiment with pipeline options, we recommended renaming folders (e.g. `collapsed_dft`) so that you retain a backup while allowing the pipeline to naturally reprocess the data (see [Re-running the pipeline](), below).
+If you want to experiment with pipeline options, we recommended renaming folders (e.g. `collapsed_dft`) so that you retain a backup while allowing the pipeline to naturally reprocess the data (see {ref}`Re-running the pipeline <rerunning>`, below).
 
+(rerunning)=
 ## Re-running the pipeline
 
 The pipeline is written to use saved, cached data as much as possible to save time. This means, for example, re-running the PDI steps will use the already saved collapsed frames as inputs. Re-running the pipeline, then, will only process files which are missing or which have newer input files. To explain, this means if you delete a collapsed file, for example, and re-run the pipeline, the collapsed data will be reprocessed using the saved metrics (and calibrated data, if saved). Or, in the latter case, if I delete a metric file, the corresponding collapsed file (which depends on the metric file) will be reprocessed.

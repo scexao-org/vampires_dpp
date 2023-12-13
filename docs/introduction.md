@@ -2,7 +2,7 @@
 
 ## VAMPIRES Observation Modes
 
-VAMPIRES is an incredibly diverse instrument in its usage with SCExAO. It can be used for studying evolved stellar physics, protoplanetary disks, polarimetry, H-ɑ emission, in addition to an interferometric mode via sparse aperture masking (SAM). VAMPIRES is also used for focal-plane wavefront sensing, for example using differential focus for [phase diversity](), as well as complementary data for infrared observations (i.e., telemetry). `vampires_dpp` provides tooling primarily for imaging modes, although the image-processing tools provide building blocks for a variety of applications of VAMPIRES data (and PRs are welcome for interferometric modes!).
+VAMPIRES is an incredibly diverse instrument in its usage with SCExAO. It can be used for studying evolved stellar physics, protoplanetary disks, polarimetry, H-ɑ emission, in addition to an interferometric mode via sparse aperture masking (SAM). VAMPIRES is also used for focal-plane wavefront sensing, for example using differential focus for phase diversity, as well as complementary data for infrared observations (i.e., telemetry). `vampires_dpp` provides tooling primarily for imaging modes, although the image-processing tools provide building blocks for a variety of applications of VAMPIRES data (and PRs are welcome for interferometric modes!).
 
 1. Speckle imaging / telemetry
 2. Polarimetric differential imaging (PDI)

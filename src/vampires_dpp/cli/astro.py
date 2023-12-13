@@ -1,4 +1,5 @@
 import multiprocessing
+from collections import OrderedDict
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
@@ -25,28 +26,28 @@ __all__ = "astro"
 
 
 def calculate_astrometry_from_centroids(
-    centroids: dict[int, NDArray]
-) -> dict[int, dict[str, list]]:
-    astrom = {}
+    centroids: OrderedDict[int, NDArray]
+) -> OrderedDict[int, OrderedDict[str, list]]:
+    astrom = OrderedDict()
     for key, ctr in centroids.items():
-        abs_ctr = ctr.mean(axis=-2)  # x, y FITS
+        abs_ctr = ctr.mean(axis=-2, keepdims=True)  # x, y FITS
         delta = ctr - abs_ctr
-        angs = np.sort(np.arctan2(delta[..., 1], delta[..., 0]))
-        astrom[key] = {
-            "separation": np.linalg.norm(delta, axis=-1).mean(axis=-1),
-            "angle": np.mean(angs % 90),
-        }
+        angs = np.rad2deg(np.arctan2(delta[..., 1], delta[..., 0]))
+        sep = np.linalg.norm(delta, axis=-1).mean(axis=-1)
+        astrom[key] = OrderedDict(separation=sep, angle=np.mean(angs % 90))
     return astrom
 
 
-def get_psf_astrometry_manual(cams: Sequence[int], npsfs: int) -> dict[int, dict[str, list]]:
+def get_psf_astrometry_manual(
+    cams: Sequence[int], npsfs: int
+) -> OrderedDict[int, OrderedDict[str, list]]:
     centroids = get_psf_centroids_manual(cams=cams, npsfs=npsfs)
     return calculate_astrometry_from_centroids(centroids)
 
 
 def get_mbi_astrometry_manual(
     cams: Sequence[int], fields: Sequence[str], npsfs: int
-) -> dict[int, dict[str, list]]:
+) -> OrderedDict[int, OrderedDict[str, list]]:
     centroids = get_mbi_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
     return calculate_astrometry_from_centroids(centroids)
 
@@ -54,24 +55,26 @@ def get_mbi_astrometry_manual(
 MPL_INSTRUCTIONS: Final[str] = "<left-click> select, <right-click> delete"
 
 
-def get_psf_astrometry_mpl(cams: dict[str, Path], npsfs=1) -> dict[int, dict[str, list]]:
-    centroids = get_psf_centroids_mpl(cams=cams, npsfs=npsfs)
+def get_psf_astrometry_mpl(
+    cams: OrderedDict[str, Path], npsfs=1, smooth=True
+) -> OrderedDict[int, OrderedDict[str, list]]:
+    centroids = get_psf_centroids_mpl(cams=cams, npsfs=npsfs, smooth=smooth, mask=15)
     return calculate_astrometry_from_centroids(centroids)
 
 
 def get_mbi_astrometry_mpl(
-    cams: dict[str, Path], fields: Sequence[str], npsfs=1
-) -> dict[int, dict[str, list]]:
-    centroids = get_mbi_centroids_mpl(cams=cams, fields=fields, npsfs=npsfs)
+    cams: OrderedDict[str, Path], fields: Sequence[str], npsfs=1, smooth=True
+) -> OrderedDict[int, OrderedDict[str, list]]:
+    centroids = get_mbi_centroids_mpl(cams=cams, fields=fields, npsfs=npsfs, smooth=smooth, mask=15)
     return calculate_astrometry_from_centroids(centroids)
 
 
 def save_astrometry(
-    astrometry: dict[int, dict[str, list]], fields: Sequence[str], basename: Path
+    astrometry: OrderedDict[int, OrderedDict[str, list]], fields: Sequence[str], basename: Path
 ) -> Path:
     outpath = basename.with_name(f"{basename.name}.toml")
 
-    astrom = {}
+    astrom = OrderedDict()
     for key, vals in astrometry.items():
         astrom[key] = {
             "fields": fields,
