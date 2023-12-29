@@ -4,3 +4,10 @@
 .. automodule:: vampires_dpp.image_registration
     :members:
 ```
+
+## Frame Collapsing
+
+```{eval-rst}
+.. automodule:: vampires_dpp.lucky_imaging
+    :members:
+```

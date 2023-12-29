@@ -29,7 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=384b581d" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -40,12 +40,13 @@
     <script src="../_static/documentation_options.js?v=e9e33cf0"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/utility';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Polarization" href="polarization.html" />
-    <link rel="prev" title="Image Processing" href="image_processing.html" />
+    <link rel="prev" title="Polarization" href="polarization.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -152,26 +153,35 @@
             <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
-        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick-start guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pipeline.html">Pipeline</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../tutorials/image_registration.html">Image Registration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tutorials/frame_selection.html">Frame Selection</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API/Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API/Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="organization.html">Organization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="calibration.html">Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="frame_selection.html">Frame Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="image_registration.html">Image Registration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="image_processing.html">Image Processing</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Utility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="specphot.html">Spectrophotometric Calibration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="polarization.html">Polarization</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Utility</a></li>
 </ul>
 </li>
 </ul>
@@ -336,11 +346,20 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.constants.InstrumentInfo.model_fields"><code class="docutils literal notranslate"><span class="pre">InstrumentInfo.model_fields</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.fix_typical_time_iso"><code class="docutils literal notranslate"><span class="pre">fix_typical_time_iso()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.fix_typical_time_mjd"><code class="docutils literal notranslate"><span class="pre">fix_typical_time_mjd()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.get_instrument_from"><code class="docutils literal notranslate"><span class="pre">get_instrument_from()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.parallactic_angle_altaz"><code class="docutils literal notranslate"><span class="pre">parallactic_angle_altaz()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.parallactic_angle_hadec"><code class="docutils literal notranslate"><span class="pre">parallactic_angle_hadec()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.cutout_inds"><code class="docutils literal notranslate"><span class="pre">cutout_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_angles"><code class="docutils literal notranslate"><span class="pre">frame_angles()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_center"><code class="docutils literal notranslate"><span class="pre">frame_center()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_radii"><code class="docutils literal notranslate"><span class="pre">frame_radii()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.get_mbi_centers"><code class="docutils literal notranslate"><span class="pre">get_mbi_centers()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.check_file"><code class="docutils literal notranslate"><span class="pre">check_file()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.dict_from_header"><code class="docutils literal notranslate"><span class="pre">dict_from_header()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.dict_from_header_file"><code class="docutils literal notranslate"><span class="pre">dict_from_header_file()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.header_table"><code class="docutils literal notranslate"><span class="pre">header_table()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.average_angle"><code class="docutils literal notranslate"><span class="pre">average_angle()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.check_version"><code class="docutils literal notranslate"><span class="pre">check_version()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.delta_angle"><code class="docutils literal notranslate"><span class="pre">delta_angle()</span></code></a></li>
@@ -360,7 +379,7 @@ document.write(`
 <span id="utility"></span><h1>Utility<a class="headerlink" href="#module-vampires_dpp.constants" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.constants.CMOSVAMPIRES">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.constants.</span></span><span class="sig-name descname"><span class="pre">CMOSVAMPIRES</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cam_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">readmode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.constants.CMOSVAMPIRES" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.constants.</span></span><span class="sig-name descname"><span class="pre">CMOSVAMPIRES</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.constants.CMOSVAMPIRES" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -371,13 +390,13 @@ document.write(`
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vampires_dpp.constants.CMOSVAMPIRES.model_config">
-<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#vampires_dpp.constants.CMOSVAMPIRES.model_config" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#vampires_dpp.constants.CMOSVAMPIRES.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vampires_dpp.constants.CMOSVAMPIRES.model_fields">
-<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'cam_num':</span> <span class="pre">FieldInfo(annotation=Literal[1,</span> <span class="pre">2],</span> <span class="pre">required=True),</span> <span class="pre">'readmode':</span> <span class="pre">FieldInfo(annotation=Literal['fast',</span> <span class="pre">'slow'],</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#vampires_dpp.constants.CMOSVAMPIRES.model_fields" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'cam_num':</span> <span class="pre">FieldInfo(annotation=Literal[1,</span> <span class="pre">2],</span> <span class="pre">required=True),</span> <span class="pre">'readmode':</span> <span class="pre">FieldInfo(annotation=Literal['fast',</span> <span class="pre">'slow'],</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#vampires_dpp.constants.CMOSVAMPIRES.model_fields" title="Link to this definition">#</a></dt>
 <dd><p>Metadata about the fields defined on the model,
 mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
 <p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
@@ -387,7 +406,7 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.constants.EMCCDVAMPIRES">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.constants.</span></span><span class="sig-name descname"><span class="pre">EMCCDVAMPIRES</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cam_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emgain</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.constants.EMCCDVAMPIRES" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.constants.</span></span><span class="sig-name descname"><span class="pre">EMCCDVAMPIRES</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.constants.EMCCDVAMPIRES" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -398,13 +417,13 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vampires_dpp.constants.EMCCDVAMPIRES.model_config">
-<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#vampires_dpp.constants.EMCCDVAMPIRES.model_config" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#vampires_dpp.constants.EMCCDVAMPIRES.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vampires_dpp.constants.EMCCDVAMPIRES.model_fields">
-<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'cam_num':</span> <span class="pre">FieldInfo(annotation=Literal[1,</span> <span class="pre">2],</span> <span class="pre">required=True),</span> <span class="pre">'emgain':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#vampires_dpp.constants.EMCCDVAMPIRES.model_fields" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'cam_num':</span> <span class="pre">FieldInfo(annotation=Literal[1,</span> <span class="pre">2],</span> <span class="pre">required=True),</span> <span class="pre">'emgain':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#vampires_dpp.constants.EMCCDVAMPIRES.model_fields" title="Link to this definition">#</a></dt>
 <dd><p>Metadata about the fields defined on the model,
 mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
 <p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
@@ -414,23 +433,118 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.constants.InstrumentInfo">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.constants.</span></span><span class="sig-name descname"><span class="pre">InstrumentInfo</span></span><a class="headerlink" href="#vampires_dpp.constants.InstrumentInfo" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.constants.</span></span><span class="sig-name descname"><span class="pre">InstrumentInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.constants.InstrumentInfo" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vampires_dpp.constants.InstrumentInfo.model_config">
-<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#vampires_dpp.constants.InstrumentInfo.model_config" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[ConfigDict]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#vampires_dpp.constants.InstrumentInfo.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vampires_dpp.constants.InstrumentInfo.model_fields">
-<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#vampires_dpp.constants.InstrumentInfo.model_fields" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar[dict[str,</span> <span class="pre">FieldInfo]]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#vampires_dpp.constants.InstrumentInfo.model_fields" title="Link to this definition">#</a></dt>
 <dd><p>Metadata about the fields defined on the model,
 mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
 <p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function" id="module-vampires_dpp.headers">
+<dt class="sig sig-object py" id="vampires_dpp.headers.fix_typical_time_iso">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_iso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_iso" title="Link to this definition">#</a></dt>
+<dd><p>Return the middle point of the exposure for ISO-based timestamps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hdr</strong> (<em>FITSHeader</em>) – </p></li>
+<li><p><strong>key</strong> (<em>str</em>) – key to fix, e.g. “UT”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The ISO timestamp (hh:mm:ss.sss) for the middle point of the exposure</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.fix_typical_time_mjd">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_mjd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_mjd" title="Link to this definition">#</a></dt>
+<dd><p>Return the middle point of the exposure for MJD timestamps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hdr</strong> (<em>FITSHeader</em>) – </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The MJD timestamp for the middle point of the exposure</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.get_instrument_from">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">get_instrument_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.get_instrument_from" title="Link to this definition">#</a></dt>
+<dd><p>Get the instrument info from a FITS header</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#vampires_dpp.constants.InstrumentInfo" title="vampires_dpp.constants.InstrumentInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">InstrumentInfo</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>header</strong> (<em>Header</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_altaz">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_altaz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">az</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.825504000000002</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_altaz" title="Link to this definition">#</a></dt>
+<dd><p>Calculate parallactic angle using the altitude/elevation and azimuth directly</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alt</strong> (<em>float</em>) – altitude or elevation, in degrees</p></li>
+<li><p><strong>az</strong> (<em>float</em>) – azimuth, in degrees CCW from North</p></li>
+<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – latitude of observation in degrees, by default 19.823806</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>parallactic angle, in degrees East of North</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.parallactic_angle_hadec">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">parallactic_angle_hadec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19.825504000000002</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.parallactic_angle_hadec" title="Link to this definition">#</a></dt>
+<dd><p>Calculate parallactic angle using the hour-angle and declination directly</p>
+<div class="math notranslate nohighlight">
+\[\theta_\mathrm{PA} = \arctan2{\frac{\sin\theta_\mathrm{HA}}{\tan\theta_\mathrm{lat}\cos\delta - \sin\delta \cos\theta_\mathrm{HA}}}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ha</strong> (<em>float</em>) – hour-angle, in hour angles</p></li>
+<li><p><strong>dec</strong> (<em>float</em>) – declination in degrees</p></li>
+<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – latitude of observation in degrees, by default 19.823806</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>parallactic angle, in degrees East of North</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function" id="module-vampires_dpp.indexing">
@@ -519,14 +633,80 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 <p>Note this is just multiples of the frame size, not based on anything sensible.</p>
 <p>Assumes cam 1 data has already been flipped.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>frame</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – </p></li>
 <li><p><strong>reduced</strong> (<em>bool</em>) – </p></li>
 </ul>
 </dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-vampires_dpp.organization">
+<dt class="sig sig-object py" id="vampires_dpp.organization.check_file">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">check_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.check_file" title="Link to this definition">#</a></dt>
+<dd><p>Checks if file can be loaded and if there are empty slices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>PathLike</em>) – </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns True if file can be loaded and no empty frames</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.organization.dict_from_header">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('COMMENT',</span> <span class="pre">'HISTORY')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header" title="Link to this definition">#</a></dt>
+<dd><p>Parse a FITS header and extract the keys and values as an ordered dictionary. Multi-line keys like <code class="docutils literal notranslate"><span class="pre">COMMENTS</span></code> and <code class="docutils literal notranslate"><span class="pre">HISTORY</span></code> will be combined with commas. The resolved path will be inserted with the <code class="docutils literal notranslate"><span class="pre">path</span></code> key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>header</strong> (<em>Header</em>) – FITS header to parse</p>
+</dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dict[str, tuple[float, float]]</p>
+<dd class="field-even"><p>OrderedDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.organization.dict_from_header_file">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">dict_from_header_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.dict_from_header_file" title="Link to this definition">#</a></dt>
+<dd><p>Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like <code class="docutils literal notranslate"><span class="pre">COMMENTS</span></code> and <code class="docutils literal notranslate"><span class="pre">HISTORY</span></code> will be combined with commas. The resolved path will be inserted with the <code class="docutils literal notranslate"><span class="pre">path</span></code> key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – FITS file to parse</p></li>
+<li><p><strong>**kwargs</strong> – All keyword arguments will be passed to <code class="docutils literal notranslate"><span class="pre">load_fits_header</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>OrderedDict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.organization.header_table">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.organization.</span></span><span class="sig-name descname"><span class="pre">header_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.organization.header_table" title="Link to this definition">#</a></dt>
+<dd><p>Generate a pandas dataframe from the FITS headers parsed from the given files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames</strong> (<em>list</em><em>[</em><em>pathlike</em><em>]</em>) – </p></li>
+<li><p><strong>num_proc</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of processes to use in multiprocessing, by default mp.cpu_count()</p></li>
+<li><p><strong>quiet</strong> (<em>bool</em><em>, </em><em>optional</em>) – Silence the progress bar, by default False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -570,14 +750,14 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">delta_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.delta_angle" title="Link to this definition">#</a></dt>
 <dd><p>Given two angles, determine the total rotation between them</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>alpha</strong> (<em>float</em>) – </p></li>
 <li><p><strong>beta</strong> (<em>float</em>) – </p></li>
 </ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -613,22 +793,13 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="image_processing.html"
+       href="polarization.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Image Processing</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="polarization.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
         <p class="prev-next-title">Polarization</p>
       </div>
-      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -660,11 +831,20 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.constants.InstrumentInfo.model_fields"><code class="docutils literal notranslate"><span class="pre">InstrumentInfo.model_fields</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.fix_typical_time_iso"><code class="docutils literal notranslate"><span class="pre">fix_typical_time_iso()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.fix_typical_time_mjd"><code class="docutils literal notranslate"><span class="pre">fix_typical_time_mjd()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.get_instrument_from"><code class="docutils literal notranslate"><span class="pre">get_instrument_from()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.parallactic_angle_altaz"><code class="docutils literal notranslate"><span class="pre">parallactic_angle_altaz()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.parallactic_angle_hadec"><code class="docutils literal notranslate"><span class="pre">parallactic_angle_hadec()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.cutout_inds"><code class="docutils literal notranslate"><span class="pre">cutout_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_angles"><code class="docutils literal notranslate"><span class="pre">frame_angles()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_center"><code class="docutils literal notranslate"><span class="pre">frame_center()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_radii"><code class="docutils literal notranslate"><span class="pre">frame_radii()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.get_mbi_centers"><code class="docutils literal notranslate"><span class="pre">get_mbi_centers()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.check_file"><code class="docutils literal notranslate"><span class="pre">check_file()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.dict_from_header"><code class="docutils literal notranslate"><span class="pre">dict_from_header()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.dict_from_header_file"><code class="docutils literal notranslate"><span class="pre">dict_from_header_file()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.header_table"><code class="docutils literal notranslate"><span class="pre">header_table()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.average_angle"><code class="docutils literal notranslate"><span class="pre">average_angle()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.check_version"><code class="docutils literal notranslate"><span class="pre">check_version()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.delta_angle"><code class="docutils literal notranslate"><span class="pre">delta_angle()</span></code></a></li>

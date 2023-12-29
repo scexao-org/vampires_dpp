@@ -22,7 +22,7 @@ VAMPIRES data processing tools. Get started by installing the package
 
    pip install git+https://github.com/scexao-org/vampires_dpp.git#egg=vampires_dpp
 
-checking out the `pipeline <./pipeline>`_, and heading over to the `tutorials <./tutorials>`_.
+checking out the `quick-start guide <./quickstart>`_, and reading the pipeline `configuration reference <./configuration>`_.
 
 Contents
 --------
@@ -33,15 +33,16 @@ Contents
    installation
    introduction
    quickstart
-   pipeline
-   tutorials/index
+   configuration
+   cli
+   faq
    api/index
 
 
 Citing
 ------
 
-If you use ``vampires_dpp`` in your research, please consider citing it as software with the following DOI: (`TODO <https://github.com/scexao-org/vampires_dpp/blob/main/CITATIONS.bib>`_)
+If you use ``vampires_dpp`` in your research, please consider citing it as software with the GitHub URL. In the future we do plan to publish a JOSS paper.
 
 
 License

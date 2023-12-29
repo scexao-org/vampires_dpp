@@ -28,7 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=384b581d" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -39,7 +39,7 @@
     <script src="_static/documentation_options.js?v=e9e33cf0"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
@@ -149,26 +149,35 @@
             <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
-        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick-start guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/image_registration.html">Image Registration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/frame_selection.html">Frame Selection</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API/Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API/Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/organization.html">Organization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/calibration.html">Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/frame_selection.html">Frame Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html">Analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/image_registration.html">Image Registration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/image_processing.html">Image Processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/utility.html">Utility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/specphot.html">Spectrophotometric Calibration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/polarization.html">Polarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utility.html">Utility</a></li>
 </ul>
 </li>
 </ul>
@@ -284,10 +293,14 @@ document.write(`
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
+ | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
@@ -303,7 +316,9 @@ document.write(`
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/organization.html#vampires_dpp.organization.check_file">check_file() (in module vampires_dpp.organization)</a>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.CalibrateConfig">CalibrateConfig (class in vampires_dpp.pipeline.config)</a>
+</li>
+      <li><a href="api/organization.html#vampires_dpp.organization.check_file">check_file() (in module vampires_dpp.organization)</a>, <a href="api/utility.html#vampires_dpp.organization.check_file">[1]</a>
 </li>
       <li><a href="api/utility.html#vampires_dpp.util.check_version">check_version() (in module vampires_dpp.util)</a>
 </li>
@@ -313,6 +328,8 @@ document.write(`
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.CollapseConfig">CollapseConfig (class in vampires_dpp.pipeline.config)</a>
+</li>
       <li><a href="api/image_processing.html#vampires_dpp.image_processing.correct_distortion">correct_distortion() (in module vampires_dpp.image_processing)</a>
 </li>
       <li><a href="api/image_processing.html#vampires_dpp.image_processing.correct_distortion_cube">correct_distortion_cube() (in module vampires_dpp.image_processing)</a>
@@ -335,9 +352,9 @@ document.write(`
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/image_processing.html#vampires_dpp.image_processing.derotate_frame">derotate_frame() (in module vampires_dpp.image_processing)</a>
 </li>
-      <li><a href="api/organization.html#vampires_dpp.organization.dict_from_header">dict_from_header() (in module vampires_dpp.organization)</a>
+      <li><a href="api/organization.html#vampires_dpp.organization.dict_from_header">dict_from_header() (in module vampires_dpp.organization)</a>, <a href="api/utility.html#vampires_dpp.organization.dict_from_header">[1]</a>
 </li>
-      <li><a href="api/organization.html#vampires_dpp.organization.dict_from_header_file">dict_from_header_file() (in module vampires_dpp.organization)</a>
+      <li><a href="api/organization.html#vampires_dpp.organization.dict_from_header_file">dict_from_header_file() (in module vampires_dpp.organization)</a>, <a href="api/utility.html#vampires_dpp.organization.dict_from_header_file">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -353,17 +370,19 @@ document.write(`
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/organization.html#vampires_dpp.headers.fix_typical_time_iso">fix_typical_time_iso() (in module vampires_dpp.headers)</a>
+      <li><a href="api/organization.html#vampires_dpp.headers.fix_typical_time_iso">fix_typical_time_iso() (in module vampires_dpp.headers)</a>, <a href="api/utility.html#vampires_dpp.headers.fix_typical_time_iso">[1]</a>
 </li>
-      <li><a href="api/organization.html#vampires_dpp.headers.fix_typical_time_mjd">fix_typical_time_mjd() (in module vampires_dpp.headers)</a>
+      <li><a href="api/organization.html#vampires_dpp.headers.fix_typical_time_mjd">fix_typical_time_mjd() (in module vampires_dpp.headers)</a>, <a href="api/utility.html#vampires_dpp.headers.fix_typical_time_mjd">[1]</a>
+</li>
+      <li><a href="api/utility.html#vampires_dpp.indexing.frame_angles">frame_angles() (in module vampires_dpp.indexing)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/utility.html#vampires_dpp.indexing.frame_angles">frame_angles() (in module vampires_dpp.indexing)</a>
-</li>
       <li><a href="api/utility.html#vampires_dpp.indexing.frame_center">frame_center() (in module vampires_dpp.indexing)</a>
 </li>
       <li><a href="api/utility.html#vampires_dpp.indexing.frame_radii">frame_radii() (in module vampires_dpp.indexing)</a>
+</li>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.PipelineConfig.from_file">from_file() (vampires_dpp.pipeline.config.PipelineConfig class method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -371,10 +390,12 @@ document.write(`
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/organization.html#vampires_dpp.headers.get_instrument_from">get_instrument_from() (in module vampires_dpp.headers)</a>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.mueller_matrices.generic">generic() (in module vampires_dpp.pdi.mueller_matrices)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/organization.html#vampires_dpp.headers.get_instrument_from">get_instrument_from() (in module vampires_dpp.headers)</a>, <a href="api/utility.html#vampires_dpp.headers.get_instrument_from">[1]</a>
+</li>
       <li><a href="api/utility.html#vampires_dpp.indexing.get_mbi_centers">get_mbi_centers() (in module vampires_dpp.indexing)</a>
 </li>
   </ul></td>
@@ -383,7 +404,11 @@ document.write(`
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/organization.html#vampires_dpp.organization.header_table">header_table() (in module vampires_dpp.organization)</a>
+      <li><a href="api/organization.html#vampires_dpp.organization.header_table">header_table() (in module vampires_dpp.organization)</a>, <a href="api/utility.html#vampires_dpp.organization.header_table">[1]</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.mueller_matrices.hwp">hwp() (in module vampires_dpp.pdi.mueller_matrices)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -391,7 +416,19 @@ document.write(`
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.utils.instpol_correct">instpol_correct() (in module vampires_dpp.pdi.utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/utility.html#vampires_dpp.constants.InstrumentInfo">InstrumentInfo (class in vampires_dpp.constants)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.mueller_matrices.linear_polarizer">linear_polarizer() (in module vampires_dpp.pdi.mueller_matrices)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -399,6 +436,8 @@ document.write(`
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.utils.measure_instpol">measure_instpol() (in module vampires_dpp.pdi.utils)</a>
+</li>
       <li><a href="api/utility.html#vampires_dpp.constants.CMOSVAMPIRES.model_config">model_config (vampires_dpp.constants.CMOSVAMPIRES attribute)</a>
 
       <ul>
@@ -419,11 +458,11 @@ document.write(`
     module
 
       <ul>
-        <li><a href="api/calibration.html#module-vampires_dpp.calibration">vampires_dpp.calibration</a>
+        <li><a href="api/analysis.html#module-vampires_dpp.analysis">vampires_dpp.analysis</a>
 </li>
         <li><a href="api/utility.html#module-vampires_dpp.constants">vampires_dpp.constants</a>
 </li>
-        <li><a href="api/organization.html#module-vampires_dpp.headers">vampires_dpp.headers</a>
+        <li><a href="api/organization.html#module-vampires_dpp.headers">vampires_dpp.headers</a>, <a href="api/utility.html#module-vampires_dpp.headers">[1]</a>
 </li>
         <li><a href="api/image_processing.html#module-vampires_dpp.image_processing">vampires_dpp.image_processing</a>
 </li>
@@ -431,7 +470,27 @@ document.write(`
 </li>
         <li><a href="api/utility.html#module-vampires_dpp.indexing">vampires_dpp.indexing</a>
 </li>
-        <li><a href="api/organization.html#module-vampires_dpp.organization">vampires_dpp.organization</a>
+        <li><a href="api/image_registration.html#module-vampires_dpp.lucky_imaging">vampires_dpp.lucky_imaging</a>
+</li>
+        <li><a href="api/organization.html#module-vampires_dpp.organization">vampires_dpp.organization</a>, <a href="api/utility.html#module-vampires_dpp.organization">[1]</a>
+</li>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.diff_images">vampires_dpp.pdi.diff_images</a>
+</li>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.models">vampires_dpp.pdi.models</a>
+</li>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.mueller_matrices">vampires_dpp.pdi.mueller_matrices</a>
+</li>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.processing">vampires_dpp.pdi.processing</a>
+</li>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.utils">vampires_dpp.pdi.utils</a>
+</li>
+        <li><a href="api/specphot.html#module-vampires_dpp.specphot.filters">vampires_dpp.specphot.filters</a>
+</li>
+        <li><a href="api/specphot.html#module-vampires_dpp.specphot.pickles">vampires_dpp.specphot.pickles</a>
+</li>
+        <li><a href="api/specphot.html#module-vampires_dpp.specphot.query">vampires_dpp.specphot.query</a>
+</li>
+        <li><a href="api/specphot.html#module-vampires_dpp.specphot.specphot">vampires_dpp.specphot.specphot</a>
 </li>
         <li><a href="api/utility.html#module-vampires_dpp.util">vampires_dpp.util</a>
 </li>
@@ -452,11 +511,37 @@ document.write(`
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/organization.html#vampires_dpp.headers.parallactic_angle_altaz">parallactic_angle_altaz() (in module vampires_dpp.headers)</a>
+      <li><a href="api/organization.html#vampires_dpp.headers.parallactic_angle_altaz">parallactic_angle_altaz() (in module vampires_dpp.headers)</a>, <a href="api/utility.html#vampires_dpp.headers.parallactic_angle_altaz">[1]</a>
+</li>
+      <li><a href="api/organization.html#vampires_dpp.headers.parallactic_angle_hadec">parallactic_angle_hadec() (in module vampires_dpp.headers)</a>, <a href="api/utility.html#vampires_dpp.headers.parallactic_angle_hadec">[1]</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/organization.html#vampires_dpp.headers.parallactic_angle_hadec">parallactic_angle_hadec() (in module vampires_dpp.headers)</a>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.PipelineConfig">PipelineConfig (class in vampires_dpp.pipeline.config)</a>
+</li>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.PolarimetryConfig">PolarimetryConfig (class in vampires_dpp.pipeline.config)</a>
+</li>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.processing.polarization_calibration_triplediff">polarization_calibration_triplediff() (in module vampires_dpp.pdi.processing)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.mueller_matrices.qwp">qwp() (in module vampires_dpp.pdi.mueller_matrices)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.utils.radial_stokes">radial_stokes() (in module vampires_dpp.pdi.utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.mueller_matrices.rotator">rotator() (in module vampires_dpp.pdi.mueller_matrices)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -464,11 +549,27 @@ document.write(`
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.PipelineConfig.save">save() (vampires_dpp.pipeline.config.PipelineConfig method)</a>
+</li>
       <li><a href="api/image_processing.html#vampires_dpp.image_processing.shift_cube">shift_cube() (in module vampires_dpp.image_processing)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/image_processing.html#vampires_dpp.image_processing.shift_frame">shift_frame() (in module vampires_dpp.image_processing)</a>
+</li>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.SpecphotConfig">SpecphotConfig (class in vampires_dpp.pipeline.config)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.TargetConfig">TargetConfig (class in vampires_dpp.pipeline.config)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="configuration.html#vampires_dpp.pipeline.config.PipelineConfig.to_toml">to_toml() (vampires_dpp.pipeline.config.PipelineConfig method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -477,10 +578,10 @@ document.write(`
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li>
-    vampires_dpp.calibration
+    vampires_dpp.analysis
 
       <ul>
-        <li><a href="api/calibration.html#module-vampires_dpp.calibration">module</a>
+        <li><a href="api/analysis.html#module-vampires_dpp.analysis">module</a>
 </li>
       </ul></li>
       <li>
@@ -494,7 +595,7 @@ document.write(`
     vampires_dpp.headers
 
       <ul>
-        <li><a href="api/organization.html#module-vampires_dpp.headers">module</a>
+        <li><a href="api/organization.html#module-vampires_dpp.headers">module</a>, <a href="api/utility.html#module-vampires_dpp.headers">[1]</a>
 </li>
       </ul></li>
       <li>
@@ -511,8 +612,6 @@ document.write(`
         <li><a href="api/image_registration.html#module-vampires_dpp.image_registration">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     vampires_dpp.indexing
 
@@ -521,10 +620,82 @@ document.write(`
 </li>
       </ul></li>
       <li>
+    vampires_dpp.lucky_imaging
+
+      <ul>
+        <li><a href="api/image_registration.html#module-vampires_dpp.lucky_imaging">module</a>
+</li>
+      </ul></li>
+      <li>
     vampires_dpp.organization
 
       <ul>
-        <li><a href="api/organization.html#module-vampires_dpp.organization">module</a>
+        <li><a href="api/organization.html#module-vampires_dpp.organization">module</a>, <a href="api/utility.html#module-vampires_dpp.organization">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    vampires_dpp.pdi.diff_images
+
+      <ul>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.diff_images">module</a>
+</li>
+      </ul></li>
+      <li>
+    vampires_dpp.pdi.models
+
+      <ul>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.models">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    vampires_dpp.pdi.mueller_matrices
+
+      <ul>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.mueller_matrices">module</a>
+</li>
+      </ul></li>
+      <li>
+    vampires_dpp.pdi.processing
+
+      <ul>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.processing">module</a>
+</li>
+      </ul></li>
+      <li>
+    vampires_dpp.pdi.utils
+
+      <ul>
+        <li><a href="api/polarization.html#module-vampires_dpp.pdi.utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    vampires_dpp.specphot.filters
+
+      <ul>
+        <li><a href="api/specphot.html#module-vampires_dpp.specphot.filters">module</a>
+</li>
+      </ul></li>
+      <li>
+    vampires_dpp.specphot.pickles
+
+      <ul>
+        <li><a href="api/specphot.html#module-vampires_dpp.specphot.pickles">module</a>
+</li>
+      </ul></li>
+      <li>
+    vampires_dpp.specphot.query
+
+      <ul>
+        <li><a href="api/specphot.html#module-vampires_dpp.specphot.query">module</a>
+</li>
+      </ul></li>
+      <li>
+    vampires_dpp.specphot.specphot
+
+      <ul>
+        <li><a href="api/specphot.html#module-vampires_dpp.specphot.specphot">module</a>
 </li>
       </ul></li>
       <li>
@@ -549,9 +720,13 @@ document.write(`
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/image_processing.html#vampires_dpp.image_processing.warp_frame">warp_frame() (in module vampires_dpp.image_processing)</a>
 </li>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.mueller_matrices.waveplate">waveplate() (in module vampires_dpp.pdi.mueller_matrices)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/image_processing.html#vampires_dpp.image_processing.weighted_collapse">weighted_collapse() (in module vampires_dpp.image_processing)</a>
+</li>
+      <li><a href="api/polarization.html#vampires_dpp.pdi.mueller_matrices.wollaston">wollaston() (in module vampires_dpp.pdi.mueller_matrices)</a>
 </li>
       <li><a href="api/utility.html#vampires_dpp.util.wrap_angle">wrap_angle() (in module vampires_dpp.util)</a>
 </li>

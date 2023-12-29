@@ -29,7 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=384b581d" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -40,11 +40,14 @@
     <script src="../_static/documentation_options.js?v=e9e33cf0"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/polarization';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Utility" href="utility.html" />
+    <link rel="next" title="Utility" href="utility.html" />
+    <link rel="prev" title="Spectrophotometric Calibration" href="specphot.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -151,26 +154,35 @@
             <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
-        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick-start guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../pipeline.html">Pipeline</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../tutorials/image_registration.html">Image Registration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../tutorials/frame_selection.html">Frame Selection</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API/Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API/Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="organization.html">Organization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="calibration.html">Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="frame_selection.html">Frame Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="image_registration.html">Image Registration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="image_processing.html">Image Processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utility.html">Utility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="specphot.html">Spectrophotometric Calibration</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Polarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utility.html">Utility</a></li>
 </ul>
 </li>
 </ul>
@@ -320,7 +332,23 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mueller-calculus">Mueller calculus</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.processing">Processing and polarization analysis</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.instpol_correct"><code class="docutils literal notranslate"><span class="pre">instpol_correct()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.measure_instpol"><code class="docutils literal notranslate"><span class="pre">measure_instpol()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.mueller_matrices">Mueller calculus</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.generic"><code class="docutils literal notranslate"><span class="pre">generic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.hwp"><code class="docutils literal notranslate"><span class="pre">hwp()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.linear_polarizer"><code class="docutils literal notranslate"><span class="pre">linear_polarizer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.qwp"><code class="docutils literal notranslate"><span class="pre">qwp()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.rotator"><code class="docutils literal notranslate"><span class="pre">rotator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.waveplate"><code class="docutils literal notranslate"><span class="pre">waveplate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.wollaston"><code class="docutils literal notranslate"><span class="pre">wollaston()</span></code></a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -334,9 +362,340 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="polarization">
 <h1>Polarization<a class="headerlink" href="#polarization" title="Link to this heading">#</a></h1>
-<section id="mueller-calculus">
-<h2>Mueller calculus<a class="headerlink" href="#mueller-calculus" title="Link to this heading">#</a></h2>
+<section id="module-vampires_dpp.pdi.processing">
+<span id="processing-and-polarization-analysis"></span><h2>Processing and polarization analysis<a class="headerlink" href="#module-vampires_dpp.pdi.processing" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.processing.polarization_calibration_triplediff">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.processing.</span></span><span class="sig-name descname"><span class="pre">polarization_calibration_triplediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff" title="Link to this definition">#</a></dt>
+<dd><p>Return a Stokes cube using the <em>bona fide</em> triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.</p>
+<div class="tip admonition">
+<p class="admonition-title">Pupil-tracking mode</p>
+<p>For each of these 16 image sets, it is important to consider the apparant sky rotation when in pupil-tracking mode (which is the default for most VAMPIRES observations). With this naive triple-differential subtraction, if there is significant sky motion, the output Stokes frame will be smeared.</p>
+<p>The parallactic angles for each set of 16 frames should be averaged (<code class="docutils literal notranslate"><span class="pre">average_angle</span></code>) and stored to construct the final derotation angle vector</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filenames</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – list of input filenames to construct Stokes frames from</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError:</strong> – If the input filenames are not a clean multiple of 16. To ensure you have proper 16 frame sets, use <code class="docutils literal notranslate"><span class="pre">pol_inds</span></code> with a sorted observation table.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(4, t, y, x) Stokes cube from all 16 frame sets.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-vampires_dpp.pdi.utils">
+<span id="module-vampires_dpp.pdi.diff_images"></span><dt class="sig sig-object py" id="vampires_dpp.pdi.utils.instpol_correct">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.utils.</span></span><span class="sig-name descname"><span class="pre">instpol_correct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pQ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.utils.instpol_correct" title="Link to this definition">#</a></dt>
+<dd><p>Apply instrument polarization correction to stokes cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stokes_cube</strong> (<em>NDArray</em>) – (3, …) array of stokes values</p></li>
+<li><p><strong>pQ</strong> (<em>float</em><em>, </em><em>optional</em>) – I -&gt; Q contribution, by default 0</p></li>
+<li><p><strong>pU</strong> (<em>float</em><em>, </em><em>optional</em>) – I -&gt; U contribution, by default 0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(3, …) stokes cube with corrected parameters</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.utils.measure_instpol">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.utils.</span></span><span class="sig-name descname"><span class="pre">measure_instpol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.utils.measure_instpol" title="Link to this definition">#</a></dt>
+<dd><p>Use aperture photometry to estimate the instrument polarization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stokes_cube</strong> (<em>NDArray</em>) – Input Stokes cube (4, y, x)</p></li>
+<li><p><strong>r</strong> (<em>float</em><em>, </em><em>optional</em>) – Radius of circular aperture in pixels, by default 5</p></li>
+<li><p><strong>expected</strong> (<em>float</em><em>, </em><em>optional</em>) – The expected fractional polarization, by default 0</p></li>
+<li><p><strong>**kwargs</strong> – </p></li>
+<li><p><strong>I</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>X</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The instrumental polarization coefficient</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.utils.radial_stokes">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.utils.</span></span><span class="sig-name descname"><span class="pre">radial_stokes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stokes_err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.utils.radial_stokes" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Q_\phi = -Q\cos(2\theta) - U\sin(2\theta) \\
+U_\phi = Q\sin(2\theta) - Q\cos(2\theta)\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stokes_cube</strong> (<em>ArrayLike</em>) – Input Stokes cube, with dimensions (4, N, M)</p></li>
+<li><p><strong>phi</strong> (<em>float</em>) – Radial angle offset in radians, by default 0</p></li>
+<li><p><strong>stokes_err</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>] </em><em>| </em><em>None</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns the tuple (Qphi, Uphi)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray, NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
+<section id="module-vampires_dpp.pdi.mueller_matrices">
+<span id="mueller-calculus"></span><h2>Mueller calculus<a class="headerlink" href="#module-vampires_dpp.pdi.mueller_matrices" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.mueller_matrices.generic">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">generic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.mueller_matrices.generic" title="Link to this definition">#</a></dt>
+<dd><p>Return a generic optic with diattenuation <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> and phase retardance <code class="docutils literal notranslate"><span class="pre">delta</span></code> oriented at angle <code class="docutils literal notranslate"><span class="pre">theta</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Rotation angle of the fast-axis in radians, by default 0</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em><em>, </em><em>optional</em>) – Diattenuation, by default 0</p></li>
+<li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Retardance in radians, by default 0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(4, 4) Mueller matrix for the optic</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">generic</span><span class="p">()</span> <span class="c1"># Identity</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  1.,  0., -0.],</span>
+<span class="go">       [ 0.,  0.,  1.,  0.],</span>
+<span class="go">       [ 0.,  0., -0.,  1.]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">generic</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="c1"># mirror with diatt.</span>
+<span class="go">array([[ 1.     ,  0.01   ,  0.     ,  0.     ],</span>
+<span class="go">       [ 0.01   ,  1.     ,  0.     , -0.     ],</span>
+<span class="go">       [ 0.     ,  0.     , -0.99995,  0.     ],</span>
+<span class="go">       [ 0.     ,  0.     , -0.     , -0.99995]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.mueller_matrices.hwp">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">hwp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.mueller_matrices.hwp" title="Link to this definition">#</a></dt>
+<dd><p>Return the Mueller matrix for an ideal half-wave plate (HWP) with fast-axis oriented to the given angle, in radians.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Rotation angle of the fast-axis, in radians. By default 0</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(4, 4) Mueller matrix representing the HWP</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hwp</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  1.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0., -1.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0., -1.]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hwp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">))</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0., -1.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  1.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0., -1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.mueller_matrices.linear_polarizer">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">linear_polarizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.mueller_matrices.linear_polarizer" title="Link to this definition">#</a></dt>
+<dd><p>Return the Mueller matrix for an ideal linear polarizer oriented at the given angle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Angle of rotation, in radians. By default 0</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(4, 4) Mueller matrix for the linear polarizer</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">linear_polarizer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">array([[0.5, 0.5, 0. , 0. ],</span>
+<span class="go">       [0.5, 0.5, 0. , 0. ],</span>
+<span class="go">       [0. , 0. , 0. , 0. ],</span>
+<span class="go">       [0. , 0. , 0. , 0. ]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">linear_polarizer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">))</span>
+<span class="go">array([[0.5, 0. , 0.5, 0. ],</span>
+<span class="go">       [0. , 0. , 0. , 0. ],</span>
+<span class="go">       [0.5, 0. , 0.5, 0. ],</span>
+<span class="go">       [0. , 0. , 0. , 0. ]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.mueller_matrices.qwp">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">qwp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.mueller_matrices.qwp" title="Link to this definition">#</a></dt>
+<dd><p>Return the Mueller matrix for an ideal quarter-wave plate (QWP) with fast-axis oriented to the given angle, in radians.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Rotation angle of the fast-axis in radians. By default 0</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(4, 4) Mueller matrix representing the QWP</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">qwp</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  1.,  0., -0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.],</span>
+<span class="go">       [ 0.,  0., -1.,  0.]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">qwp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">))</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0., -1.],</span>
+<span class="go">       [ 0.,  0.,  1.,  0.],</span>
+<span class="go">       [ 0.,  1., -0.,  0.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.mueller_matrices.rotator">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">rotator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.mueller_matrices.rotator" title="Link to this definition">#</a></dt>
+<dd><p>Return the Mueller matrix for rotation clockwise about the optical axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Angle of rotation, in radians. By default 0</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(4, 4) Mueller matrix</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rotator</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  1.,  0.,  0.],</span>
+<span class="go">       [ 0., -0.,  1.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rotator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">))</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  1.,  0.],</span>
+<span class="go">       [ 0., -1.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  1.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.mueller_matrices.waveplate">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">waveplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.mueller_matrices.waveplate" title="Link to this definition">#</a></dt>
+<dd><p>Return the Mueller matrix for a waveplate with arbitrary phase retardance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Rotation angle of the fast-axis in radians. By default 0</p></li>
+<li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Retardance in radians, by default 0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(4, 4) Mueller matrix representing the waveplate</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waveplate</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="c1"># HWP</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  1.,  0., -0.],</span>
+<span class="go">       [ 0.,  0., -1.,  0.],</span>
+<span class="go">       [ 0.,  0., -0., -1.]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waveplate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># QWP at 45°</span>
+<span class="go">array([[ 1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0., -1.],</span>
+<span class="go">       [ 0.,  0.,  1.,  0.],</span>
+<span class="go">       [ 0.,  1., -0.,  0.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.mueller_matrices.wollaston">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.mueller_matrices.</span></span><span class="sig-name descname"><span class="pre">wollaston</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ordinary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.mueller_matrices.wollaston" title="Link to this definition">#</a></dt>
+<dd><p>Return the Mueller matrix for a Wollaston prism or polarizing beamsplitter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ordinary</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return the ordinary beam’s Mueller matrix, by default True</p></li>
+<li><p><strong>eta</strong> (<em>float</em><em>, </em><em>optional</em>) – For imperfect beamsplitters, the diattenuation of the optic, by default 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(4, 4) Mueller matrix for the selected output beam</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wollaston</span><span class="p">()</span>
+<span class="go">array([[0.5, 0.5, 0. , 0. ],</span>
+<span class="go">       [0.5, 0.5, 0. , 0. ],</span>
+<span class="go">       [0. , 0. , 0. , 0. ],</span>
+<span class="go">       [0. , 0. , 0. , 0. ]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wollaston</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">eta</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="go">array([[ 0.5, -0.4,  0. ,  0. ],</span>
+<span class="go">       [-0.4,  0.5,  0. ,  0. ],</span>
+<span class="go">       [ 0. ,  0. ,  0.3,  0. ],</span>
+<span class="go">       [ 0. ,  0. ,  0. ,  0.3]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<span class="target" id="module-vampires_dpp.pdi.models"></span></section>
 </section>
 
 
@@ -351,13 +710,22 @@ document.write(`
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="utility.html"
+       href="specphot.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Spectrophotometric Calibration</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="utility.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
         <p class="prev-next-title">Utility</p>
       </div>
+      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -374,7 +742,23 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mueller-calculus">Mueller calculus</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.processing">Processing and polarization analysis</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.instpol_correct"><code class="docutils literal notranslate"><span class="pre">instpol_correct()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.measure_instpol"><code class="docutils literal notranslate"><span class="pre">measure_instpol()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.mueller_matrices">Mueller calculus</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.generic"><code class="docutils literal notranslate"><span class="pre">generic()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.hwp"><code class="docutils literal notranslate"><span class="pre">hwp()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.linear_polarizer"><code class="docutils literal notranslate"><span class="pre">linear_polarizer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.qwp"><code class="docutils literal notranslate"><span class="pre">qwp()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.rotator"><code class="docutils literal notranslate"><span class="pre">rotator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.waveplate"><code class="docutils literal notranslate"><span class="pre">waveplate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.mueller_matrices.wollaston"><code class="docutils literal notranslate"><span class="pre">wollaston()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

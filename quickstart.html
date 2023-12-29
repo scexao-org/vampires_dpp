@@ -29,7 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=384b581d" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
@@ -40,11 +40,13 @@
     <script src="_static/documentation_options.js?v=e9e33cf0"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'quickstart';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Pipeline" href="pipeline.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
     <link rel="prev" title="Introduction" href="introduction.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -152,26 +154,35 @@
             <span class="sr-only">GitHub</span></a>
         </li>
 </ul></div>
-        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Quick-start guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="tutorials/index.html">Tutorials</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/image_registration.html">Image Registration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorials/frame_selection.html">Frame Selection</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API/Reference</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API/Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/organization.html">Organization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/calibration.html">Calibration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/frame_selection.html">Frame Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html">Analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/image_registration.html">Image Registration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/image_processing.html">Image Processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/utility.html">Utility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/specphot.html">Spectrophotometric Calibration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/polarization.html">Polarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utility.html">Utility</a></li>
 </ul>
 </li>
 </ul>
@@ -322,10 +333,31 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sorting-raw-data">Sorting raw data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-for-invalid-files">Check for invalid files</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-master-calibration-files">Create master calibration files</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalizing-data">Normalizing data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#emccd-formats">EMCCD formats</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cmos-format">CMOS format</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-look-and-filter">Quick look and filter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-calibration-files">Create calibration files</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-configuration-files">Set up configuration files</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-pipeline">Running the pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-image-centroids-estimates">Prepare image centroids estimates</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interactive-mode">Interactive mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-mode">Manual mode</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-astrometric-solution">Prepare astrometric solution</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#satellite-spot-fitting">Satellite spot fitting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinhole-grid-fitting">Pinhole grid fitting</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-pipeline">Running the pipeline</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-steps">Processing steps</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polarimetric-differential-imaging">Polarimetric differential imaging</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-outputs">Pipeline outputs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#re-running-the-pipeline">Re-running the pipeline</a></li>
 </ul>
             </nav>
         </div>
@@ -339,20 +371,42 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="quick-start-guide">
 <h1>Quick-start guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading">#</a></h1>
-<p>We strive to make the VAMPIRES DPP as automated as possible- the following setup should get you 90% of the way towards successful data reduction, depending on the complexity of your dataset!</p>
-<p>We assume that you have already successfully installed the <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> package. If not, see <a class="reference internal" href="#"><span class="xref myst">Installation</span></a>. You can quickly check by calling the <code class="docutils literal notranslate"><span class="pre">dpp</span></code> command</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="o">--</span><span class="n">version</span>
-</pre></div>
+<p>We strive to make the VAMPIRES DPP as automated as possible- the following setup should get you 90% of the way towards successful data reduction, depending on the complexity of your dataset! We assume that you have already successfully installed the <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> package. If not, see <a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a>. For help with the command-line interface we recommend using the built-in docstrings (<code class="docutils literal notranslate"><span class="pre">-h</span></code>/<code class="docutils literal notranslate"><span class="pre">--help</span></code>) or the <a class="reference internal" href="cli.html#cli"><span class="std std-ref">documentation</span></a>.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#sorting-raw-data" id="id1">Sorting raw data</a></p></li>
+<li><p><a class="reference internal" href="#normalizing-data" id="id2">Normalizing data</a></p></li>
+<li><p><a class="reference internal" href="#quick-look-and-filter" id="id3">Quick look and filter</a></p></li>
+<li><p><a class="reference internal" href="#create-calibration-files" id="id4">Create calibration files</a></p></li>
+<li><p><a class="reference internal" href="#set-up-configuration-files" id="id5">Set up configuration files</a></p></li>
+<li><p><a class="reference internal" href="#prepare-image-centroids-estimates" id="id6">Prepare image centroids estimates</a></p></li>
+<li><p><a class="reference internal" href="#prepare-astrometric-solution" id="id7">Prepare astrometric solution</a></p></li>
+<li><p><a class="reference internal" href="#running-the-pipeline" id="id8">Running the pipeline</a></p></li>
+<li><p><a class="reference internal" href="#re-running-the-pipeline" id="id9">Re-running the pipeline</a></p></li>
+</ul>
+</nav>
+<div class="tip admonition">
+<p class="admonition-title">Multi-processing</p>
+<p>The pipeline uses Python multi-processing to help speed-up reductions. You will likely be limited by your computer’s available memory (RAM)- if you spawn too many processes and load too much data in parallel you can run out of memory. Commands with multi-processing enabled have the <code class="docutils literal notranslate"><span class="pre">-j</span></code> command line flag, which will default to a single process <code class="docutils literal notranslate"><span class="pre">-j1</span></code> by default.</p>
+<p>When possible, we indicate a command that has multi-processing enabled with the “🚀” emoji. We do not multi-process by default (to avoid awkward out-of-memory errors) so you must <em>opt in</em> to all commands using the <code class="docutils literal notranslate"><span class="pre">-j</span></code> flag.</p>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">Warning: Large data volume</p>
+<p>This pipeline tries to minimize the number of FITS files saved to disk due to the massive volume of VAMPIRES data. To accomplish this, we skip saving intermediate files when possible. Still, you should expect your data volume to increase by a factor of ~2.5. If saving intermediate products, this factor increases to ~6.5 times the raw data size. It is strongly recommended to work with a large attached storage.</p>
 </div>
 <section id="sorting-raw-data">
-<h2>Sorting raw data<a class="headerlink" href="#sorting-raw-data" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Sorting raw data</a><a class="headerlink" href="#sorting-raw-data" title="Link to this heading">#</a></h2>
 <p>After downloading your data, you may want to sort it into subfolders based on the data type and object observed.</p>
-<div class="tip admonition">
+<div class="admonition-pre-s23a-data-types admonition">
 <p class="admonition-title">Pre-S23A Data types</p>
 <p>Data types are not appropriately populated into headers for data taken before the S23A semester. For these data, we will try and parse a file type from the OG filename. In other words, if the VAMPIRES operator took data labeled “darks_*.fits”, we will put that into the darks folder. This automation is ad-hoc and should be verified by a human after sorting.</p>
 </div>
 <p>After downloading your data, you can run <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">sort</span></code> to automatically sort your data into human-readable folders, ready for further processing.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">sort</span> <span class="n">VMPA</span><span class="o">*.</span><span class="n">fits</span>
+<aside class="margin sidebar">
+<p class="sidebar-title">🚀 MP enabled</p>
+<p>‎</p>
+</aside>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">sort</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="n">VMPA</span><span class="o">*.</span><span class="n">fits</span>
 </pre></div>
 </div>
 <p>The prescribed folder structure for this sorting is</p>
@@ -373,58 +427,252 @@ document.write(`
 </div>
 <p>after sorting this folders can be changed or rearranged as much as you’d like. The configuration for the pipeline is flexible, so you don’t have to sort your files at all if you prefer a different method.</p>
 </section>
-<section id="check-for-invalid-files">
-<h2>Check for invalid files<a class="headerlink" href="#check-for-invalid-files" title="Link to this heading">#</a></h2>
-<p>Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors. To assist with this, you can use the <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">check</span></code> script.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">check</span> <span class="o">*.</span><span class="n">fits</span>
+<section id="normalizing-data">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Normalizing data</a><a class="headerlink" href="#normalizing-data" title="Link to this heading">#</a></h2>
+<p>There are a few recognized data formats the processing pipeline recognizes. Depending on which data format you have, additional steps may need to be taken to normalize data to prepare it for the pipeline.</p>
+<div class="admonition-which-data-needs-normalized admonition">
+<p class="admonition-title">Which data needs normalized?</p>
+<p>Any EMCCD VAMPIRES format data needs normalized- at minimum it will removed the corrupted detector readout frame and empty frames.</p>
+</div>
+<section id="emccd-formats">
+<h3>EMCCD formats<a class="headerlink" href="#emccd-formats" title="Link to this heading">#</a></h3>
+<p>These formats are used for VAMPIRES data prior to the June 2023 upgrades. They come in two distinct formats</p>
+<ol class="arabic simple">
+<li><p>STARS archive format (<strong>default for open-use observers</strong>)</p>
+<ul class="simple">
+<li><p>Files are given frame id names or standardized archive names, e.g. “VMPA00023445.fits”</p></li>
+<li><p>Each file corresponds to a single camera, FLC state, and HWP angle</p></li>
+</ul>
+</li>
+<li><p>VAMPIRES format</p>
+<ul class="simple">
+<li><p>Files have names as set by controller, e.g. “HD141569A_00_750-50_LyotStop_00_cam1.fits”</p></li>
+<li><p>Each file is a raw cube from the camera, which includes bad readout frame in the first frame</p></li>
+<li><p>FLC states interleaved in every other frame for PDI mode</p></li>
+</ul>
+</li>
+</ol>
+<p>If your data is in the STARS format, <em>no further action is needed</em>- <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">norm</span></code> can be skipped. If your data is in the VAMPIRES format, you’ll need to run <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">norm</span></code> to run some essential pre-processing steps.</p>
+<p>At minimum, you’ll need to discard the initial frames which have readout artifacts. If your data is polarimetric you will also need to deinterleave the files (add the <code class="docutils literal notranslate"><span class="pre">-d</span></code> flag). This process will also cut out any frames which are all zeros- a common occurrence when aborting exposure sequences before completion.</p>
+<aside class="margin sidebar">
+<p class="sidebar-title">🚀 MP enabled</p>
+<p>‎</p>
+</aside>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">norm</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span> <span class="n">normed</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00100ms_512x512</span><span class="o">/*.</span><span class="n">fits</span>
 </pre></div>
 </div>
-<p>If you have invalid files that are not just empty frames your data may be corrupted. Try redownloading it, first, and then reach out to the STARS and SCExAO teams if the problem persists.</p>
-<div class="tip admonition">
-<p class="admonition-title">Tip: quick organization</p>
-<p>To quickly organize data, you can make a new directory (in this case, <code class="docutils literal notranslate"><span class="pre">selected</span></code>) and move the selected files into it with</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mkdir selected &amp;&amp; mv $(&lt; files_select.txt) selected
-</pre></div>
-</div>
+<div class="admonition-which-data-needs-deinterleaved admonition">
+<p class="admonition-title">Which data needs deinterleaved?</p>
+<p>Not all data needs deinterleaved- calibration files (darks, flats, pinholes, skies, etc.) typically do not need deinterleaved. If you do not plan to do polarimetry (e.g., speckle imaging, ADI-only) you can skip deinterleaving entirely, effectively averaging together data between the two FLC states. If you prefer to model each state separately then deinterleave away.</p>
 </div>
 </section>
-<section id="create-master-calibration-files">
-<h2>Create master calibration files<a class="headerlink" href="#create-master-calibration-files" title="Link to this heading">#</a></h2>
+<section id="cmos-format">
+<h3>CMOS format<a class="headerlink" href="#cmos-format" title="Link to this heading">#</a></h3>
+<p>Any data taken after the June 2023 upgrades has the same format regardless if data is downloaded from the archive or from the SCExAO computers directly. It is assumed that any FLC deinterleaving has been done before hand, which is expected to be done by the support astronomer.</p>
+<p>No further action is required for the CMOS format- <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">norm</span></code> can be skipped.</p>
+</section>
+</section>
+<section id="quick-look-and-filter">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Quick look and filter</a><a class="headerlink" href="#quick-look-and-filter" title="Link to this heading">#</a></h2>
+<p>Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.</p>
+</section>
+<section id="create-calibration-files">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Create calibration files</a><a class="headerlink" href="#create-calibration-files" title="Link to this heading">#</a></h2>
 <p>Next, you’ll want to create your master backgrounds and flats. This can be accomplished in one command using <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">prep</span></code>.</p>
-<div class="admonition-matching-calibration-settings admonition">
-<p class="admonition-title">Matching calibration settings</p>
-<p>Since VAMPIRES uses EM-CCDs, the camera gain and exposure settings change the noise properties. Therefore, we automatically sort all calibration files by camera, EM gain, and exposure time. We will automatically try and match darks to flats, but if the settings are not equal the flat will not be dark-subtracted.</p>
-</div>
 <p>If you use the prescribed folder structure above, creating your files can be done like so</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">prep</span> <span class="o">-</span><span class="n">o</span> <span class="n">master_cals</span> <span class="n">back</span> <span class="n">darks</span><span class="o">/**/*.</span><span class="n">fits</span>
-<span class="n">dpp</span> <span class="n">prep</span> <span class="o">-</span><span class="n">o</span> <span class="n">master_cals</span> <span class="n">flat</span> <span class="n">flats</span><span class="o">/**/*.</span><span class="n">fits</span>
+<aside class="margin sidebar">
+<p class="sidebar-title">🚀 MP enabled</p>
+<p>‎</p>
+</aside>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">prep</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span> <span class="n">master_cals</span> <span class="n">back</span> <span class="n">darks</span><span class="o">/**/*.</span><span class="n">fits</span>
+<span class="n">dpp</span> <span class="n">prep</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span> <span class="n">master_cals</span> <span class="n">flat</span> <span class="n">flats</span><span class="o">/**/*.</span><span class="n">fits</span>
 </pre></div>
 </div>
-<p>This will produce a series of calibration files in the <code class="docutils literal notranslate"><span class="pre">master_cals/</span></code> folder</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>master_cals
-├── master_back_em300_000050ms_512x512_cam1.fits
-├── master_back_em300_000050ms_512x512_cam2.fits
-├── master_back_em300_000080ms_512x512_cam1.fits
-├── master_back_em300_000080ms_512x512_cam2.fits
-├── master_back_em300_000100ms_512x512_cam1.fits
-├── master_back_em300_000100ms_512x512_cam2.fits
-├── master_flat_750-50_em300_001000ms_512x512_cam1.fits
-└── master_flat_750-50_em300_001000ms_512x512_cam2.fits
-</pre></div>
-</div>
+<p>This will produce a series of calibration files in the <code class="docutils literal notranslate"><span class="pre">master_cals/</span></code> folder. We do not combine individual flat or dark frames- instead we match each science file to the closest matching available calibration file.</p>
 </section>
 <section id="set-up-configuration-files">
-<h2>Set up configuration files<a class="headerlink" href="#set-up-configuration-files" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Set up configuration files</a><a class="headerlink" href="#set-up-configuration-files" title="Link to this heading">#</a></h2>
 <p>After your data has been downloaded and sorted, you’ll want to create configuration files for the data you want to process. To get started quickly, we provide templates for common observing scenarios that can be produced interactively with <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">new</span></code>. In the example below, we are creating a PDI template with the 55 mas Lyot coronagraph.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">new</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span>
 </pre></div>
 </div>
-<p>At this point, we highly recommend viewing the <a class="reference internal" href="#"><span class="xref myst">pipeline options</span></a> and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.</p>
+<p>At this point, we highly recommend viewing the <a class="reference internal" href="configuration.html#configuration"><span class="std std-ref">configuration options</span></a> and making adjustments to your TOML file for your object and observation. The processing pipeline is not a panacea- the defaults in the templates are best guesses in ideal situations.</p>
+</section>
+<section id="prepare-image-centroids-estimates">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Prepare image centroids estimates</a><a class="headerlink" href="#prepare-image-centroids-estimates" title="Link to this heading">#</a></h2>
+<p>To allow efficient data analysis we only measure the PSF centroid and statistics in a window around an initial guess of the PSF centroid. Due to the complexity of input data types and observing scenarios we cannot easily prescribe an automated centroiding scheme. We provide tools for quick-looking data and getting precise guesses so that analysis is much more likely to succeed.</p>
+<div class="note admonition">
+<p class="admonition-title">Do I need to run centroid?</p>
+<p>We recommend running the centroid step as it greatly reduces the chances for errors in image registration. In addition, for coronagraphic data you <em>must</em> run the centroid step to specify which satellite spots to use for analysis. The centroid step is not <em>strictly</em> required for non-coronagraphic data, though- if you do not provide it the center of the frame will be used as the starting estimate, and your analysis window size can be made larger to accommadate misalignment. Nonetheless, we highly recommend this step.</p>
+</div>
+<section id="interactive-mode">
+<h3>Interactive mode<a class="headerlink" href="#interactive-mode" title="Link to this heading">#</a></h3>
+<p>If the terminal you are connected to has working graphics (i.e., X-forwarding for SSH connections, not inside a tmux sesssion) and you have a copy of matplotlib installed you can run</p>
+<aside class="margin sidebar">
+<p class="sidebar-title">🚀 MP enabled</p>
+<p>‎</p>
+</aside>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">centroid</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00100ms_512x512</span><span class="o">/*.</span><span class="n">fits</span>
+</pre></div>
+</div>
+<p>and you will be prompted with matplotlib figures to click on the PSFs you want to centroid. For non-coronagraphic data you should click on the central star, and for coronagraphic data you can choose any set of four satellite spots. Multi-band imaging data will show you one field at a time.</p>
+<div class="important admonition">
+<p class="admonition-title">VCAM1 orientation</p>
+<p>Because camera 1 gets flipped along the y-axis during calibration, if you care about having consistently labeled PSF statistics (i.e., PSF sum for field 1 on cam 1 matches PSF sum for field 1 on cam 2) you should start with the top satellite PSF and go counter-clockwise for camera 1 and use the bottom satellite PSF and proceed clockwise for comera 2</p>
+<p><img alt="" src="_images/satspot_convention.png" /></p>
+</div>
+</section>
+<section id="manual-mode">
+<h3>Manual mode<a class="headerlink" href="#manual-mode" title="Link to this heading">#</a></h3>
+<p>If you do not have a graphics-ready terminal, or you want to skip the interactive process and use your own methods, we provide a manual method for entering centroids. You will be prompted for the centroid of each PSF- enter the centroid as an <code class="docutils literal notranslate"><span class="pre">x,</span> <span class="pre">y</span></code> comma-separated tuple.</p>
+<div class="tip admonition">
+<p class="admonition-title">Pro-tip: DS9</p>
+<p>If previewing data with DS9, you can copy the x, y coordinates directly after subtracting 1 (because python starts indexing at 0). This allows you to use region centroids or the cross for assistance with manual entry.</p>
+</div>
+</section>
+</section>
+<section id="prepare-astrometric-solution">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Prepare astrometric solution</a><a class="headerlink" href="#prepare-astrometric-solution" title="Link to this heading">#</a></h2>
+<p>We have discovered that frequently the VCAM1 and VCAM2 astrometry is not perfectly-matched. This can be seen with imperfect cancellation of the satellite spots (passive or driven) in difference images <code class="docutils literal notranslate"><span class="pre">cam1</span> <span class="pre">-</span> <span class="pre">cam2</span></code>. This is essentially due to slightly different plate-scales and pupil rotations between the two camera paths. This is excarbated by the fact that VAMPIRES is not telecentric and differences in focus will change the pixel plate scale.</p>
+<div class="important admonition">
+<p class="admonition-title">Imperfect difference images</p>
+<p>The effects of differing astrometric solutions between cam1 and cam2 can be seen in the following image- if we subtract <code class="docutils literal notranslate"><span class="pre">cam1</span> <span class="pre">-</span> <span class="pre">cam2</span></code> without <em>post hoc</em> reprojection there is clear over/under-subtraction around the astrogrid speckles</p>
+<p><img alt="" src="_images/imperfect_difference.png" /></p>
+</div>
+<section id="satellite-spot-fitting">
+<h3>Satellite spot fitting<a class="headerlink" href="#satellite-spot-fitting" title="Link to this heading">#</a></h3>
+<p>The first solution we offer is fitting the centroid of the satellite spots induced by the deformable-mirror (DM) actuator grid. This grid forms speckles at a separation of <span class="math notranslate nohighlight">\(N * \lambda/D\)</span> where <span class="math notranslate nohighlight">\(N\)</span> is the number of actuators across the pupil, nominally 45, and rotationally aligned orthogonal to the actuator grid. We determine the pixel plate scale in <code class="docutils literal notranslate"><span class="pre">mas/px</span></code> by estimating the location of these speckles from the formula above given the observing filter. We determine the pupil rotation angle by offsetting with a calibrated value based on investigations of the DM by J. Lozi.</p>
+<p>You can interactively select the satellite spots using <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> with</p>
+<aside class="margin sidebar">
+<p class="sidebar-title">🚀 MP enabled</p>
+<p>‎</p>
+</aside>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">astro</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00100ms_512x512</span><span class="o">/*.</span><span class="n">fits</span>
+</pre></div>
+</div>
+<p>this will create a <code class="docutils literal notranslate"><span class="pre">*_astrometry.toml</span></code> file in the <code class="docutils literal notranslate"><span class="pre">aux/</span></code> folder with the average separation of the speckles in pixels and the average angle around the center modulo 90°, typically around 48°.</p>
+</section>
+<section id="pinhole-grid-fitting">
+<h3>Pinhole grid fitting<a class="headerlink" href="#pinhole-grid-fitting" title="Link to this heading">#</a></h3>
+<p>This is not implemented, yet.</p>
+</section>
 </section>
 <section id="running-the-pipeline">
-<h2>Running the pipeline<a class="headerlink" href="#running-the-pipeline" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Running the pipeline</a><a class="headerlink" href="#running-the-pipeline" title="Link to this heading">#</a></h2>
 <p>After you’ve selected your configuration options, you can run the pipeline from the command line with <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">run</span></code></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">run</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00010ms_512x512</span><span class="o">/*</span>
+<aside class="margin sidebar">
+<p class="sidebar-title">🚀 MP enabled</p>
+<p>‎</p>
+</aside>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">run</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00010ms_512x512</span><span class="o">/*</span>
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">Warning: multiprocessing with large data</p>
+<p>If the individual data cubes are very large data, you need to avoid multi-processing or you are at risk of running out of memory. This can happen with high framerate MBI data, in particular (e.g. 25 GB uncompressed). Make sure you use the <code class="docutils literal notranslate"><span class="pre">-j</span></code> flag to limit processes to avoid running out of memory</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dpp run -j1 20230101_ABAur.toml 750-50_em300_00010ms_512x512/*
+</pre></div>
+</div>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">Troubleshooting: debug log</p>
+<p>As a first course of action, if you run into errors running the pipeline check the <code class="docutils literal notranslate"><span class="pre">debug.log</span></code> file for more granular and verbose logging.</p>
+</div>
+<section id="processing-steps">
+<h3>Processing steps<a class="headerlink" href="#processing-steps" title="Link to this heading">#</a></h3>
+<p>The pipeline will reduce the data in the following order</p>
+<ol class="arabic simple">
+<li><p>Calibration</p>
+<ul class="simple">
+<li><p>(Optional) background/dark-subtraction, flat-fielding, bad-pixel correction</p></li>
+<li><p>Flip cam 1 data</p></li>
+<li><p>Precise coordinate lookup and normalization of FITS headers</p></li>
+</ul>
+</li>
+<li><p>Frame analysis</p>
+<ul class="simple">
+<li><p>Measure image statistics, centroids, and photometry in windows around the PSF(s)</p></li>
+<li><p>Measures a few full-frame statistics.</p></li>
+</ul>
+</li>
+<li><p>(Optional) frame selection</p>
+<ul class="simple">
+<li><p>If desired and there are more than one frame per cube you can discard a quantile of the frames based on a selectable metric</p></li>
+</ul>
+</li>
+<li><p>(Optional) image registration</p>
+<ul class="simple">
+<li><p>If desired the frames will be co-aligned and centered with a selectable metric</p></li>
+</ul>
+</li>
+<li><p>Collapse data cubes</p>
+<ul class="simple">
+<li><p>Combine frames using median, mean, etc</p></li>
+<li><p>After combining, another round of registration can be enabled to recenter with the higher S/N combined image</p></li>
+</ul>
+</li>
+<li><p>(Optional) Spectrophotometric calibration</p>
+<ul class="simple">
+<li><p>Calibrate data with a spectrum or stellar model using a selectable metric for the estimated image flux</p></li>
+</ul>
+</li>
+<li><p>(Optional) Reproject camera WCS</p></li>
+<li><p>(Optional) Create ADI cubes</p>
+<ul class="simple">
+<li><p>Concatenate cam1, cam2, and cam1+cam2 collapsed data into cubes along with the derotation angles for ADI analysis</p></li>
+</ul>
+</li>
+<li><p>(Optional) Create difference images</p>
+<ul class="simple">
+<li><p>Create single- or double-difference images for diagnostic analysis</p></li>
+</ul>
+</li>
+<li><p>(Optional) polarimetric differential imaging</p>
+<ul class="simple">
+<li><p>Perform double- or triple-differential analysis</p></li>
+<li><p>(Optional) Mueller-matrix correction and instrumental polarization removal</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="polarimetric-differential-imaging">
+<h3>Polarimetric differential imaging<a class="headerlink" href="#polarimetric-differential-imaging" title="Link to this heading">#</a></h3>
+<p>If you have polarimetry enabled in your configuration, it will run automatically with <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">run</span></code>, but if you want to rerun the polarimetric analysis <em>only</em>, you can use</p>
+<aside class="margin sidebar">
+<p class="sidebar-title">🚀 MP enabled</p>
+<p>‎</p>
+</aside>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">pdi</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00010ms_512x512</span><span class="o">/*</span>
+</pre></div>
+</div>
+</section>
+<section id="pipeline-outputs">
+<h3>Pipeline outputs<a class="headerlink" href="#pipeline-outputs" title="Link to this heading">#</a></h3>
+<p>The pipeline will save data in a strict folder format-</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.
+├── aux # auxilliary processing configs and data
+├── calibrated # only saved if `save_intermediate` enabled for calibration step
+├── metrics # NPZ file with metrics for each frame for each file
+├── collapsed # collapsed data
+├── diff # diagnostic difference images
+│   ├── single
+│   └── double
+├── products # output table
+│   └── adi # ADI cubes and angles
+└── pdi # PDI outputs
+    ├── mm # mueller-matrices
+    └── stokes # stokes frames
+</pre></div>
+</div>
+<p>If you want to experiment with pipeline options, we recommended renaming folders (e.g. <code class="docutils literal notranslate"><span class="pre">collapsed_dft</span></code>) so that you retain a backup while allowing the pipeline to naturally reprocess the data (see <a class="reference internal" href="#rerunning"><span class="std std-ref">Re-running the pipeline</span></a>, below).</p>
+</section>
+</section>
+<section id="re-running-the-pipeline">
+<span id="rerunning"></span><h2><a class="toc-backref" href="#id9" role="doc-backlink">Re-running the pipeline</a><a class="headerlink" href="#re-running-the-pipeline" title="Link to this heading">#</a></h2>
+<p>The pipeline is written to use saved, cached data as much as possible to save time. This means, for example, re-running the PDI steps will use the already saved collapsed frames as inputs. Re-running the pipeline, then, will only process files which are missing or which have newer input files. To explain, this means if you delete a collapsed file, for example, and re-run the pipeline, the collapsed data will be reprocessed using the saved metrics (and calibrated data, if saved). Or, in the latter case, if I delete a metric file, the corresponding collapsed file (which depends on the metric file) will be reprocessed.</p>
+<p>This behavior can be controlled in two ways- the first is manual management of data by deleting or moving files. To reprocess all the file metrics (becuase you changed an analysis parameter, for example) you can just delete <code class="docutils literal notranslate"><span class="pre">metrics/</span></code> (or change its name). The second is through the command line, using the <code class="docutils literal notranslate"><span class="pre">-f</span></code>/<code class="docutils literal notranslate"><span class="pre">--force</span></code> flag. With this flag you will be prompted on which pipeline steps to force reprocessing. For example, if I change my centroid and recentering algorithms, I can generate new collapsed frames with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">run</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00010ms_512x512</span><span class="o">/*</span> <span class="o">--</span><span class="n">force</span>
+<span class="n">TODO</span>
 </pre></div>
 </div>
 </section>
@@ -451,11 +699,11 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="pipeline.html"
+       href="configuration.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Pipeline</p>
+        <p class="prev-next-title">Configuration</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -475,10 +723,31 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sorting-raw-data">Sorting raw data</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#check-for-invalid-files">Check for invalid files</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-master-calibration-files">Create master calibration files</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalizing-data">Normalizing data</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#emccd-formats">EMCCD formats</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cmos-format">CMOS format</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-look-and-filter">Quick look and filter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-calibration-files">Create calibration files</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-configuration-files">Set up configuration files</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-pipeline">Running the pipeline</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-image-centroids-estimates">Prepare image centroids estimates</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interactive-mode">Interactive mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-mode">Manual mode</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-astrometric-solution">Prepare astrometric solution</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#satellite-spot-fitting">Satellite spot fitting</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinhole-grid-fitting">Pinhole grid fitting</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-pipeline">Running the pipeline</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#processing-steps">Processing steps</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polarimetric-differential-imaging">Polarimetric differential imaging</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline-outputs">Pipeline outputs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#re-running-the-pipeline">Re-running the pipeline</a></li>
 </ul>
   </nav></div>
 

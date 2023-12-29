@@ -5,9 +5,10 @@
 
 organization
 calibration
-frame_selection
+analysis
 image_registration
 image_processing
-utility
+specphot
 polarization
+utility
 ```

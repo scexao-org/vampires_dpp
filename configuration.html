@@ -1,0 +1,850 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Configuration &#8212; VAMPIRES DPP</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=5b4479735964841361fd" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=5b4479735964841361fd" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=5b4479735964841361fd" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=5b4479735964841361fd" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=384b581d" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=5b4479735964841361fd" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd" />
+  <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=5b4479735964841361fd"></script>
+
+    <script src="_static/documentation_options.js?v=e9e33cf0"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'configuration';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CLI Reference" href="cli.html" />
+    <link rel="prev" title="Quick-start guide" href="quickstart.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/scexao_logo.svg" class="logo__image only-light" alt="VAMPIRES DPP - Home"/>
+    <script>document.write(`<img src="_static/scexao_logo.svg" class="logo__image only-dark" alt="VAMPIRES DPP - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/scexao-org/vampires_dpp" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick-start guide</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API/Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/organization.html">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/calibration.html">Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/image_registration.html">Image Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/image_processing.html">Image Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/specphot.html">Spectrophotometric Calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/polarization.html">Polarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utility.html">Utility</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/scexao-org/vampires_dpp" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Source repository"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/configuration.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Configuration</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline">Pipeline</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PipelineConfig"><code class="docutils literal notranslate"><span class="pre">PipelineConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PipelineConfig.from_file"><code class="docutils literal notranslate"><span class="pre">PipelineConfig.from_file()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PipelineConfig.save"><code class="docutils literal notranslate"><span class="pre">PipelineConfig.save()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PipelineConfig.to_toml"><code class="docutils literal notranslate"><span class="pre">PipelineConfig.to_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#target-information">Target Information</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.TargetConfig"><code class="docutils literal notranslate"><span class="pre">TargetConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration">Calibration</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CalibrateConfig"><code class="docutils literal notranslate"><span class="pre">CalibrateConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame-collapsing</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CollapseConfig"><code class="docutils literal notranslate"><span class="pre">CollapseConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spectrophotometric-calibration">Spectrophotometric Calibration</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.SpecphotConfig"><code class="docutils literal notranslate"><span class="pre">SpecphotConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polarimetry">Polarimetry</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PolarimetryConfig"><code class="docutils literal notranslate"><span class="pre">PolarimetryConfig</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pdi">PDI</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="configuration">
+<span id="id1"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h1>
+<p>The configuration file uses the <a class="reference external" href="https://toml.io">TOML</a> format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., <code class="docutils literal notranslate"><span class="pre">[calibration]</span></code>, <code class="docutils literal notranslate"><span class="pre">[collapsing]</span></code>) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.</p>
+<p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, so there are certain guarantees about the backwards compatibility of the pipeline, which means you don’t have to have the exact same version of <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> as in the configuration- merely a version that is compatible.</p>
+<div class="admonition-file-outputs admonition">
+<p class="admonition-title">File Outputs</p>
+<p>We notate where the pipeline ends up saving data files with the “💾” emoji.</p>
+</div>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#pipeline" id="id2">Pipeline</a></p>
+<ul>
+<li><p><a class="reference internal" href="#target-information" id="id3">Target Information</a></p></li>
+<li><p><a class="reference internal" href="#calibration" id="id4">Calibration</a></p></li>
+<li><p><a class="reference internal" href="#frame-collapsing" id="id5">Frame-collapsing</a></p></li>
+<li><p><a class="reference internal" href="#spectrophotometric-calibration" id="id6">Spectrophotometric Calibration</a></p></li>
+<li><p><a class="reference internal" href="#polarimetry" id="id7">Polarimetry</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#examples" id="id8">Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#pdi" id="id9">PDI</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="pipeline">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Pipeline</a><a class="headerlink" href="#pipeline" title="Link to this heading">#</a></h2>
+<aside class="margin sidebar">
+<p class="sidebar-title">💾 File Output</p>
+<p>‎</p>
+</aside>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.PipelineConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">PipelineConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PipelineConfig" title="Link to this definition">#</a></dt>
+<dd><p>Data Processing Pipeline options</p>
+<p>The processing configuration is all done through this class, which can easily be converted to and from TOML. The options will set the processing steps in the pipeline. An important paradigm in the processing pipeline is skipping unnecessary operations. That means if a file already exists, the pipeline will only reprocess it if the <cite>force</cite> flag is set, which will reprocess all files for that step (and subsequent steps), or if the input file or files are newer. You can try this out by deleting one calibrated file from a processed output and re-running the pipeline.</p>
+<blockquote>
+<div><p><strong>File Outputs</strong></p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Auxilliary files in <code class="docutils literal notranslate"><span class="pre">aux/</span></code></dt><dd><ul>
+<li><p>Copy of config., centroid file, astrometry file, mean PSFs, filter curve(s), synth. PSF(s).</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Data products (ADI cubes, output file header table) in <code class="docutils literal notranslate"><span class="pre">products/</span></code></p></li>
+<li><dl class="simple">
+<dt>Difference images in <code class="docutils literal notranslate"><span class="pre">diff/</span></code></dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">diff/single/</span></code> and <code class="docutils literal notranslate"><span class="pre">diff/double/</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – filename-friendly name used for outputs from this pipeline. For example “20230101_ABAur”</p></li>
+<li><p><strong>coronagraph</strong> – If true will use coronagraphic routines for processing.</p></li>
+<li><p><strong>calibrate</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CalibrateConfig" title="vampires_dpp.pipeline.config.CalibrateConfig"><em>CalibrateConfig</em></a>) – Options for basic image calibration</p></li>
+<li><p><strong>analysis</strong> (<em>AnalysisConfig</em>) – Options for PSF/flux analysis in collapsed data</p></li>
+<li><p><strong>collapse</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CollapseConfig" title="vampires_dpp.pipeline.config.CollapseConfig"><em>CollapseConfig</em></a>) – Options for collapsing image cubes</p></li>
+<li><p><strong>target</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.TargetConfig" title="vampires_dpp.pipeline.config.TargetConfig"><em>TargetConfig</em></a><em> | </em><em>None</em>) – If set, provides options for target object, primarily coordinates. If not set, will use header values.</p></li>
+<li><p><strong>specphot</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="vampires_dpp.pipeline.config.SpecphotConfig"><em>SpecphotConfig</em></a><em> | </em><em>None</em>) – If set, provides options for spectrophotometric calibration. If not set, will leave data in units of <code class="docutils literal notranslate"><span class="pre">adu</span></code>.</p></li>
+<li><p><strong>polarimetry</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.PolarimetryConfig" title="vampires_dpp.pipeline.config.PolarimetryConfig"><em>PolarimetryConfig</em></a><em> | </em><em>None</em>) – If set, provides options for polarimetric differential imaging (PDI)</p></li>
+<li><p><strong>dpp_version</strong> (<em>str</em>) – The version of vampires_dpp that this configuration file is valid with. Typically not set by user.</p></li>
+<li><p><strong>save_adi_cubes</strong> (<em>bool</em>) – If true, will save ADI cubes and derotation angles in product directory.</p></li>
+<li><p><strong>diff_images</strong> (<em>Literal</em><em>[</em><em>'singlediff'</em><em>, </em><em>'doublediff'</em><em>, </em><em>'both'</em><em>] </em><em>| </em><em>None</em>) – Diagnostic difference imaging options. Double-differencing requires an FLC.</p></li>
+<li><p><strong>coronagraphic</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.PipelineConfig.from_file">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PipelineConfig.from_file" title="Link to this definition">#</a></dt>
+<dd><p>Load configuration from TOML file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>PathLike</em>) – Path to TOML file with configuration settings.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the configuration <cite>version</cite> is not compatible with the current <cite>vampires_dpp</cite> version.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Pipeline</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;config.toml&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.PipelineConfig.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PipelineConfig.save" title="Link to this definition">#</a></dt>
+<dd><p>Save configuration settings to TOML file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>PathLike</em>) – Output filename</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.PipelineConfig.to_toml">
+<span class="sig-name descname"><span class="pre">to_toml</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PipelineConfig.to_toml" title="Link to this definition">#</a></dt>
+<dd><p>Create serializable TOML string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="target-information">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Target Information</a><a class="headerlink" href="#target-information" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.TargetConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">TargetConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.TargetConfig" title="Link to this definition">#</a></dt>
+<dd><p>Astronomical coordinate options.</p>
+<div class="tip admonition">
+<p class="admonition-title">Tip: GAIA</p>
+<blockquote>
+<div><p>This can be auto-generated wtih GAIA coordinate information through the command line <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">new</span></code> interface.</p>
+</div></blockquote>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – SIMBAD-friendly target name</p></li>
+<li><p><strong>ra</strong> (<em>str</em>) – Right ascension in sexagesimal hour angles</p></li>
+<li><p><strong>dec</strong> (<em>str</em>) – Declination in sexagesimal degrees</p></li>
+<li><p><strong>parallax</strong> (<em>float</em>) – parallax of system in mas</p></li>
+<li><p><strong>pm_ra</strong> (<em>float</em>) – Proper motion of RA axis in mas/yr, by default 0.</p></li>
+<li><p><strong>pm_dec</strong> (<em>float</em>) – Proper motion of DEC axis in mas/yr, by default 0.</p></li>
+<li><p><strong>frame</strong> (<em>str</em>) – Coordinate reference frame, by default “icrs”.</p></li>
+<li><p><strong>obstime</strong> (<em>str</em>) – Observation time as a string, by default “J2016” (to coincide with GAIA coordinates)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="calibration">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Calibration</a><a class="headerlink" href="#calibration" title="Link to this heading">#</a></h3>
+<aside class="margin sidebar">
+<p class="sidebar-title">💾 File Output</p>
+<p>‎</p>
+</aside>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CalibrateConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CalibrateConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CalibrateConfig" title="Link to this definition">#</a></dt>
+<dd><p>Config for general image calibration.</p>
+<p>The calibration strategy is generally</p>
+<ol class="arabic simple">
+<li><p>Load data and fix header values</p></li>
+<li><p>Calculate precise coordinates if <code class="docutils literal notranslate"><span class="pre">TargetConfig</span></code> is used in pipeline</p></li>
+<li><p>Background subtraction</p></li>
+<li><p>(Optional) flat-field normalization</p></li>
+<li><p>(Optional) bad pixel correction</p></li>
+<li><p>Flip camera 1 data along y-axis</p></li>
+</ol>
+<p>We use a file-matching approach for calibrations to try and flexibly use the calibration data you have, even if it’s not the ideal calibration file
+or is from a different night. The file matching will always require the calibrations to have the same pixel crop (both size and location) and detector
+read mode. For background files, we’ll try and find files with the same exposure time and detector gain, but will accept others. Flat files will try and
+match detector gain, filter, and exposure time, in that order. For all files, if there are multiple matches we will select the single file closest in time.</p>
+<blockquote>
+<div><p><strong>File Outputs</strong></p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">save_intermediate</span></code> is true, will save calibrated data to <code class="docutils literal notranslate"><span class="pre">calibrated/</span></code></p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calib_directory</strong> (<em>Path</em><em> | </em><em>None</em>) – Path to calibration file directory, if not provided no calibration will be done, regardless of other settings.</p></li>
+<li><p><strong>back_subtract</strong> (<em>bool</em>) – If true will look for background files in <code class="docutils literal notranslate"><span class="pre">calib_directory</span></code> and subtract them if found. If not found, will subtract detector bias value.</p></li>
+<li><p><strong>flat_correct</strong> (<em>bool</em>) – If true will look for flat files in <code class="docutils literal notranslate"><span class="pre">calib_directory</span></code> and perform flat normalization if found.</p></li>
+<li><p><strong>fix_bad_pixels</strong> (<em>bool</em>) – If true, will run adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels. By default false.</p></li>
+<li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save intermediate calibrated data to <code class="docutils literal notranslate"><span class="pre">calibrated/</span></code> folder.</p></li>
+<li><p><strong>distortion_file</strong> (<em>Path</em><em> | </em><em>None</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="frame-collapsing">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Frame-collapsing</a><a class="headerlink" href="#frame-collapsing" title="Link to this heading">#</a></h3>
+<aside class="margin sidebar">
+<p class="sidebar-title">💾 File Output</p>
+<p>‎</p>
+</aside>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CollapseConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CollapseConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CollapseConfig" title="Link to this definition">#</a></dt>
+<dd><p>Cube collapse options</p>
+<ul>
+<li><p>median - Pixel-by-pixel median</p></li>
+<li><p>mean - Pixel-by-pixel mean</p></li>
+<li><p>varmean - Pixel-by-pixel mean weighted by frame variance</p></li>
+<li><p>biweight - Pixel-by-pixel biweight location</p>
+<blockquote>
+<div><p><strong>File Outputs</strong></p>
+<ul class="simple">
+<li><p>Each input file is collapsed and saved into the <code class="docutils literal notranslate"><span class="pre">collapsed/</span></code> folder</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'median'</em><em>, </em><em>'mean'</em><em>, </em><em>'varmean'</em><em>, </em><em>'biweight'</em><em>]</em>) – The collapse method, one of <cite>“median”</cite>, <cite>“mean”</cite>, <cite>“varmean”</cite>, or <cite>“biweight”</cite>. By default
+<cite>“median”</cite>.</p></li>
+<li><p><strong>frame_select</strong> (<em>Literal</em><em>[</em><em>'max'</em><em>, </em><em>'l2norm'</em><em>, </em><em>'normvar'</em><em>] </em><em>| </em><em>None</em>) – If provided, will use the given metric to select frames for inclusions/exclusion from each data cube.</p></li>
+<li><p><strong>centroid</strong> (<em>Literal</em><em>[</em><em>'com'</em><em>, </em><em>'peak'</em><em>, </em><em>'gauss'</em><em>, </em><em>'dft'</em><em>] </em><em>| </em><em>None</em>) – If provided, will register each frame using the given method. If not provided for MBI data a very rough
+estimate of the center will be used to get the cutout crops for each field.</p></li>
+<li><p><strong>select_cutoff</strong> (<em>float</em>) – If <code class="docutils literal notranslate"><span class="pre">frame_select</span></code> is provided, this is the cutoff _quantile_ (from 0 to 1), where 0.2 means 20% of the frames
+from each cube will be discarded according the the selection metric.</p></li>
+<li><p><strong>recenter</strong> (<em>Literal</em><em>[</em><em>'com'</em><em>, </em><em>'peak'</em><em>, </em><em>'gauss'</em><em>, </em><em>'dft'</em><em>] </em><em>| </em><em>None</em>) – If a string is provided, will measure the centroids in the higher S/N collapsed frame using the given method.</p></li>
+<li><p><strong>reproject</strong> (<em>bool</em>) – If true, will reproject cam2 data onto cam1’s WCS coordinates</p></li>
+<li><p><strong>satspot_reference</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="spectrophotometric-calibration">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Spectrophotometric Calibration</a><a class="headerlink" href="#spectrophotometric-calibration" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.SpecphotConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">SpecphotConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="Link to this definition">#</a></dt>
+<dd><p>Spectrophotometric Configuration</p>
+<p>Spectrophotometric calibration requires determining the precise conversion from detector data numbers ($adu/s$) to astronomical flux ($Jy$).
+We enable this through synthetic photometry of calibrated spectra. The synthetic photometry is accomplished with <a class="reference external" href="https://synphot.readthedocs.io/en/latest/">synphot</a>.
+We offer two input types for the stellar spectrum-</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Calibrated spectrum data</dt><dd><ul class="simple">
+<li><p>Requires an absolutely calibrated spectrum</p></li>
+<li><p>Data must be prepared such that calling <a class="reference external" href="https://synphot.readthedocs.io/en/latest/api/synphot.spectrum.SourceSpectrum.html#synphot.spectrum.SourceSpectrum.from_file">SourceSpectrum.from_file</a> loads the spectrum. Refer to their documentation for format information.</p></li>
+<li><p>Set <cite>source</cite> as the path</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Stellar Model Library</dt><dd><ul class="simple">
+<li><p>Uses <a class="reference external" href="https://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/pickles-atlas">pickles uvk</a> model library</p></li>
+<li><p>Spectral type and reference magnitude required for normalizing model</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+<p>The synthetic photometry is used to determine the expected flux in Jy, which is used to determine the conversion factor. This conversion factor maps from data
+flux in adu/s to Jy, with units of Jy s/adu. To determine the factor we take the flux metric from each collapsed frame (and average between any satellite spots) before
+dividing by the frame exposure time (<code class="docutils literal notranslate"><span class="pre">header[&quot;EXPTIME&quot;]</span></code>). We store the conversion factor and other derivatives, such as the Vega zero-point magnitude in the FITS
+header of the output file. Lastly, we convert the input data pixel-by-pixel from adu to Jy using the conversion factor and integration time. We lastly convert to surface
+brightness by dividing each pixel by its solid angle (<code class="docutils literal notranslate"><span class="pre">header[&quot;PXSCALE&quot;]^2</span></code>).</p>
+<div class="admonition-note-combining-data admonition">
+<p class="admonition-title">Note: combining data</p>
+<p>Because each camera’s data is calibrated independently, when you combine cam1 and cam2  data (such as PDI, ADI post-processing) you should <em>average</em> the two
+cameras’ data to maintain accurate spectrophotometric calibration.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>Literal</em><em>[</em><em>'pickles'</em><em>] </em><em>| </em><em>~pathlib.Path</em>) – Spectrum source type. If a path, must be a file that can be loaded by <cite>synphot.SourceSpectrum.from_file</cite>.</p></li>
+<li><p><strong>sptype</strong> (<em>str</em><em> | </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar spectral type. Note: must be one of the spectral types available in the pickles model atlas. Refer to the STScI documentation for more information on available spectral types.</p></li>
+<li><p><strong>mag</strong> (<em>float</em><em> | </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar reference magnitude</p></li>
+<li><p><strong>mag_band</strong> (<em>Literal</em><em>[</em><em>'U'</em><em>, </em><em>'B'</em><em>, </em><em>'V'</em><em>, </em><em>'r'</em><em>, </em><em>'i'</em><em>, </em><em>'J'</em><em>, </em><em>'H'</em><em>, </em><em>'K'</em><em>] </em><em>| </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar reference magnitude band</p></li>
+<li><p><strong>flux_metric</strong> (<em>Literal</em><em>[</em><em>'photometry'</em><em>, </em><em>'sum'</em><em>]</em>) – Which frame analysis statistic to use for determining flux. “photometry” uses an aperture sum, while “sum” uses the sum in the analysis cutout window.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="polarimetry">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Polarimetry</a><a class="headerlink" href="#polarimetry" title="Link to this heading">#</a></h3>
+<aside class="margin sidebar">
+<p class="sidebar-title">💾 File Output</p>
+<p>‎</p>
+</aside>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.PolarimetryConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">PolarimetryConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.PolarimetryConfig" title="Link to this definition">#</a></dt>
+<dd><p>Polarimetric differential imaging (PDI) options</p>
+<div class="warning admonition">
+<p class="admonition-title">Warning: experimental</p>
+<blockquote>
+<div><p>The polarimetric reduction in this pipeline is an active work-in-progress. Do not consider any outputs publication-ready without further vetting and consultation with the SCExAO team.</p>
+</div></blockquote>
+</div>
+<p>PDI is processed after all of the individual file processing since it requires sorting the files into complete sets for the triple-differential calibration.</p>
+<p><strong>File Outputs</strong></p>
+<ul class="simple">
+<li><p>All PDI outputs are in <code class="docutils literal notranslate"><span class="pre">pdi/</span></code></p></li>
+<li><dl class="simple">
+<dt>Top-level products include</dt><dd><ul>
+<li><p>Collapsed stokes cubes (and wavelength-collapsed cubes for MBI data)</p></li>
+<li><p>Header table for Stokes frames, if using a difference method.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>If using Mueller-matrices (<code class="docutils literal notranslate"><span class="pre">method=&quot;leastsq&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">mm_correct=True</span></code>) FITS file with matrices for each input file in <code class="docutils literal notranslate"><span class="pre">pdi/mm/</span></code></p></li>
+<li><p>If using a difference method, will form individual Stokes frames and save in <code class="docutils literal notranslate"><span class="pre">pdi/stokes/</span></code></p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'triplediff'</em><em>, </em><em>'doublediff'</em><em>, </em><em>'leastsq'</em><em>]</em>) – Determines the polarization calibration method, either the double/triple-difference method (<cite>difference</cite>) or using the inverse least-squares solution from Mueller calculus (<cite>leastsq</cite>). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.</p></li>
+<li><p><strong>mm_correct</strong> (<em>bool</em>) – Apply Mueller-matrix correction (only applicable to data reduced using the <cite>“difference”</cite> method). By default, True.</p></li>
+<li><p><strong>hwp_adi_sync</strong> (<em>bool</em>) – If true, will assume the HWP is in pupil-tracking mode. By default, True.</p></li>
+<li><p><strong>use_ideal_mm</strong> (<em>bool</em>) – If true and doing Mueller-matrix correction (<code class="docutils literal notranslate"><span class="pre">mm_correct=True</span></code>) will use only idealized versions for the components in the
+Mueller-matrix model.</p></li>
+<li><p><strong>ip_correct</strong> (<em>bool</em>) – If provided, will do post-hoc IP correction from the photometric sum in the given region.</p></li>
+<li><p><strong>ip_method</strong> (<em>Literal</em><em>[</em><em>'aperture'</em><em>, </em><em>'annulus'</em><em>]</em>) – If <code class="docutils literal notranslate"><span class="pre">ip_correct=True</span></code> this determines the region type for IP measurement.</p></li>
+<li><p><strong>ip_radius</strong> (<em>float</em>) – The first radius for IP correction, if set. For “aperture” this is the radius, for “annulus” this is the inner radius.</p></li>
+<li><p><strong>ip_radius2</strong> (<em>float</em><em> | </em><em>None</em>) – The second radius for IP correction. This is only used if <code class="docutils literal notranslate"><span class="pre">ip_method=&quot;annulus&quot;</span></code>- this is the outer radius.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="examples">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading">#</a></h2>
+<section id="pdi">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">PDI</a><a class="headerlink" href="#pdi" title="Link to this heading">#</a></h3>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="quickstart.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Quick-start guide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="cli.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">CLI Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pipeline">Pipeline</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PipelineConfig"><code class="docutils literal notranslate"><span class="pre">PipelineConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PipelineConfig.from_file"><code class="docutils literal notranslate"><span class="pre">PipelineConfig.from_file()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PipelineConfig.save"><code class="docutils literal notranslate"><span class="pre">PipelineConfig.save()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PipelineConfig.to_toml"><code class="docutils literal notranslate"><span class="pre">PipelineConfig.to_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#target-information">Target Information</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.TargetConfig"><code class="docutils literal notranslate"><span class="pre">TargetConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration">Calibration</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CalibrateConfig"><code class="docutils literal notranslate"><span class="pre">CalibrateConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame-collapsing</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CollapseConfig"><code class="docutils literal notranslate"><span class="pre">CollapseConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spectrophotometric-calibration">Spectrophotometric Calibration</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.SpecphotConfig"><code class="docutils literal notranslate"><span class="pre">SpecphotConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#polarimetry">Polarimetry</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PolarimetryConfig"><code class="docutils literal notranslate"><span class="pre">PolarimetryConfig</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pdi">PDI</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Miles Lucas
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2022, 2023, Miles Lucas.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=5b4479735964841361fd"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
