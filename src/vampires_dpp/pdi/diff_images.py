@@ -11,10 +11,12 @@ from vampires_dpp.wcs import apply_wcs
 
 def get_singlediff_sets(table):
     path_sets = []
-    for _, group in table.sort_values(["MJD", "U_CAMERA"]).groupby("MJD"):
-        if len(group) < 2:
-            continue
-        path_sets.append(group["path"])
+    for _k, group in table.sort_values(["MJD", "U_CAMERA", "U_FLC"]).groupby("MJD"):
+        if len(group) == 2:
+            path_sets.append(group["path"])
+        elif len(group) == 4:  # if FLC deinterleaved, create two different single diff images
+            for _, grp in group.groupby("U_FLC"):
+                path_sets.append(grp["path"])
     return path_sets
 
 
@@ -41,7 +43,7 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
             prim_hdrs[key] = prim_hdr
             data[key] = hdul[0].data
             errs[key] = hdul["ERR"].data
-            hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
+            hdrs[key] = [hdul[i].header for i in range(3, len(hdul))]
     if len(data) < 2:
         return None
     # reproject cam2 onto cam1
@@ -96,7 +98,7 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
             prim_hdrs[key] = prim_hdr
             data[key] = hdul[0].data
             errs[key] = hdul["ERR"].data
-            hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
+            hdrs[key] = [hdul[i].header for i in range(3, len(hdul))]
 
     if len(data) < 4:
         return None

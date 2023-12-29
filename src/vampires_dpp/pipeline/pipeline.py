@@ -12,12 +12,12 @@ from tqdm.auto import tqdm
 
 import vampires_dpp as dpp
 from vampires_dpp.analysis import analyze_file
-from vampires_dpp.calibration import calibrate_file, match_calib_files
+from vampires_dpp.calib.calib_files import match_calib_files
+from vampires_dpp.calib.calibration import calibrate_file
 from vampires_dpp.image_processing import (
     collapse_frames,
     combine_frames_files,
     combine_frames_headers,
-    crop_to_nans_inds,
 )
 from vampires_dpp.lucky_imaging import lucky_image_file
 from vampires_dpp.organization import header_table
@@ -487,7 +487,7 @@ class Pipeline:
                 with fits.open(outpath, memmap=False) as hdul:
                     stokes_data.append(hdul[0].data)
                     stokes_err.append(hdul["ERR"].data)
-                    hdrs = [hdul[i].header for i in range(2, len(hdul))]
+                    hdrs = [hdul[i].header for i in range(3, len(hdul))]
                     stokes_hdrs.append(hdrs)
 
         remain_files = filter(lambda f: Path(f).exists(), stokes_files)
@@ -500,14 +500,14 @@ class Pipeline:
         ## Collapse outputs
         stokes_data = np.array(stokes_data)
         stokes_err = np.array(stokes_err)
-        inds = crop_to_nans_inds(stokes_data)
-        coll_frame, _ = collapse_frames(stokes_data[inds])
-        coll_var, _ = collapse_frames(stokes_err[inds] ** 2)
-        coll_err = np.sqrt(coll_var / len(coll_var))
+        coll_frame, _ = collapse_frames(stokes_data)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            coll_err = np.sqrt(np.nansum(stokes_err**2, axis=0)) / stokes_err.shape[0]
         coll_hdrs = []
         for i in range(nfields):
             hdrs = [hdr[i] for hdr in stokes_hdrs]
-            hdr = apply_wcs(stokes_data, combine_frames_headers(hdrs), angle=0)
+            hdr = apply_wcs(coll_frame, combine_frames_headers(hdrs), angle=0)
             coll_hdrs.append(hdr)
 
         # correct TINT to account for actual number of files used
@@ -520,7 +520,8 @@ class Pipeline:
         prim_hdr = apply_wcs(coll_frame, combine_frames_headers(coll_hdrs), angle=0)
         prim_hdu = fits.PrimaryHDU(coll_frame, header=prim_hdr)
         err_hdu = fits.ImageHDU(coll_err, header=prim_hdr, name="ERR")
-        hdul = fits.HDUList([prim_hdu, err_hdu])
+        snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+        hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
         hdul.extend([fits.ImageHDU(header=hdr, name=hdr["FIELD"]) for hdr in coll_hdrs])
         # In the case we have multi-wavelength data, save 4D Stokes cube
         if nfields > 1:
@@ -538,8 +539,9 @@ class Pipeline:
             # TODO some fits keywords here are screwed up
             prim_hdu = fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr)
             err_hdu = fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERR")
+            snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=wave_coll_hdr, name="SNR")
             dummy_hdu = fits.ImageHDU(header=wave_coll_hdr, name="COMB")
-            hdul = fits.HDUList([prim_hdu, err_hdu, dummy_hdu])
+            hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu, dummy_hdu])
         # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(hdul, outname=stokes_coll_path, force=True)

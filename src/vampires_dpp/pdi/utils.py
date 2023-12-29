@@ -121,7 +121,8 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
     for i in range(stokes_data.shape[0]):
         data, err = stokes_products(stokes_data[i], stokes_err[i], phi=phi)
 
-        hdr = hdul[2 + i].header
+        hdr = hdul[3 + i].header
+        hdr["CTYPE3"] = "STOKES"
         hdr["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
         if phi is not None:
             hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
@@ -131,9 +132,11 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
         output_hdrs.append(hdr)
 
     prim_hdr = apply_wcs(stokes_data, combine_frames_headers(output_hdrs), angle=0)
+    prim_hdr["CTYPE3"] = "STOKES"
     prim_hdu = fits.PrimaryHDU(np.squeeze(output_data), header=prim_hdr)
     err_hdu = fits.ImageHDU(np.squeeze(output_err), header=prim_hdr, name="ERR")
-    hdul_out = fits.HDUList([prim_hdu, err_hdu])
+    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+    hdul_out = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul_out.extend([fits.ImageHDU(header=hdr) for hdr in output_hdrs])
     hdul_out.writeto(path, overwrite=True)
 

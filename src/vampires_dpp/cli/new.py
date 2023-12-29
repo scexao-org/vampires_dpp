@@ -226,7 +226,9 @@ def get_specphot_settings(template):
         if source == "pickles":
             if template.target is not None:
                 simbad_table = get_simbad_table(template.target.name)
-                sptype = re.match(r"\w\d[IV]{1,3}", simbad_table["SP_TYPE"][0]).group()
+                sptype = re.match(r"\w\d[IV]{0,3}", simbad_table["SP_TYPE"][0]).group()
+                if len(sptype) == 2:
+                    sptype += "V"
                 ucac_table = get_ucac_table(template.target.name)
                 ucac_res = get_ucac_flux(ucac_table)
                 if ucac_res is not None:

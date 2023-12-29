@@ -557,3 +557,18 @@ def crop_to_nans_inds(data: NDArray) -> NDArray:
     # of each extreme to the center and keep everything centered
     radius = max(max_x - cx, cx - min_x, max_y - cy, cy - min_y)
     return cutout_inds(data, center=(cy, cx), window=int(radius * 2))
+
+
+def adaptive_sigma_clip_mask(data, sigma=10, boxsize=8):
+    grid = np.arange(boxsize // 2, data.shape[0], step=boxsize)
+    output_mask = np.zeros_like(data, dtype=bool)
+    boxsize / 2
+    for yi in grid:
+        for xi in grid:
+            inds = cutout_inds(data, center=(yi, xi), window=boxsize)
+            cutout = data[inds]
+            med = np.nanmedian(cutout, keepdims=True)
+            std = np.nanstd(cutout, keepdims=True)
+            output_mask[inds] = np.abs(cutout - med) > sigma * std
+
+    return output_mask

@@ -12,7 +12,7 @@ SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155
 class InstrumentInfo(BaseModel):
     @property
     def pa_offset(self):
-        return self.pupil_offset - 180 - 39  # deg
+        return self.pupil_offset - 219  # deg
 
 
 class EMCCDVAMPIRES(InstrumentInfo):

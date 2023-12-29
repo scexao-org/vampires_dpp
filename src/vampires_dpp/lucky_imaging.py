@@ -67,17 +67,16 @@ def get_recenter_offset(frame, method, offsets, window=30, psf=None, **kwargs):
     return frame_ctr - ctr
 
 
-def reproject_header(header: fits.Header, astrometry: dict, field: str, refsep=45, refang=90):
+def reproject_header(header: fits.Header, astrometry: dict, field: str, refsep=46.7, refang=97.8):
     match header["U_CAMERA"]:
         case 1:
             astrom_info = astrometry["cam1"]
-            instang = astrom_info["angle"] + refang
+            instang = refang + (90 - astrom_info["angle"])
         case 2:
             astrom_info = astrometry["cam2"]
-            instang = 90 - astrom_info["angle"] + refang
+            instang = refang + astrom_info["angle"]
 
     field_idx = astrom_info["fields"].index(field)
-    astrometry["cam1"]
     # Get expected separation
     waffle_sep = refsep * header["RESELEM"]  # mas
     platescale = waffle_sep / astrom_info["separation"][field_idx]
@@ -189,7 +188,7 @@ def lucky_image_file(
         N = len(aligned_frames)
         header["NCOADD"] = N, "Number of frames combined in collapsed file"
         header["TINT"] = header["EXPTIME"] * N
-        coll_err_frame = np.sqrt(np.mean(np.power(aligned_err_frames, 2), axis=0) / N)
+        coll_err_frame = np.sqrt(np.nansum(np.power(aligned_err_frames, 2), axis=0)) / N
         ## Step 4: Recenter
         if recenter is not None:
             recenter_offset = get_recenter_offset(
@@ -222,7 +221,8 @@ def lucky_image_file(
     comb_header = combine_frames_headers(headers, wcs=True)
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=comb_header)
     err_hdu = fits.ImageHDU(np.array(frame_errs), header=comb_header, name="ERR")
-    hdul = fits.HDUList([prim_hdu, err_hdu])
+    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=comb_header, name="SNR")
+    hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     # add headers from each field
     hdul.extend([fits.ImageHDU(header=hdr, name=field) for hdr in headers])
     # write to disk

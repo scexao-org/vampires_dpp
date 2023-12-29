@@ -56,7 +56,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
             cube_err = hdul["ERR"].data
             prim_hdr = hdul[0].header
             create_or_append(headers, "PRIMARY", prim_hdr)
-            for hdu in hdul[2:]:
+            for hdu in hdul[3:]:
                 hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
@@ -89,7 +89,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     stokes_cube = triple_diff_dict(cube_dict)
     # swap stokes and field axes so field is first
     stokes_cube = np.swapaxes(stokes_cube, 0, 1)
-    stokes_err = np.sqrt(np.mean(np.power(list(cube_errs.values()), 2), axis=0) / len(cube_errs))
+    stokes_err = np.sqrt(np.sum(np.power(list(cube_errs.values()), 2), axis=0)) / 16
     stokes_err = np.swapaxes((stokes_err, stokes_err, stokes_err), 0, 1)
 
     stokes_hdrs: dict[str, fits.Header] = {}
@@ -104,7 +104,8 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     prim_hdr = stokes_hdrs.pop("PRIMARY")
     prim_hdu = fits.PrimaryHDU(stokes_cube, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    hdul = fits.HDUList([prim_hdu, err_hdu])
+    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+    hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul.extend([fits.ImageHDU(header=hdr, name=key) for key, hdr in stokes_hdrs.items()])
     return hdul
 
@@ -124,7 +125,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
             cube_err = hdul["ERR"].data
             prim_hdr = hdul[0].header
             create_or_append(headers, "PRIMARY", prim_hdr)
-            for hdu in hdul[2:]:
+            for hdu in hdul[3:]:
                 hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
@@ -157,7 +158,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
     I, Q, U = double_diff_dict(cube_dict)  # noqa: E741
     # swap stokes and field axes so field is first
     stokes_cube = np.swapaxes((I, Q, U), 0, 1)
-    stokes_err = np.sqrt(np.mean(np.power(list(cube_errs.values()), 2), axis=0) / len(cube_errs))
+    stokes_err = np.sqrt(np.sum(np.power(list(cube_errs.values()), 2), axis=0)) / 8
     stokes_err = np.swapaxes((stokes_err, stokes_err, stokes_err), 0, 1)
 
     stokes_hdrs: dict[str, fits.Header] = {}
@@ -172,7 +173,8 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
     prim_hdr = stokes_hdrs.pop("PRIMARY")
     prim_hdu = fits.PrimaryHDU(stokes_cube, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    hdul = fits.HDUList([prim_hdu, err_hdu])
+    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+    hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul.extend([fits.ImageHDU(header=hdr, name=key) for key, hdr in stokes_hdrs.items()])
     return hdul
 
@@ -388,7 +390,7 @@ def make_stokes_image(
     stokes_err = stokes_hdul["ERR"].data
     stokes_outerr = np.empty_like(stokes_data)
     prim_hdr = stokes_hdul[0].header
-    headers = [stokes_hdul[i].header for i in range(2, len(stokes_hdul))]
+    headers = [stokes_hdul[i].header for i in range(3, len(stokes_hdul))]
     for i in range(stokes_data.shape[0]):
         I, Q, U = stokes_data[i]  # noqa: E741
         I_err, Q_err, U_err = stokes_err[i]
@@ -424,6 +426,7 @@ def make_stokes_image(
             pQ, pU = stokes_header["IP_PQ"], stokes_header["IP_PU"]
             stokes_frame_err[1] = np.hypot(stokes_frame_err[1], pQ * stokes_frame_err[0])
             stokes_frame_err[2] = np.hypot(stokes_frame_err[2], pU * stokes_frame_err[0])
+        stokes_header["CTYPE3"] = "STOKES"
         stokes_header["STOKES"] = "I,Q,U", "Stokes axis data type"
         stokes_data[i] = stokes_frame
         stokes_outerr[i] = stokes_frame_err
@@ -432,7 +435,8 @@ def make_stokes_image(
     prim_hdr = apply_wcs(stokes_data, combine_frames_headers(headers), angle=0)
     prim_hdu = fits.PrimaryHDU(stokes_data, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    hdul = fits.HDUList([prim_hdu, err_hdu])
+    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+    hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul.extend([fits.ImageHDU(header=hdr, name=hdr["FIELD"]) for hdr in headers])
     hdul.writeto(outpath, overwrite=True)
     return outpath

@@ -5,7 +5,8 @@ from pathlib import Path
 import click
 import tqdm.auto as tqdm
 
-from vampires_dpp.calibration import normalize_file, process_background_files, process_flat_files
+from vampires_dpp.calib.calib_files import process_background_files, process_flat_files
+from vampires_dpp.calib.normalize import normalize_file
 
 __all__ = ("prep", "back", "flat", "norm")
 
