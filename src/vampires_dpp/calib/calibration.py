@@ -89,7 +89,8 @@ def calibrate_file(
             flat_hdr = hdul[0].header
             flat[flat == 0] = np.nan
             flat_err = hdul["ERR"].data.astype("f4")
-            header["FLATNORM"] = flat_hdr["FLATNORM"], flat_hdr.comments["FLATNORM"]
+            if "NORMVAL" in flat_hdr:
+                header["NORMVAL"] = flat_hdr["NORMVAL"], flat_hdr.comments["NORMVAL"]
 
         unnorm_cube = cube.copy()
         unnorm_cube[unnorm_cube == 0] = np.nan
