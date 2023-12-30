@@ -38,15 +38,11 @@ def add_frame_statistics(frame, frame_err, header):
 def safe_aperture_sum(frame, r, err=None, center=None, ann_rad=None):
     if center is None:
         center = frame_center(frame)
-    mask = ~np.isfinite(frame)
+    _frame = frame.astype("=f4")
+    _err = err.astype("=f4") if err is not None else None
+    mask = ~np.isfinite(_frame)
     flux, fluxerr, flag = sep.sum_circle(
-        np.ascontiguousarray(frame.byteswap().newbyteorder()).astype("f4"),
-        (center[1],),
-        (center[0],),
-        r,
-        err=err,
-        mask=mask,
-        bkgann=ann_rad,
+        _frame, (center[1],), (center[0],), r, err=_err, mask=mask, bkgann=ann_rad
     )
     return flux[0], fluxerr[0]
 
