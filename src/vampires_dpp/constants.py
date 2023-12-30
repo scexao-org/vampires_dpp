@@ -5,6 +5,8 @@ import numpy as np
 from astropy.coordinates import EarthLocation
 from pydantic import BaseModel
 
+from .util import wrap_angle
+
 # Subaru location
 SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155.4760187 * u.deg)
 
@@ -12,7 +14,8 @@ SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155
 class InstrumentInfo(BaseModel):
     @property
     def pa_offset(self):
-        return self.pupil_offset - 219  # deg
+        pap_offset = -39
+        return wrap_angle(self.pupil_offset - 180 + pap_offset)  # deg
 
 
 class EMCCDVAMPIRES(InstrumentInfo):
@@ -41,7 +44,7 @@ class EMCCDVAMPIRES(InstrumentInfo):
 
     @property
     def pupil_offset(self):
-        return self.PUPIL_OFFSET[self.cam_num]
+        return wrap_angle(self.PUPIL_OFFSET[self.cam_num])
 
     @property
     def fullwell(self) -> float:
@@ -102,7 +105,7 @@ class CMOSVAMPIRES(InstrumentInfo):
     }
     VAMP_GAIN: ClassVar[dict[str, float]] = {"fast": 0.103, "slow": 0.105}
     PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 6.01, 2: 6.02}  # mas / px
-    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: 139.5, 2: 138.5}  # deg
+    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: -40.9, 2: -41.4}  # deg
 
     @property
     def pixel_scale(self):
@@ -110,7 +113,7 @@ class CMOSVAMPIRES(InstrumentInfo):
 
     @property
     def pupil_offset(self):
-        return self.PUPIL_OFFSET[self.cam_num]
+        return wrap_angle(self.PUPIL_OFFSET[self.cam_num])
 
     @property
     def readnoise(self):

@@ -43,7 +43,7 @@ def shift_frame(data: ArrayLike, shift: list | tuple, **kwargs) -> NDArray:
 def derotate_frame(
     data: ArrayLike, angle: float, center: list | tuple | None = None, **kwargs
 ) -> NDArray:
-    """Derotates a single frame by the given angle. This will rotate the frame clockwise
+    """Rotates a single frame clockwise by the given angle in degrees.
 
     Parameters
     ----------
@@ -95,7 +95,7 @@ def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
 
 
 def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArray:
-    """Derotates a cube frame-by-frame with the corresponding derotation angle vector.
+    """Derotates a cube clockwise frame-by-frame with the corresponding derotation angle vector.
 
     Parameters
     ----------
