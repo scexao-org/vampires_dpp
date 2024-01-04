@@ -83,16 +83,16 @@ def fix_header(header):
     for key in ("UT-STR", "UT-END", "HST-STR", "HST-END"):
         if key in header and header[key].count(":") == 3:
             tokens = header[key].rpartition(":")
-            header[key] = f"{tokens[0]}.{tokens[2]}"
+            header[key] = f"{tokens[0]}.{tokens[2]}", header.comments[key]
     # fix UT/HST/MJD being time of file creation instead of typical time
     for key in ("UT", "HST"):
         if f"{key}-STR" in header and f"{key}-END" in header:
-            header[key] = fix_typical_time_iso(header, key)
+            header[key] = fix_typical_time_iso(header, key), header.comments[key]
     if "MJD-STR" in header and "MJD-END" in header:
-        header["MJD"] = fix_typical_time_mjd(header)
+        header["MJD"] = fix_typical_time_mjd(header), header.comments["MJD"]
     # add RET-ANG1 and similar headers to be more consistent
     if "DETECTOR" not in header:
-        header["DETECTOR"] = (f"VCAM{header['U_CAMERA']} - Ultra 897", "Name of the detector")
+        header["DETECTOR"] = (f"VCAM{header['U_CAMERA']:.0f} - Ultra 897", "Name of the detector")
     if "OBS-MOD" not in header:
         header["OBS-MOD"] = "IPOL", "Observation mode"
     if "U_EMGAIN" in header:
@@ -105,16 +105,16 @@ def fix_header(header):
     if "EXPTIME" not in header:
         header["EXPTIME"] = (header["U_AQTINT"] / 1e6, "[s] Total integration time of the frame")
     if "FILTER01" not in header:
-        header["FILTER01"] = header["U_FILTER"]
-        header["FILTER02"] = "Unknown"
+        header["FILTER01"] = header["U_FILTER"], "Primary filter name"
+        header["FILTER02"] = "Unknown", "Secondary filter name"
     if "PRD-MIN1" not in header:
         full_size = 512
         crop_size = header["NAXIS2"], header["NAXIS1"]
         start_idx = np.round((full_size - np.array(crop_size)) / 2)
-        header["PRD-MIN1"] = start_idx[-1]
-        header["PRD-MIN2"] = start_idx[-2]
-        header["PRD-RNG1"] = crop_size[-1]
-        header["PRD-RNG2"] = crop_size[-2]
+        header["PRD-MIN1"] = start_idx[-1], "[pixel] Origin in X of the cropped window"
+        header["PRD-MIN2"] = start_idx[-2], "[pixel] Origin in Y of the cropped window"
+        header["PRD-RNG1"] = crop_size[-1], "[pixel] Range in X of the cropped window"
+        header["PRD-RNG2"] = crop_size[-2], "[pixel] Range in Y of the cropped window"
     if "TINT" not in header:
         header["TINT"] = (
             header["EXPTIME"] * header.get("NAXIS3", 1),
@@ -133,7 +133,7 @@ def fix_header(header):
     header["RN"] = inst.readnoise, "[e-] RMS read noise"
     header["PXSCALE"] = inst.pixel_scale, "[mas/pix] Pixel scale"
     header["PAOFFSET"] = inst.pa_offset, "[deg] Parallactic angle offset"
-    header["INSTANG"] = inst.pupil_offset, "[deg] Instrument angle offset"
+    header["INST-PA"] = inst.pupil_offset, "[deg] Instrument angle offset"
     header["FULLWELL"] = inst.fullwell, "[e-] Full well of detector register"
 
     return header
@@ -198,3 +198,15 @@ def get_instrument_from(header: fits.Header) -> InstrumentInfo:
         inst = CMOSVAMPIRES(cam_num=cam_num, readmode=header["U_DETMOD"].lower())
 
     return inst
+
+
+def sort_header(header: fits.Header) -> fits.Header:
+    """Sort all non-structural FITS header keys"""
+    output_header = fits.Header()
+    for key in sorted(header):
+        # skip structural keys
+        if key in ("SIMPLE", "BITPIX", "EXTEND", "COMMENT", "HISTORY") or key.startswith("NAXIS"):
+            continue
+
+        output_header[key] = header[key], header.comments[key]
+    return output_header

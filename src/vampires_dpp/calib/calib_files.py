@@ -17,7 +17,7 @@ from scipy import optimize
 from skimage import filters, morphology
 from tqdm.auto import tqdm
 
-from vampires_dpp.headers import fix_header
+from vampires_dpp.headers import fix_header, sort_header
 from vampires_dpp.image_processing import adaptive_sigma_clip_mask, collapse_cube
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import get_paths
@@ -58,6 +58,7 @@ def make_background_file(filename: str, force=False, **kwargs):
     header["NOISEADU"] = noise, "[adu] median noise in background file"
     header["NOISE"] = noise * header["EFFGAIN"], "[e-] median noise in background file"
     header["CALTYPE"] = "BACKGROUND", "DPP calibration file type"
+    header = sort_header(header)
     # get bad pixel mask from adaptive sigma clip
     bpmask = adaptive_sigma_clip_mask(master_background)
     # mask out bad pixels with nan- use np.isnan
@@ -131,6 +132,7 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     # master_flat[bpmask] = np.nan
     # flat_err[bpmask] = np.nan
     # save to disk
+    header = sort_header(header)
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_flat, header=header),

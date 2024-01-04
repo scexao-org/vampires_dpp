@@ -11,6 +11,10 @@ from .util import wrap_angle
 SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155.4760187 * u.deg)
 
 
+SATSPOT_REF_NACT = 46.7
+SATSPOT_REF_ANGLE = -83.2
+
+
 class InstrumentInfo(BaseModel):
     @property
     def pa_offset(self):
@@ -104,7 +108,7 @@ class CMOSVAMPIRES(InstrumentInfo):
         ("slow", 2): 0.220,
     }
     VAMP_GAIN: ClassVar[dict[str, float]] = {"fast": 0.103, "slow": 0.105}
-    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 6.01, 2: 6.02}  # mas / px
+    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 6.05, 2: 6.07}  # mas / px
     PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: -40.9, 2: -41.4}  # deg
 
     @property

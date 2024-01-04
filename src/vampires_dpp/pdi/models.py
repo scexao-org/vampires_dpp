@@ -7,6 +7,8 @@ from astropy.utils.data import download_file
 from numpy.typing import NDArray
 from pydantic import BaseModel
 
+from vampires_dpp.headers import sort_header
+
 from . import mueller_matrices as mm
 
 MM_KEY = "1x0sUawjWmySrsnSQ70VRYfewpgXAcyQMyrt6eley0rE"
@@ -155,7 +157,7 @@ def mueller_matrix_from_file(
                     mm_model = EMCCDMuellerMatrix.load_calib_file(hdu.header)
             mms.append(mm_model.evaluate(hdu.header, hwp_adi_sync=hwp_adi_sync))
         prim_hdu = fits.PrimaryHDU(np.array(mms), hdul[0].header)
-    hdus = (fits.ImageHDU(cube, hdr) for cube, hdr in zip(mms, headers, strict=True))
+    hdus = (fits.ImageHDU(cube, sort_header(hdr)) for cube, hdr in zip(mms, headers, strict=True))
     hdul = fits.HDUList([prim_hdu, *hdus])
     hdul.writeto(outpath, overwrite=True)
     return outpath

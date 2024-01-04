@@ -5,7 +5,7 @@ import numpy as np
 from astropy.io import fits
 from loguru import logger
 
-from vampires_dpp.headers import fix_header
+from vampires_dpp.headers import fix_header, sort_header
 from vampires_dpp.paths import get_paths
 from vampires_dpp.util import load_fits
 
@@ -20,22 +20,24 @@ def deinterleave_cube(
         flc1_filt = filter_empty_frames(flc1_filt)
     hdu1 = None
     if flc1_filt is not None:
-        hdu1 = fits.PrimaryHDU(flc1_filt, header=header.copy())
-        hdu1.header["NAXIS3"] = len(flc1_filt)
-        hdu1.header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
-        hdu1.header["U_FLC"] = "A", "VAMPIRES FLC polarization state"
-        fix_header(hdu1.header)
+        header = fix_header(header.copy())
+        header["NAXIS3"] = len(flc1_filt)
+        header["U_FLCSTT"] = 1, "FLC state (1 or 2)"
+        header["U_FLC"] = "A", "VAMPIRES FLC polarization state"
+        header = sort_header(header)
+        hdu1 = fits.PrimaryHDU(flc1_filt, header=header)
 
     flc2_filt = data[1::2]
     if discard_empty:
         flc2_filt = filter_empty_frames(flc2_filt)
     hdu2 = None
     if flc2_filt is not None:
-        hdu2 = fits.PrimaryHDU(flc2_filt, header=header.copy())
-        hdu2.header["NAXIS3"] = len(flc2_filt)
-        hdu2.header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
-        hdu2.header["U_FLC"] = "B", "VAMPIRES FLC polarization state"
-        fix_header(hdu2.header)
+        header = fix_header(header.copy())
+        header["NAXIS3"] = len(flc2_filt)
+        header["U_FLCSTT"] = 2, "FLC state (1 or 2)"
+        header["U_FLC"] = "B", "VAMPIRES FLC polarization state"
+        header = sort_header(header)
+        hdu2 = fits.PrimaryHDU(flc2_filt, header=header)
 
     return hdu1, hdu2
 
@@ -78,4 +80,5 @@ def normalize_file(filename: str, deinterleave: bool = False, discard_empty: boo
             data_filt = filter_empty_frames(data_filt)
         if data_filt is not None:
             header["NAXIS3"] = len(data_filt)
-            fits.writeto(outpath, data_filt, header=fix_header(header), overwrite=True)
+            header = sort_header(fix_header(header))
+            fits.writeto(outpath, data_filt, header=header, overwrite=True)

@@ -8,12 +8,14 @@ from astropy.nddata import Cutout2D
 from loguru import logger
 
 from .analysis import add_frame_statistics
+from .constants import SATSPOT_REF_ANGLE, SATSPOT_REF_NACT
+from .headers import sort_header
 from .image_processing import collapse_cube, combine_frames_headers, shift_frame
 from .image_registration import offset_centroids
 from .indexing import cutout_inds, frame_center, get_mbi_centers
 from .specphot.filters import update_header_with_filt_info
 from .specphot.specphot import convert_to_surface_brightness, specphot_calibration
-from .util import get_center
+from .util import get_center, wrap_angle
 from .wcs import apply_wcs
 
 FRAME_SELECT_MAP: Final[dict[str, str]] = {
@@ -67,7 +69,13 @@ def get_recenter_offset(frame, method, offsets, window=30, psf=None, **kwargs):
     return frame_ctr - ctr
 
 
-def reproject_header(header: fits.Header, astrometry: dict, field: str, refsep=46.7, refang=97.8):
+def reproject_header(
+    header: fits.Header,
+    astrometry: dict,
+    field: str,
+    refsep=SATSPOT_REF_NACT,
+    refang=SATSPOT_REF_ANGLE,
+):
     match header["U_CAMERA"]:
         case 1:
             astrom_info = astrometry["cam1"]
@@ -76,14 +84,21 @@ def reproject_header(header: fits.Header, astrometry: dict, field: str, refsep=4
             astrom_info = astrometry["cam2"]
             instang = refang + astrom_info["angle"]
 
+    # the reference angle comes from CMOS detectors, need to subtract 180 for EMCCD
+    # due to parity flip
+    if "U_MBI" not in header:
+        instang += 180
     field_idx = astrom_info["fields"].index(field)
     # Get expected separation
     waffle_sep = refsep * header["RESELEM"]  # mas
     platescale = waffle_sep / astrom_info["separation"][field_idx]
     header["PXSCALE"] = platescale, header.comments["PXSCALE"]
-    header["INSTANG"] = instang, header.comments["INSTANG"]
-    header["PAOFFSET"] = header["INSTANG"] - 180 - 39, header.comments["PAOFFSET"]
-    header["DEROTANG"] = header["PA"] + header["PAOFFSET"], header.comments["DEROTANG"]
+    header["INST-PA"] = wrap_angle(instang), header.comments["INST-PA"]
+    header["PAOFFSET"] = (
+        wrap_angle(header["INST-PA"] - 180 + header["D_IMRPAP"]),
+        header.comments["PAOFFSET"],
+    )
+    header["DEROTANG"] = wrap_angle(header["PA"] + header["PAOFFSET"]), header.comments["DEROTANG"]
     return header
 
 
@@ -218,13 +233,13 @@ def lucky_image_file(
         frames.append(coll_frame)
         frame_errs.append(coll_err_frame)
         headers.append(hdr)
-    comb_header = combine_frames_headers(headers, wcs=True)
+    comb_header = sort_header(combine_frames_headers(headers, wcs=True))
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=comb_header)
     err_hdu = fits.ImageHDU(np.array(frame_errs), header=comb_header, name="ERR")
     snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=comb_header, name="SNR")
     hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     # add headers from each field
-    hdul.extend([fits.ImageHDU(header=hdr, name=field) for hdr in headers])
+    hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=field) for hdr in headers])
     # write to disk
     logger.debug(f"Saving collapsed output to {outpath}")
     hdul.writeto(outpath, overwrite=True)

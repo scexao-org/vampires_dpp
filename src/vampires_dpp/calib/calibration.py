@@ -10,7 +10,7 @@ from astropy.time import Time
 from numpy.typing import NDArray
 
 from vampires_dpp.constants import SUBARU_LOC
-from vampires_dpp.headers import fix_header, parallactic_angle
+from vampires_dpp.headers import fix_header, parallactic_angle, sort_header
 from vampires_dpp.image_processing import adaptive_sigma_clip_mask
 from vampires_dpp.paths import get_paths
 from vampires_dpp.util import load_fits, wrap_angle
@@ -110,6 +110,7 @@ def calibrate_file(
         cube = np.flip(cube, axis=-2)
         cube_err = np.flip(cube_err, axis=-2)
 
+    header = sort_header(header)
     # clip fot float32 to limit data size
     prim_hdu = fits.PrimaryHDU(cube.astype("f4"), header=header)
     err_hdu = fits.ImageHDU(cube_err.astype("f4"), header=header, name="ERR")

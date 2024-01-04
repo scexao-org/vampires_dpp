@@ -6,6 +6,7 @@ from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.analysis import safe_annulus_sum, safe_aperture_sum
+from vampires_dpp.headers import sort_header
 from vampires_dpp.image_processing import combine_frames_headers
 from vampires_dpp.indexing import frame_angles
 from vampires_dpp.wcs import apply_wcs
@@ -133,11 +134,12 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
 
     prim_hdr = apply_wcs(stokes_data, combine_frames_headers(output_hdrs), angle=0)
     prim_hdr["CTYPE3"] = "STOKES"
+    prim_hdr = sort_header(prim_hdr)
     prim_hdu = fits.PrimaryHDU(np.squeeze(output_data), header=prim_hdr)
     err_hdu = fits.ImageHDU(np.squeeze(output_err), header=prim_hdr, name="ERR")
     snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
     hdul_out = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
-    hdul_out.extend([fits.ImageHDU(header=hdr) for hdr in output_hdrs])
+    hdul_out.extend([fits.ImageHDU(header=sort_header(hdr)) for hdr in output_hdrs])
     hdul_out.writeto(path, overwrite=True)
 
     return path

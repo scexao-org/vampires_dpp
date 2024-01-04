@@ -534,7 +534,7 @@ class Pipeline:
                 warnings.simplefilter("ignore")
                 wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
                 wave_err_frame = np.sqrt(np.nansum(coll_err**2, axis=0, keepdims=True))
-            wave_coll_hdr = prim_hdr.copy()
+            wave_coll_hdr = apply_wcs(wave_coll_frame, combine_frames_headers(coll_hdrs), angle=0)
             wave_coll_hdr["FIELD"] = "COMB"
             # TODO some fits keywords here are screwed up
             prim_hdu = fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr)

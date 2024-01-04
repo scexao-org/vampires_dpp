@@ -12,6 +12,7 @@ from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
 
+from vampires_dpp.headers import sort_header
 from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header
 from vampires_dpp.util import delta_angle, load_fits
@@ -231,7 +232,7 @@ def collapse_cube_file(filename, force: bool = False, **kwargs) -> Path:
     cube, header = load_fits(path, header=True)
     frame, header = collapse_cube(cube, header=header, **kwargs)
 
-    fits.writeto(outpath, frame, header=header, overwrite=True)
+    fits.writeto(outpath, frame, header=sort_header(header), overwrite=True)
     return outpath
 
 
@@ -378,7 +379,7 @@ def combine_frames_files(filenames, output, *, force: bool = False, crop: bool =
         inds = crop_to_nans_inds(frames_arr)
         frames = frames_arr[inds]
     cube, header = combine_frames(frames, headers, **kwargs)
-    fits.writeto(path, cube, header=header, overwrite=True)
+    fits.writeto(path, cube, header=sort_header(header), overwrite=True)
     return path
 
 
@@ -406,113 +407,8 @@ def collapse_frames_files(filenames, output, force=False, cubes=False, quiet=Tru
         headers.append(header)
 
     frame, header = collapse_frames(frames, headers=headers, **kwargs)
-    fits.writeto(path, frame, header=header, overwrite=True)
+    fits.writeto(path, frame, header=sort_header(header), overwrite=True)
     return path
-
-
-def correct_distortion(
-    frame: ArrayLike, angle: float = 0, scale: float = 1, header=None, center=None, **kwargs
-):
-    """Rotate and scale a single frame to match with a pinhole grid
-
-    Parameters
-    ----------
-    frame : ArrayLike
-        Input frame to transform
-    angle : float, optional
-        Clockwise angle to rotate frame by, by default 0
-    scale : float, optional
-        Amount of radial scaling, by default 1
-    header : Header, optional
-        FITS header to update, by default None
-    center : (y, x), optional
-        Frame center, if None will default to geometric frame center, by default None
-
-    Returns
-    -------
-    corrected_frame, header
-        The distortion-corrected frame and header. If `header` was not provided, this will be `None`.
-    """
-    if center is None:
-        center = frame_center(frame)
-    # if downsizing, low-pass filter to reduce moire effect
-    if scale < 1:
-        frame = cv2.GaussianBlur(frame, sigmaX=0.5 / scale)
-    # scale and rotate frames with single transform
-    M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
-    corr_frame = warp_frame(frame, M, **kwargs)
-    # update header
-    if header is not None:
-        header["PXSCALE"] *= scale
-        header["INSTANG"] += angle
-        header["DEROTANG"] += angle
-        header["DISTSCAL"] = scale, "scaling ratio for distortion correction"
-        header["DISTANGL"] = angle, "deg, offset angle for distortion correction"
-    return corr_frame, header
-
-
-def correct_distortion_cube(
-    cube: NDArray, angle: float = 0, scale: float = 1, header=None, center=None, **kwargs
-):
-    """Rotate and scale a all frames in a cube to match with a pinhole grid
-
-    Parameters
-    ----------
-    cube : NDArray
-        Input cube to transform
-    angle : float, optional
-        Clockwise angle to rotate frames by, by default 0
-    scale : float, optional
-        Amount of radial scaling, by default 1
-    header : Header, optional
-        FITS header to update, by default None
-    center : (y, x), optional
-        Frame center, if None will default to geometric frame center, by default None
-
-    Returns
-    -------
-    corrected_cube, header
-        The distortion-corrected cube and header. If `header` was not provided, this will be `None`.
-    """
-    if center is None:
-        center = frame_center(cube)
-    # scale and retate frames with single transformpty_like(cube)
-    M = cv2.getRotationMatrix2D(center[::-1], angle=angle, scale=scale)
-    corr_cube = np.empty_like(cube)
-    for i in range(cube.shape[0]):
-        # if downsizing, low-pass filter to reduce moire effect
-        frame = cv2.GaussianBlur(cube[i], (0, 0), sigmaX=0.5 / scale) if scale < 1 else cube[i]
-        corr_cube[i] = warp_frame(frame, M, **kwargs)
-    # update header
-    if header is not None:
-        header["PXSCALE"] *= scale
-        header["INSTANG"] += angle
-        header["DEROTANG"] += angle
-        header["DISTSCAL"] = scale, "scaling ratio for distortion correction"
-        header["DISTANGL"] = angle, "deg, offset angle for distortion correction"
-    return corr_cube, header
-
-
-def reproject_data(cam1_data, cam1_hdr, cam2_data, cam2_hdr):
-    # rescale onto cam 1
-    scale = cam2_hdr["PXSCALE"] / cam1_hdr["PXSCALE"]
-    theta = cam1_hdr["INSTANG"] - cam2_hdr["INSTANG"]
-    if cam2_data.ndim == 4:
-        cam2_corr = cam2_data.copy()
-        for i in range(cam2_data.shape[1]):
-            cam2_corr[:, i], cam2_hdr = correct_distortion_cube(
-                cam2_data[:, i], angle=theta, scale=scale, header=cam2_hdr
-            )
-    elif cam2_data.ndim == 3:
-        cam2_corr, cam2_hdr = correct_distortion_cube(
-            cam2_data, angle=theta, scale=scale, header=cam2_hdr
-        )
-    elif cam2_data.ndim == 2:
-        cam2_corr, cam2_hdr = correct_distortion(
-            cam2_data, angle=theta, scale=scale, header=cam2_hdr
-        )
-
-    return cam1_data, cam1_hdr, cam2_corr, cam2_hdr
 
 
 def radial_profile_image(frame, fwhm=3):

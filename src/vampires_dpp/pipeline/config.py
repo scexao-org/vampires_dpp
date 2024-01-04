@@ -11,6 +11,7 @@ from astropy.coordinates import Angle, SkyCoord
 from pydantic import BaseModel
 
 import vampires_dpp as dpp
+from vampires_dpp.constants import SATSPOT_REF_ANGLE, SATSPOT_REF_NACT
 from vampires_dpp.util import check_version
 
 __all__ = (
@@ -218,7 +219,10 @@ class CollapseConfig(BaseModel):
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     recenter: Literal["com", "peak", "gauss", "dft"] | None = "com"
     reproject: bool = True
-    satspot_reference: dict[str, float] = {"separation": 46.7, "angle": 97.8}
+    satspot_reference: dict[str, float] = {
+        "separation": SATSPOT_REF_NACT,
+        "angle": SATSPOT_REF_ANGLE,
+    }
 
 
 class AnalysisConfig(BaseModel):

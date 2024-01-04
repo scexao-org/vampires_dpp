@@ -4,6 +4,7 @@ import numpy as np
 from astropy.io import fits
 from reproject import reproject_interp
 
+from vampires_dpp.headers import sort_header
 from vampires_dpp.image_processing import combine_frames_headers
 from vampires_dpp.paths import any_file_newer
 from vampires_dpp.wcs import apply_wcs
@@ -71,6 +72,7 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
         comb_hdrs.append(hdr)
     prim_hdr = combine_frames_headers(list(prim_hdrs.values()))
     prim_hdr = apply_wcs(single_diff, prim_hdr, angle=prim_hdr["DEROTANG"])
+    prim_hdr = sort_header(prim_hdr)
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(single_diff, header=prim_hdr),
@@ -78,7 +80,7 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
             fits.ImageHDU(single_err, header=prim_hdr, name="ERR"),
         ]
     )
-    hdul.extend([fits.ImageHDU(header=hdr) for hdr in comb_hdrs])
+    hdul.extend([fits.ImageHDU(header=sort_header(hdr)) for hdr in comb_hdrs])
 
     hdul.writeto(outpath, overwrite=True)
     return outpath
@@ -126,6 +128,7 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
     double_err = 0.5 * np.sqrt(np.sum(np.power(list(errs.values()), 2), axis=0))
     prim_hdr = combine_frames_headers(list(prim_hdrs.values()))
     prim_hdr = apply_wcs(double_diff, prim_hdr, angle=prim_hdr["DEROTANG"])
+    prim_hdr = sort_header(prim_hdr)
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(double_diff, header=prim_hdr),
@@ -135,7 +138,7 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
     )
     for i in range(double_diff.shape[0]):
         headers = [hdr[i] for hdr in hdrs.values()]
-        hdr = combine_frames_headers(headers)
+        hdr = sort_header(combine_frames_headers(headers))
         hdul.append(fits.ImageHDU(header=hdr))
 
     hdul.writeto(outpath, overwrite=True)

@@ -9,6 +9,7 @@ from astropy.time import Time
 from numpy.typing import NDArray
 from reproject import reproject_interp
 
+from vampires_dpp.headers import sort_header
 from vampires_dpp.image_processing import combine_frames_headers, derotate_cube, derotate_frame
 from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
@@ -433,11 +434,12 @@ def make_stokes_image(
         headers[i] = stokes_header
     # have to awkwardly combine since there's no NAXIS keywords
     prim_hdr = apply_wcs(stokes_data, combine_frames_headers(headers), angle=0)
+    prim_hdr = sort_header(prim_hdr)
     prim_hdu = fits.PrimaryHDU(stokes_data, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
     snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
     hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
-    hdul.extend([fits.ImageHDU(header=hdr, name=hdr["FIELD"]) for hdr in headers])
+    hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=hdr["FIELD"]) for hdr in headers])
     hdul.writeto(outpath, overwrite=True)
     return outpath
 
