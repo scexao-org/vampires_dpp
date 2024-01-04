@@ -185,7 +185,7 @@ The effects of differing astrometric solutions between cam1 and cam2 can be seen
 
 ### Satellite spot fitting
 
-The first solution we offer is fitting the centroid of the satellite spots induced by the deformable-mirror (DM) actuator grid. This grid forms speckles at a separation of $N * \lambda/D$ where $N$ is the number of actuators across the pupil, nominally 46.6 (from investigation by M. Lucas), and rotationally aligned orthogonal to the actuator grid. We determine the pixel plate scale in `mas/px` by estimating the location of these speckles from the formula above given the observing filter. We determine the pupil rotation angle by offsetting with a calibrated value based on investigations of the DM by J. Lozi.
+The first solution we offer is fitting the centroid of the satellite spots induced by the deformable-mirror (DM) actuator grid. This grid forms speckles at a separation of $N * \lambda/D$ where $N$ is the number of actuators across the pupil, nominally 46.7 (from investigation by M. Lucas), and rotationally aligned orthogonal to the actuator grid. We determine the pixel plate scale in `mas/px` by estimating the location of these speckles from the formula above given the observing filter. We determine the pupil rotation angle by offsetting with a calibrated value based on investigations of the DM by J. Lozi.
 
 You can interactively select the satellite spots using `matplotlib` with
 

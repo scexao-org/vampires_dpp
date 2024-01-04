@@ -18,24 +18,24 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=5b4479735964841361fd" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=5b4479735964841361fd" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=5b4479735964841361fd" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=bd9e20870c6007c4c509" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=bd9e20870c6007c4c509" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=bd9e20870c6007c4c509" rel="stylesheet" />
 
   
-  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=5b4479735964841361fd" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=bd9e20870c6007c4c509" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=384b581d" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=5b4479735964841361fd" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd" />
-  <script src="../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=5b4479735964841361fd"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=bd9e20870c6007c4c509" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=bd9e20870c6007c4c509" />
+  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=bd9e20870c6007c4c509"></script>
 
     <script src="../_static/documentation_options.js?v=e9e33cf0"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
@@ -55,7 +55,7 @@
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
   
   <div id="pst-scroll-pixel-helper"></div>
 
@@ -98,12 +98,18 @@
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
   </div>
+
+  <header>
   
-    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
-    </nav>
+    <div class="bd-header navbar navbar-expand-lg bd-navbar">
+    </div>
   
+  </header>
+
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
+      
+      
       
       <div class="bd-sidebar-primary bd-sidebar">
         
@@ -331,8 +337,6 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.collapse_cube"><code class="docutils literal notranslate"><span class="pre">collapse_cube()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.correct_distortion"><code class="docutils literal notranslate"><span class="pre">correct_distortion()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.correct_distortion_cube"><code class="docutils literal notranslate"><span class="pre">correct_distortion_cube()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.crop_to_nans_inds"><code class="docutils literal notranslate"><span class="pre">crop_to_nans_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.derotate_cube"><code class="docutils literal notranslate"><span class="pre">derotate_cube()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.derotate_frame"><code class="docutils literal notranslate"><span class="pre">derotate_frame()</span></code></a></li>
@@ -349,7 +353,7 @@ document.write(`
               
                 
 <div id="searchbox"></div>
-                <article class="bd-article" role="main">
+                <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.image_processing">
 <span id="image-processing"></span><h1>Image Processing<a class="headerlink" href="#module-vampires_dpp.image_processing" title="Link to this heading">#</a></h1>
@@ -370,52 +374,6 @@ document.write(`
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Tuple[NDArray, Optional[fits.Header]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.image_processing.correct_distortion">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">correct_distortion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.correct_distortion" title="Link to this definition">#</a></dt>
-<dd><p>Rotate and scale a single frame to match with a pinhole grid</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>frame</strong> (<em>ArrayLike</em>) – Input frame to transform</p></li>
-<li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – Clockwise angle to rotate frame by, by default 0</p></li>
-<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Amount of radial scaling, by default 1</p></li>
-<li><p><strong>header</strong> (<em>Header</em><em>, </em><em>optional</em>) – FITS header to update, by default None</p></li>
-<li><p><strong>center</strong> (<em>(</em><em>y</em><em>, </em><em>x</em><em>)</em><em>, </em><em>optional</em>) – Frame center, if None will default to geometric frame center, by default None</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The distortion-corrected frame and header. If <cite>header</cite> was not provided, this will be <cite>None</cite>.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>corrected_frame, header</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.image_processing.correct_distortion_cube">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">correct_distortion_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.correct_distortion_cube" title="Link to this definition">#</a></dt>
-<dd><p>Rotate and scale a all frames in a cube to match with a pinhole grid</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cube</strong> (<em>NDArray</em>) – Input cube to transform</p></li>
-<li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – Clockwise angle to rotate frames by, by default 0</p></li>
-<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Amount of radial scaling, by default 1</p></li>
-<li><p><strong>header</strong> (<em>Header</em><em>, </em><em>optional</em>) – FITS header to update, by default None</p></li>
-<li><p><strong>center</strong> (<em>(</em><em>y</em><em>, </em><em>x</em><em>)</em><em>, </em><em>optional</em>) – Frame center, if None will default to geometric frame center, by default None</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The distortion-corrected cube and header. If <cite>header</cite> was not provided, this will be <cite>None</cite>.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>corrected_cube, header</p>
 </dd>
 </dl>
 </dd></dl>
@@ -599,6 +557,7 @@ trims the edges off where everything is NaN.</p>
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
+
   <div class="sidebar-secondary-item">
   <div class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> Contents
@@ -606,8 +565,6 @@ trims the edges off where everything is NaN.</p>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.collapse_cube"><code class="docutils literal notranslate"><span class="pre">collapse_cube()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.correct_distortion"><code class="docutils literal notranslate"><span class="pre">correct_distortion()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.correct_distortion_cube"><code class="docutils literal notranslate"><span class="pre">correct_distortion_cube()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.crop_to_nans_inds"><code class="docutils literal notranslate"><span class="pre">crop_to_nans_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.derotate_cube"><code class="docutils literal notranslate"><span class="pre">derotate_cube()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.image_processing.derotate_frame"><code class="docutils literal notranslate"><span class="pre">derotate_frame()</span></code></a></li>
@@ -639,7 +596,7 @@ By Miles Lucas
 
   <p class="copyright">
     
-      © Copyright 2022, 2023, Miles Lucas.
+      © Copyright 2022, 2023, 2024, Miles Lucas.
       <br/>
     
   </p>
@@ -663,8 +620,8 @@ By Miles Lucas
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=5b4479735964841361fd"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=bd9e20870c6007c4c509"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=bd9e20870c6007c4c509"></script>
 
   <footer class="bd-footer">
   </footer>

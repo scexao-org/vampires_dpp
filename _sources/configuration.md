@@ -37,6 +37,15 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 .. autoclass:: vampires_dpp.pipeline.config.CalibrateConfig
 ```
 
+### Analysis
+```{margin} 💾 File Output
+‎
+```
+```{eval-rst}
+.. autoclass:: vampires_dpp.pipeline.config.AnalysisConfig
+```
+
+
 ### Frame-collapsing
 ```{margin} 💾 File Output
 ‎
