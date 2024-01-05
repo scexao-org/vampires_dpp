@@ -393,8 +393,8 @@ def make_stokes_image(
     prim_hdr = stokes_hdul[0].header
     headers = [stokes_hdul[i].header for i in range(3, len(stokes_hdul))]
     for i in range(stokes_data.shape[0]):
-        I, Q, U = stokes_data[i]  # noqa: E741
-        I_err, Q_err, U_err = stokes_err[i]
+        I, Q, U = stokes_frame = stokes_data[i]  # noqa: E741
+        I_err, Q_err, U_err = stokes_frame_err = stokes_err[i]
         stokes_header = headers[i]
         # mm correct
         if mm_correct:

@@ -124,8 +124,8 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
 
         hdr = hdul[3 + i].header
         hdr["CTYPE3"] = "STOKES"
-        hdr["STOKES"] = "I,Q,U,Qphi,Uphi,LP_I,AoLP", "Stokes axis data type"
-        if phi is not None:
+        hdr["STOKES"] = "I,Q,U,QPHI,UPHI,LP_I,AOLP", "Stokes axis data type"
+        if phi != 0:
             hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
 
         output_data.append(data)

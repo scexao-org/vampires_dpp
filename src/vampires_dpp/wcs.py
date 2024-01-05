@@ -9,13 +9,11 @@ from numpy.typing import NDArray
 
 from .constants import SUBARU_LOC
 
-_CD_KEYS = ("CD1_1", "CD1_2", "CD2_1", "CD2_2")
-
 
 def apply_wcs(image: NDArray, header: fits.Header, angle: float = 0):
     ny, nx = image.shape[-2:]
     # delete any CD keys from header
-    for key in _CD_KEYS:
+    for key in ("CD1_1*", "CD2_*"):
         if key in header:
             del header[key]
 
@@ -28,6 +26,7 @@ def apply_wcs(image: NDArray, header: fits.Header, angle: float = 0):
     ang = np.deg2rad(angle)
     cosang = np.cos(ang)
     sinang = np.sin(ang)
+    # work around fact PC doesn't get written if unit
     w.wcs.pc = [[cosang, -sinang], [sinang, cosang]]
     header.update(w.to_header())
     return header
