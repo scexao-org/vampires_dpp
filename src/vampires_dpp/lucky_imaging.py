@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 from typing import Final, Literal
 
@@ -157,6 +158,8 @@ def lucky_image_file(
         cube = cube[mask]
         cube_err = cube_err[mask]
 
+    N = len(cube)
+
     if register:
         psf_centroids = get_centroids_from(masked_metrics, input_key=register)
     elif "MBIR" in header["OBS-MOD"]:
@@ -200,9 +203,6 @@ def lucky_image_file(
         ## Step 3: Collapse
         coll_frame, header = collapse_cube(np.array(aligned_frames), header=header, method=method)
         # collapse error in quadrature
-        N = len(aligned_frames)
-        header["NCOADD"] = N, "Number of frames combined in collapsed file"
-        header["TINT"] = header["EXPTIME"] * N
         coll_err_frame = np.sqrt(np.nansum(np.power(aligned_err_frames, 2), axis=0)) / N
         ## Step 4: Recenter
         if recenter is not None:
@@ -233,10 +233,17 @@ def lucky_image_file(
         frames.append(coll_frame)
         frame_errs.append(coll_err_frame)
         headers.append(hdr)
-    comb_header = sort_header(combine_frames_headers(headers, wcs=True))
+
+    comb_header = combine_frames_headers(headers, wcs=True)
+    comb_header["NCOADD"] = N, "Number of frames combined in collapsed file"
+    comb_header["TINT"] = comb_header["EXPTIME"] * N
+    comb_header = sort_header(comb_header)
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=comb_header)
     err_hdu = fits.ImageHDU(np.array(frame_errs), header=comb_header, name="ERR")
-    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=comb_header, name="SNR")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        snr = prim_hdu.data / err_hdu.data
+    snr_hdu = fits.ImageHDU(snr, header=comb_header, name="SNR")
     hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     # add headers from each field
     hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=field) for hdr in headers])

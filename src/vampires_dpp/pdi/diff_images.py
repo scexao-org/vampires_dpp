@@ -69,8 +69,16 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
     for i in range(single_diff.shape[0]):
         headers = (hdrs[1][i], hdrs[2][i])
         hdr = combine_frames_headers(headers)
+        if "NCOADD" in hdr:
+            hdr["NCOADD"] /= 2
+        if "TINT" in hdr:
+            hdr["TINT"] /= 2
         comb_hdrs.append(hdr)
     prim_hdr = combine_frames_headers(list(prim_hdrs.values()))
+    if "NCOADD" in prim_hdr:
+        prim_hdr["NCOADD"] /= 2
+    if "TINT" in prim_hdr:
+        prim_hdr["TINT"] /= 2
     prim_hdr = apply_wcs(single_diff, prim_hdr, angle=prim_hdr["DEROTANG"])
     prim_hdr = sort_header(prim_hdr)
     hdul = fits.HDUList(
@@ -127,6 +135,10 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
     double_sum = 2 * np.mean(list(data.values()), axis=0)
     double_err = 0.5 * np.sqrt(np.sum(np.power(list(errs.values()), 2), axis=0))
     prim_hdr = combine_frames_headers(list(prim_hdrs.values()))
+    if "NCOADD" in prim_hdr:
+        prim_hdr["NCOADD"] /= 4
+    if "TINT" in prim_hdr:
+        prim_hdr["TINT"] /= 4
     prim_hdr = apply_wcs(double_diff, prim_hdr, angle=prim_hdr["DEROTANG"])
     prim_hdr = sort_header(prim_hdr)
     hdul = fits.HDUList(

@@ -68,7 +68,7 @@ def radial_stokes(stokes_cube: ArrayLike, stokes_err: ArrayLike | None = None, p
 
     .. math::
         Q_\phi = -Q\cos(2\theta) - U\sin(2\theta) \\
-        U_\phi = Q\sin(2\theta) - Q\cos(2\theta)
+        U_\phi = Q\sin(2\theta) - U\cos(2\theta)
 
 
     Parameters
@@ -133,11 +133,16 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0):
         output_hdrs.append(hdr)
 
     prim_hdr = apply_wcs(stokes_data, combine_frames_headers(output_hdrs), angle=0)
+    prim_hdr["NCOADD"] /= len(output_hdrs)
+    prim_hdr["TINT"] /= len(output_hdrs)
     prim_hdr["CTYPE3"] = "STOKES"
     prim_hdr = sort_header(prim_hdr)
     prim_hdu = fits.PrimaryHDU(np.squeeze(output_data), header=prim_hdr)
     err_hdu = fits.ImageHDU(np.squeeze(output_err), header=prim_hdr, name="ERR")
-    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        snr = prim_hdu.data / err_hdu.data
+    snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
     hdul_out = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul_out.extend([fits.ImageHDU(header=sort_header(hdr)) for hdr in output_hdrs])
     hdul_out.writeto(path, overwrite=True)

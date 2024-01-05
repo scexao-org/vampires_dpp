@@ -1,4 +1,5 @@
 import itertools
+import warnings
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -98,6 +99,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
         stokes_hdr = apply_wcs(stokes_cube, combine_frames_headers(hdrs), angle=0)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
         if "TINT" in stokes_hdr:
+            stokes_hdr["NCOADD"] /= 2
             stokes_hdr["TINT"] /= 2
         stokes_hdrs[key] = stokes_hdr
 
@@ -105,7 +107,10 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     prim_hdr = stokes_hdrs.pop("PRIMARY")
     prim_hdu = fits.PrimaryHDU(stokes_cube, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        snr = prim_hdu.data / err_hdu.data
+    snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
     hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul.extend([fits.ImageHDU(header=hdr, name=key) for key, hdr in stokes_hdrs.items()])
     return hdul
@@ -168,13 +173,18 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
         if "TINT" in stokes_hdr:
             stokes_hdr["TINT"] /= 2
+        if "NCOADD" in stokes_hdr:
+            stokes_hdr["NCOADD"] /= 2
         stokes_hdrs[key] = stokes_hdr
 
     # reform hdulist
     prim_hdr = stokes_hdrs.pop("PRIMARY")
     prim_hdu = fits.PrimaryHDU(stokes_cube, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        snr = prim_hdu.data / err_hdu.data
+    snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
     hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul.extend([fits.ImageHDU(header=hdr, name=key) for key, hdr in stokes_hdrs.items()])
     return hdul
@@ -434,10 +444,17 @@ def make_stokes_image(
         headers[i] = stokes_header
     # have to awkwardly combine since there's no NAXIS keywords
     prim_hdr = apply_wcs(stokes_data, combine_frames_headers(headers), angle=0)
+    if "NCOADD" in prim_hdr:
+        prim_hdr["NCOADD"] /= len(headers)
+    if "TINT" in prim_hdr:
+        prim_hdr["TINT"] /= len(headers)
     prim_hdr = sort_header(prim_hdr)
     prim_hdu = fits.PrimaryHDU(stokes_data, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        snr = prim_hdu.data / err_hdu.data
+    snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
     hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=hdr["FIELD"]) for hdr in headers])
     hdul.writeto(outpath, overwrite=True)

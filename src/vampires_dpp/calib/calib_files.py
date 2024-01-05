@@ -3,6 +3,7 @@
 import functools
 import itertools
 import multiprocessing as mp
+import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -66,11 +67,14 @@ def make_background_file(filename: str, force=False, **kwargs):
     master_background[bpmask] = np.nan
     back_err[bpmask] = np.nan
     # save to disk
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        snr = master_background / back_err
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_background, header=header),
             fits.ImageHDU(back_err, header=header, name="ERR"),
-            fits.ImageHDU(master_background / back_err, header=header, name="SNR"),
+            fits.ImageHDU(snr, header=header, name="SNR"),
         ]
     )
     hdul.writeto(outpath, overwrite=True)
@@ -133,11 +137,14 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     # flat_err[bpmask] = np.nan
     # save to disk
     header = sort_header(header)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        snr = master_flat / back_err
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_flat, header=header),
             fits.ImageHDU(flat_err, header=header, name="ERR"),
-            fits.ImageHDU(master_flat / flat_err, header=header, name="SNR"),
+            fits.ImageHDU(snr, header=header, name="SNR"),
         ]
     )
     hdul.writeto(outpath, overwrite=True)

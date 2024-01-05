@@ -514,13 +514,20 @@ class Pipeline:
         unique_files = []
         for paths in full_path_set:
             unique_files.extend(paths)
-        tint = np.sum([fits.getval(path, "TINT") for path in np.unique(unique_files)])
+        tints = [fits.getval(path, "TINT") for path in np.unique(unique_files)]
+        tint = np.sum(tints)
         for hdr in coll_hdrs:
+            hdr["NCOADD"] = len(tints)
             hdr["TINT"] = tint
         prim_hdr = apply_wcs(coll_frame, combine_frames_headers(coll_hdrs), angle=0)
+        prim_hdr["NCOADD"] /= len(coll_hdrs)
+        prim_hdr["TINT"] /= len(coll_hdrs)
         prim_hdu = fits.PrimaryHDU(coll_frame, header=prim_hdr)
         err_hdu = fits.ImageHDU(coll_err, header=prim_hdr, name="ERR")
-        snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=prim_hdr, name="SNR")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            snr = prim_hdu.data / err_hdu.data
+        snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
         hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
         hdul.extend([fits.ImageHDU(header=hdr, name=hdr["FIELD"]) for hdr in coll_hdrs])
         # In the case we have multi-wavelength data, save 4D Stokes cube
@@ -535,11 +542,16 @@ class Pipeline:
                 wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
                 wave_err_frame = np.sqrt(np.nansum(coll_err**2, axis=0, keepdims=True))
             wave_coll_hdr = apply_wcs(wave_coll_frame, combine_frames_headers(coll_hdrs), angle=0)
+            wave_coll_hdr["NCOADD"] /= len(coll_hdrs)
+            wave_coll_hdr["TINT"] /= len(coll_hdrs)
             wave_coll_hdr["FIELD"] = "COMB"
             # TODO some fits keywords here are screwed up
             prim_hdu = fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr)
             err_hdu = fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERR")
-            snr_hdu = fits.ImageHDU(prim_hdu.data / err_hdu.data, header=wave_coll_hdr, name="SNR")
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                snr = prim_hdu.data / err_hdu.data
+            snr_hdu = fits.ImageHDU(snr, header=wave_coll_hdr, name="SNR")
             dummy_hdu = fits.ImageHDU(header=wave_coll_hdr, name="COMB")
             hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu, dummy_hdu])
         # save single-wavelength (or wavelength-collapsed) Stokes cube
