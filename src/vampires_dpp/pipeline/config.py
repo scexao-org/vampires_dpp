@@ -295,6 +295,8 @@ class PolarimetryConfig(BaseModel):
         The first radius for IP correction, if set. For "aperture" this is the radius, for "annulus" this is the inner radius.
     ip_radius2:
         The second radius for IP correction. This is only used if ``ip_method="annulus"``- this is the outer radius.
+    planetary:
+        If true, will save the plneatary radial Stokes (Qr, Ur) instead of (Qphi, Uphi).
     """
 
     method: Literal["triplediff", "doublediff", "leastsq"] = "triplediff"
@@ -305,6 +307,7 @@ class PolarimetryConfig(BaseModel):
     ip_method: Literal["aperture", "annulus"] = "aperture"
     ip_radius: float = 15
     ip_radius2: float | None = None
+    planetary: bool = False
 
 
 class PipelineConfig(BaseModel):
