@@ -81,7 +81,7 @@ def radial_stokes(stokes_cube: ArrayLike, stokes_err: ArrayLike | None = None, p
     Returns
     -------
     NDArray, NDArray
-        Returns the tuple (Qphi, Uphi)
+        Returns the tuple (Qphi, Uphi, Qphi_err, Uphi_err)
     """
     thetas = frame_angles(stokes_cube, conv="astro")
 
@@ -119,22 +119,22 @@ def planetary_radial_stokes(
     Returns
     -------
     NDArray, NDArray
-        Returns the tuple (Qphi, Uphi)
+        Returns the tuple (Qr, Ur, Qr_err, Ur_err)
     """
     thetas = frame_angles(stokes_cube, conv="astro")
 
     cos2t = np.cos(2 * (thetas + phi))
     sin2t = np.sin(2 * (thetas + phi))
-    Qphi = cos2t * stokes_cube[1] + sin2t * stokes_cube[2]
-    Uphi = -sin2t * stokes_cube[1] + cos2t * stokes_cube[2]
+    Qr = cos2t * stokes_cube[1] + sin2t * stokes_cube[2]
+    Ur = -sin2t * stokes_cube[1] + cos2t * stokes_cube[2]
 
     if stokes_err is not None:
-        Qphi_err = np.hypot(cos2t * stokes_err[1], sin2t * stokes_err[2])
-        Uphi_err = np.hypot(sin2t * stokes_err[1], cos2t * stokes_err[2])
+        Qr_err = np.hypot(cos2t * stokes_err[1], sin2t * stokes_err[2])
+        Ur_err = np.hypot(sin2t * stokes_err[1], cos2t * stokes_err[2])
     else:
-        Qphi_err = Uphi_err = np.full_like(Qphi, np.nan)
+        Qr_err = Ur_err = np.full_like(Qr, np.nan)
 
-    return Qphi, Uphi, Qphi_err, Uphi_err
+    return Qr, Ur, Qr_err, Ur_err
 
 
 def rotate_stokes(stokes_cube, theta):
@@ -162,7 +162,10 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
 
         hdr = hdul[3 + i].header
         hdr["CTYPE3"] = "STOKES"
-        hdr["STOKES"] = "I,Q,U,QPHI,UPHI,LP_I,AOLP", "Stokes axis data type"
+        if planetary:
+            hdr["STOKES"] = "I,Q,U,QR,UR,LP_I,AOLP", "Stokes axis data type"
+        else:
+            hdr["STOKES"] = "I,Q,U,QPHI,UPHI,LP_I,AOLP", "Stokes axis data type"
         if phi != 0:
             hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
 

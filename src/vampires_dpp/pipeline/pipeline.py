@@ -533,7 +533,9 @@ class Pipeline:
         # In the case we have multi-wavelength data, save 4D Stokes cube
         if nfields > 1:
             stokes_cube_path = self.paths.pdi_dir / f"{self.config.name}_stokes_cube.fits"
-            write_stokes_products(hdul, outname=stokes_cube_path, force=True)
+            write_stokes_products(
+                hdul, outname=stokes_cube_path, force=True, planetary=config.planetary
+            )
             logger.info(f"Saved Stokes cube to {stokes_cube_path}")
 
             # now collapse wavelength axis and clobber
@@ -556,7 +558,9 @@ class Pipeline:
             hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu, dummy_hdu])
         # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
-        write_stokes_products(hdul, outname=stokes_coll_path, force=True)
+        write_stokes_products(
+            hdul, outname=stokes_coll_path, force=True, planetary=config.planetary
+        )
         logger.info(f"Saved collapsed Stokes cube to {stokes_coll_path}")
 
     def polarimetry_leastsq(self, table, force=False):
