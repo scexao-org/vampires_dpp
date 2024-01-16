@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=bd9e20870c6007c4c509" />
   <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=bd9e20870c6007c4c509"></script>
 
-    <script src="_static/documentation_options.js?v=e9e33cf0"></script>
+    <script src="_static/documentation_options.js?v=521fbeed"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
@@ -751,6 +751,7 @@ Mueller-matrix model.</p></li>
 <li><p><strong>ip_method</strong> (<em>Literal</em><em>[</em><em>'aperture'</em><em>, </em><em>'annulus'</em><em>]</em>) – If <code class="docutils literal notranslate"><span class="pre">ip_correct=True</span></code> this determines the region type for IP measurement.</p></li>
 <li><p><strong>ip_radius</strong> (<em>float</em>) – The first radius for IP correction, if set. For “aperture” this is the radius, for “annulus” this is the inner radius.</p></li>
 <li><p><strong>ip_radius2</strong> (<em>float</em><em> | </em><em>None</em>) – The second radius for IP correction. This is only used if <code class="docutils literal notranslate"><span class="pre">ip_method=&quot;annulus&quot;</span></code>- this is the outer radius.</p></li>
+<li><p><strong>planetary</strong> (<em>bool</em>) – If true, will save the plneatary radial Stokes (Qr, Ur) instead of (Qphi, Uphi).</p></li>
 </ul>
 </dd>
 </dl>
