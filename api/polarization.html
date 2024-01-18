@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=bd9e20870c6007c4c509" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=bd9e20870c6007c4c509"></script>
 
-    <script src="../_static/documentation_options.js?v=521fbeed"></script>
+    <script src="../_static/documentation_options.js?v=456b3e8b"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
@@ -342,7 +342,6 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.instpol_correct"><code class="docutils literal notranslate"><span class="pre">instpol_correct()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.measure_instpol"><code class="docutils literal notranslate"><span class="pre">measure_instpol()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.planetary_radial_stokes"><code class="docutils literal notranslate"><span class="pre">planetary_radial_stokes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
 </ul>
 </li>
@@ -437,30 +436,6 @@ document.write(`
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.pdi.utils.planetary_radial_stokes">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.utils.</span></span><span class="sig-name descname"><span class="pre">planetary_radial_stokes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stokes_err</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.utils.planetary_radial_stokes" title="Link to this definition">#</a></dt>
-<dd><p>Calculate the radial Stokes parameters from the given Stokes cube (4, N, M)</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}Q_r = Q\cos(2\theta) + U\sin(2\theta) \\
-U_r = -Q\sin(2\theta) + U\cos(2\theta)\end{split}\]</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>stokes_cube</strong> (<em>ArrayLike</em>) – Input Stokes cube, with dimensions (4, N, M)</p></li>
-<li><p><strong>phi</strong> (<em>float</em>) – Radial angle offset in radians, by default 0</p></li>
-<li><p><strong>stokes_err</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>] </em><em>| </em><em>None</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Returns the tuple (Qr, Ur, Qr_err, Ur_err)</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray, NDArray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -778,7 +753,6 @@ U_\phi = Q\sin(2\theta) - U\cos(2\theta)\end{split}\]</div>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.instpol_correct"><code class="docutils literal notranslate"><span class="pre">instpol_correct()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.measure_instpol"><code class="docutils literal notranslate"><span class="pre">measure_instpol()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.planetary_radial_stokes"><code class="docutils literal notranslate"><span class="pre">planetary_radial_stokes()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
 </ul>
 </li>

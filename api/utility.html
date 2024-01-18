@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=bd9e20870c6007c4c509" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=bd9e20870c6007c4c509"></script>
 
-    <script src="../_static/documentation_options.js?v=521fbeed"></script>
+    <script src="../_static/documentation_options.js?v=456b3e8b"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
@@ -352,12 +352,12 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.constants.InstrumentInfo.model_fields"><code class="docutils literal notranslate"><span class="pre">InstrumentInfo.model_fields</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.fix_typical_time_iso"><code class="docutils literal notranslate"><span class="pre">fix_typical_time_iso()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.fix_typical_time_mjd"><code class="docutils literal notranslate"><span class="pre">fix_typical_time_mjd()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.get_instrument_from"><code class="docutils literal notranslate"><span class="pre">get_instrument_from()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.parallactic_angle_altaz"><code class="docutils literal notranslate"><span class="pre">parallactic_angle_altaz()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.parallactic_angle_hadec"><code class="docutils literal notranslate"><span class="pre">parallactic_angle_hadec()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.sort_header"><code class="docutils literal notranslate"><span class="pre">sort_header()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.update_header_iso"><code class="docutils literal notranslate"><span class="pre">update_header_iso()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.update_header_mjd"><code class="docutils literal notranslate"><span class="pre">update_header_mjd()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.cutout_inds"><code class="docutils literal notranslate"><span class="pre">cutout_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_angles"><code class="docutils literal notranslate"><span class="pre">frame_angles()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_center"><code class="docutils literal notranslate"><span class="pre">frame_center()</span></code></a></li>
@@ -460,43 +460,6 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 </dd></dl>
 
 <dl class="py function" id="module-vampires_dpp.headers">
-<dt class="sig sig-object py" id="vampires_dpp.headers.fix_typical_time_iso">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_iso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_iso" title="Link to this definition">#</a></dt>
-<dd><p>Return the middle point of the exposure for ISO-based timestamps</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>hdr</strong> (<em>FITSHeader</em>) – </p></li>
-<li><p><strong>key</strong> (<em>str</em>) – key to fix, e.g. “UT”</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The ISO timestamp (hh:mm:ss.sss) for the middle point of the exposure</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.headers.fix_typical_time_mjd">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">fix_typical_time_mjd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.fix_typical_time_mjd" title="Link to this definition">#</a></dt>
-<dd><p>Return the middle point of the exposure for MJD timestamps</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>hdr</strong> (<em>FITSHeader</em>) – </p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The MJD timestamp for the middle point of the exposure</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.headers.get_instrument_from">
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">get_instrument_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.get_instrument_from" title="Link to this definition">#</a></dt>
 <dd><p>Get the instrument info from a FITS header</p>
@@ -564,6 +527,37 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>header</strong> (<em>Header</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.update_header_iso">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">update_header_iso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.update_header_iso" title="Link to this definition">#</a></dt>
+<dd><p>Return the middle point of the exposure for ISO-based timestamps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>header</strong> (<em>FITSHeader</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Header</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.headers.update_header_mjd">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.headers.</span></span><span class="sig-name descname"><span class="pre">update_header_mjd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.headers.update_header_mjd" title="Link to this definition">#</a></dt>
+<dd><p>Return the middle point of the exposure for MJD timestamps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>header</strong> (<em>FITSHeader</em>) – </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The MJD timestamp for the middle point of the exposure</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -853,12 +847,12 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.constants.InstrumentInfo.model_fields"><code class="docutils literal notranslate"><span class="pre">InstrumentInfo.model_fields</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.fix_typical_time_iso"><code class="docutils literal notranslate"><span class="pre">fix_typical_time_iso()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.fix_typical_time_mjd"><code class="docutils literal notranslate"><span class="pre">fix_typical_time_mjd()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.get_instrument_from"><code class="docutils literal notranslate"><span class="pre">get_instrument_from()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.parallactic_angle_altaz"><code class="docutils literal notranslate"><span class="pre">parallactic_angle_altaz()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.parallactic_angle_hadec"><code class="docutils literal notranslate"><span class="pre">parallactic_angle_hadec()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.sort_header"><code class="docutils literal notranslate"><span class="pre">sort_header()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.update_header_iso"><code class="docutils literal notranslate"><span class="pre">update_header_iso()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.headers.update_header_mjd"><code class="docutils literal notranslate"><span class="pre">update_header_mjd()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.cutout_inds"><code class="docutils literal notranslate"><span class="pre">cutout_inds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_angles"><code class="docutils literal notranslate"><span class="pre">frame_angles()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.indexing.frame_center"><code class="docutils literal notranslate"><span class="pre">frame_center()</span></code></a></li>
