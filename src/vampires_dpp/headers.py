@@ -1,9 +1,8 @@
 import numpy as np
 from astropy.io import fits
-from astropy.time import Time
 
 from vampires_dpp.constants import CMOSVAMPIRES, EMCCDVAMPIRES, SUBARU_LOC, InstrumentInfo
-from vampires_dpp.util import wrap_angle
+from vampires_dpp.util import hst_from_ut_time, iso_time_stats, mjd_time_stats, wrap_angle
 
 
 def parallactic_angle(time, coord):
@@ -85,11 +84,8 @@ def fix_header(header):
             tokens = header[key].rpartition(":")
             header[key] = f"{tokens[0]}.{tokens[2]}", header.comments[key]
     # fix UT/HST/MJD being time of file creation instead of typical time
-    for key in ("UT", "HST"):
-        if f"{key}-STR" in header and f"{key}-END" in header:
-            header[key] = fix_typical_time_iso(header, key), header.comments[key]
-    if "MJD-STR" in header and "MJD-END" in header:
-        header["MJD"] = fix_typical_time_mjd(header), header.comments["MJD"]
+    if "UT-STR" in header and "UT-END" in header:
+        header = update_header_iso(header)
     # add RET-ANG1 and similar headers to be more consistent
     if "DETECTOR" not in header:
         header["DETECTOR"] = (f"VCAM{header['U_CAMERA']:.0f} - Ultra 897", "Name of the detector")
@@ -120,8 +116,8 @@ def fix_header(header):
             header["EXPTIME"] * header.get("NAXIS3", 1),
             "[s] Total integration time of file",
         )
-    if "NFRAMES" not in header:
-        header["NFRAMES"] = header.get("NAXIS3", 1), "Number of frames in original file"
+    if "NDIT" not in header:
+        header["NDIT"] = header.get("NAXIS3", 1), "Number of frames in original file"
 
     # add in detector charracteristics
     inst = get_instrument_from(header)
@@ -132,6 +128,7 @@ def fix_header(header):
     header["EFFGAIN"] = inst.effgain, "[e-/adu] Detector effective gain"
     header["RN"] = inst.readnoise, "[e-] RMS read noise"
     header["PXSCALE"] = inst.pixel_scale, "[mas/pix] Pixel scale"
+    header["PXAREA"] = (header["PXSCALE"] / 1e3) ** 2, "[arcsec^2/pix] Solid angle of each pixel"
     header["PAOFFSET"] = inst.pa_offset, "[deg] Parallactic angle offset"
     header["INST-PA"] = inst.pupil_offset, "[deg] Instrument angle offset"
     header["FULLWELL"] = inst.fullwell, "[e-] Full well of detector register"
@@ -139,40 +136,40 @@ def fix_header(header):
     return header
 
 
-def fix_typical_time_iso(hdr, key):
+def update_header_iso(header: fits.Header) -> fits.Header:
     """Return the middle point of the exposure for ISO-based timestamps
 
     Parameters
     ----------
-    hdr : FITSHeader
-    key : str
-        key to fix, e.g. "UT"
-
-    Returns
-    -------
-    str
-        The ISO timestamp (hh:mm:ss.sss) for the middle point of the exposure
+    header : FITSHeader
     """
-    date = hdr["DATE-OBS"]
+    date = header["DATE-OBS"]
     # get start time
-    key_str = f"{key}-STR"
-    t_str = Time(f"{date}T{hdr[key_str]}", format="fits", scale="ut1")
-    # get end time
-    key_end = f"{key}-END"
-    t_end = Time(f"{date}T{hdr[key_end]}", format="fits", scale="ut1")
-    # get typical time as midpoint of two times
-    dt = (t_end - t_str) / 2
-    t_typ = t_str + dt
-    # split on the space to remove date from timestamp
-    return t_typ.iso.split()[-1]
+    key_str = "UT-STR"
+    key_end = "UT-END"
+    ut_str, ut_typ, ut_end = iso_time_stats(date, header[key_str], header[key_end])
+
+    header["UT-STR"] = ut_str.iso.split()[-1], header.comments["UT-STR"]
+    header["UT-END"] = ut_end.iso.split()[-1], header.comments["UT-END"]
+    header["UT"] = ut_typ.iso.split()[-1], header.comments["UT"]
+    header["DATE-OBS"] = ut_typ.iso.split()[0], header.comments["DATE-OBS"]
+
+    hst_str = hst_from_ut_time(ut_str)
+    hst_typ = hst_from_ut_time(ut_typ)
+    hst_end = hst_from_ut_time(ut_end)
+
+    header["HST-STR"] = hst_str.iso.split()[-1], header.comments["HST-STR"]
+    header["HST-END"] = hst_end.iso.split()[-1], header.comments["HST-END"]
+    header["HST"] = hst_typ.iso.split()[-1], header.comments["HST"]
+    return header
 
 
-def fix_typical_time_mjd(hdr):
+def update_header_mjd(header: fits.Header) -> fits.Header:
     """Return the middle point of the exposure for MJD timestamps
 
     Parameters
     ----------
-    hdr : FITSHeader
+    header : FITSHeader
 
     Returns
     -------
@@ -180,13 +177,11 @@ def fix_typical_time_mjd(hdr):
         The MJD timestamp for the middle point of the exposure
     """
     # repeat again for MJD with different format
-    t_str = Time(hdr["MJD-STR"], format="mjd", scale="ut1")
-    t_end = Time(hdr["MJD-END"], format="mjd", scale="ut1")
-    # get typical time as midpoint of two times
-    dt = (t_end - t_str) / 2
-    t_typ = t_str + dt
-    # split on the space to remove date from timestamp
-    return t_typ.mjd
+    t_str, t_typ, t_end = mjd_time_stats(header["MJD-STR"], header["MJD-END"])
+    header["MJD-STR"] = t_str.mjd, header.comments["MJD-STR"]
+    header["MJD-END"] = t_end.mjd, header.comments["MJD-END"]
+    header["MJD"] = t_typ.mjd, header.comments["MJD"]
+    return header
 
 
 def get_instrument_from(header: fits.Header) -> InstrumentInfo:

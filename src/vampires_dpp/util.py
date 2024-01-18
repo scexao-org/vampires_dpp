@@ -1,7 +1,9 @@
 from pathlib import Path
 
 import numpy as np
+import pytz
 from astropy.io import fits
+from astropy.time import Time
 from numpy.typing import ArrayLike
 from packaging import version
 from scipy.stats import circmean
@@ -116,3 +118,35 @@ def get_center(frame, centroid, cam_num):
     Ny = frame.shape[-2]
     ctr = np.asarray((Ny - 1 - centroid[0], centroid[1]))
     return ctr
+
+
+def iso_time_stats(date: str, start_time: str, end_time: str) -> tuple[Time, Time, Time]:
+    # get start time
+    t_str = Time(f"{date}T{start_time}", format="fits", scale="utc")
+    # get end time
+    t_end = Time(f"{date}T{end_time}", format="fits", scale="utc")
+    # get typical time as midpoint of two times
+    dt = (t_end - t_str) / 2
+    t_typ = t_str + dt
+    # split on the space to remove date from timestamp
+    return t_str, t_typ, t_end
+
+
+def mjd_time_stats(start_mjd: str, end_mjd: str) -> tuple[Time, Time, Time]:
+    # get start time
+    t_str = Time(start_mjd, format="mjd")
+    # get end time
+    t_end = Time(end_mjd, format="mjd")
+    # get typical time as midpoint of two times
+    dt = (t_end - t_str) / 2
+    t_typ = t_str + dt
+    # split on the space to remove date from timestamp
+    return t_str, t_typ, t_end
+
+
+def hst_from_ut_time(ut_time: Time) -> Time:
+    utc_tz = pytz.timezone("UTC")
+    ut_datetime = ut_time.to_datetime(utc_tz)
+    hst_tz = pytz.timezone("HST")
+    hst_datetime = ut_datetime.astimezone(hst_tz)
+    return Time(hst_datetime.isoformat()[:-6], format="fits")

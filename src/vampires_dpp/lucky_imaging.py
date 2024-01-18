@@ -223,6 +223,7 @@ def lucky_image_file(
         hdr = apply_wcs(coll_frame, hdr, angle=hdr["DEROTANG"])
 
         ## Step 6. Specphot cal
+        # if desired, use synthetic photometry
         if specphot is not None:
             hdr = specphot_calibration(hdr, outdir=aux_dir, config=specphot)
             coll_frame = convert_to_surface_brightness(coll_frame, hdr)
@@ -254,16 +255,18 @@ def lucky_image_file(
 
 
 COMMENT_FSTRS: Final[dict[str, str]] = {
-    "max": "[adu] Peak signal{}in window {}",
-    "sum": "[adu] Total signal{}in window {}",
-    "mean": "[adu] Mean signal{}in window {}",
-    "med": "[adu] Median signal{}in window {}",
-    "var": "[adu^2] Signal variance{}in window {}",
-    "nvar": "[adu] Normed variance{}in window {}",
+    "max": "[{}] Peak signal{}in window {}",
+    "sum": "[{}] Total signal{}in window {}",
+    "mean": "[{}] Mean signal{}in window {}",
+    "med": "[{}] Median signal{}in window {}",
+    "var": "[{}^2] Signal variance{}in window {}",
+    "nvar": "[{}] Normed variance{}in window {}",
     "photr": "[pix] Photometric aperture radius",
-    "photf": "[adu] Photometric flux{}in window {}",
-    "phote": "[adu] Photometric fluxerr{}in window {}",
-    "psff": "[adu] PSF flux{}in window {}",
+    "photf": "[{}] Photometric flux{}in window {}",
+    "phote": "[{}] Photometric fluxerr{}in window {}",
+    "psff": "[{}] PSF flux{}in window {}",
+}
+CENTROID_COMM_FSTRS: Final[dict[str, str]] = {
     "comx": "[pix] COM x{}in window {}",
     "comy": "[pix] COM y{}in window {}",
     "peakx": "[pix] Peak index x{}in window {}",
@@ -286,15 +289,21 @@ def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Head
             hdr[key_up] = arr[0][0], COMMENT_FSTRS[key]
             continue
         mean_val = 0
+        unit = hdr["BUNIT"]
         N = len(arr)
         for i, psf in enumerate(arr):
             # mean val
-            comment = COMMENT_FSTRS[key].format(" ", i)
+            if key in COMMENT_FSTRS:
+                comment = COMMENT_FSTRS[key].format(unit, " ", i)
+                err_comment = COMMENT_FSTRS[key].format(unit, " err ", i)
+            elif key in CENTROID_COMM_FSTRS:
+                comment = CENTROID_COMM_FSTRS[key].format(" ", i)
+                err_comment = CENTROID_COMM_FSTRS[key].format(" err ", i)
+
             psf_val = np.mean(psf)
             mean_val += (psf_val - mean_val) / (i + 1)
             hdr[f"{key_up}{i}"] = np.nan_to_num(psf_val), comment
             # sem
-            err_comment = COMMENT_FSTRS[key].format(" err ", i)
             if len(psf) == 1:
                 sem = 0
             elif "PHOTE" in key_up:

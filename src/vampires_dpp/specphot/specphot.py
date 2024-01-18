@@ -68,24 +68,21 @@ def update_header_from_obs(
     obs_jy = obs.effstim(u.Jy)
     header["MAG"] = obs_mag.value, "[mag] Source magnitude after color correction"
     header["FLUX"] = obs_jy.value, "[Jy] Source flux after color correction"
-    # get calibrated flux (adu / s)
-    inst_flux = np.maximum(flux / header["EXPTIME"], 0)
+    # get calibrated flux (e- / s)
+    inst_flux = np.maximum(flux, 0)
     inst_mag = -2.5 * np.log10(inst_flux)
-    header["INSTFLUX"] = inst_flux, "[adu/s] Instrumental flux"
+    header["INSTFLUX"] = inst_flux, "[e-/s] Instrumental flux"
     header["INSTMAG"] = inst_mag, "[mag] Instrumental magnitude"
     # calculate surface density conversion factory
-    pxarea = (header["PXSCALE"] / 1e3) ** 2
     c_fd = obs_jy / inst_flux
-    header["CALIBFAC"] = c_fd.value, "[Jy/(adu/s)] Absolute flux conversion factor"
-    header["PXAREA"] = pxarea, "[arcsec^2/pix] Solid angle of each pixel"
+    header["CALIBFAC"] = c_fd.value, "[Jy/(e-/s)] Absolute flux conversion factor"
     # calculate Vega zero point
     zp = obs_mag.value - inst_mag
     zp_jy = c_fd * 10 ** (0.4 * zp)
     header["ZEROPT"] = zp, "[mag] Zero point in the Vega magnitude system"
     header["ZEROPTJY"] = zp_jy.value, "[Jy] Vega zero point in Jy"
     # calculate total throughput (atmosphere + instrument + QE)
-    inst_flux_e = inst_flux * header["GAIN"] / max(header.get("DETGAIN", 1), 1)
-    throughput = inst_flux_e / obs.countrate(area=SCEXAO_AREA).value
+    throughput = inst_flux / obs.countrate(area=SCEXAO_AREA).value
     header["THROUGH"] = throughput, "[e-/ct] Est. total throughput (Atm+Inst+QE)"
     return header
 
@@ -100,7 +97,7 @@ def get_flux_from_metrics(metrics, config: SpecphotConfig) -> float:
 
 
 def convert_to_surface_brightness(data, header):
-    # Jy / arc^2 / (adu/s)
+    # Jy / arc^2 / (e-/s)
     conv_factor = header["CALIBFAC"] / header["PXAREA"]
     # convert data to Jy / arc^2
     return data / header["EXPTIME"] * conv_factor

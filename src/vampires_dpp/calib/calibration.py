@@ -111,6 +111,12 @@ def calibrate_file(
         cube = np.flip(cube, axis=-2)
         cube_err = np.flip(cube_err, axis=-2)
 
+    # convert to e-/s
+    calib_fac = header["EFFGAIN"] / header["EXPTIME"]
+    cube *= calib_fac
+    cube_err *= calib_fac
+    header["BUNIT"] = "e-/s"
+
     header = sort_header(header)
     # clip fot float32 to limit data size
     prim_hdu = fits.PrimaryHDU(cube.astype("f4"), header=header)

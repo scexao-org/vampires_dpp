@@ -15,7 +15,7 @@ from numpy.typing import ArrayLike, NDArray
 from vampires_dpp.headers import sort_header
 from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header
-from vampires_dpp.util import delta_angle, load_fits
+from vampires_dpp.util import delta_angle, hst_from_ut_time, iso_time_stats, load_fits
 
 from .paths import any_file_newer, get_paths
 
@@ -342,6 +342,28 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
         Angle(ave_dec * u.rad).to_string(unit=u.deg, sep=":"),
         test_header.comments["DEC"],
     )
+    # deal with time
+    ut_str = ut_end = None
+    for _, hdr in table.iterrows():
+        ut_stats = iso_time_stats(hdr["DATE-OBS"], hdr["UT-STR"], hdr["UT-END"])
+        ut_str = ut_stats[0] if ut_str is None else min(ut_stats[0], ut_str)
+        ut_end = ut_stats[0] if ut_end is None else max(ut_stats[-1], ut_end)
+    ut_typ = ut_str + (ut_end - ut_str) / 2
+
+    output_header["UT-STR"] = ut_str.iso.split()[-1], test_header.comments["UT-STR"]
+    output_header["UT-END"] = ut_end.iso.split()[-1], test_header.comments["UT-END"]
+    output_header["UT"] = ut_typ.iso.split()[-1], test_header.comments["UT"]
+    output_header["DATE-OBS"] = ut_typ.iso.split()[0], test_header.comments["DATE-OBS"]
+
+    hst_str = hst_from_ut_time(ut_str)
+    hst_typ = hst_from_ut_time(ut_typ)
+    hst_end = hst_from_ut_time(ut_end)
+
+    output_header["HST-STR"] = hst_str.iso.split()[-1], test_header.comments["HST-STR"]
+    output_header["HST-END"] = hst_end.iso.split()[-1], test_header.comments["HST-END"]
+    output_header["HST"] = hst_typ.iso.split()[-1], test_header.comments["HST"]
+
+    # WCS
     if wcs:
         # need to get average CRVALs and PCs
         output_header["CRVAL1"] = np.rad2deg(ave_ra), test_header.comments["CRVAL1"]
