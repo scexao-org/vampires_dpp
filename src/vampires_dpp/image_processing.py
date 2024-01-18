@@ -363,6 +363,10 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     output_header["HST-END"] = hst_end.iso.split()[-1], test_header.comments["HST-END"]
     output_header["HST"] = hst_typ.iso.split()[-1], test_header.comments["HST"]
 
+    output_header["MJD-STR"] = ut_str.mjd, test_header.comments["MJD-STR"]
+    output_header["MJD-END"] = ut_end.mjd, test_header.comments["MJD-END"]
+    output_header["MJD"] = ut_typ.mjd, test_header.comments["MJD"]
+
     # WCS
     if wcs:
         # need to get average CRVALs and PCs
