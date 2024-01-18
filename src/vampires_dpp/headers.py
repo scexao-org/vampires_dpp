@@ -118,6 +118,8 @@ def fix_header(header):
         )
     if "NDIT" not in header:
         header["NDIT"] = header.get("NAXIS3", 1), "Number of frames in original file"
+    if "BUNIT" not in header:
+        header["BUNIT"] = "ADU", "Unit of original values"
 
     # add in detector charracteristics
     inst = get_instrument_from(header)
