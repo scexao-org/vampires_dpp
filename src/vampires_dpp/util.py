@@ -49,9 +49,7 @@ def average_angle(angles: ArrayLike):
 
 def delta_angle(alpha: float, beta: float) -> float:
     """Given two angles, determine the total rotation between them"""
-    alpha_mod = np.mod(alpha, 360)
-    beta_mod = np.mod(beta, 360)
-    return beta_mod - alpha_mod
+    return wrap_angle(beta) - wrap_angle(alpha)
 
 
 def check_version(config: str, dpp: str) -> bool:

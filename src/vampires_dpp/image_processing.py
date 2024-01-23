@@ -12,7 +12,7 @@ from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
 
-from vampires_dpp.headers import sort_header
+from vampires_dpp.headers import fix_header, sort_header
 from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii
 from vampires_dpp.organization import dict_from_header
 from vampires_dpp.util import delta_angle, hst_from_ut_time, iso_time_stats, load_fits
@@ -319,10 +319,10 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
 
     # get PA rotation
     if "PA" in table:
-        output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] par. angle at start"
-        output_header["PA-END"] = table["PA-END"].iloc[-1], "[deg] par. angle at end"
+        output_header["PA-STR"] = table["PA-STR"].iloc[0], "[deg] parallactic angle at start"
+        output_header["PA-END"] = table["PA-END"].iloc[-1], "[deg] parallactic angle at end"
         total_rot = delta_angle(output_header["PA-STR"], output_header["PA-END"])
-        output_header["PA-ROT"] = total_rot, "[deg] total par. angle rotation"
+        output_header["PA-ROT"] = total_rot, "[deg] total parallactic angle rotation"
 
     if "DEROTANG" in table:
         angs = Angle(table["DEROTANG"], unit=u.deg)
@@ -347,7 +347,7 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     for _, hdr in table.iterrows():
         ut_stats = iso_time_stats(hdr["DATE-OBS"], hdr["UT-STR"], hdr["UT-END"])
         ut_str = ut_stats[0] if ut_str is None else min(ut_stats[0], ut_str)
-        ut_end = ut_stats[0] if ut_end is None else max(ut_stats[-1], ut_end)
+        ut_end = ut_stats[-1] if ut_end is None else max(ut_stats[-1], ut_end)
     ut_typ = ut_str + (ut_end - ut_str) / 2
 
     output_header["UT-STR"] = ut_str.iso.split()[-1], test_header.comments["UT-STR"]
@@ -404,6 +404,12 @@ def combine_frames_files(filenames, output, *, force: bool = False, crop: bool =
         frames_arr = np.array(frames)
         inds = crop_to_nans_inds(frames_arr)
         frames = frames_arr[inds]
+    pairs = sorted(zip(frames, headers, strict=True), key=lambda t: t[1]["MJD"])
+    frames = []
+    headers = []
+    for frame, header in pairs:
+        frames.append(frame)
+        headers.append(header)
     cube, header = combine_frames(frames, headers, **kwargs)
     fits.writeto(path, cube, header=sort_header(header), overwrite=True)
     return path
@@ -414,7 +420,9 @@ def collapse_frames(frames, headers=None, method="median", **kwargs):
     return collapse_cube(cube, method=method, header=header)
 
 
-def collapse_frames_files(filenames, output, force=False, cubes=False, quiet=True, **kwargs):
+def collapse_frames_files(
+    filenames, output, force=False, cubes=False, quiet=True, fix=False, **kwargs
+):
     path = Path(output)
     if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
@@ -426,6 +434,8 @@ def collapse_frames_files(filenames, output, force=False, cubes=False, quiet=Tru
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>
         frame, header = load_fits(filename, header=True, memmap=False)
+        if fix:
+            header = fix_header(header)
         if cubes:
             rand_idx = np.random.default_rng().integers(low=0, high=len(frame))
             frame = frame[rand_idx]

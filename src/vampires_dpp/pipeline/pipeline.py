@@ -10,7 +10,6 @@ from astropy.io import fits
 from loguru import logger
 from tqdm.auto import tqdm
 
-import vampires_dpp as dpp
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calib.calib_files import match_calib_files
 from vampires_dpp.calib.calibration import calibrate_file
@@ -127,7 +126,6 @@ class Pipeline:
             Number of processes to use for multi-processing, by default None.
         """
         make_dirs(self.paths, self.config)
-        logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
         conf_copy_path = self.paths.aux_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
@@ -197,9 +195,9 @@ class Pipeline:
             if not force and outpath.exists():
                 return fits.open(outpath)
         back_filename = flat_filename = None
-        if config.back_subtract:
+        if config.back_subtract and "backfile" in fileinfo:
             back_filename = fileinfo["backfile"]
-        if config.flat_correct:
+        if config.flat_correct and "flatfile" in fileinfo:
             flat_filename = fileinfo["flatfile"]
         calib_hdul = calibrate_file(
             path,
@@ -270,8 +268,8 @@ class Pipeline:
             recenter=config.recenter,
             reproject=config.reproject,
             astrometry=astrometry,
-            refsep=config.satspot_reference.get("separation", 45),
-            refang=config.satspot_reference.get("angle", 90),
+            refsep=config.satspot_reference["separation"],
+            refang=config.satspot_reference["angle"],
             centroids=self.centroids,
             outpath=outpath,
             force=force,
@@ -374,7 +372,6 @@ class Pipeline:
 
     def run_polarimetry(self, num_proc, force=False):
         make_dirs(self.paths, self.config)
-        logger.debug(f"VAMPIRES DPP: v{dpp.__version__}")
         conf_copy_path = self.paths.aux_dir / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
         logger.debug(f"Saved copy of config to {conf_copy_path}")
@@ -383,7 +380,7 @@ class Pipeline:
             msg = f"Output table {self.output_table_path} cannot be found"
             raise RuntimeError(msg)
 
-        working_table = pd.read_csv(self.output_table_path, index_col=0)
+        working_table = pd.read_csv(self.output_table_path, index_col=0).sort_values("MJD")
 
         if self.config.polarimetry.mm_correct or self.config.polarimetry.method == "leastsq":
             working_table["mm_file"] = self.make_mueller_mats(working_table, num_proc=num_proc)
@@ -441,7 +438,8 @@ class Pipeline:
                 jobs.append(pool.apply_async(pol_func, args=(row,)))
             for job in tqdm(jobs, desc="Determing Stokes frame combinations"):
                 stokes_set = job.get()
-                full_paths.append(tuple(sorted(stokes_set.values())))
+                if stokes_set is not None:
+                    full_paths.append(tuple(sorted(stokes_set.values())))
 
         full_path_set = list(set(paths for paths in full_paths))
 

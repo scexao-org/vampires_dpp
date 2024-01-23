@@ -46,7 +46,6 @@ def calibrate_file(
     filename: str,
     back_filename: str | None = None,
     flat_filename: str | None = None,
-    transform_filename: str | None = None,
     force: bool = False,
     bpmask: bool = False,
     coord: SkyCoord | None = None,

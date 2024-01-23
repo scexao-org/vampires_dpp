@@ -12,7 +12,8 @@ SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155
 
 
 SATSPOT_REF_NACT = 46.7
-SATSPOT_REF_ANGLE = -83.2
+# SATSPOT_REF_ANGLE = -83.2
+SATSPOT_REF_ANGLE = -88.2
 
 
 class InstrumentInfo(BaseModel):

@@ -77,13 +77,15 @@ def reproject_header(
     refsep=SATSPOT_REF_NACT,
     refang=SATSPOT_REF_ANGLE,
 ):
+    # if "U_MBI" in header:
+    # refang += 180
     match header["U_CAMERA"]:
         case 1:
             astrom_info = astrometry["cam1"]
-            instang = refang + (90 - astrom_info["angle"])
+            instang = refang + astrom_info["angle"]
         case 2:
             astrom_info = astrometry["cam2"]
-            instang = refang + astrom_info["angle"]
+            instang = refang + (90 - astrom_info["angle"])
 
     # the reference angle comes from CMOS detectors, need to subtract 180 for EMCCD
     # due to parity flip

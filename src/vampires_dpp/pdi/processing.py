@@ -98,7 +98,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     for key, hdrs in headers.items():
         stokes_hdr = apply_wcs(stokes_cube, combine_frames_headers(hdrs), angle=0)
         # reduce exptime by 2 because cam1 and cam2 are simultaneous
-        if "TINT" in stokes_hdr:
+        if "TINT" and "NCOADD" in stokes_hdr:
             stokes_hdr["NCOADD"] /= 2
             stokes_hdr["TINT"] /= 2
         stokes_hdrs[key] = stokes_hdr
@@ -331,10 +331,10 @@ DOUBLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), (1, 2)))
 TRIPLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), ("A", "B"), (1, 2)))
 
 
-def get_triplediff_set(table, row):
+def get_triplediff_set(table, row) -> dict | None:
     time_arr = Time(table["MJD"], format="mjd")
     row_time = Time(row["MJD"], format="mjd")
-    deltatime = np.abs(row_time - time_arr)
+    deltatime = np.abs([diff.jd for diff in row_time - time_arr])
     row_key = (row["RET-ANG1"], row["U_FLC"], row["U_CAMERA"])
     remaining_keys = TRIPLEDIFF_SETS - set(row_key)
     output_set = {row_key: row["path"]}
@@ -343,24 +343,33 @@ def get_triplediff_set(table, row):
             (table["RET-ANG1"] == key[0])
             & (table["U_FLC"] == key[1])
             & (table["U_CAMERA"] == key[2])
+            & (deltatime < 0.00347)  # 5 minutes
         )
-        idx = deltatime[mask].argmin()
+        if np.any(mask):
+            idx = deltatime[mask].argmin()
+        else:
+            return None
 
         output_set[key] = table.loc[mask, "path"].iloc[idx]
 
     return output_set
 
 
-def get_doublediff_set(table, row):
+def get_doublediff_set(table, row) -> dict | None:
     time_arr = Time(table["MJD"], format="mjd")
     row_time = Time(row["MJD"], format="mjd")
-    deltatime = np.abs(row_time - time_arr)
+    deltatime = np.abs([diff.jd for diff in row_time - time_arr])
     row_key = (row["RET-ANG1"], row["U_CAMERA"])
     remaining_keys = DOUBLEDIFF_SETS - set(row_key)
     output_set = {row_key: row["path"]}
     for key in remaining_keys:
-        mask = (table["RET-ANG1"] == key[0]) & (table["U_CAMERA"] == key[1])
-        idx = deltatime[mask].argmin()
+        mask = (
+            (table["RET-ANG1"] == key[0]) & (table["U_CAMERA"] == key[1]) & (deltatime < 0.00347)
+        )  # 5 minutes
+        if np.any(mask):
+            idx = deltatime[mask].argmin()
+        else:
+            return None
 
         output_set[key] = table.loc[mask, "path"].iloc[idx]
 
