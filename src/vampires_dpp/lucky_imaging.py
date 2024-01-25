@@ -261,7 +261,7 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "sum": "[{}] Total signal{}in window {}",
     "mean": "[{}] Mean signal{}in window {}",
     "med": "[{}] Median signal{}in window {}",
-    "var": "[{}^2] Signal variance{}in window {}",
+    "var": "[({})^2] Signal variance{}in window {}",
     "nvar": "[{}] Normed variance{}in window {}",
     "photr": "[pix] Photometric aperture radius",
     "photf": "[{}] Photometric flux{}in window {}",

@@ -91,16 +91,18 @@ def get_flux_from_metrics(metrics, config: SpecphotConfig) -> float:
     match config.flux_metric:
         case "photometry":
             fluxes = metrics["photf"]
+            weights = 1 / metrics["phote"] ** 2
         case "sum":
             fluxes = metrics["sum"]
-    return np.nanmedian(fluxes)
+            weights = 1 / metrics["var"]
+    return np.nansum(fluxes * weights) / np.nansum(weights)
 
 
 def convert_to_surface_brightness(data, header):
     # Jy / arc^2 / (e-/s)
     conv_factor = header["CALIBFAC"] / header["PXAREA"]
     # convert data to Jy / arc^2
-    return data / header["EXPTIME"] * conv_factor
+    return data * conv_factor
 
 
 def specphot_calibration(header, outdir: Path, config: SpecphotConfig):
