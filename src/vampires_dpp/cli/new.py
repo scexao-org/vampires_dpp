@@ -327,7 +327,7 @@ def get_collapse_settings(template):
             template.collapse.recenter = click.prompt(
                 " - Enter recenter registration method",
                 type=click.Choice(["com", "peak", "gauss", "dft"], case_sensitive=False),
-                default="com",
+                default="dft",
             )
         else:
             template.collapse.recenter = None
