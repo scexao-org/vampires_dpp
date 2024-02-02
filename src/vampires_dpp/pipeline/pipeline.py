@@ -115,6 +115,36 @@ class Pipeline:
         subset = table.loc[files_to_calibrate]
         return subset.copy()
 
+    def _determine_filts_from_header(self, header):
+        mod = header["OBS-MOD"]
+        if mod.endswith("MBIR"):
+            filts = ("F670", "F720", "F760")
+        elif mod.endswith("MBI"):
+            filts = ("F610", "F670", "F720", "F760")
+        elif mod.endswith("SDI"):
+            filts = (header["FILTER02"],)
+        else:
+            filts = (header["FILTER01"],)
+        return filts
+
+    def make_synth_psfs(self, input_table):
+        # make PSFs ahead of time so they don't overwhelm
+        # during multiprocessing
+        filters = {}
+        for _, row in input_table.iterrows():
+            for filt in self._determine_filts_from_header(row):
+                filters[filt] = row
+
+        self.synth_psfs = {}
+        for filt, row in filters.items():
+            psf = create_synth_psf(
+                row,
+                filt,
+                npix=self.config.analysis.window_size,
+                output_directory=self.paths.aux_dir,
+            )
+            self.synth_psfs[filt] = psf
+
     def run(self, filenames, num_proc: int | None = None, force=False):
         """Run the pipeline
 
@@ -134,6 +164,7 @@ class Pipeline:
         self.add_paths_to_db(input_table)
         self.get_centroids()
         self.get_coordinate()
+        self.make_synth_psfs(input_table)
 
         working_table = self.determine_execution(input_table, force=force)
         if len(working_table) == 0:
@@ -218,28 +249,13 @@ class Pipeline:
         logger.debug("Starting frame analysis")
         config = self.config.analysis
 
-        mod = hdul[0].header["OBS-MOD"]
-        if mod.endswith("MBIR"):
-            filts = ("F670", "F720", "F760")
-        elif mod.endswith("MBI"):
-            filts = ("F610", "F670", "F720", "F760")
-        elif mod.endswith("SDI"):
-            filts = (hdul[0].header["FILTER02"],)
-        else:
-            filts = (hdul[0].header["FILTER01"],)
-
-        self.psfs = []
-        for filt in filts:
-            psf = create_synth_psf(
-                fileinfo, filt, npix=config.window_size, output_directory=self.paths.aux_dir
-            )
-            self.psfs.append(psf)
+        psfs = [self.synth_psfs[filt] for filt in self._determine_filts_from_header(fileinfo)]
 
         key = f"cam{fileinfo['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdul,
             centroids=self.centroids.get(key, None),
-            psfs=self.psfs,
+            psfs=psfs,
             subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
             ann_rad=config.ann_rad,
