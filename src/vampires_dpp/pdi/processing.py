@@ -16,7 +16,13 @@ from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs
 
-from .utils import instpol_correct, measure_instpol, measure_instpol_ann, write_stokes_products
+from .utils import (
+    instpol_correct,
+    measure_instpol,
+    measure_instpol_ann,
+    rotate_stokes,
+    write_stokes_products,
+)
 
 
 def polarization_calibration_triplediff(filenames: Sequence[str]):
@@ -383,6 +389,7 @@ def make_stokes_image(
     method="triplediff",
     mm_correct=True,
     ip_correct=True,
+    hwp_adi_sync=True,
     ip_radius=8,
     ip_radius2=8,
     ip_method="photometry",
@@ -418,8 +425,8 @@ def make_stokes_image(
         # mm correct
         if mm_correct:
             # get first row of diffed Mueller-matrix
-            mmQ = mmQs[i - 1, 0]
-            mmU = mmUs[i - 1, 0]
+            mmQ = mmQs[i, 0]
+            mmU = mmUs[i, 0]
 
             # correct IP
             Q -= mmQ[0] * I
@@ -430,11 +437,17 @@ def make_stokes_image(
             # correct cross-talk
             Sarr = np.array((Q.ravel(), U.ravel()))
             Marr = np.array((mmQ[1:3], mmU[1:3]))
-            res = np.linalg.lstsq(Marr.T, Sarr, rcond=None)[0]
+            res = np.linalg.lstsq(Marr, Sarr, rcond=None)[0]
             Q = res[0].reshape(I.shape[-2:])
             U = res[1].reshape(I.shape[-2:])
             stokes_frame = np.array((I, Q, U))
             stokes_frame_err = np.array((I_err, Q_err, U_err))
+        elif not hwp_adi_sync:
+            # if HWP ADI sync is off but we don't do Mueller correction
+            # we need to manually rotate stokes values by the derotation angle
+            stokes_frame = rotate_stokes(stokes_frame, stokes_header["DEROTANG"])
+            stokes_frame_err = rotate_stokes(stokes_frame_err, stokes_header["DEROTANG"])
+
         # second order IP correction
         if ip_correct:
             stokes_frame, stokes_header = polarization_ip_correct(

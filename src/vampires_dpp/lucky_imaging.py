@@ -249,7 +249,7 @@ def lucky_image_file(
     snr_hdu = fits.ImageHDU(snr, header=comb_header, name="SNR")
     hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     # add headers from each field
-    hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=field) for hdr in headers])
+    hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=hdr["FIELD"]) for hdr in headers])
     # write to disk
     logger.debug(f"Saving collapsed output to {outpath}")
     hdul.writeto(outpath, overwrite=True)

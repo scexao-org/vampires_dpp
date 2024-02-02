@@ -1,4 +1,6 @@
+import warnings
 from pathlib import Path
+from typing import Final
 
 import numpy as np
 import pandas as pd
@@ -11,8 +13,10 @@ from vampires_dpp.headers import sort_header
 
 from . import mueller_matrices as mm
 
-MM_KEY = "1x0sUawjWmySrsnSQ70VRYfewpgXAcyQMyrt6eley0rE"
+MM_KEY = "1i8TjHzQFMmxaUWrrqm1eYziyUanC6pweGGFzJPdfbiE"
 MM_URL = f"https://docs.google.com/spreadsheets/d/{MM_KEY}/gviz/tq?tqx=out:csv&sheet=downloadable"
+
+MBI_MM_DICT: Final[dict[str, str]] = {"F610": "625", "F670": "675", "F720": "725", "F760": "750"}
 
 
 def load_calibration_file(header):
@@ -20,8 +24,12 @@ def load_calibration_file(header):
         download_file(MM_URL, cache=True), header=0, index_col=0, dtype={"filter": str}
     )
     filt = header["FILTER01"]
-    # closest match to Open is 675
-    table_key = "675" if filt == "Open" else filt.replace("-50", "")
+    if "MBI" in header["OBS-MOD"]:
+        table_key = MBI_MM_DICT[header["FIELD"]] if "FIELD" in header else "675"
+    else:
+        # closest match to Open is 675
+        table_key = "675" if filt == "Open" else filt.replace("-50", "")
+
     return table.loc[table_key]
 
 
@@ -36,24 +44,7 @@ class VAMPIRESMuellerMatrix(BaseModel):
     optics_theta: float = 0  # deg
     optics_phi: float = 0  # wave
     flc_theta: dict[str, float] = {"A": 0, "B": 45}  # deg
-    flc_phi: float = 0.5  # wave
-
-    def evaluate(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
-        ## build up mueller matrix component by component
-        cp_mm = self.common_path_mm(header, hwp_adi_sync=hwp_adi_sync)
-
-        # FLC
-        flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
-        flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
-
-        # beamsplitter
-        is_ordinary = header["U_CAMERA"] == 1
-        pbs_mm = mm.wollaston(is_ordinary)
-        if is_ordinary:
-            pbs_mm *= self.pbs_ratio
-
-        M = pbs_mm @ flc_mm @ cp_mm
-        return M.astype("f4")
+    flc_phi: float = -0.5  # wave
 
     def common_path_mm(self, header, hwp_adi_sync=True):
         # telescope
@@ -84,6 +75,23 @@ class VAMPIRESMuellerMatrix(BaseModel):
         )
         return optics_mm @ imr_mm @ hwp_mm @ tel_mm
 
+    def evaluate(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
+        ## build up mueller matrix component by component
+        cp_mm = self.common_path_mm(header, hwp_adi_sync=hwp_adi_sync)
+
+        # FLC
+        flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
+        flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
+
+        # beamsplitter
+        is_ordinary = header["U_CAMERA"] == 1
+        pbs_mm = mm.wollaston(is_ordinary)
+        if is_ordinary:
+            pbs_mm *= self.pbs_ratio
+
+        M = pbs_mm @ flc_mm @ cp_mm
+        return M.astype("f4")
+
 
 class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
     @classmethod
@@ -106,10 +114,15 @@ class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
 
 
 class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
-    flc_theta: dict[str, float] = {"A": 0, "B": -45}  # deg
+    flc_theta: dict[str, float] = {"A": 0, "B": 43}  # deg
 
     def evaluate(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
         ## build up mueller matrix component by component
+        actual_hwp_adi_sync = header["RET-MOD1"].strip() == "SYNCHRO_ADI"
+        if hwp_adi_sync != actual_hwp_adi_sync:
+            msg = f"You set HWP ADI sync to {hwp_adi_sync!r} but the FITS headers suggest {actual_hwp_adi_sync!r}"
+            warnings.warn(msg, stacklevel=2)
+
         cp_mm = self.common_path_mm(header, hwp_adi_sync=hwp_adi_sync)
 
         # FLC
@@ -128,6 +141,20 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         M = pbs_mm @ flc_mm @ cp_mm
         return M.astype("f4")
 
+    @classmethod
+    def load_calib_file(cls, header):
+        table = load_calibration_file(header)
+        return cls(
+            name=table.name,
+            hwp_offset=table["hwp_delta"],
+            hwp_phi=table["hwp_phi"],
+            imr_offset=table["imr_delta"],
+            imr_phi=table["imr_phi"],
+            optics_diat=table["optics_diat"],
+            optics_theta=table["optics_theta"],
+            optics_phi=table["optics_phi"],
+        )
+
 
 def mueller_matrix_from_file(
     filename, outpath, force=False, hwp_adi_sync: bool = True, ideal: bool = False
@@ -142,14 +169,13 @@ def mueller_matrix_from_file(
     headers = []
     mms = []
     with fits.open(filename) as hdul:
-        for hdu in hdul[1:]:
+        for hdu in hdul[3:]:
             headers.append(hdu.header)
             if "U_MBI" in hdu.header:
                 if ideal:
                     mm_model = CMOSMuellerMatrix()
                 else:
-                    msg = "No calibrations completed for upgraded VAMPIRES, yet."
-                    raise NotImplementedError(msg)
+                    mm_model = CMOSMuellerMatrix.load_calib_file(hdu.header)
             else:
                 if ideal:
                     mm_model = EMCCDMuellerMatrix()
