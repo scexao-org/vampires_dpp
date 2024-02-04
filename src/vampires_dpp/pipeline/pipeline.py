@@ -11,7 +11,7 @@ from loguru import logger
 from tqdm.auto import tqdm
 
 from vampires_dpp.analysis import analyze_file
-from vampires_dpp.calib.calib_files import match_calib_files
+from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
 from vampires_dpp.image_processing import (
     collapse_frames,
@@ -40,6 +40,7 @@ class Pipeline:
         self.master_backgrounds = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}
         self.diff_files = None
+        self.calib_table = None
         self.config = config
         self.workdir = workdir if workdir is not None else Path.cwd()
         self.paths = Paths(workdir=self.workdir)
@@ -165,7 +166,6 @@ class Pipeline:
         self.get_centroids()
         self.get_coordinate()
         self.make_synth_psfs(input_table)
-
         working_table = self.determine_execution(input_table, force=force)
         if len(working_table) == 0:
             logger.success("Finished processing files (No files to process)")
@@ -175,17 +175,15 @@ class Pipeline:
             )
 
             if self.config.calibrate.calib_directory is not None:
-                cal_files = list(self.config.calibrate.calib_directory.glob("**/[!.]*.fits"))
-                if len(cal_files) > 0:
-                    calib_table = match_calib_files(working_table["path"], cal_files)
-                    working_table = pd.merge(working_table, calib_table, on="path")
+                self.calib_table = header_table(
+                    self.config.calibrate.calib_directory.glob("**/[!.]*.fits"), quiet=True
+                )
 
             ## For each file do
-            logger.info("Starting file-by-file processing")
             with mp.Pool(num_proc) as pool:
                 jobs = []
-                for row in working_table.itertuples(index=False):
-                    jobs.append(pool.apply_async(self.process_one, args=(row._asdict(),)))
+                for _, row in working_table.iterrows():
+                    jobs.append(pool.apply_async(self.process_one, args=(row,)))
 
                 for job in tqdm(jobs, desc="Processing files"):
                     job.get()
@@ -225,7 +223,12 @@ class Pipeline:
             outpath = Path(fileinfo["calib_file"])
             if not force and outpath.exists():
                 return fits.open(outpath)
-        back_filename = flat_filename = None
+        if self.calib_table is not None:
+            calib_match = match_calib_file(path, self.calib_table)
+            back_filename = calib_match["backfile"]
+            flat_filename = calib_match["flatfile"]
+        else:
+            back_filename = flat_filename = None
         if config.back_subtract and "backfile" in fileinfo:
             back_filename = fileinfo["backfile"]
         if config.flat_correct and "flatfile" in fileinfo:
@@ -248,7 +251,6 @@ class Pipeline:
     def analyze_one(self, hdul: fits.HDUList, fileinfo, force=False):
         logger.debug("Starting frame analysis")
         config = self.config.analysis
-
         psfs = [self.synth_psfs[filt] for filt in self._determine_filts_from_header(fileinfo)]
 
         key = f"cam{fileinfo['U_CAMERA']:.0f}"
@@ -274,6 +276,7 @@ class Pipeline:
                 astrometry = tomli.load(fh)
         else:
             astrometry = None
+        psfs = [self.synth_psfs[filt] for filt in self._determine_filts_from_header(fileinfo)]
         lucky_image_file(
             hdul,
             method=config.method,
@@ -292,7 +295,7 @@ class Pipeline:
             specphot=self.config.specphot,
             aux_dir=self.paths.aux_dir,
             window=self.config.analysis.window_size,
-            psfs=self.psfs,
+            psfs=psfs,
         )
         logger.debug("Data collapsing completed")
         logger.debug(f"Saved collapsed data to {outpath}")
@@ -457,12 +460,18 @@ class Pipeline:
                 if stokes_set is not None:
                     full_paths.append(tuple(sorted(stokes_set.values())))
 
-        full_path_set = list(set(paths for paths in full_paths))
+        full_path_set = list(set(full_paths))
 
-        stokes_files = [
-            self.paths.stokes_dir / f"{self.config.name}_stokes_{i:03d}.fits"
-            for i in range(len(full_path_set))
-        ]
+        stokes_files = []
+        # stokes_sets_path = self.paths.pdi_dir / f"{self.config.name}_stokes_sets.txt"
+        # with stokes_sets_path.open("w") as fh:
+        #     fh.write("CYC\tIDX\tUT\tPA\tIMR\tHWP\tFLC\tCAM\tPATH\n")
+        for i, _ in enumerate(full_path_set):
+            out_name = self.paths.stokes_dir / f"{self.config.name}_stokes_{i:03d}.fits"
+            stokes_files.append(out_name)
+            # fh.write(stokes_info_lines(path_set, set_index=i))
+            # fh.write("\n")
+        # logger.info(f"Saved HWP cycle combinations to {stokes_sets_path}")
         # peek to get nfields
         with fits.open(full_path_set[0][0]) as hdul:
             nfields = hdul[0].shape[0]

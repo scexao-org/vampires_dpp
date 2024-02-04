@@ -12,6 +12,7 @@ from reproject import reproject_interp
 
 from vampires_dpp.headers import sort_header
 from vampires_dpp.image_processing import combine_frames_headers, derotate_cube, derotate_frame
+from vampires_dpp.organization import header_table
 from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs
@@ -340,7 +341,8 @@ TRIPLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), ("A", "B"), (1, 2))
 def get_triplediff_set(table, row) -> dict | None:
     time_arr = Time(table["MJD"], format="mjd")
     row_time = Time(row["MJD"], format="mjd")
-    deltatime = np.abs([diff.jd for diff in row_time - time_arr])
+    delta_angs = np.abs(table["PA"] - row["PA"])
+    delta_time = np.abs([diff.jd for diff in row_time - time_arr])
     row_key = (row["RET-ANG1"], row["U_FLC"], row["U_CAMERA"])
     remaining_keys = TRIPLEDIFF_SETS - set(row_key)
     output_set = {row_key: row["path"]}
@@ -349,10 +351,10 @@ def get_triplediff_set(table, row) -> dict | None:
             (table["RET-ANG1"] == key[0])
             & (table["U_FLC"] == key[1])
             & (table["U_CAMERA"] == key[2])
-            & (deltatime < 0.00347)  # 5 minutes
+            & (delta_angs < 1.2)  # 1 l/D rotation @ 45 l/d sep
         )
         if np.any(mask):
-            idx = deltatime[mask].argmin()
+            idx = delta_time[mask].argmin()
         else:
             return None
 
@@ -364,16 +366,17 @@ def get_triplediff_set(table, row) -> dict | None:
 def get_doublediff_set(table, row) -> dict | None:
     time_arr = Time(table["MJD"], format="mjd")
     row_time = Time(row["MJD"], format="mjd")
-    deltatime = np.abs([diff.jd for diff in row_time - time_arr])
+    delta_angs = np.abs(table["PA"] - row["PA"])
+    delta_time = np.abs([diff.jd for diff in row_time - time_arr])
     row_key = (row["RET-ANG1"], row["U_CAMERA"])
     remaining_keys = DOUBLEDIFF_SETS - set(row_key)
     output_set = {row_key: row["path"]}
     for key in remaining_keys:
         mask = (
-            (table["RET-ANG1"] == key[0]) & (table["U_CAMERA"] == key[1]) & (deltatime < 0.00347)
+            (table["RET-ANG1"] == key[0]) & (table["U_CAMERA"] == key[1]) & (delta_angs < 1.2)
         )  # 5 minutes
         if np.any(mask):
-            idx = deltatime[mask].argmin()
+            idx = delta_time[mask].argmin()
         else:
             return None
 
@@ -498,3 +501,17 @@ def polarization_ip_correct(stokes_data, phot_rad, method, header=None):
         header["IP_PU"] = pU, "I -> U IP correction value"
         header["IP_METH"] = method, "IP measurement method"
     return stokes_data, header
+
+
+def stokes_info_lines(fileset, set_index: int):
+    table = header_table(fileset, fix=False, quiet=True)
+    cols = ["UT", "PA", "D_IMRANG", "RET-ANG1", "U_FLC", "U_CAMERA", "path"]
+    sub_table = table[cols]
+    output = ""
+    i = 0
+    for _, row in sub_table.sort_values(["UT", "U_FLC", "U_CAMERA"]).iterrows():
+        line = f"{set_index}\t{i}\t" + "\t".join(map(str, row))
+        output += f"{line}\n"
+        i += 1
+
+    return output + "\n"

@@ -1,7 +1,6 @@
 # library functions for common calibration tasks like
 # background subtraction, collapsing cubes
 import functools
-import itertools
 import multiprocessing as mp
 import warnings
 from collections.abc import Iterable
@@ -10,7 +9,6 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
-import pandas as pd
 from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.time import Time
@@ -27,7 +25,7 @@ from vampires_dpp.util import load_fits, load_fits_header
 __all__ = (
     "make_background_file",
     "make_flat_file",
-    "match_calib_files",
+    "match_calib_file",
     "process_background_files",
     "process_flat_files",
 )
@@ -151,59 +149,55 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
     return outpath
 
 
-def match_calib_files(filenames, calib_files):
-    cal_table = header_table(calib_files, quiet=True)
-    rows = []
-    for path in tqdm(map(Path, filenames), total=len(filenames), desc="Matching calibration files"):
-        hdr = fix_header(load_fits_header(path))
-        obstime = Time(hdr["MJD"], format="mjd", scale="utc")
-        keys_to_match = ("PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "U_CAMERA")
-        subset = cal_table.query(" and ".join(f"`{k}` == {hdr[k]}" for k in keys_to_match))
-        if len(subset) == 0:
-            rows.append(dict(path=str(path.absolute()), backfile=None, flatfile=None))
-            continue
+def match_calib_file(filename, calib_table):
+    path = Path(filename)
+    hdr = fix_header(load_fits_header(path))
+    obstime = Time(hdr["MJD"], format="mjd", scale="utc")
+    keys_to_match = ("PRD-MIN1", "PRD-MIN2", "PRD-RNG1", "PRD-RNG2", "U_CAMERA")
+    subset = calib_table.query(" and ".join(f"`{k}` == {hdr[k]}" for k in keys_to_match))
+    if len(subset) == 0:
+        return dict(backfile=None, flatfile=None)
 
-        # background files
-        back_mask = subset["CALTYPE"] == "BACKGROUND"
-        if np.any(back_mask):
-            if "U_EMGAIN" in cal_table.columns:
-                mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
-            else:
-                mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
+    # background files
+    back_mask = subset["CALTYPE"] == "BACKGROUND"
+    if np.any(back_mask):
+        if "U_EMGAIN" in calib_table.columns:
+            mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
+        else:
+            mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
+        if np.any(back_mask & mask):
+            back_mask &= mask
+            mask = np.abs(subset["EXPTIME"] - hdr["EXPTIME"]) < 0.1
             if np.any(back_mask & mask):
                 back_mask &= mask
-                mask = np.abs(subset["EXPTIME"] - hdr["EXPTIME"]) < 0.1
-                if np.any(back_mask & mask):
-                    back_mask &= mask
-            back_subset = subset.loc[back_mask]
-            delta_time = Time(back_subset["MJD"], format="mjd", scale="utc") - obstime
-            back_path = back_subset["path"].iloc[np.abs(delta_time.jd).argmin()]
-        else:
-            back_path = None
+        back_subset = subset.loc[back_mask]
+        delta_time = Time(back_subset["MJD"], format="mjd", scale="utc") - obstime
+        back_path = back_subset["path"].iloc[np.abs(delta_time.jd).argmin()]
+    else:
+        back_path = None
 
-        # flat files
-        flat_mask = subset["CALTYPE"] == "FLAT"
-        if flat_mask.any():
-            if "U_EMGAIN" in cal_table.columns:
-                mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
-            else:
-                mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
+    # flat files
+    flat_mask = subset["CALTYPE"] == "FLAT"
+    if flat_mask.any():
+        if "U_EMGAIN" in calib_table.columns:
+            mask = subset["U_EMGAIN"] == hdr["U_EMGAIN"]
+        else:
+            mask = subset["U_DETMOD"] == hdr["U_DETMOD"]
+        if np.any(flat_mask & mask):
+            flat_mask &= mask
+            mask = subset["FILTER01"] == hdr["FILTER01"]
             if np.any(flat_mask & mask):
                 flat_mask &= mask
-                mask = subset["FILTER01"] == hdr["FILTER01"]
+                mask = subset["FILTER02"] == hdr["FILTER02"]
                 if np.any(flat_mask & mask):
                     flat_mask &= mask
-                    mask = subset["FILTER02"] == hdr["FILTER02"]
-                    if np.any(flat_mask & mask):
-                        flat_mask &= mask
-            flat_subset = subset.loc[flat_mask]
-            delta_time = Time(flat_subset["MJD"], format="mjd", scale="utc") - obstime
-            flat_path = flat_subset["path"].iloc[np.abs(delta_time.jd).argmin()]
-        else:
-            flat_path = None
+        flat_subset = subset.loc[flat_mask]
+        delta_time = Time(flat_subset["MJD"], format="mjd", scale="utc") - obstime
+        flat_path = flat_subset["path"].iloc[np.abs(delta_time.jd).argmin()]
+    else:
+        flat_path = None
 
-        rows.append(dict(path=str(path.absolute()), backfile=back_path, flatfile=flat_path))
-    return pd.DataFrame(rows)
+    return dict(backfile=back_path, flatfile=flat_path)
 
 
 def process_background_files(
@@ -250,17 +244,15 @@ def process_flat_files(
         outdir = Path.cwd() / "flat"
 
     if background_files is not None:
-        calib_match_table = match_calib_files(filenames, background_files)
-        mapping = zip(calib_match_table["path"], calib_match_table["backfile"], strict=True)
-    else:
-        mapping = zip(filenames, itertools.repeat(None), strict=False)
+        calib_table = header_table(background_files, quiet=True)
     with mp.Pool(num_proc) as pool:
         jobs = []
-        for path, back_path in mapping:
+        for path in filenames:
+            calib_match = match_calib_file(path, calib_table)
             func = functools.partial(
                 make_flat_file,
                 path,
-                back_filename=back_path,
+                back_filename=calib_match["backfile"],
                 output_directory=outdir,
                 method=collapse,
                 force=force,
