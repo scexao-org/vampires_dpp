@@ -133,8 +133,6 @@ def sort_file(
         shutil.copy(path, newname)
     else:
         path.replace(newname)
-    if decompress:
-        raise NotImplementedError()
     return newname
 
 
