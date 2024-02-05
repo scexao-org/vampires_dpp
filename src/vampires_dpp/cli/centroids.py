@@ -179,7 +179,7 @@ def create_raw_input_psfs(table, basename: Path, max_files=5) -> dict[str, Path]
     # group by cameras
     outfiles = {}
     for cam_num, group in table.groupby("U_CAMERA"):
-        paths = group["path"].sample(n=max_files)
+        paths = group["path"].sample(n=min(len(group), max_files))
         outname = basename.with_name(f"{basename.name}_cam{cam_num:.0f}.fits")
         outfile = collapse_frames_files(paths, output=outname, cubes=True, fix=True, quiet=False)
         outfiles[f"cam{cam_num:.0f}"] = outfile
