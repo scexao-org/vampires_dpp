@@ -40,14 +40,27 @@ __all__ = ("sort_raw", "table", "upgrade")
 @click.option(
     "--copy/--no-copy",
     "-c/-nc",
-    default=False,
+    default=True,
     prompt="Would you like to copy files?",
     help="copy files instead of moving them",
 )
+@click.option(
+    "-d",
+    "--decompress",
+    is_flag=True,
+    prompt=True,
+    help="Would you like to decompress .fits.gz files while copying?",
+)
 @click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
-def sort_raw(filenames, outdir, num_proc=1, ext=0, copy=False, quiet=False):
+def sort_raw(filenames, outdir, num_proc=1, ext=0, copy=False, quiet=False, decompress=False):
     sort_files(
-        filenames, copy=copy, ext=ext, output_directory=outdir, num_proc=num_proc, quiet=quiet
+        filenames,
+        copy=copy,
+        ext=ext,
+        output_directory=outdir,
+        num_proc=num_proc,
+        quiet=quiet,
+        decompress=decompress,
     )
 
 

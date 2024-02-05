@@ -120,7 +120,7 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         ## build up mueller matrix component by component
         actual_hwp_adi_sync = header["RET-MOD1"].strip() == "SYNCHRO_ADI"
         if hwp_adi_sync != actual_hwp_adi_sync:
-            msg = f"You set HWP ADI sync to {hwp_adi_sync!r} but the FITS headers suggest {actual_hwp_adi_sync!r}"
+            msg = f"You set HWP ADI sync to {hwp_adi_sync!r} but RET-MOD1 was {header['RET-MOD1'].strip()!r}"
             warnings.warn(msg, stacklevel=2)
 
         cp_mm = self.common_path_mm(header, hwp_adi_sync=hwp_adi_sync)

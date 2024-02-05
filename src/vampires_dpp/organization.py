@@ -91,13 +91,14 @@ def sort_files(
     output_directory: PathLike | None = None,
     num_proc: int = min(8, mp.cpu_count()),
     quiet: bool = False,
+    decompress: bool = False,
     **kwargs,
 ) -> list[Path]:
     outdir = Path(output_directory) if output_directory is not None else Path(filenames[0]).parent
     jobs = []
     with mp.Pool(num_proc) as pool:
         for filename in filenames:
-            kwds = dict(outdir=outdir, copy=copy, **kwargs)
+            kwds = dict(outdir=outdir, copy=copy, decompress=decompress, **kwargs)
             jobs.append(pool.apply_async(sort_file, args=(filename,), kwds=kwds))
 
         iter = jobs if quiet else tqdm(jobs, desc="Sorting files")
@@ -106,7 +107,9 @@ def sort_files(
     return results
 
 
-def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs) -> Path:
+def sort_file(
+    filename: PathLike, outdir: PathLike, copy: bool = False, decompress: bool = False, **kwargs
+) -> Path:
     path = Path(filename)
     header = load_fits_header(path, **kwargs)
 
@@ -125,6 +128,8 @@ def sort_file(filename: PathLike, outdir: PathLike, copy: bool = False, **kwargs
         shutil.copy(path, newname)
     else:
         path.replace(newname)
+    if decompress:
+        raise NotImplementedError()
     return newname
 
 
