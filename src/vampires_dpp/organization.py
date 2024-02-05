@@ -124,7 +124,12 @@ def sort_file(
 
     newname = foldname / path.name
     foldname.mkdir(parents=True, exist_ok=True)
-    if copy:
+    if decompress:
+        newname = foldname / path.name.replace(".fits.fz", ".fits")
+        if not newname.exists():
+            with fits.open(path) as hdul:
+                fits.writeto(newname, hdul[1].data, header=hdul[1].header)
+    elif copy:
         shutil.copy(path, newname)
     else:
         path.replace(newname)
