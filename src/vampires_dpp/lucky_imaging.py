@@ -35,12 +35,12 @@ def get_frame_select_mask(metrics, input_key, quantile=0):
     values = metrics[frame_select_key]
     # get the quantile along the time dimension
     cutoff = np.nanquantile(values, quantile, axis=-1, keepdims=True)
-    # get mask by tossing if _any_ field or psf is below spec.
+    # get mask by tossing if _all_ field or psf is below spec.
     # this way mask can be applied to time dimension
     if input_key == "fwhm":
-        return np.all(values < cutoff, axis=(0, 1))
+        return np.any(values <= cutoff, axis=(0, 1))
     else:
-        return np.all(values > cutoff, axis=(0, 1))
+        return np.any(values >= cutoff, axis=(0, 1))
 
 
 def get_centroids_from(metrics, input_key):

@@ -75,6 +75,6 @@ def save_filter_fits(filt: SpectralElement, outpath: Path, force=False) -> Path:
     if not force and outpath.exists():
         return outpath
     filt.to_fits(outpath, overwrite=True)
-    with fits.open(outpath, "update") as hdul:
-        update_header_with_filt_info(hdul[0].header)
+    # with fits.open(outpath, "update") as hdul:
+    #     update_header_with_filt_info(hdul[0].header)
     return outpath
