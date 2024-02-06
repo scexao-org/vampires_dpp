@@ -351,7 +351,7 @@ def get_triplediff_set(table, row) -> dict | None:
             (table["RET-ANG1"] == key[0])
             & (table["U_FLC"] == key[1])
             & (table["U_CAMERA"] == key[2])
-            & (delta_angs < 1.2)  # 1 l/D rotation @ 45 l/d sep
+            & (delta_angs < 2)  # 1 l/D rotation @ 45 l/d sep
         )
         if np.any(mask):
             idx = delta_time[mask].argmin()
@@ -373,7 +373,7 @@ def get_doublediff_set(table, row) -> dict | None:
     output_set = {row_key: row["path"]}
     for key in remaining_keys:
         mask = (
-            (table["RET-ANG1"] == key[0]) & (table["U_CAMERA"] == key[1]) & (delta_angs < 1.2)
+            (table["RET-ANG1"] == key[0]) & (table["U_CAMERA"] == key[1]) & (delta_angs < 2)
         )  # 5 minutes
         if np.any(mask):
             idx = delta_time[mask].argmin()
@@ -445,6 +445,16 @@ def make_stokes_image(
             U = res[1].reshape(I.shape[-2:])
             stokes_frame = np.array((I, Q, U))
             stokes_frame_err = np.array((I_err, Q_err, U_err))
+            poleff_Q = np.hypot(mmQ[1], mmU[1])
+            poleff_U = np.hypot(mmQ[2], mmU[2])
+            poleff_QU = np.sqrt(0.5 * (mmQ[1] + mmQ[2]) ** 2 + 0.5 * (mmU[1] + mmU[2]) ** 2)
+            stokes_header["POL_PQ"] = mmQ[0], "DPP IP (I -> Q) from Mueller model"
+            stokes_header["POL_PU"] = mmU[0], "DPP IP (I -> U) from Mueller model"
+            stokes_header["POL_EFF"] = (
+                np.mean((poleff_Q, poleff_U, poleff_QU)),
+                "DPP polarimetric efficiency from Mueller model",
+            )
+
         elif not hwp_adi_sync:
             # if HWP ADI sync is off but we don't do Mueller correction
             # we need to manually rotate stokes values by the derotation angle
