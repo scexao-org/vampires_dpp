@@ -111,7 +111,7 @@ def lucky_image_file(
     centroids,
     metric_file: Path,
     method: str = "median",
-    register: Literal["com", "peak", "gauss", "dft"] | None = "com",
+    register: Literal["com", "peak", "gauss", "dft"] | None = None,
     frame_select: Literal["peak", "normvar", "var", "fwhm"] | None = None,
     force: bool = False,
     recenter: Literal["com", "peak", "gauss", "dft"] | None = None,
@@ -154,6 +154,8 @@ def lucky_image_file(
     # mask metrics
     masked_metrics = metrics
     if frame_select and select_cutoff > 0:
+        header["FS_METH"] = frame_select, "DPP frame selection method"
+        header["FS_cut"] = select_cutoff, "DPP frame selection cutoff quantile"
         mask = get_frame_select_mask(metrics, input_key=frame_select, quantile=select_cutoff)
         masked_metrics = {key: metric[..., mask] for key, metric in metrics.items()}
         # frame select this cube
@@ -162,17 +164,20 @@ def lucky_image_file(
 
     N = len(cube)
 
-    if register:
+    if register is not None:
         psf_centroids = get_centroids_from(masked_metrics, input_key=register)
+        header["REG_METH"] = register, "DPP registration method"
     elif "MBIR" in header["OBS-MOD"]:
         ctr_dict = get_mbi_centers(cube, reduced=True)
-        psf_centroids = [ctr_dict[k] for k in fields]
+        center = [ctr_dict[k] for k in fields]
+        psf_centroids = np.tile(center, (1, len(cube), 1))
     elif "MBI" in header["OBS-MOD"]:
         ctr_dict = get_mbi_centers(cube)
-        psf_centroids = [ctr_dict[k] for k in fields]
+        center = [ctr_dict[k] for k in fields]
+        psf_centroids = np.tile(center, (1, len(cube), 1))
     else:
-        psf_centroids = [frame_center(cube)]
-
+        center = [frame_center(cube)]
+        psf_centroids = np.tile(center, (1, len(cube), 1))
     frames = []
     frame_errs = []
     headers = []
@@ -201,7 +206,7 @@ def lucky_image_file(
                 aligned_err_frames.append(shifted_err)
             else:
                 aligned_frames.append(cutout.data)
-                aligned_err_frames.append(shifted_err)
+                aligned_err_frames.append(cutout_err.data)
         ## Step 3: Collapse
         coll_frame, header = collapse_cube(np.array(aligned_frames), header=header, method=method)
         # collapse error in quadrature
@@ -211,6 +216,7 @@ def lucky_image_file(
             recenter_offset = get_recenter_offset(
                 coll_frame, method=recenter, offsets=offs, window=window, psf=psfs[i]
             )
+            header["REC_METH"] = register, "DPP recenter method"
             coll_frame = shift_frame(coll_frame, recenter_offset)
             coll_err_frame = shift_frame(coll_err_frame, recenter_offset)
         hdr = header.copy()

@@ -77,6 +77,7 @@ def calibrate_file(
             header["NOISE"] = back_hdr["NOISE"], back_hdr.comments["NOISE"]
         cube -= background
     else:
+        cube -= header["BIAS"]
         back_err = 0
     cube_err = np.sqrt(np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2)
     # flat correction

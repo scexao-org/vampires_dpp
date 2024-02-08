@@ -75,14 +75,14 @@ def analyze_fields(
     ann_rad=None,
     strehl: bool = False,
     window_size=30,
-    dft_factor=10,
+    dft_factor=30,
     psf=None,
     **kwargs,
 ):
     output = {}
     cutout = cube[inds]
     cube_err[inds]
-    radii = np.arange(1, window_size)
+    radii = np.arange(window_size)
     ## Simple statistics
     output["max"] = np.nanmax(cutout, axis=(-2, -1))
     output["sum"] = np.nansum(cutout, axis=(-2, -1))

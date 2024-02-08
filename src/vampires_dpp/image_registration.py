@@ -19,7 +19,7 @@ def offset_dft(frame, inds, psf, *, upsample_factor):
     return ctr
 
 
-def offset_centroids(frame, frame_err, inds, psf=None, dft_factor=100):
+def offset_centroids(frame, frame_err, inds, psf=None, dft_factor=30):
     """NaN-friendly centroids"""
     # wy, wx = np.ogrid[inds[-2], inds[-1]]
     cutout = frame[inds]
