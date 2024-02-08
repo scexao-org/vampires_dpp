@@ -87,12 +87,12 @@ def radial_stokes(stokes_cube: ArrayLike, stokes_err: ArrayLike | None = None, p
 
     cos2t = np.cos(2 * (thetas + phi))
     sin2t = np.sin(2 * (thetas + phi))
-    Qphi = -cos2t * stokes_cube[1] - sin2t * stokes_cube[2]
-    Uphi = sin2t * stokes_cube[1] - cos2t * stokes_cube[2]
+    Qphi = -cos2t * stokes_cube[2] - sin2t * stokes_cube[3]
+    Uphi = sin2t * stokes_cube[2] - cos2t * stokes_cube[3]
 
     if stokes_err is not None:
-        Qphi_err = np.hypot(cos2t * stokes_err[1], sin2t * stokes_err[2])
-        Uphi_err = np.hypot(sin2t * stokes_err[1], cos2t * stokes_err[2])
+        Qphi_err = np.hypot(cos2t * stokes_err[2], sin2t * stokes_err[3])
+        Uphi_err = np.hypot(sin2t * stokes_err[2], cos2t * stokes_err[3])
     else:
         Qphi_err = Uphi_err = np.full_like(Qphi, np.nan)
 
@@ -103,8 +103,8 @@ def rotate_stokes(stokes_cube, theta):
     out = stokes_cube.copy()
     sin2ts = np.sin(2 * theta)
     cos2ts = np.cos(2 * theta)
-    out[1] = stokes_cube[1] * cos2ts - stokes_cube[2] * sin2ts
-    out[2] = stokes_cube[1] * sin2ts + stokes_cube[2] * cos2ts
+    out[1] = stokes_cube[2] * cos2ts - stokes_cube[3] * sin2ts
+    out[2] = stokes_cube[2] * sin2ts + stokes_cube[3] * cos2ts
     return out
 
 
@@ -125,9 +125,11 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
         hdr = hdul[3 + i].header
         hdr["CTYPE3"] = "STOKES"
         if planetary:
-            hdr["STOKES"] = "I,Q,U,QR,UR,LP_I,AOLP", "Stokes axis data type"
+            stokes_keys = "I_Q", "I_U", "Q", "U", "Q_R", "U_R", "LP_I", "AOLP"
         else:
-            hdr["STOKES"] = "I,Q,U,QPHI,UPHI,LP_I,AOLP", "Stokes axis data type"
+            stokes_keys = "I_Q", "I_U", "Q", "U", "Q_PHI", "U_PHI", "LP_I", "AOLP"
+
+        hdr["STOKES"] = ",".join(stokes_keys), "Stokes axis data type"
         if phi != 0:
             hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
 
@@ -154,8 +156,8 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
 
 
 def stokes_products(stokes_frame, stokes_err, phi=0, planetary: bool = False):
-    pi = np.hypot(stokes_frame[2], stokes_frame[1])
-    aolp = np.arctan2(stokes_frame[2], stokes_frame[1])
+    pi = np.hypot(stokes_frame[3], stokes_frame[2])
+    aolp = 0.5 * np.arctan2(stokes_frame[3], stokes_frame[2])
     Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(stokes_frame, stokes_err, phi=phi)
     # radial Stokes is just negative of azimuthal stokes
     if planetary:
@@ -165,14 +167,12 @@ def stokes_products(stokes_frame, stokes_err, phi=0, planetary: bool = False):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         pi_err = np.hypot(
-            stokes_frame[2] * stokes_err[2], stokes_frame[1] * stokes_err[1]
+            stokes_frame[3] * stokes_err[3], stokes_frame[2] * stokes_err[2]
         ) / np.abs(pi)
         aolp_err = (
-            np.hypot(stokes_frame[1] * stokes_err[2], stokes_frame[2] * stokes_err[1]) / pi**2
+            np.hypot(stokes_frame[2] * stokes_err[3], stokes_frame[3] * stokes_err[2]) / pi**2
         )
 
-    data = np.asarray((stokes_frame[0], stokes_frame[1], stokes_frame[2], Qphi, Uphi, pi, aolp))
-    data_err = np.asarray(
-        (stokes_err[0], stokes_err[1], stokes_err[2], Qphi_err, Uphi_err, pi_err, aolp_err)
-    )
+    data = np.asarray((*stokes_frame, Qphi, Uphi, pi, aolp))
+    data_err = np.asarray((*stokes_err, Qphi_err, Uphi_err, pi_err, aolp_err))
     return data, data_err

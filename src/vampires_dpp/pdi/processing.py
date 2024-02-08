@@ -17,13 +17,7 @@ from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs
 
-from .utils import (
-    instpol_correct,
-    measure_instpol,
-    measure_instpol_ann,
-    rotate_stokes,
-    write_stokes_products,
-)
+from .utils import measure_instpol, measure_instpol_ann, rotate_stokes, write_stokes_products
 
 
 def polarization_calibration_triplediff(filenames: Sequence[str]):
@@ -99,7 +93,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     # swap stokes and field axes so field is first
     stokes_cube = np.swapaxes(stokes_cube, 0, 1)
     stokes_err = np.sqrt(np.sum(np.power(list(cube_errs.values()), 2), axis=0)) / 16
-    stokes_err = np.swapaxes((stokes_err, stokes_err, stokes_err), 0, 1)
+    stokes_err = np.swapaxes((stokes_err, stokes_err, stokes_err, stokes_err), 0, 1)
 
     stokes_hdrs: dict[str, fits.Header] = {}
     for key, hdrs in headers.items():
@@ -168,11 +162,11 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
             order="bicubic",
         )
 
-    I, Q, U = double_diff_dict(cube_dict)  # noqa: E741
+    stokes_cube = double_diff_dict(cube_dict)
     # swap stokes and field axes so field is first
-    stokes_cube = np.swapaxes((I, Q, U), 0, 1)
+    stokes_cube = np.swapaxes(stokes_cube, 0, 1)
     stokes_err = np.sqrt(np.sum(np.power(list(cube_errs.values()), 2), axis=0)) / 8
-    stokes_err = np.swapaxes((stokes_err, stokes_err, stokes_err), 0, 1)
+    stokes_err = np.swapaxes((stokes_err, stokes_err, stokes_err, stokes_err), 0, 1)
 
     stokes_hdrs: dict[str, fits.Header] = {}
     for key, hdrs in headers.items():
@@ -260,9 +254,8 @@ def triple_diff_dict(input_dict):
     IQ = 0.5 * (pIQ + mIQ)
     U = 0.5 * (pU - mU)
     IU = 0.5 * (pIU + mIU)
-    I = 0.5 * (IQ + IU)  # noqa: E741
 
-    return I, Q, U
+    return IQ, IU, Q, U
 
 
 def double_diff_dict(input_dict):
@@ -285,9 +278,8 @@ def double_diff_dict(input_dict):
     IQ = 0.5 * (pIQ + mIQ)
     U = 0.5 * (pU - mU)
     IU = 0.5 * (pIU + mIU)
-    I = 0.5 * (IQ + IU)  # noqa: E741
 
-    return I, Q, U
+    return IQ, IU, Q, U
 
 
 def mueller_matrix_calibration(mueller_matrices: NDArray, cube: NDArray) -> NDArray:
@@ -406,12 +398,12 @@ def make_stokes_image(
         stokes_hdul = polarization_calibration_triplediff(path_set)
         if mm_correct:
             mm_dict = make_triplediff_dict(mm_paths)
-            _, mmQs, mmUs = triple_diff_dict(mm_dict)
+            _, _, mmQs, mmUs = triple_diff_dict(mm_dict)
     elif method == "doublediff":
         stokes_hdul = polarization_calibration_doublediff(path_set)
         if mm_correct:
             mm_dict = make_doublediff_dict(mm_paths)
-            _, mmQs, mmUs = double_diff_dict(mm_dict)
+            _, _, mmQs, mmUs = double_diff_dict(mm_dict)
     else:
         msg = f"Unrecognized method {method}"
         raise ValueError(msg)
@@ -422,8 +414,8 @@ def make_stokes_image(
     prim_hdr = stokes_hdul[0].header
     headers = [stokes_hdul[i].header for i in range(3, len(stokes_hdul))]
     for i in range(stokes_data.shape[0]):
-        I, Q, U = stokes_frame = stokes_data[i]  # noqa: E741
-        I_err, Q_err, U_err = stokes_frame_err = stokes_err[i]
+        IQ, IU, Q, U = stokes_frame = stokes_data[i]  # noqa: E741
+        IQ_err, IU_err, Q_err, U_err = stokes_frame_err = stokes_err[i]
         stokes_header = headers[i]
         # mm correct
         if mm_correct:
@@ -432,19 +424,19 @@ def make_stokes_image(
             mmU = mmUs[i, 0]
 
             # correct IP
-            Q -= mmQ[0] * I
-            U -= mmU[0] * I
-            Q_err = np.hypot(Q_err, mmQ[0] * I_err)
-            U_err = np.hypot(U_err, mmU[0] * I_err)
+            Q -= mmQ[0] * IQ
+            U -= mmU[0] * IU
+            Q_err = np.hypot(Q_err, mmQ[0] * IQ_err)
+            U_err = np.hypot(U_err, mmU[0] * IU_err)
 
             # correct cross-talk
             Sarr = np.array((Q.ravel(), U.ravel()))
             Marr = np.array((mmQ[1:3], mmU[1:3]))
             res = np.linalg.lstsq(Marr, Sarr, rcond=None)[0]
-            Q = res[0].reshape(I.shape[-2:])
-            U = res[1].reshape(I.shape[-2:])
-            stokes_frame = np.array((I, Q, U))
-            stokes_frame_err = np.array((I_err, Q_err, U_err))
+            Q = res[0].reshape(IQ.shape[-2:])
+            U = res[1].reshape(IU.shape[-2:])
+            stokes_frame = np.array((IQ, IU, Q, U))
+            stokes_frame_err = np.array((IQ_err, IU_err, Q_err, U_err))
             poleff_Q = np.hypot(mmQ[1], mmU[1])
             poleff_U = np.hypot(mmQ[2], mmU[2])
             poleff_QU = np.sqrt(0.5 * (mmQ[1] + mmQ[2]) ** 2 + 0.5 * (mmU[1] + mmU[2]) ** 2)
@@ -470,10 +462,10 @@ def make_stokes_image(
                 header=stokes_header,
             )
             pQ, pU = stokes_header["IP_PQ"], stokes_header["IP_PU"]
-            stokes_frame_err[1] = np.hypot(stokes_frame_err[1], pQ * stokes_frame_err[0])
-            stokes_frame_err[2] = np.hypot(stokes_frame_err[2], pU * stokes_frame_err[0])
+            stokes_frame_err[2] = np.hypot(stokes_frame_err[2], pQ * stokes_frame_err[0])
+            stokes_frame_err[3] = np.hypot(stokes_frame_err[3], pU * stokes_frame_err[1])
         stokes_header["CTYPE3"] = "STOKES"
-        stokes_header["STOKES"] = "I,Q,U", "Stokes axis data type"
+        stokes_header["STOKES"] = "I_Q,I_U,Q,U", "Stokes axis data type"
         stokes_data[i] = stokes_frame
         stokes_outerr[i] = stokes_frame_err
         headers[i] = stokes_header
@@ -498,13 +490,14 @@ def make_stokes_image(
 
 def polarization_ip_correct(stokes_data, phot_rad, method, header=None):
     if method == "aperture":
-        pQ = measure_instpol(stokes_data[0], stokes_data[1], r=phot_rad[0])
-        pU = measure_instpol(stokes_data[0], stokes_data[2], r=phot_rad[0])
+        pQ = measure_instpol(stokes_data[0], stokes_data[2], r=phot_rad[0])
+        pU = measure_instpol(stokes_data[1], stokes_data[3], r=phot_rad[0])
     elif method == "annulus":
-        pQ = measure_instpol_ann(stokes_data[0], stokes_data[1], Rin=phot_rad[0], Rout=phot_rad[1])
-        pU = measure_instpol_ann(stokes_data[0], stokes_data[2], Rin=phot_rad[0], Rout=phot_rad[1])
+        pQ = measure_instpol_ann(stokes_data[0], stokes_data[2], Rin=phot_rad[0], Rout=phot_rad[1])
+        pU = measure_instpol_ann(stokes_data[1], stokes_data[3], Rin=phot_rad[0], Rout=phot_rad[1])
 
-    stokes_data[:3] = instpol_correct(stokes_data[:3], pQ, pU)
+    stokes_data[2] -= pQ * stokes_data[0]
+    stokes_data[3] -= pU * stokes_data[1]
 
     if header is not None:
         header["IP_PQ"] = pQ, "I -> Q IP correction value"
