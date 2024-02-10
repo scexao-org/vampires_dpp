@@ -44,27 +44,26 @@ class VAMPIRESMuellerMatrix(BaseModel):
     optics_theta: float = 0  # deg
     optics_phi: float = 0  # wave
     flc_theta: dict[str, float] = {"A": 0, "B": 45}  # deg
-    flc_phi: float = -0.5  # wave
+    flc_phi: float = 0.5  # wave
 
-    def common_path_mm(self, header, hwp_adi_sync=True):
+    def common_path_mm(self, pa, alt, az, hwp, imr, hwp_adi_sync=True):
         # telescope
-        alt = np.deg2rad(header["ALTITUDE"])
-        pa = np.deg2rad(header["PA"])
-        tel_mm = mm.rotator(-alt) @ mm.mirror() @ mm.rotator(pa)
+        pa_theta = np.deg2rad(pa)
+        m3 = mm.generic(epsilon=0, delta=np.pi)
+        alt_theta = np.deg2rad(alt)
+        tel_mm = mm.rotator(-alt_theta) @ m3 @ mm.rotator(pa_theta)
 
         # HWP
-        # get adi sync offset
         if hwp_adi_sync:
-            az = np.deg2rad(header["AZIMUTH"] - 180)
-            hwp_sync_offset = mm.hwp_adi_sync_offset(alt=alt, az=az)
+            az_theta = np.deg2rad(az - 180)
+            hwp_adi_offset = mm.hwp_adi_sync_offset(alt=alt_theta, az=az_theta)
         else:
-            hwp_sync_offset = 0
-        # add instrumental offset
-        hwp_theta = np.deg2rad(header["RET-ANG1"] + self.hwp_offset) + hwp_sync_offset
+            hwp_adi_offset = 0
+        hwp_theta = np.deg2rad(hwp + self.hwp_offset) + hwp_adi_offset
         hwp_mm = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi)
 
         # Image rotator
-        imr_theta = np.deg2rad(header["D_IMRANG"] + self.imr_offset)
+        imr_theta = np.deg2rad(imr + self.imr_offset)
         imr_mm = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi)
 
         # SCExAO optics
@@ -75,22 +74,34 @@ class VAMPIRESMuellerMatrix(BaseModel):
         )
         return optics_mm @ imr_mm @ hwp_mm @ tel_mm
 
-    def evaluate(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
+    def __call__(self, flc_state: str, camera: int, *args, **kwargs) -> NDArray:
         ## build up mueller matrix component by component
-        cp_mm = self.common_path_mm(header, hwp_adi_sync=hwp_adi_sync)
+        cp_mm = self.common_path_mm(*args, **kwargs)
 
         # FLC
-        flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
+        flc_theta = np.deg2rad(self.flc_theta[flc_state])
         flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
 
         # beamsplitter
-        is_ordinary = header["U_CAMERA"] == 1
+        is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
         if is_ordinary:
             pbs_mm *= self.pbs_ratio
 
         M = pbs_mm @ flc_mm @ cp_mm
         return M.astype("f4")
+
+    def from_header(self, header: fits.Header, **kwargs) -> NDArray:
+        return self(
+            pa=header["PA"],
+            alt=header["ALTITUDE"],
+            az=header["AZIMUTH"],
+            hwp=header["RET-ANG1"],
+            imr=header["D_IMRANG"],
+            flc_state=header["U_FLC"],
+            camera=header["U_CAMERA"],
+            **kwargs,
+        )
 
 
 class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
@@ -116,30 +127,44 @@ class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
 class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
     flc_theta: dict[str, float] = {"A": 0, "B": 43}  # deg
 
-    def evaluate(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
+    def __call__(self, use_flc: bool, flc_state: str, camera: int, *args, **kwargs) -> NDArray:
         ## build up mueller matrix component by component
-        actual_hwp_adi_sync = header["RET-MOD1"].strip() == "SYNCHRO_ADI"
-        if hwp_adi_sync != actual_hwp_adi_sync:
-            msg = f"You set HWP ADI sync to {hwp_adi_sync!r} but RET-MOD1 was {header['RET-MOD1'].strip()!r}"
-            warnings.warn(msg, stacklevel=2)
-
-        cp_mm = self.common_path_mm(header, hwp_adi_sync=hwp_adi_sync)
+        cp_mm = self.common_path_mm(*args, **kwargs)
 
         # FLC
-        if header["U_FLCST"].strip() == "IN":
-            flc_theta = np.deg2rad(self.flc_theta[header["U_FLC"]])
+        if use_flc:
+            flc_theta = np.deg2rad(self.flc_theta[flc_state])
             flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
         else:
             flc_mm = np.eye(4)
 
         # beamsplitter
-        is_ordinary = header["U_CAMERA"] == 1
+        is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
         if is_ordinary:
             pbs_mm *= self.pbs_ratio
 
         M = pbs_mm @ flc_mm @ cp_mm
         return M.astype("f4")
+
+    def from_header(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
+        ## build up mueller matrix component by component
+        actual_hwp_adi_sync = header["RET-MOD1"].strip() == "SYNCHRO_ADI"
+        if hwp_adi_sync != actual_hwp_adi_sync:
+            msg = f"You set HWP ADI sync to {hwp_adi_sync!r} but RET-MOD1 was {header['RET-MOD1'].strip()!r}"
+            warnings.warn(msg, stacklevel=2)
+
+        return self(
+            pa=header["PA"],
+            alt=header["ALTITUDE"],
+            az=header["AZIMUTH"],
+            hwp=header["RET-ANG1"],
+            imr=header["D_IMRANG"],
+            use_flc=header["U_FLCST"].strip() == "IN",
+            flc_state=header["U_FLC"],
+            camera=header["U_CAMERA"],
+            hwp_adi_sync=hwp_adi_sync,
+        )
 
     @classmethod
     def load_calib_file(cls, header):
@@ -181,7 +206,7 @@ def mueller_matrix_from_file(
                     mm_model = EMCCDMuellerMatrix()
                 else:
                     mm_model = EMCCDMuellerMatrix.load_calib_file(hdu.header)
-            mms.append(mm_model.evaluate(hdu.header, hwp_adi_sync=hwp_adi_sync))
+            mms.append(mm_model.from_header(hdu.header, hwp_adi_sync=hwp_adi_sync))
         prim_hdu = fits.PrimaryHDU(np.array(mms), hdul[0].header)
     hdus = (fits.ImageHDU(cube, sort_header(hdr)) for cube, hdr in zip(mms, headers, strict=True))
     hdul = fits.HDUList([prim_hdu, *hdus])

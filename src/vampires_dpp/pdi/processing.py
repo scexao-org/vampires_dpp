@@ -413,6 +413,7 @@ def make_stokes_image(
     stokes_outerr = np.empty_like(stokes_data)
     prim_hdr = stokes_hdul[0].header
     headers = [stokes_hdul[i].header for i in range(3, len(stokes_hdul))]
+    mms = []
     for i in range(stokes_data.shape[0]):
         IQ, IU, Q, U = stokes_frame = stokes_data[i]  # noqa: E741
         IQ_err, IU_err, Q_err, U_err = stokes_frame_err = stokes_err[i]
@@ -420,9 +421,10 @@ def make_stokes_image(
         # mm correct
         if mm_correct:
             # get first row of diffed Mueller-matrix
-            mmQ = mmQs[i, 0]
-            mmU = mmUs[i, 0]
-
+            # note: multiplying by two because of extra 0.5 in _diff_dict method
+            mmQ = 2 * mmQs[i, 0]
+            mmU = 2 * mmUs[i, 0]
+            mms.append(np.array((mmQ, mmU)))
             # correct IP
             Q -= mmQ[0] * IQ
             U -= mmU[0] * IU
@@ -484,6 +486,9 @@ def make_stokes_image(
     snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
     hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
     hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=hdr["FIELD"]) for hdr in headers])
+    if mm_correct:
+        for hdr, mm in zip(headers, mms, strict=True):
+            hdul.append(fits.ImageHDU(mm, header=sort_header(hdr), name=hdr["FIELD"] + "MM"))
     hdul.writeto(outpath, overwrite=True)
     return outpath
 
