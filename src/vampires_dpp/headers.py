@@ -1,5 +1,6 @@
 import numpy as np
 from astropy.io import fits
+from astropy.time import Time
 
 from vampires_dpp.constants import CMOSVAMPIRES, EMCCDVAMPIRES, SUBARU_LOC, InstrumentInfo
 from vampires_dpp.util import hst_from_ut_time, iso_time_stats, mjd_time_stats, wrap_angle
@@ -134,6 +135,13 @@ def fix_header(header):
     header["PAOFFSET"] = inst.pa_offset, "[deg] Parallactic angle offset"
     header["INST-PA"] = inst.pupil_offset, "[deg] Instrument angle offset"
     header["FULLWELL"] = inst.fullwell, "[e-] Full well of detector register"
+    # during this time period the orcas had 2^15 full well from milk savefits bug
+    if (
+        Time("2023-06-01T00:00:00", format="fits")
+        < Time(header["MJD"], format="mjd")
+        < Time("2023-07-24T00:00:00", format="fits")
+    ):
+        header["FULLWELL"] /= 2
 
     return header
 
