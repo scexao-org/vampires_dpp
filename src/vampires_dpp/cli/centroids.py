@@ -209,6 +209,7 @@ def save_centroids(
 @click.argument(
     "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
+@click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.option(
     "--num-proc",
     "-j",
@@ -217,11 +218,11 @@ def save_centroids(
     help="Number of processes to use.",
     show_default=True,
 )
-def centroid(config: Path, filenames, num_proc, manual=False):
+def centroid(config: Path, filenames, num_proc, outdir, manual=False):
     # make sure versions match within SemVar
     pipeline_config = PipelineConfig.from_file(config)
     # figure out outpath
-    paths = Paths(Path.cwd())
+    paths = Paths(outdir)
     paths.aux_dir.mkdir(parents=True, exist_ok=True)
     npsfs = 4 if pipeline_config.coronagraphic else 1
     table = header_table(filenames, num_proc=num_proc)
