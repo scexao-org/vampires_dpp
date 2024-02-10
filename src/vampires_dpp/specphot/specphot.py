@@ -24,13 +24,12 @@ def color_correction(
 ) -> float:
     """Return the magnitude of the color correction from the first filter to the second filter.
 
-    mc = m2 - m1
-
-    m2 = m1 + mc
+    delta = m1 - m2
+    m2 = m1 - delta
     """
     obs1 = Observation(model, filt1)
     obs2 = Observation(model, filt2)
-    color = obs2.effstim(VEGAMAG, vegaspec=VEGASPEC) - obs1.effstim(VEGAMAG, vegaspec=VEGASPEC)
+    color = obs1.effstim(VEGAMAG, vegaspec=VEGASPEC) - obs2.effstim(VEGAMAG, vegaspec=VEGASPEC)
     return color.value
 
 
