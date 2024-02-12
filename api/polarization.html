@@ -336,7 +336,6 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.processing">Processing and polarization analysis</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.instpol_correct"><code class="docutils literal notranslate"><span class="pre">instpol_correct()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.measure_instpol"><code class="docutils literal notranslate"><span class="pre">measure_instpol()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
 </ul>
@@ -392,28 +391,7 @@ document.write(`
 </dd></dl>
 
 <dl class="py function" id="module-vampires_dpp.pdi.utils">
-<span id="module-vampires_dpp.pdi.diff_images"></span><dt class="sig sig-object py" id="vampires_dpp.pdi.utils.instpol_correct">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.utils.</span></span><span class="sig-name descname"><span class="pre">instpol_correct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stokes_cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pQ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.utils.instpol_correct" title="Link to this definition">#</a></dt>
-<dd><p>Apply instrument polarization correction to stokes cube.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>stokes_cube</strong> (<em>NDArray</em>) – (3, …) array of stokes values</p></li>
-<li><p><strong>pQ</strong> (<em>float</em><em>, </em><em>optional</em>) – I -&gt; Q contribution, by default 0</p></li>
-<li><p><strong>pU</strong> (<em>float</em><em>, </em><em>optional</em>) – I -&gt; U contribution, by default 0</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(3, …) stokes cube with corrected parameters</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.pdi.utils.measure_instpol">
+<span id="module-vampires_dpp.pdi.diff_images"></span><dt class="sig sig-object py" id="vampires_dpp.pdi.utils.measure_instpol">
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.utils.</span></span><span class="sig-name descname"><span class="pre">measure_instpol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.utils.measure_instpol" title="Link to this definition">#</a></dt>
 <dd><p>Use aperture photometry to estimate the instrument polarization.</p>
 <dl class="field-list simple">
@@ -747,7 +725,6 @@ U_\phi = Q\sin(2\theta) - U\cos(2\theta)\end{split}\]</div>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.processing">Processing and polarization analysis</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.instpol_correct"><code class="docutils literal notranslate"><span class="pre">instpol_correct()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.measure_instpol"><code class="docutils literal notranslate"><span class="pre">measure_instpol()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
 </ul>
