@@ -41,26 +41,26 @@ def measure_instpol_ann(I: NDArray, X: NDArray, Rin, Rout, expected=0):  # noqa:
     return pX / (np.pi * (Rout**2 - Rin**2)) - expected
 
 
-def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
-    """Apply instrument polarization correction to stokes cube.
+# def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):
+#     """Apply instrument polarization correction to stokes cube.
 
-    Parameters
-    ----------
-    stokes_cube : NDArray
-        (3, ...) array of stokes values
-    pQ : float, optional
-        I -> Q contribution, by default 0
-    pU : float, optional
-        I -> U contribution, by default 0
+#     Parameters
+#     ----------
+#     stokes_cube : NDArray
+#         (3, ...) array of stokes values
+#     pQ : float, optional
+#         I -> Q contribution, by default 0
+#     pU : float, optional
+#         I -> U contribution, by default 0
 
-    Returns
-    -------
-    NDArray
-        (3, ...) stokes cube with corrected parameters
-    """
-    return np.array(
-        (stokes_cube[0], stokes_cube[1] - pQ * stokes_cube[0], stokes_cube[2] - pU * stokes_cube[0])
-    )
+#     Returns
+#     -------
+#     NDArray
+#         (3, ...) stokes cube with corrected parameters
+#     """
+#     return np.array(
+#         (stokes_cube[0], stokes_cube[1] - pQ * stokes_cube[0], stokes_cube[2] - pU * stokes_cube[0])
+#     )
 
 
 def radial_stokes(stokes_cube: ArrayLike, stokes_err: ArrayLike | None = None, phi: float = 0):
@@ -103,8 +103,8 @@ def rotate_stokes(stokes_cube, theta):
     out = stokes_cube.copy()
     sin2ts = np.sin(2 * theta)
     cos2ts = np.cos(2 * theta)
-    out[1] = stokes_cube[2] * cos2ts - stokes_cube[3] * sin2ts
-    out[2] = stokes_cube[2] * sin2ts + stokes_cube[3] * cos2ts
+    out[2] = stokes_cube[2] * cos2ts - stokes_cube[3] * sin2ts
+    out[3] = stokes_cube[2] * sin2ts + stokes_cube[3] * cos2ts
     return out
 
 
