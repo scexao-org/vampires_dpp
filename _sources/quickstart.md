@@ -107,15 +107,15 @@ Before running files through the pipeline, it is recommended to inspect your raw
 
 ## Create calibration files
 
-Next, you'll want to create your master backgrounds and flats. This can be accomplished in one command using `dpp prep`.
+Next, you'll want to create your master backgrounds and flats. This can be accomplished in one command using `dpp calib`.
 
 If you use the prescribed folder structure above, creating your files can be done like so
 ```{margin} 🚀 MP enabled
 ‎
 ```
 ```
-dpp prep [-j 1] -o master_cals back darks/**/*.fits
-dpp prep [-j 1] -o master_cals flat flats/**/*.fits
+dpp calib [-j 1] -o master_cals back darks/**/*.fits
+dpp calib [-j 1] -o master_cals flat flats/**/*.fits
 ```
 
 This will produce a series of calibration files in the `master_cals/` folder. We do not combine individual flat or dark frames- instead we match each science file to the closest matching available calibration file.
