@@ -8,13 +8,13 @@ import tqdm.auto as tqdm
 from vampires_dpp.calib.calib_files import process_background_files, process_flat_files
 from vampires_dpp.calib.normalize import normalize_file
 
-__all__ = ("prep", "back", "flat", "norm")
+__all__ = ("calib", "back", "flat", "norm")
 
-########## prep ##########
+########## calib ##########
 
 
 @click.group(
-    name="prep",
+    name="calib",
     short_help="Prepare calibration files",
     help="Create calibration files from background files (darks or sky frames) and flats.",
 )
@@ -35,7 +35,7 @@ __all__ = ("prep", "back", "flat", "norm")
 )
 @click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
 @click.pass_context
-def prep(ctx, outdir, quiet, num_proc):
+def calib(ctx, outdir, quiet, num_proc):
     # prepare context
     ctx.ensure_object(dict)
     ctx.obj["outdir"] = outdir
@@ -43,7 +43,7 @@ def prep(ctx, outdir, quiet, num_proc):
     ctx.obj["num_proc"] = num_proc
 
 
-@prep.command(
+@calib.command(
     name="back",
     short_help="background files (darks/skies)",
     help="Create background files from darks/skies. Each input file will be collapsed. Groups of files with the same exposure time, EM gain, and frame size will be median-combined together to create a super-background file.",
@@ -72,7 +72,7 @@ def back(ctx, filenames, collapse, force):
     )
 
 
-@prep.command(
+@calib.command(
     name="flat",
     short_help="flat-field files",
     help="Create flat-field files. Each input file will be collapsed with background-subtraction if files are provided. Groups of files with the same exposure time, EM gain, frame size, and filter will be median-combined together to create a super-flat file.",
@@ -88,15 +88,19 @@ def back(ctx, filenames, collapse, force):
     help="Frame collapse method",
     show_default=True,
 )
+@click.option(
+    "-n/-u", "--norm/--no-norm", default=True, help="Normalize flat fields by field median"
+)
 @click.option("--force", "-f", is_flag=True, help="Force processing of files")
 @click.pass_context
-def flat(ctx, filenames, collapse, force):
+def flat(ctx, filenames, collapse, norm: bool, force: bool):
     # if directory, filter non-FITS files and sort for background files
     back = ctx.obj["outdir"]
     calib_files = list(back.glob("**/[!._]*.fits")) + list(back.glob("**/[!._]*.fits.fz"))
     process_flat_files(
         filenames,
         collapse=collapse,
+        normalize=norm,
         force=force,
         output_directory=ctx.obj["outdir"] / "flat",
         quiet=ctx.obj["quiet"],

@@ -79,7 +79,9 @@ def make_background_file(filename: str, force=False, **kwargs):
     return outpath
 
 
-def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
+def make_flat_file(
+    filename: str, normalize: bool = True, force: bool = False, back_filename=None, **kwargs
+):
     path, outpath = get_paths(filename, suffix="coll", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return outpath
@@ -113,19 +115,19 @@ def make_flat_file(filename: str, force=False, back_filename=None, **kwargs):
 
     # for MBI data need to normalize each field individually
     # otherwise use frame median
-    if "MBI" in header["OBS-MOD"]:
-        master_flat, flat_err, header = normalize_multiband_flats(
-            master_flat, flat_err, header=header
-        )
-    else:
-        normval = np.nanmedian(master_flat)
-        master_flat /= normval
-        flat_err /= normval
-        header["NORMVAL"] = normval, f"[{header['BUNIT'].lower()}] Flat field normalization factor"
-
-    mask = master_flat < 0.1
-    master_flat[mask] = np.nan
-    flat_err[mask] = np.nan
+    if normalize:
+        if "MBI" in header["OBS-MOD"]:
+            master_flat, flat_err, header = normalize_multiband_flats(
+                master_flat, flat_err, header=header
+            )
+        else:
+            normval = np.nanmedian(master_flat)
+            master_flat /= normval
+            flat_err /= normval
+            header["NORMVAL"] = (
+                normval,
+                f"[{header['BUNIT'].lower()}] Flat field normalization factor",
+            )
     header["CALTYPE"] = "FLAT", "DPP calibration file type"
     header["BUNIT"] = "", "Unit of original values"
     # bpmask = adaptive_sigma_clip_mask(master_flat)
@@ -231,6 +233,7 @@ def process_background_files(
 def process_flat_files(
     filenames: Iterable[str | Path],
     collapse: str = "median",
+    normalize: bool = True,
     background_files: str | Path | None = None,
     output_directory: str | Path | None = None,
     force: bool = False,
@@ -252,6 +255,7 @@ def process_flat_files(
             func = functools.partial(
                 make_flat_file,
                 path,
+                normalize=normalize,
                 back_filename=calib_match["backfile"],
                 output_directory=outdir,
                 method=collapse,
