@@ -223,16 +223,15 @@ class Pipeline:
             outpath = Path(fileinfo["calib_file"])
             if not force and outpath.exists():
                 return fits.open(outpath)
+
+        back_filename = None
+        flat_filename = None
         if self.calib_table is not None:
             calib_match = match_calib_file(path, self.calib_table)
-            back_filename = calib_match["backfile"]
-            flat_filename = calib_match["flatfile"]
-        else:
-            back_filename = flat_filename = None
-        if config.back_subtract and "backfile" in fileinfo:
-            back_filename = fileinfo["backfile"]
-        if config.flat_correct and "flatfile" in fileinfo:
-            flat_filename = fileinfo["flatfile"]
+            if config.back_subtract:
+                back_filename = calib_match["backfile"]
+            if config.flat_correct:
+                flat_filename = calib_match["flatfile"]
         calib_hdul = calibrate_file(
             path,
             back_filename=back_filename,
