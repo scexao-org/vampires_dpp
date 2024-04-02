@@ -160,7 +160,7 @@ def analyze_file(
         elif "MBI" in hdr["OBS-MOD"]:
             centroids = get_mbi_centers(data)
         else:
-            centroids = {"": frame_center(data)}
+            centroids = {"": [frame_center(data)]}
     if psfs is None:
         psfs = itertools.repeat(None)
     for ctrs, psf in zip(centroids.values(), psfs, strict=True):

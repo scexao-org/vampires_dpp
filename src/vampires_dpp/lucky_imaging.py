@@ -163,21 +163,22 @@ def lucky_image_file(
         cube_err = cube_err[mask]
 
     N = len(cube)
-
     if register is not None:
         psf_centroids = get_centroids_from(masked_metrics, input_key=register)
         header["REG_METH"] = register, "DPP registration method"
     elif "MBIR" in header["OBS-MOD"]:
         ctr_dict = get_mbi_centers(cube, reduced=True)
-        center = [ctr_dict[k] for k in fields]
-        psf_centroids = np.tile(center, (1, len(cube), 1))
+        psf_centroids = np.zeros((3, N, 2))
+        for idx, key in enumerate(fields):
+            psf_centroids[idx] = ctr_dict[key]
     elif "MBI" in header["OBS-MOD"]:
         ctr_dict = get_mbi_centers(cube)
-        center = [ctr_dict[k] for k in fields]
-        psf_centroids = np.tile(center, (1, len(cube), 1))
+        psf_centroids = np.zeros((4, N, 2))
+        for idx, key in enumerate(fields):
+            psf_centroids[idx] = ctr_dict[key]
     else:
-        center = [frame_center(cube)]
-        psf_centroids = np.tile(center, (1, len(cube), 1))
+        psf_centroids = np.zeros((1, N, 2))
+        psf_centroids[:] = frame_center(cube)
     frames = []
     frame_errs = []
     headers = []
