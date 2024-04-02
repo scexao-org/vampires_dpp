@@ -309,7 +309,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
 </div></div>
       
     </div>
@@ -325,6 +327,30 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp">dpp</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-astro">astro</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-calib">calib</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-calib-back">back</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-calib-flat">flat</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-centroid">centroid</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-new">new</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-norm">norm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-pdi">pdi</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-run">run</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-sort">sort</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-table">table</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-upgrade">upgrade</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -337,6 +363,488 @@ document.write(`
   <section class="tex2jax_ignore mathjax_ignore" id="cli-reference">
 <span id="cli"></span><h1>CLI Reference<a class="headerlink" href="#cli-reference" title="Link to this heading">#</a></h1>
 <p>The command-line interface (CLI) uses the <code class="docutils literal notranslate"><span class="pre">dpp</span></code> command that is available after pip-installing <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> (<a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a>).</p>
+<section id="dpp">
+<h2>dpp<a class="headerlink" href="#dpp" title="Link to this heading">#</a></h2>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-v">
+<span id="cmdoption-dpp-version"></span><span class="sig-name descname"><span class="pre">-v</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--version</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-v" title="Link to this definition">#</a></dt>
+<dd><p>Show the version and exit.</p>
+</dd></dl>
+
+<section id="dpp-astro">
+<h3>astro<a class="headerlink" href="#dpp-astro" title="Link to this heading">#</a></h3>
+<p>Get image astrometric solution</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>astro<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-astro-m">
+<span id="cmdoption-dpp-astro-manual"></span><span class="sig-name descname"><span class="pre">-m</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--manual</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-astro-m" title="Link to this definition">#</a></dt>
+<dd><p>Enter solution manually</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-astro-j">
+<span id="cmdoption-dpp-astro-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-astro-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-astro-arg-CONFIG">
+<span class="sig-name descname"><span class="pre">CONFIG</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-astro-arg-CONFIG" title="Link to this definition">#</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-astro-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-astro-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="dpp-calib">
+<h3>calib<a class="headerlink" href="#dpp-calib" title="Link to this heading">#</a></h3>
+<p>Create calibration files from background files (darks or sky frames) and flats.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>calib<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-o">
+<span id="cmdoption-dpp-calib-outdir"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--outdir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;outdir&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-calib-o" title="Link to this definition">#</a></dt>
+<dd><p>Output directory.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-j">
+<span id="cmdoption-dpp-calib-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-calib-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-q">
+<span id="cmdoption-dpp-calib-quiet"></span><span class="sig-name descname"><span class="pre">-q</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--quiet</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-calib-q" title="Link to this definition">#</a></dt>
+<dd><p>Silence progress bars and extraneous logging.</p>
+</dd></dl>
+
+<section id="dpp-calib-back">
+<h4>back<a class="headerlink" href="#dpp-calib-back" title="Link to this heading">#</a></h4>
+<p>Create background files from darks/skies. Each input file will be collapsed. Groups of files with the same exposure time, EM gain, and frame size will be median-combined together to create a super-background file.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>calib<span class="w"> </span>back<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-back-c">
+<span id="cmdoption-dpp-calib-back-collapse"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--collapse</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;collapse&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-calib-back-c" title="Link to this definition">#</a></dt>
+<dd><p>Frame collapse method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">median</span></code></p>
+</dd>
+<dt class="field-even">Options<span class="colon">:</span></dt>
+<dd class="field-even"><p>median | mean | varmean | biweight</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-back-f">
+<span id="cmdoption-dpp-calib-back-force"></span><span class="sig-name descname"><span class="pre">-f</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--force</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-calib-back-f" title="Link to this definition">#</a></dt>
+<dd><p>Force processing of files</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-back-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-calib-back-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="dpp-calib-flat">
+<h4>flat<a class="headerlink" href="#dpp-calib-flat" title="Link to this heading">#</a></h4>
+<p>Create flat-field files. Each input file will be collapsed with background-subtraction if files are provided. Groups of files with the same exposure time, EM gain, frame size, and filter will be median-combined together to create a super-flat file.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>calib<span class="w"> </span>flat<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-flat-c">
+<span id="cmdoption-dpp-calib-flat-collapse"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--collapse</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;collapse&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-calib-flat-c" title="Link to this definition">#</a></dt>
+<dd><p>Frame collapse method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">median</span></code></p>
+</dd>
+<dt class="field-even">Options<span class="colon">:</span></dt>
+<dd class="field-even"><p>median | mean | varmean | biweight</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-flat-n">
+<span id="cmdoption-dpp-calib-flat-norm"></span><span id="cmdoption-dpp-calib-flat-u"></span><span id="cmdoption-dpp-calib-flat-no-norm"></span><span class="sig-name descname"><span class="pre">-n</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--norm</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">-u</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-norm</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-calib-flat-n" title="Link to this definition">#</a></dt>
+<dd><p>Normalize flat fields by field median</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-flat-f">
+<span id="cmdoption-dpp-calib-flat-force"></span><span class="sig-name descname"><span class="pre">-f</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--force</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-calib-flat-f" title="Link to this definition">#</a></dt>
+<dd><p>Force processing of files</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-calib-flat-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-calib-flat-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="dpp-centroid">
+<h3>centroid<a class="headerlink" href="#dpp-centroid" title="Link to this heading">#</a></h3>
+<p>Get image centroid estimates</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>centroid<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-centroid-m">
+<span id="cmdoption-dpp-centroid-manual"></span><span class="sig-name descname"><span class="pre">-m</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--manual</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-centroid-m" title="Link to this definition">#</a></dt>
+<dd><p>Enter centroids manually</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-centroid-o">
+<span id="cmdoption-dpp-centroid-outdir"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--outdir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;outdir&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-centroid-o" title="Link to this definition">#</a></dt>
+<dd><p>Output file directory</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-centroid-j">
+<span id="cmdoption-dpp-centroid-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-centroid-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-centroid-arg-CONFIG">
+<span class="sig-name descname"><span class="pre">CONFIG</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-centroid-arg-CONFIG" title="Link to this definition">#</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-centroid-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-centroid-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="dpp-new">
+<h3>new<a class="headerlink" href="#dpp-new" title="Link to this heading">#</a></h3>
+<p>Generate configuration files</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>new<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-new-e">
+<span id="cmdoption-dpp-new-edit"></span><span class="sig-name descname"><span class="pre">-e</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--edit</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-new-e" title="Link to this definition">#</a></dt>
+<dd><p>Launch configuration file in editor after creation.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-new-arg-CONFIG">
+<span class="sig-name descname"><span class="pre">CONFIG</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-new-arg-CONFIG" title="Link to this definition">#</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="dpp-norm">
+<h3>norm<a class="headerlink" href="#dpp-norm" title="Link to this heading">#</a></h3>
+<p>Normalize VAMPIRES data files</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>norm<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-norm-o">
+<span id="cmdoption-dpp-norm-outdir"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--outdir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;outdir&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-norm-o" title="Link to this definition">#</a></dt>
+<dd><p>Output directory</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-norm-d">
+<span id="cmdoption-dpp-norm-deint"></span><span class="sig-name descname"><span class="pre">-d</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--deint</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-norm-d" title="Link to this definition">#</a></dt>
+<dd><p>Deinterleave files into FLC states (WARNING: only apply this to old VAMPIRES data downloaded directly from <cite>sonne</cite>)</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-norm-nf">
+<span id="cmdoption-dpp-norm-no-filter-empty"></span><span class="sig-name descname"><span class="pre">-nf</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-filter-empty</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-norm-nf" title="Link to this definition">#</a></dt>
+<dd><p>Don’t filter empty frames from data (post deinterleaving, if applicable)</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-norm-j">
+<span id="cmdoption-dpp-norm-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-norm-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-norm-q">
+<span id="cmdoption-dpp-norm-quiet"></span><span class="sig-name descname"><span class="pre">-q</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--quiet</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-norm-q" title="Link to this definition">#</a></dt>
+<dd><p>Silence progress bars and extraneous logging.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-norm-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-norm-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="dpp-pdi">
+<h3>pdi<a class="headerlink" href="#dpp-pdi" title="Link to this heading">#</a></h3>
+<p>Run the PDI pipeline only</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>pdi<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-pdi-o">
+<span id="cmdoption-dpp-pdi-outdir"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--outdir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;outdir&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-pdi-o" title="Link to this definition">#</a></dt>
+<dd><p>Output file directory</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-pdi-j">
+<span id="cmdoption-dpp-pdi-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-pdi-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-pdi-q">
+<span id="cmdoption-dpp-pdi-quiet"></span><span class="sig-name descname"><span class="pre">-q</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--quiet</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-pdi-q" title="Link to this definition">#</a></dt>
+<dd><p>Silence progress bars and extraneous logging.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-pdi-arg-CONFIG">
+<span class="sig-name descname"><span class="pre">CONFIG</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-pdi-arg-CONFIG" title="Link to this definition">#</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-pdi-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-pdi-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="dpp-run">
+<h3>run<a class="headerlink" href="#dpp-run" title="Link to this heading">#</a></h3>
+<p>Run the data processing pipeline (including PDI)</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>run<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-run-o">
+<span id="cmdoption-dpp-run-outdir"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--outdir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;outdir&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-run-o" title="Link to this definition">#</a></dt>
+<dd><p>Output file directory</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-run-j">
+<span id="cmdoption-dpp-run-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-run-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-run-arg-CONFIG">
+<span class="sig-name descname"><span class="pre">CONFIG</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-run-arg-CONFIG" title="Link to this definition">#</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-run-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-run-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="dpp-sort">
+<h3>sort<a class="headerlink" href="#dpp-sort" title="Link to this heading">#</a></h3>
+<p>Sorts raw data based on the data type. This will either use the <cite>DATA-TYP</cite> header value or the <cite>U_OGFNAM</cite> header, depending on when your data was taken.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>sort<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-sort-o">
+<span id="cmdoption-dpp-sort-outdir"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--outdir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;outdir&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-sort-o" title="Link to this definition">#</a></dt>
+<dd><p>Output directory.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-sort-j">
+<span id="cmdoption-dpp-sort-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-sort-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-sort-e">
+<span id="cmdoption-dpp-sort-ext"></span><span class="sig-name descname"><span class="pre">-e</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--ext</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;ext&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-sort-e" title="Link to this definition">#</a></dt>
+<dd><p>HDU extension</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-sort-c">
+<span id="cmdoption-dpp-sort-copy"></span><span id="cmdoption-dpp-sort-nc"></span><span id="cmdoption-dpp-sort-no-copy"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--copy</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">-nc</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-copy</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-sort-c" title="Link to this definition">#</a></dt>
+<dd><p>copy files instead of moving them</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-sort-d">
+<span id="cmdoption-dpp-sort-decompress"></span><span class="sig-name descname"><span class="pre">-d</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--decompress</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-sort-d" title="Link to this definition">#</a></dt>
+<dd><p>Would you like to decompress .fits.gz files while copying?</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-sort-q">
+<span id="cmdoption-dpp-sort-quiet"></span><span class="sig-name descname"><span class="pre">-q</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--quiet</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-sort-q" title="Link to this definition">#</a></dt>
+<dd><p>Silence progress bars and extraneous logging.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-sort-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-sort-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="dpp-table">
+<h3>table<a class="headerlink" href="#dpp-table" title="Link to this heading">#</a></h3>
+<p>Go through each file and combine the header information into a single CSV.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>table<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-table-t">
+<span id="cmdoption-dpp-table-type"></span><span class="sig-name descname"><span class="pre">-t</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--type</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;_type&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-table-t" title="Link to this definition">#</a></dt>
+<dd><p>Save as a CSV file or create a headers table in a sqlite database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Options<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sql | csv</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-table-o">
+<span id="cmdoption-dpp-table-output"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--output</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-table-o" title="Link to this definition">#</a></dt>
+<dd><p>Output path without file extension.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-table-j">
+<span id="cmdoption-dpp-table-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-table-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-table-q">
+<span id="cmdoption-dpp-table-quiet"></span><span class="sig-name descname"><span class="pre">-q</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--quiet</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-table-q" title="Link to this definition">#</a></dt>
+<dd><p>Silence progress bars and extraneous logging.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-table-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-table-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+<section id="dpp-upgrade">
+<h3>upgrade<a class="headerlink" href="#dpp-upgrade" title="Link to this heading">#</a></h3>
+<p>Tries to automatically upgrade a configuration file to the current version (0.12.9), prompting where necessary.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>upgrade<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-upgrade-o">
+<span id="cmdoption-dpp-upgrade-output"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--output</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;output&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-upgrade-o" title="Link to this definition">#</a></dt>
+<dd><p>Output path.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-upgrade-e">
+<span id="cmdoption-dpp-upgrade-edit"></span><span class="sig-name descname"><span class="pre">-e</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--edit</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-upgrade-e" title="Link to this definition">#</a></dt>
+<dd><p>Launch configuration file in editor after creation.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-upgrade-arg-CONFIG">
+<span class="sig-name descname"><span class="pre">CONFIG</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-upgrade-arg-CONFIG" title="Link to this definition">#</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+</section>
 </section>
 
 
@@ -375,7 +883,36 @@ document.write(`
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"></div>
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp">dpp</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-astro">astro</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-calib">calib</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-calib-back">back</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-calib-flat">flat</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-centroid">centroid</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-new">new</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-norm">norm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-pdi">pdi</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-run">run</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-sort">sort</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-table">table</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-upgrade">upgrade</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

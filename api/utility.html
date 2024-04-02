@@ -366,6 +366,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.dict_from_header"><code class="docutils literal notranslate"><span class="pre">dict_from_header()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.dict_from_header_file"><code class="docutils literal notranslate"><span class="pre">dict_from_header_file()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.header_table"><code class="docutils literal notranslate"><span class="pre">header_table()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.synthpsf.generate_pupil"><code class="docutils literal notranslate"><span class="pre">generate_pupil()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.average_angle"><code class="docutils literal notranslate"><span class="pre">average_angle()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.check_version"><code class="docutils literal notranslate"><span class="pre">check_version()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.delta_angle"><code class="docutils literal notranslate"><span class="pre">delta_angle()</span></code></a></li>
@@ -743,6 +744,28 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 </dl>
 </dd></dl>
 
+<dl class="py function" id="module-vampires_dpp.synthpsf">
+<dt class="sig sig-object py" id="vampires_dpp.synthpsf.generate_pupil">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.synthpsf.</span></span><span class="sig-name descname"><span class="pre">generate_pupil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3034090909090909</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oversample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spiders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actuators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.synthpsf.generate_pupil" title="Link to this definition">#</a></dt>
+<dd><p>Generate a SCExAO pupil parametrically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Grid size in pixels. Default is 256</p></li>
+<li><p><strong>outer</strong> (<em>float</em><em>, </em><em>optional</em>) – Outer pupil diameter as a fraction of the true diameter. Default is 1.0</p></li>
+<li><p><strong>inner</strong> (<em>float</em><em>, </em><em>optional</em>) – Diameter of central obstruction as a fraction of the true diameter. Default is 0.303</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Scale factor for over-sizing spiders and actuator masks. Default is 1.0</p></li>
+<li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – Pupil rotation angle, in degrees. Default is 0</p></li>
+<li><p><strong>oversample</strong> (<em>int</em><em>, </em><em>optional</em>) – Oversample factor for supersampling the pupil grid. Default is 8</p></li>
+<li><p><strong>spiders</strong> (<em>bool</em><em>, </em><em>optional</em>) – Add spiders to pupil. Default is True</p></li>
+<li><p><strong>actuators</strong> (<em>bool</em><em>, </em><em>optional</em>) – Add bad actuator masks and spider. Default is True</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The smallest element in the SCExAO pupil is the bad actuator spider, which is approximately 89.0 mm wide. This is about 0.7% of the telescope diameter, which means you need to have a miinimum of ~142 pixels across the aperture to sample this element.</p>
+</dd></dl>
+
 <dl class="py function" id="module-vampires_dpp.util">
 <dt class="sig sig-object py" id="vampires_dpp.util.average_angle">
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.util.</span></span><span class="sig-name descname"><span class="pre">average_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.util.average_angle" title="Link to this definition">#</a></dt>
@@ -882,6 +905,7 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.dict_from_header"><code class="docutils literal notranslate"><span class="pre">dict_from_header()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.dict_from_header_file"><code class="docutils literal notranslate"><span class="pre">dict_from_header_file()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.organization.header_table"><code class="docutils literal notranslate"><span class="pre">header_table()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.synthpsf.generate_pupil"><code class="docutils literal notranslate"><span class="pre">generate_pupil()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.average_angle"><code class="docutils literal notranslate"><span class="pre">average_angle()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.check_version"><code class="docutils literal notranslate"><span class="pre">check_version()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.util.delta_angle"><code class="docutils literal notranslate"><span class="pre">delta_angle()</span></code></a></li>
