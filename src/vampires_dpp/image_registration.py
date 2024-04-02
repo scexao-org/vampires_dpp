@@ -39,7 +39,7 @@ def offset_centroids(frame, frame_err, inds, psf=None, dft_factor=30):
         "com": np.array((com_xy[1] + offy, com_xy[0] + offx)),
         "gauss": np.array((gauss_xy[1] + offy, gauss_xy[0] + offx)),
     }
-    if psf is not None:
+    if psf is not None and dft_factor > 0:
         dft_off, _, _ = phase_cross_correlation(psf, cutout, upsample_factor=dft_factor)
         # need to update with center of frame
         ctr_off = np.array(frame_center(cutout)) - dft_off

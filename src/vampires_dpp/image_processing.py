@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import astropy.units as u
+import bottleneck as bn
 import cv2
 import numpy as np
 import pandas as pd
@@ -203,18 +204,18 @@ def collapse_cube(
             # suppress all-nan axis warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                frame = np.nanmedian(cube, axis=0, overwrite_input=True)
+                frame = bn.nanmedian(cube, axis=0, overwrite_input=True)
         case "mean":
             # suppress all-nan axis warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                frame = np.nanmean(cube, axis=0)
+                frame = bn.nanmean(cube, axis=0)
         case "varmean":
             # suppress all-nan axis warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                weights = 1 / np.nanvar(cube, axis=(1, 2), keepdims=True)
-                frame = np.sum(cube * weights, axis=0) / np.sum(weights)
+                weights = 1 / bn.nanvar(cube, axis=(1, 2), keepdims=True)
+                frame = bn.nansum(cube * weights, axis=0) / bn.nansum(weights)
         case "biweight":
             frame = biweight_location(cube, axis=0, c=6, skip_nans=True)
 

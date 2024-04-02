@@ -15,6 +15,7 @@ dependencies = [
     "astropy",
     "astroquery",
     "astroscrappy",
+    "bottleneck",
     "click",
     "hcipy",
     "loguru",
