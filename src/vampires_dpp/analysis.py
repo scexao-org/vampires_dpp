@@ -106,7 +106,7 @@ def analyze_fields(
             create_or_append(output, "dftx", centroids["dft"][1])
             create_or_append(output, "dfty", centroids["dft"][0])
 
-        ctr_est = centroids["com"]
+        ctr_est = centroids["gauss"]
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             prof = profiles.RadialProfile(
