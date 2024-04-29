@@ -38,7 +38,7 @@
   <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
     <script src="_static/documentation_options.js?v=8dacbdc2"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'configuration';</script>
@@ -452,7 +452,7 @@ document.write(`
 <li><p><strong>dpp_version</strong> (<em>str</em>) – The version of vampires_dpp that this configuration file is valid with. Typically not set by user.</p></li>
 <li><p><strong>save_adi_cubes</strong> (<em>bool</em>) – If true, will save ADI cubes and derotation angles in product directory.</p></li>
 <li><p><strong>diff_images</strong> (<em>Literal</em><em>[</em><em>'singlediff'</em><em>, </em><em>'doublediff'</em><em>, </em><em>'both'</em><em>] </em><em>| </em><em>None</em>) – Diagnostic difference imaging options. Double-differencing requires an FLC.</p></li>
-<li><p><strong>coronagraphic</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>coronagraphic</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -564,7 +564,7 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 <li><p><strong>flat_correct</strong> (<em>bool</em>) – If true will look for flat files in <code class="docutils literal notranslate"><span class="pre">calib_directory</span></code> and perform flat normalization if found.</p></li>
 <li><p><strong>fix_bad_pixels</strong> (<em>bool</em>) – If true, will run adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels. By default false.</p></li>
 <li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save intermediate calibrated data to <code class="docutils literal notranslate"><span class="pre">calibrated/</span></code> folder.</p></li>
-<li><p><strong>distortion_file</strong> (<em>Path</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>distortion_file</strong> (<em>Path</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -643,7 +643,7 @@ estimate of the center will be used to get the cutout crops for each field.</p><
 from each cube will be discarded according the the selection metric.</p></li>
 <li><p><strong>recenter</strong> (<em>Literal</em><em>[</em><em>'com'</em><em>, </em><em>'peak'</em><em>, </em><em>'gauss'</em><em>, </em><em>'dft'</em><em>] </em><em>| </em><em>None</em>) – If a string is provided, will measure the centroids in the higher S/N collapsed frame using the given method.</p></li>
 <li><p><strong>reproject</strong> (<em>bool</em>) – If true, will reproject cam2 data onto cam1’s WCS coordinates</p></li>
-<li><p><strong>satspot_reference</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – </p></li>
+<li><p><strong>satspot_reference</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>

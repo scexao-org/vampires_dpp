@@ -38,7 +38,7 @@
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
     <script src="../_static/documentation_options.js?v=8dacbdc2"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -400,9 +400,9 @@ document.write(`
 <li><p><strong>stokes_cube</strong> (<em>NDArray</em>) – Input Stokes cube (4, y, x)</p></li>
 <li><p><strong>r</strong> (<em>float</em><em>, </em><em>optional</em>) – Radius of circular aperture in pixels, by default 5</p></li>
 <li><p><strong>expected</strong> (<em>float</em><em>, </em><em>optional</em>) – The expected fractional polarization, by default 0</p></li>
-<li><p><strong>**kwargs</strong> – </p></li>
-<li><p><strong>I</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>X</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>**kwargs</strong></p></li>
+<li><p><strong>I</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>X</strong> (<em>ndarray</em><em>[</em><em>Any</em><em>, </em><em>dtype</em><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -426,7 +426,7 @@ U_\phi = Q\sin(2\theta) - U\cos(2\theta)\end{split}\]</div>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>stokes_cube</strong> (<em>ArrayLike</em>) – Input Stokes cube, with dimensions (4, N, M)</p></li>
 <li><p><strong>phi</strong> (<em>float</em>) – Radial angle offset in radians, by default 0</p></li>
-<li><p><strong>stokes_err</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>] </em><em>| </em><em>None</em>) – </p></li>
+<li><p><strong>stokes_err</strong> (<em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>] </em><em>| </em><em>_NestedSequence</em><em>[</em><em>_SupportsArray</em><em>[</em><em>dtype</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>] </em><em>| </em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em> | </em><em>_NestedSequence</em><em>[</em><em>bool</em><em> | </em><em>int</em><em> | </em><em>float</em><em> | </em><em>complex</em><em> | </em><em>str</em><em> | </em><em>bytes</em><em>] </em><em>| </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
