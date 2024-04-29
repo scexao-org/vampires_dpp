@@ -204,7 +204,7 @@ def collapse_cube(
             # suppress all-nan axis warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                frame = bn.nanmedian(cube, axis=0, overwrite_input=True)
+                frame = bn.nanmedian(cube, axis=0)
         case "mean":
             # suppress all-nan axis warnings
             with warnings.catch_warnings():
