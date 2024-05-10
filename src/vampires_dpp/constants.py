@@ -109,8 +109,8 @@ class CMOSVAMPIRES(InstrumentInfo):
         ("slow", 2): 0.220,
     }
     VAMP_GAIN: ClassVar[dict[str, float]] = {"fast": 0.103, "slow": 0.105}
-    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 6.05, 2: 6.07}  # mas / px
-    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: -40.9, 2: -41.4}  # deg
+    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 5.91, 2: 5.895}  # mas / px
+    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: -38.40, 2: -38.58}  # deg
 
     @property
     def pixel_scale(self):
