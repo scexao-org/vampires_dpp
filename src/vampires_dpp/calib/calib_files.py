@@ -128,6 +128,8 @@ def make_flat_file(
                 normval,
                 f"[{header['BUNIT'].lower()}] Flat field normalization factor",
             )
+        master_flat[master_flat < 0.2] = np.nan
+        flat_err[master_flat < 0.2] = np.nan
     header["CALTYPE"] = "FLAT", "DPP calibration file type"
     header["BUNIT"] = "", "Unit of original values"
     # bpmask = adaptive_sigma_clip_mask(master_flat)
