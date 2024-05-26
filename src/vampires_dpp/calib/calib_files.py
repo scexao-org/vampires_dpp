@@ -53,9 +53,9 @@ def make_background_file(filename: str, force=False, **kwargs):
         back_std = np.full_like(master_background, bkgnoise / header["EFFGAIN"])
         back_err = back_std
 
-    noise = np.nanmedian(back_std)
-    header["NOISEADU"] = noise, "[adu] median noise in background file"
-    header["NOISE"] = noise * header["EFFGAIN"], "[e-] median noise in background file"
+    noise = np.sqrt(np.nanmean(back_std**2))
+    header["NOISEADU"] = noise, "[adu] RMS noise in background file"
+    header["NOISE"] = noise * header["EFFGAIN"], "[e-] RMS noise in background file"
     header["CALTYPE"] = "BACKGROUND", "DPP calibration file type"
     header = sort_header(header)
     # get bad pixel mask from adaptive sigma clip

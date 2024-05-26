@@ -208,7 +208,7 @@ def lucky_image_file(
             else:
                 aligned_frames.append(cutout.data)
                 aligned_err_frames.append(cutout_err.data)
-        ## Step 3: Collapse
+        ## Step 3: Collapseo
         coll_frame, header = collapse_cube(np.array(aligned_frames), header=header, method=method)
         # collapse error in quadrature
         coll_err_frame = np.sqrt(np.nansum(np.power(aligned_err_frames, 2), axis=0)) / N
