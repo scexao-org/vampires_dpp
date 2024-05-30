@@ -164,7 +164,7 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
     # if the variance is zero, return the mean
     if np.allclose(variance_frame, 0):
         derotated = derotate_cube(data, angles, **kwargs)
-        return np.nanmean(derotated, 0)
+        return bn.nanmean(derotated, 0)
 
     # expand the variance frame into a cube
     variance_cube = np.repeat(variance_frame, data.shape[0], axis=0)
@@ -173,8 +173,8 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
     derotated_variance = derotate_cube(variance_cube, angles, **kwargs)
     derotated_variance[derotated_variance == 0] = np.inf
     # calculate weighted sum
-    numer = np.nansum(derotated_data / derotated_variance, axis=0)
-    denom = np.nansum(1 / derotated_variance, axis=0)
+    numer = bn.nansum(derotated_data / derotated_variance, axis=0)
+    denom = bn.nansum(1 / derotated_variance, axis=0)
     weighted_frame = numer / denom
     return weighted_frame
 
@@ -217,10 +217,14 @@ def collapse_cube(
                 weights = 1 / bn.nanvar(cube, axis=(1, 2), keepdims=True)
                 frame = bn.nansum(cube * weights, axis=0) / bn.nansum(weights)
         case "biweight":
-            frame = biweight_location(cube, axis=0, c=6, skip_nans=True)
+            # suppress all-nan axis warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                frame = biweight_location(cube, axis=0, c=6, ignore_nan=True)
 
     if header is not None:
-        header["COL_METH"] = method, "DPP cube collapse method"
+        header["hierarch DPP COL METH"] = method, "DPP cube collapse method"
+        header["hierarch DPP NCOADD"] = cube.shape[0], "Num. of coadded frames in cube"
 
     return frame, header
 
@@ -505,3 +509,9 @@ def adaptive_sigma_clip_mask(data, sigma=10, boxsize=8):
             output_mask[inds] = np.abs(cutout - med) > sigma * std
 
     return output_mask
+
+
+def create_footprint(cube, angles):
+    mask = np.isfinite(cube)
+    derot = derotate_cube(mask.astype(float), angles)
+    return bn.nanmean(derot, axis=0)

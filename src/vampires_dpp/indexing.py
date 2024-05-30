@@ -80,7 +80,7 @@ def frame_angles_image(frame, center):
 def frame_angles_astro(frame, center):
     Ys, Xs = np.ogrid[0 : frame.shape[-2], 0 : frame.shape[-1]]
     # degrees East of North: phi = arctan(-x, y)
-    thetas = np.arctan2(center[-2] - Xs, Ys - center[-1])
+    thetas = np.arctan2(center[-1] - Xs, Ys - center[-2])
     return thetas
 
 

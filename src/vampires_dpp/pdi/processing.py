@@ -343,7 +343,7 @@ def get_triplediff_set(table, row) -> dict | None:
             (table["RET-ANG1"] == key[0])
             & (table["U_FLC"] == key[1])
             & (table["U_CAMERA"] == key[2])
-            & (delta_angs < 2)  # 1 l/D rotation @ 45 l/d sep
+            & (delta_angs < 4)  # 2 l/D rotation @ 45 l/d sep
         )
         if np.any(mask):
             idx = delta_time[mask].argmin()
@@ -351,7 +351,6 @@ def get_triplediff_set(table, row) -> dict | None:
             return None
 
         output_set[key] = table.loc[mask, "path"].iloc[idx]
-
     return output_set
 
 
@@ -507,6 +506,8 @@ def polarization_ip_correct(stokes_data, phot_rad, method, header=None):
     if header is not None:
         header["IP_PQ"] = pQ, "I -> Q IP correction value"
         header["IP_PU"] = pU, "I -> U IP correction value"
+        header["IP_POL"] = np.hypot(pU, pQ) * 100, "[%] Residual IP"
+        header["IP_ANG"] = 0.5 * np.rad2deg(np.arctan2(pU, pQ)), "[deg] Residual IP angle"
         header["IP_METH"] = method, "IP measurement method"
     return stokes_data, header
 

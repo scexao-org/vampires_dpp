@@ -47,10 +47,15 @@ def get_coord_header(header, time=None):
 GAIA_CATALOGS = {"dr1": "I/337/gaia", "dr2": "I/345/gaia2", "dr3": "I/355/gaiadr3"}
 
 
-def get_gaia_astrometry(target, catalog="dr3", radius=1):
+def get_gaia_astrometry(target: str, catalog="dr3", radius=1):
+    """
+    Get coordinate from GAIA catalogue with proper motions and parallax
+
+    Radius is in arcminute.
+    """
     # get precise RA and DEC
     gaia_catalog_list = Vizier.query_object(
-        target, radius=radius * u.arcsec, catalog=GAIA_CATALOGS[catalog.lower()]
+        target, radius=radius * u.arcminute, catalog=GAIA_CATALOGS[catalog.lower()]
     )
     if len(gaia_catalog_list) == 0:
         return None
@@ -68,6 +73,7 @@ def get_gaia_astrometry(target, catalog="dr3", radius=1):
     return coord
 
 
-def get_precise_coord(coord, time, scale="utc"):
+def get_precise_coord(coord: SkyCoord, time: str, scale="utc"):
+    """Use astropy to get proper-motion corrected coordinate"""
     _time = Time(time, scale=scale, location=SUBARU_LOC)
     return coord.apply_space_motion(_time)

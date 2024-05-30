@@ -460,7 +460,6 @@ class Pipeline:
                     full_paths.append(tuple(sorted(stokes_set.values())))
 
         full_path_set = list(set(full_paths))
-
         stokes_files = []
         # stokes_sets_path = self.paths.pdi_dir / f"{self.config.name}_stokes_sets.txt"
         # with stokes_sets_path.open("w") as fh:
@@ -523,7 +522,12 @@ class Pipeline:
         ## Collapse outputs
         stokes_data = np.array(stokes_data)
         stokes_err = np.array(stokes_err)
-        coll_frame, _ = collapse_frames(stokes_data)
+        coll_frame, _ = collapse_frames(np.nan_to_num(stokes_data))
+        footprint = np.mean(np.isfinite(stokes_data).astype("f4"), axis=0)
+        fits.writeto(
+            self.paths.pdi_dir / f"{self.config.name}_footprint.fits", footprint, overwrite=True
+        )
+        # coll_frame *= footprint
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             coll_err = np.sqrt(np.nansum(stokes_err**2, axis=0)) / stokes_err.shape[0]

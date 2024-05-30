@@ -35,7 +35,8 @@ def load_calibration_file(header):
 
 class VAMPIRESMuellerMatrix(BaseModel):
     name: str = "ideal"
-    pbs_ratio: float = 1  # cam1 / cam2 ratio
+    m3_diat: float = 0
+    m3_offset: float = 0  # deg
     hwp_offset: float = 0  # deg
     hwp_phi: float = 0.5  # wave
     imr_offset: float = 0  # deg
@@ -49,7 +50,8 @@ class VAMPIRESMuellerMatrix(BaseModel):
     def common_path_mm(self, pa, alt, az, hwp, imr, hwp_adi_sync=True):
         # telescope
         pa_theta = np.deg2rad(pa)
-        m3 = mm.generic(epsilon=0, delta=np.pi)
+        m3_theta = np.deg2rad(self.m3_offset)
+        m3 = mm.generic(epsilon=self.m3_diat, theta=m3_theta, delta=np.pi)
         alt_theta = np.deg2rad(alt)
         tel_mm = mm.rotator(-alt_theta) @ m3 @ mm.rotator(pa_theta)
 
@@ -82,11 +84,9 @@ class VAMPIRESMuellerMatrix(BaseModel):
         flc_theta = np.deg2rad(self.flc_theta[flc_state])
         flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
 
-        # beamsplitter
+        # beamsplitter - horiztonal to camera 1
         is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
-        if is_ordinary:
-            pbs_mm *= self.pbs_ratio
 
         M = pbs_mm @ flc_mm @ cp_mm
         return M.astype("f4")
@@ -111,7 +111,8 @@ class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
         flc_theta = {k: t + table["flc_theta"] for k, t in zip(("A", "B"), (0, 45), strict=True)}
         return cls(
             name=table.name,
-            pbs_ratio=table["emgain"],
+            m3_diat=table["m3_diat"],
+            m3_offset=table["m3_theta"],
             hwp_offset=table["hwp_delta"],
             hwp_phi=table["hwp_phi"],
             imr_offset=table["imr_delta"],
@@ -171,6 +172,8 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         table = load_calibration_file(header)
         return cls(
             name=table.name,
+            m3_diat=table["m3_diat"],
+            m3_offset=table["m3_theta"],
             hwp_offset=table["hwp_delta"],
             hwp_phi=table["hwp_phi"],
             imr_offset=table["imr_delta"],
