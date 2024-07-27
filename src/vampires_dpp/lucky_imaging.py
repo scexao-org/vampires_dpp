@@ -214,7 +214,7 @@ def lucky_image_file(
         if method.lower() != "none":
             coll_frame, header = collapse_cube(aligned_cube, header=header, method=method)
             # collapse error in quadrature
-            coll_err_frame = np.sqrt(np.nansum(aligned_err_cube**2), axis=0) / N
+            coll_err_frame = np.sqrt(np.nansum(aligned_err_cube**2, axis=0)) / N
             ## Step 4: Recenter
             if recenter is not None:
                 recenter_offset = get_recenter_offset(
