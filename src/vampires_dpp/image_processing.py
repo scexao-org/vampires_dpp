@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import tqdm.auto as tqdm
 from astropy.coordinates import Angle
+from functools import partial
 from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import ArrayLike, NDArray
@@ -179,6 +180,10 @@ def weighted_collapse(data: ArrayLike, angles: ArrayLike, **kwargs) -> NDArray:
     return weighted_frame
 
 
+def varmean(cube):
+    weights = 1 / bn.nanvar(cube, axis=(1, 2), keepdims=True)
+    return bn.nansum(cube * weights, axis=0) / bn.nansum(weights)
+
 def collapse_cube(
     cube: NDArray, method: str = "median", header: fits.Header | None = None, **kwargs
 ) -> tuple[NDArray, fits.Header | None]:
@@ -201,26 +206,18 @@ def collapse_cube(
     # clean inputs
     match method.strip().lower():
         case "median":
-            # suppress all-nan axis warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                frame = bn.nanmedian(cube, axis=0)
+                collapse_func = partial(bn.nanmedian, axis=0)
         case "mean":
-            # suppress all-nan axis warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                frame = bn.nanmean(cube, axis=0)
+                collapse_func = partial(bn.nanmean, axis=0)
         case "varmean":
-            # suppress all-nan axis warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                weights = 1 / bn.nanvar(cube, axis=(1, 2), keepdims=True)
-                frame = bn.nansum(cube * weights, axis=0) / bn.nansum(weights)
+                collapse_func = varmean
         case "biweight":
-            # suppress all-nan axis warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                frame = biweight_location(cube, axis=0, c=6, ignore_nan=True)
+                collapse_func = partial(biweight_location, axis=0, c=6, ignore_nan=True)
+
+    # suppress all-nan axis warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        frame = collapse_func(cube)
 
     if header is not None:
         header["hierarch DPP COL METH"] = method, "DPP cube collapse method"
