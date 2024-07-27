@@ -213,12 +213,12 @@ class CollapseConfig(BaseModel):
         If true, will reproject cam2 data onto cam1's WCS coordinates
     """
 
-    method: Literal["median", "mean", "varmean", "biweight"] = "median"
+    method: Literal["median", "mean", "varmean", "biweight", "none"] = "median"
     frame_select: Literal["max", "l2norm", "normvar"] | None = None
     centroid: Literal["com", "peak", "gauss", "dft"] | None = None
     select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     recenter: Literal["com", "peak", "gauss", "dft"] | None = None
-    reproject: bool = True
+    reproject: bool = False
     satspot_reference: dict[str, float] = {
         "separation": SATSPOT_REF_NACT,
         "angle": SATSPOT_REF_ANGLE,

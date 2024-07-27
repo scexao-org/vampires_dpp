@@ -2,6 +2,7 @@ import multiprocessing as mp
 import warnings
 from functools import partial
 from pathlib import Path
+import time
 
 import numpy as np
 import pandas as pd
@@ -263,6 +264,7 @@ class Pipeline:
             outpath=fileinfo["metric_file"],
             force=force,
             window_size=config.window_size,
+            dft_factor=config.dft_factor
         )
         return outpath
 

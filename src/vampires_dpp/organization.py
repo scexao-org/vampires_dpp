@@ -128,6 +128,9 @@ def sort_file(
         newname = foldname / path.name.replace(".fits.fz", ".fits")
         if not newname.exists():
             with fits.open(path) as hdul:
+                if len(hdul) < 2:
+                    msg = f"{path}  did not have expected HDU at index 1"
+                    raise RuntimeError(msg)
                 fits.writeto(newname, hdul[1].data, header=hdul[1].header)
     elif copy:
         shutil.copy(path, newname)

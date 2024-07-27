@@ -208,18 +208,21 @@ def lucky_image_file(
             else:
                 aligned_frames.append(cutout.data)
                 aligned_err_frames.append(cutout_err.data)
+        aligned_cube = np.array(aligned_frames)
+        aligned_err_cube = np.array(aligned_err_frames)
         ## Step 3: Collapseo
-        coll_frame, header = collapse_cube(np.array(aligned_frames), header=header, method=method)
-        # collapse error in quadrature
-        coll_err_frame = np.sqrt(np.nansum(np.power(aligned_err_frames, 2), axis=0)) / N
-        ## Step 4: Recenter
-        if recenter is not None:
-            recenter_offset = get_recenter_offset(
-                coll_frame, method=recenter, offsets=offs, window=window, psf=psfs[i]
-            )
-            header["REC_METH"] = register, "DPP recenter method"
-            coll_frame = shift_frame(coll_frame, recenter_offset)
-            coll_err_frame = shift_frame(coll_err_frame, recenter_offset)
+        if method.lower() != "none":
+            coll_frame, header = collapse_cube(aligned_cube, header=header, method=method)
+            # collapse error in quadrature
+            coll_err_frame = np.sqrt(np.nansum(aligned_err_cube**2), axis=0) / N
+            ## Step 4: Recenter
+            if recenter is not None:
+                recenter_offset = get_recenter_offset(
+                    coll_frame, method=recenter, offsets=offs, window=window, psf=psfs[i]
+                )
+                header["REC_METH"] = register, "DPP recenter method"
+                coll_frame = shift_frame(coll_frame, recenter_offset)
+                coll_err_frame = shift_frame(coll_err_frame, recenter_offset)
         hdr = header.copy()
         hdr["FIELD"] = field
         ## handle header metadata
@@ -229,19 +232,35 @@ def lucky_image_file(
         ## Step 5. Reprojection
         if reproject:
             hdr = reproject_header(hdr, astrometry, field=field, refsep=refsep, refang=refang)
-        hdr = apply_wcs(coll_frame, hdr, angle=hdr["DEROTANG"])
+        if method.lower() != "none":
+            hdr = apply_wcs(coll_frame, hdr, angle=hdr["DEROTANG"])
+        else:
+            hdr = apply_wcs(aligned_cube, hdr, angle=hdr["DEROTANG"])
 
         ## Step 6. Specphot cal
         # if desired, use synthetic photometry
         if specphot is not None:
+            # TODO update for frame-by-frame flux
             hdr = specphot_calibration(hdr, outdir=aux_dir, config=specphot)
-            coll_frame = convert_to_surface_brightness(coll_frame, hdr)
-            coll_err_frame = convert_to_surface_brightness(coll_err_frame, hdr)
+            # TODO add optional units
             hdr["BUNIT"] = "Jy/arcsec^2"
 
-        hdr = add_frame_statistics(coll_frame, coll_err_frame, hdr)
-        frames.append(coll_frame)
-        frame_errs.append(coll_err_frame)
+            if method.lower() != "none":
+                coll_frame = convert_to_surface_brightness(coll_frame, hdr)
+                coll_err_frame = convert_to_surface_brightness(coll_err_frame, hdr)
+                hdr = add_frame_statistics(coll_frame, coll_err_frame, hdr)
+            else:
+                aligned_cube = convert_to_surface_brightness(aligned_cube, hdr)
+                aligned_err_cube = convert_to_surface_brightness(aligned_err_cube, hdr)
+                hdrs = [add_frame_statistics(frame, frame_err, hdr.copy()) for frame, frame_err in zip(aligned_cube, aligned_err_cube)]
+                hdr = combine_frames_headers(hdrs, wcs=True)
+
+        if method.lower() != "none":
+            frames.append(coll_frame)
+            frame_errs.append(coll_err_frame)
+        else:
+            frames.append(aligned_cube)
+            frame_errs.append(aligned_err_cube)
         headers.append(hdr)
 
     comb_header = combine_frames_headers(headers, wcs=True)

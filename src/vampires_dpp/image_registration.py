@@ -24,12 +24,15 @@ def offset_centroids(frame, frame_err, inds, psf=None, dft_factor=30):
     # wy, wx = np.ogrid[inds[-2], inds[-1]]
     cutout = frame[inds]
     cutout_err = frame_err[inds] if frame_err is not None else None
-
     peak_yx = np.unravel_index(np.nanargmax(cutout), cutout.shape)
     com_xy = centroids.centroid_com(cutout)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        gauss_xy = centroids.centroid_2dg(cutout, error=cutout_err)
+    # with warnings.catch_warnings():
+    #     warnings.simplefilter("ignore")
+    #     try:
+    #         gauss_xy = centroids.centroid_2dg(cutout, error=cutout_err)
+    #     except Exception:
+    #         warnings.warn(f"Failed to fit Gaussian, using centroid values instead")
+    #         gauss_xy = com_xy
 
     # offset based on indices
     offx = inds[-1].start
@@ -37,7 +40,7 @@ def offset_centroids(frame, frame_err, inds, psf=None, dft_factor=30):
     ctrs = {
         "peak": np.array((peak_yx[0] + offy, peak_yx[1] + offx)),
         "com": np.array((com_xy[1] + offy, com_xy[0] + offx)),
-        "gauss": np.array((gauss_xy[1] + offy, gauss_xy[0] + offx)),
+        # "gauss": np.array((gauss_xy[1] + offy, gauss_xy[0] + offx)),
     }
     if psf is not None and dft_factor > 0:
         dft_off, _, _ = phase_cross_correlation(psf, cutout, upsample_factor=dft_factor)
