@@ -142,8 +142,6 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         # beamsplitter
         is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
-        if is_ordinary:
-            pbs_mm *= self.pbs_ratio
 
         M = pbs_mm @ flc_mm @ cp_mm
         return M.astype("f4")
