@@ -6,7 +6,7 @@ from astropy.nddata import Cutout2D
 from skimage.registration import phase_cross_correlation
 
 from .synthpsf import create_synth_psf
-
+from .util import load_fits
 
 def find_peak(image, xc, yc, boxsize, oversamp=8):
     """
@@ -70,37 +70,38 @@ def find_peak(image, xc, yc, boxsize, oversamp=8):
     return peak
 
 
-def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1, dft_factor: int=30, pxscale=5.9):
+def measure_strehl(image, psf_model, pxscale, pos=None, phot_rad=0.5, peak_search_rad=0.1, dft_factor: int=30):
     ## Step 1: find approximate location of PSF in image
 
     # If no position given, start at the nan-max
-    if pos is None:
-        pos = np.unravel_index(np.nanargmax(image), image.shape)
-    center = np.array(pos)
+    # if pos is None:
+    #     pos = np.unravel_index(np.nanargmax(image), image.shape)
+    # center = np.array(pos)
+    center = np.array(image.shape[-2:]) / 2 - 0.5
     # Now, refine this centroid using cross-correlation
     # this cutout must have same shape as PSF reference (chance for errors here)
-    cutout = Cutout2D(image, center[::-1], psf_model.shape, mode="partial")
-    assert cutout.data.shape == psf_model.shape
+    # cutout = Cutout2D(image, center[::-1], psf_model.shape, mode="partial")
+    # assert cutout.data.shape == psf_model.shape
 
-    shift, _, _ = phase_cross_correlation(
-        psf_model.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=dft_factor, normalization=None
-    )
-    refined_center = center + shift
-    if np.any(np.abs(refined_center - center) > 5):
-        msg = f"PSF centroid appears to have failed, got {refined_center!r}"
-        warnings.warn(msg, stacklevel=2)
+    # shift, _, _ = phase_cross_correlation(
+    #     psf_model.astype("=f4"), cutout.data.astype("=f4"), upsample_factor=dft_factor, normalization=None
+    # )
+    # refined_center = center + shift
+    # if np.any(np.abs(refined_center - center) > 5):
+    #     msg = f"PSF centroid appears to have failed, got {refined_center!r}"
+    #     warnings.warn(msg, stacklevel=2)
 
     ## Step 2: Calculate peak flux with subsampling and flux
     aper_rad_px = phot_rad / (pxscale * 1e-3)
     image_flux, image_fluxerr, _ = sep.sum_circle(
         image.astype("=f4"),
-        (refined_center[1],),
-        (refined_center[0],),
+        (center[1],),
+        (center[0],),
         aper_rad_px,
         err=np.sqrt(np.maximum(image, 0)),
     )
     peak_search_rad_px = peak_search_rad / (pxscale * 1e-3)
-    image_peak = find_peak(image, refined_center[0], refined_center[1], peak_search_rad_px)
+    image_peak = find_peak(image, center[0], center[1], peak_search_rad_px)
 
     ## Step 3: Calculate flux of PSF model
     # note: our models are alrady centered
@@ -122,52 +123,51 @@ def measure_strehl(image, psf_model, pos=None, phot_rad=0.5, peak_search_rad=0.1
     return strehl
 
 
-def get_mbi_cutout(data, camera: int, field: str, reduced: bool = False):
-    hy, hx = np.array(data.shape[-2:]) / 2 - 0.5
-    # use cam2 as reference
-    match field:
-        case "F610":
-            x = hx * 0.25
-            y = hy * 1.5
-        case "F670":
-            x = hx * 0.25
-            y = hy * 0.5
-        case "F720":
-            x = hx * 0.75
-            y = hy * 0.5
-        case "F760":
-            x = hx * 1.75
-            y = hy * 0.5
-        case _:
-            msg = f"Invalid MBI field {field}"
-            raise ValueError(msg)
-    if reduced:
-        y *= 2
-    # flip y axis for cam 1 indices
-    if camera == 1:
-        y = data.shape[-2] - y
-    return Cutout2D(data, position=(x, y), size=500, mode="partial")
 
-
-def measure_strehl_mbi(image, cam: int, pxscale: float = 5.9, **kwargs):
+def measure_strehl_mbi(cube, header, psfs=None, **kwargs):
     filters = ("F610", "F670", "F720", "F760")
+    if psfs is None:
+        psfs = {filt: create_synth_psf(header, filt, 201) for filt in filters}
     results = {}
-    for _i, filt in enumerate(filters):
-        psf = create_synth_psf(filt, 201, pixel_scale=pxscale)
-        cutout = get_mbi_cutout(image, cam, filt)
-        results[filt] = measure_strehl(cutout.data, psf, pxscale=pxscale, **kwargs)
-        print(f"{filt}: measured Strehl {results[filt]*100:.01f}%")
+    for i, filt in enumerate(psfs.keys()):
+        results[filt] = measure_strehl(cube[i], psfs[filt], pxscale=header["PXSCALE"], **kwargs)
+        # print(f"{filt}: measured Strehl {results[filt]*100:.01f}%")
     return results
 
 
 def measure_strehl_frame(frame, header, psf=None, **kwargs):
-    pxscale = header["PXSCALE"]
-    if "MBI" in header["OBS-MOD"] or header["U_MBI"].strip() == "DICHROICS":
-        return measure_strehl_mbi(frame, cam=header["U_CAMERA"], pxscale=pxscale, **kwargs)
+    if "MBI" in header["OBS-MOD"]:
+        filters = ("F610", "F670", "F720", "F760")
+        for i, filt in enumerate(filters):
+            psf = create_synth_psf(header, filt, 201)
+        return measure_strehl_mbi(frame, header, **kwargs)
 
     # return image
     if psf is None:
         psf = create_synth_psf(header, header["FILTER01"].strip(), 201)
     if header["U_CAMERA"] == 1:
         psf = np.flipud(psf)
-    return measure_strehl(frame, psf, pxscale=pxscale, **kwargs)
+    return measure_strehl(frame, psf, pxscale=header["PXSCALE"], **kwargs)
+
+def measure_strehl_cube(cube, header, **kwargs):
+    if "MBI" in header["OBS-MOD"]:
+        psfs = {filt: create_synth_psf(header, filt, 201) for filt in ("F610", "F670", "F720", "F760")}
+        if "MBIR" in header["OBS-MOD"]:
+            del psfs["F610"]
+        results = []
+        for i in range(cube.shape[1]):
+            results.append(measure_strehl_mbi(cube[:, i], header, psfs=psfs))
+        return results
+
+    psf = create_synth_psf(header, header["FILTER01"].strip(), 201)
+    if header["U_CAMERA"] == 1:
+        psf = np.flipud(psf)
+    results = [measure_strehl(frame, psf, header=["PXSCALE"]) for frame in cube]
+    for i in range(len(results)):
+        results[i] = {header["FILTER01"].strip(): results[0]}
+    return results
+
+def measure_strehl_file(filename, **kwargs):
+    data, header = load_fits(filename, header=True)
+    return measure_strehl_cube(data, header, **kwargs)
+        
