@@ -4,9 +4,9 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import tqdm.auto as tqdm
 from astropy.io import fits
-from astropy.time import Time
 from numpy.typing import NDArray
 from reproject import reproject_interp
 
@@ -73,7 +73,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
         cube_errs[key] = cube_err_derot
 
     # reproject cam 2 onto cam 1
-    for subkey in itertools.product((0, 45, 22.5, 67.5), ("A", "B")):
+    for subkey in itertools.product((0.0, 45.0, 22.5, 67.5), ("A", "B")):
         key1 = (subkey[0], subkey[1], 1)
         key2 = (subkey[0], subkey[1], 2)
         reproject_interp(
@@ -146,7 +146,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
         cube_errs[key] = cube_err_derot
 
     # reproject cam 2 onto cam 1
-    for subkey in (0, 45, 22.5, 67.5):
+    for subkey in (0.0, 45.0, 22.5, 67.5):
         key1 = (subkey, 1)
         key2 = (subkey, 2)
         reproject_interp(
@@ -216,15 +216,15 @@ def make_doublediff_dict(filenames):
 def triple_diff_dict(input_dict):
     ## make difference images
     # single diff (cams)
-    pQ0 = 0.5 * (input_dict[(0, "A", 1)] - input_dict[(0, "A", 2)])
-    pIQ0 = 0.5 * (input_dict[(0, "A", 1)] + input_dict[(0, "A", 2)])
-    pQ1 = 0.5 * (input_dict[(0, "B", 1)] - input_dict[(0, "B", 2)])
-    pIQ1 = 0.5 * (input_dict[(0, "B", 1)] + input_dict[(0, "B", 2)])
+    pQ0 = 0.5 * (input_dict[(0.0, "A", 1)] - input_dict[(0.0, "A", 2)])
+    pIQ0 = 0.5 * (input_dict[(0.0, "A", 1)] + input_dict[(0.0, "A", 2)])
+    pQ1 = 0.5 * (input_dict[(0.0, "B", 1)] - input_dict[(0.0, "B", 2)])
+    pIQ1 = 0.5 * (input_dict[(0.0, "B", 1)] + input_dict[(0.0, "B", 2)])
 
-    mQ0 = 0.5 * (input_dict[(45, "A", 1)] - input_dict[(45, "A", 2)])
-    mIQ0 = 0.5 * (input_dict[(45, "A", 1)] + input_dict[(45, "A", 2)])
-    mQ1 = 0.5 * (input_dict[(45, "B", 1)] - input_dict[(45, "B", 2)])
-    mIQ1 = 0.5 * (input_dict[(45, "B", 1)] + input_dict[(45, "B", 2)])
+    mQ0 = 0.5 * (input_dict[(45.0, "A", 1)] - input_dict[(45.0, "A", 2)])
+    mIQ0 = 0.5 * (input_dict[(45.0, "A", 1)] + input_dict[(45.0, "A", 2)])
+    mQ1 = 0.5 * (input_dict[(45.0, "B", 1)] - input_dict[(45.0, "B", 2)])
+    mIQ1 = 0.5 * (input_dict[(45.0, "B", 1)] + input_dict[(45.0, "B", 2)])
 
     pU0 = 0.5 * (input_dict[(22.5, "A", 1)] - input_dict[(22.5, "A", 2)])
     pIU0 = 0.5 * (input_dict[(22.5, "A", 1)] + input_dict[(22.5, "A", 2)])
@@ -261,11 +261,11 @@ def triple_diff_dict(input_dict):
 def double_diff_dict(input_dict):
     ## make difference images
     # single diff (cams)
-    pQ = 0.5 * (input_dict[(0, 1)] - input_dict[(0, 2)])
-    pIQ = 0.5 * (input_dict[(0, 1)] + input_dict[(0, 2)])
+    pQ = 0.5 * (input_dict[(0.0, 1)] - input_dict[(0.0, 2)])
+    pIQ = 0.5 * (input_dict[(0.0, 1)] + input_dict[(0.0, 2)])
 
-    mQ = 0.5 * (input_dict[(45, 1)] - input_dict[(45, 2)])
-    mIQ = 0.5 * (input_dict[(45, 1)] + input_dict[(45, 2)])
+    mQ = 0.5 * (input_dict[(45.0, 1)] - input_dict[(45.0, 2)])
+    mIQ = 0.5 * (input_dict[(45.0, 1)] + input_dict[(45.0, 2)])
 
     pU = 0.5 * (input_dict[(22.5, 1)] - input_dict[(22.5, 2)])
     pIU = 0.5 * (input_dict[(22.5, 1)] + input_dict[(22.5, 2)])
@@ -326,54 +326,156 @@ def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=Fal
     return write_stokes_products(stokes_final, stokes_hdr, outname=path, force=True)
 
 
-DOUBLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), (1, 2)))
-TRIPLEDIFF_SETS = set(itertools.product((0, 45, 22.5, 67.5), ("A", "B"), (1, 2)))
+DOUBLEDIFF_SETS = set(itertools.product((0.0, 45.0, 22.5, 67.5), (1, 2)))
+TRIPLEDIFF_SETS = set(itertools.product((0.0, 45.0, 22.5, 67.5), ("A", "B"), (1, 2)))
 
 
-def get_triplediff_set(table, row) -> dict | None:
-    time_arr = Time(table["MJD"], format="mjd")
-    row_time = Time(row["MJD"], format="mjd")
-    delta_angs = np.abs(table["PA"] - row["PA"])
-    delta_time = np.abs([diff.jd for diff in row_time - time_arr])
-    row_key = (row["RET-ANG1"], row["U_FLC"], row["U_CAMERA"])
-    remaining_keys = TRIPLEDIFF_SETS - set(row_key)
-    output_set = {row_key: row["path"]}
-    for key in remaining_keys:
-        mask = (
-            (table["RET-ANG1"] == key[0])
-            & (table["U_FLC"] == key[1])
-            & (table["U_CAMERA"] == key[2])
-            & (delta_angs < 4)  # 2 l/D rotation @ 45 l/d sep
-        )
-        if np.any(mask):
-            idx = delta_time[mask].argmin()
+def get_triplediff_set(table) -> dict | None:
+    columns = ["path", "UT", "MJD", "PA", "DEROTANG", "RET-ANG1", "U_FLC", "U_CAMERA"]
+    work_table = table[columns].copy()
+    stokes_idx = 0
+    output_tables = []
+    bad_matches = []
+    while len(work_table) >= 16:
+        row_set = work_table.iloc[:16]
+        for key in TRIPLEDIFF_SETS:
+            subset = row_set.query(
+                f"`RET-ANG1` == {key[0]} and U_FLC == '{key[1]}' and U_CAMERA == {key[2]}"
+            )
+            if len(subset) == 0:
+                # found a missing key!
+                row_set = None
+                break
+
+        # if there's a missing key let's try sliding the window down to the next timestamp
+        if row_set is None:
+            indices_to_drop = work_table["UT"] == work_table["UT"].iloc[0]
+            bad_matches.append(work_table.loc[indices_to_drop])
+            work_table = work_table.loc[~indices_to_drop]
         else:
-            return None
+            current_table = pd.DataFrame(row_set)
+            current_table["STOKES_IDX"] = stokes_idx
+            stokes_idx += 1
+            output_tables.append(current_table)
+            work_table.drop(work_table.index[:16], axis=0, inplace=True)
 
-        output_set[key] = table.loc[mask, "path"].iloc[idx]
-    return output_set
+    # address bad matches with second search using queries instead of structured indices
+    if len(bad_matches) > 0:
+        bad_table = pd.concat(bad_matches)
+        work_table = table[columns].copy()
+        while len(bad_table) > 0:
+            row = bad_table.iloc[0]
+            row_key = (row["RET-ANG1"], row["U_FLC"], int(row["U_CAMERA"]))
+            work_table["DELTA_PA"] = np.abs(work_table["PA"] - row["PA"])
+            work_table["DELTA_TIME"] = np.abs(work_table["MJD"] - row["MJD"])
+
+            output_set = [row]
+            remaining_keys = TRIPLEDIFF_SETS - set((row_key,))
+            for key in remaining_keys:
+                subset = work_table.query(
+                    f"`RET-ANG1` == {key[0]} and U_FLC == '{key[1]}' and U_CAMERA == {key[2]} and DELTA_PA < 4"
+                )
+
+                if len(subset) > 0:
+                    idx = subset["DELTA_TIME"].argmin()
+                    output_set.append(subset.iloc[idx])
+                else:
+                    output_set = None
+                    break
+
+            if output_set is None:
+                # pop this row from working table, and any temporal matches
+                indices_to_drop = bad_table["UT"] == row["UT"]
+                table = bad_table.loc[indices_to_drop].copy()
+                table["STOKES_IDX"] = -1
+                bad_table = bad_table.loc[~indices_to_drop]
+            else:
+                current_table = pd.DataFrame(output_set).drop(["DELTA_PA", "DELTA_TIME"], axis=1)
+                current_table["STOKES_IDX"] = stokes_idx
+                stokes_idx += 1
+                # pop full output set
+                for row in current_table.itertuples():
+                    indices_to_drop = bad_table["path"] == row.path
+                    bad_table = bad_table.loc[~indices_to_drop]
+
+            output_tables.append(current_table)
+
+    final_table = pd.concat(output_tables)
+
+    return final_table.sort_values(["MJD", "U_FLC", "U_CAMERA"])
 
 
-def get_doublediff_set(table, row) -> dict | None:
-    time_arr = Time(table["MJD"], format="mjd")
-    row_time = Time(row["MJD"], format="mjd")
-    delta_angs = np.abs(table["PA"] - row["PA"])
-    delta_time = np.abs([diff.jd for diff in row_time - time_arr])
-    row_key = (row["RET-ANG1"], row["U_CAMERA"])
-    remaining_keys = DOUBLEDIFF_SETS - set(row_key)
-    output_set = {row_key: row["path"]}
-    for key in remaining_keys:
-        mask = (
-            (table["RET-ANG1"] == key[0]) & (table["U_CAMERA"] == key[1]) & (delta_angs < 2)
-        )  # 5 minutes
-        if np.any(mask):
-            idx = delta_time[mask].argmin()
+def get_doublediff_set(table) -> dict | None:
+    columns = ["path", "UT", "MJD", "PA", "DEROTANG", "RET-ANG1", "U_CAMERA"]
+    work_table = table[columns].copy()
+    stokes_idx = 0
+    output_tables = []
+    bad_matches = []
+    while len(work_table) >= 8:
+        row_set = work_table.iloc[:8]
+        for key in DOUBLEDIFF_SETS:
+            subset = row_set.query(f"`RET-ANG1` == {key[0]} and U_CAMERA == {key[1]}")
+            if len(subset) == 0:
+                # found a missing key!
+                row_set = None
+                break
+
+        # if there's a missing key let's try sliding the window down to the next timestamp
+        if row_set is None:
+            indices_to_drop = work_table["UT"] == work_table["UT"].iloc[0]
+            bad_matches.append(work_table.loc[indices_to_drop])
+            work_table = work_table.loc[~indices_to_drop]
         else:
-            return None
+            current_table = pd.DataFrame(row_set)
+            current_table["STOKES_IDX"] = stokes_idx
+            stokes_idx += 1
+            output_tables.append(current_table)
+            work_table.drop(work_table.index[:8], axis=0, inplace=True)
 
-        output_set[key] = table.loc[mask, "path"].iloc[idx]
+    # address bad matches with second search using queries instead of structured indices
+    if len(bad_matches) > 0:
+        bad_table = pd.concat(bad_matches)
+        work_table = table[columns].copy()
+        while len(bad_table) > 0:
+            row = bad_table.iloc[0]
+            row_key = (row["RET-ANG1"], row["U_FLC"], int(row["U_CAMERA"]))
+            work_table["DELTA_PA"] = np.abs(work_table["PA"] - row["PA"])
+            work_table["DELTA_TIME"] = np.abs(work_table["MJD"] - row["MJD"])
 
-    return output_set
+            output_set = [row]
+            remaining_keys = DOUBLEDIFF_SETS - set((row_key,))
+            for key in remaining_keys:
+                subset = work_table.query(
+                    f"`RET-ANG1` == {key[0]} and U_CAMERA == {key[1]} and DELTA_PA < 4"
+                )
+
+                if len(subset) > 0:
+                    idx = subset["DELTA_TIME"].argmin()
+                    output_set.append(subset.iloc[idx])
+                else:
+                    output_set = None
+                    break
+
+            if output_set is None:
+                # pop this row from working table, and any temporal matches
+                indices_to_drop = bad_table["UT"] == row["UT"]
+                table = bad_table.loc[indices_to_drop].copy()
+                table["STOKES_IDX"] = -1
+                bad_table = bad_table.loc[~indices_to_drop]
+            else:
+                current_table = pd.DataFrame(output_set).drop(["DELTA_PA", "DELTA_TIME"], axis=1)
+                current_table["STOKES_IDX"] = stokes_idx
+                stokes_idx += 1
+                # pop full output set
+                for row in current_table.itertuples():
+                    indices_to_drop = bad_table["path"] == row.path
+                    bad_table = bad_table.loc[~indices_to_drop]
+
+            output_tables.append(current_table)
+
+    final_table = pd.concat(output_tables)
+
+    return final_table.sort_values(["MJD", "U_CAMERA"])
 
 
 def make_stokes_image(

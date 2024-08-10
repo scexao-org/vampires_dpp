@@ -2,7 +2,6 @@ import multiprocessing as mp
 import warnings
 from functools import partial
 from pathlib import Path
-import time
 
 import numpy as np
 import pandas as pd
@@ -264,7 +263,7 @@ class Pipeline:
             outpath=fileinfo["metric_file"],
             force=force,
             window_size=config.window_size,
-            dft_factor=config.dft_factor
+            dft_factor=config.dft_factor,
         )
         return outpath
 
@@ -442,40 +441,30 @@ class Pipeline:
 
     def polarimetry_difference(self, table, method, num_proc=None, force=False):
         config = self.config.polarimetry
-        full_paths = []
-        match method.lower():
-            case "triplediff":
-                pol_func = partial(get_triplediff_set, table)
-            case "doublediff":
-                pol_func = partial(get_doublediff_set, table)
-            case _:
-                msg = f"Invalid polarimetric difference method '{method}'"
-                raise ValueError(msg)
+        stokes_sets_path = self.paths.pdi_dir / f"{self.config.name}_stokes_sets.csv"
+        if stokes_sets_path.exists():
+            stokes_sets = pd.read_csv(stokes_sets_path)
+            logger.info(f"Loaded HWP cycle combinations from {stokes_sets_path}")
+        else:
+            match method.lower():
+                case "triplediff":
+                    stokes_sets = get_triplediff_set(table)
+                case "doublediff":
+                    stokes_sets = get_doublediff_set(table)
+                case _:
+                    msg = f"Invalid polarimetric difference method '{method}'"
+                    raise ValueError(msg)
+            stokes_sets.to_csv(stokes_sets_path, index=False)
+            logger.info(f"Saved HWP cycle combinations to {stokes_sets_path}")
 
-        with mp.Pool(num_proc) as pool:
-            jobs = []
-            for _, row in table.iterrows():
-                jobs.append(pool.apply_async(pol_func, args=(row,)))
-            for job in tqdm(jobs, desc="Determing Stokes frame combinations"):
-                stokes_set = job.get()
-                if stokes_set is not None:
-                    full_paths.append(tuple(sorted(stokes_set.values())))
+        ## Save CSV of Stokes values
+        stokes_tbl = header_table(stokes_sets["path"], fix=False, quiet=True)
+        stokes_tbl_path = self.paths.pdi_dir / f"{self.config.name}_stokes_table.csv"
+        stokes_tbl.to_csv(stokes_tbl_path)
+        logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
 
-        full_path_set = list(set(full_paths))
-        stokes_files = []
-        # stokes_sets_path = self.paths.pdi_dir / f"{self.config.name}_stokes_sets.txt"
         # with stokes_sets_path.open("w") as fh:
         #     fh.write("CYC\tIDX\tUT\tPA\tIMR\tHWP\tFLC\tCAM\tPATH\n")
-        for i, _ in enumerate(full_path_set):
-            out_name = self.paths.stokes_dir / f"{self.config.name}_stokes_{i:03d}.fits"
-            stokes_files.append(out_name)
-            # fh.write(stokes_info_lines(path_set, set_index=i))
-            # fh.write("\n")
-        # logger.info(f"Saved HWP cycle combinations to {stokes_sets_path}")
-        # peek to get nfields
-        with fits.open(full_path_set[0][0]) as hdul:
-            nfields = hdul[0].shape[0]
-
         stokes_data = []
         stokes_err = []
         stokes_hdrs = []
@@ -493,16 +482,18 @@ class Pipeline:
         # TODO this is kind of ugly
         with mp.Pool(num_proc) as pool:
             jobs = []
-            for outpath, path_set in zip(stokes_files, full_path_set, strict=True):
+            for set_idx, group in stokes_sets.query("STOKES_IDX != -1").groupby("STOKES_IDX"):
+                paths = group["path"]
+                outpath = self.paths.stokes_dir / f"{self.config.name}_stokes_{set_idx:03d}.fits"
                 if config.mm_correct:
-                    mask = [p in path_set for p in table["path"]]
+                    mask = [p in paths.values for p in table["path"]]
                     subset = table.loc[mask]
                     mm_paths = subset["mm_file"]
                 else:
                     mm_paths = None
-                if len(path_set) not in (8, 16):
+                if len(paths) != (16 if method == "triplediff" else 8):
                     continue
-                jobs.append(pool.apply_async(stokes_func, args=(path_set, outpath, mm_paths)))
+                jobs.append(pool.apply_async(stokes_func, args=(paths, outpath, mm_paths)))
 
             for job in tqdm(jobs, desc="Creating Stokes images"):
                 outpath = job.get()
@@ -513,15 +504,8 @@ class Pipeline:
                     stokes_err.append(hdul["ERR"].data)
                     hdrs = [hdul[i].header for i in range(3, len(hdul))]
                     stokes_hdrs.append(hdrs)
-
-        remain_files = filter(lambda f: Path(f).exists(), stokes_files)
-        ## Save CSV of Stokes values
-        stokes_tbl = header_table(remain_files, fix=False, quiet=True)
-        stokes_tbl_path = self.paths.pdi_dir / f"{self.config.name}_stokes_table.csv"
-        stokes_tbl.to_csv(stokes_tbl_path)
-        logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
-        logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
         ## Collapse outputs
+        logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
         stokes_data = np.array(stokes_data)
         stokes_err = np.array(stokes_err)
         coll_frame, _ = collapse_frames(np.nan_to_num(stokes_data))
@@ -533,6 +517,7 @@ class Pipeline:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             coll_err = np.sqrt(np.nansum(stokes_err**2, axis=0)) / stokes_err.shape[0]
+        nfields = len(stokes_hdrs[0])
         coll_hdrs = []
         for i in range(nfields):
             hdrs = [hdr[i] for hdr in stokes_hdrs]
@@ -540,10 +525,7 @@ class Pipeline:
             coll_hdrs.append(hdr)
 
         # correct TINT to account for actual number of files used
-        unique_files = []
-        for paths in full_path_set:
-            unique_files.extend(paths)
-        tints = [fits.getval(path, "TINT") for path in np.unique(unique_files)]
+        tints = [fits.getval(path, "TINT") for path in np.unique(stokes_sets["path"])]
         tint = np.sum(tints)
         for hdr in coll_hdrs:
             hdr["NCOADD"] = len(tints)
