@@ -463,8 +463,6 @@ class Pipeline:
         stokes_tbl.to_csv(stokes_tbl_path)
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
 
-        # with stokes_sets_path.open("w") as fh:
-        #     fh.write("CYC\tIDX\tUT\tPA\tIMR\tHWP\tFLC\tCAM\tPATH\n")
         stokes_data = []
         stokes_err = []
         stokes_hdrs = []
