@@ -500,7 +500,7 @@ class Pipeline:
                 with fits.open(outpath, memmap=False) as hdul:
                     stokes_data.append(hdul[0].data)
                     stokes_err.append(hdul["ERR"].data)
-                    hdrs = [hdul[i].header for i in range(3, len(hdul))]
+                    hdrs = [hdul[i].header for i in range(2, len(hdul))]
                     stokes_hdrs.append(hdrs)
         ## Collapse outputs
         logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
@@ -533,11 +533,7 @@ class Pipeline:
         prim_hdr["TINT"] /= len(coll_hdrs)
         prim_hdu = fits.PrimaryHDU(coll_frame, header=prim_hdr)
         err_hdu = fits.ImageHDU(coll_err, header=prim_hdr, name="ERR")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            snr = prim_hdu.data / err_hdu.data
-        snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
-        hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
+        hdul = fits.HDUList([prim_hdu, err_hdu])
         hdul.extend([fits.ImageHDU(header=hdr, name=hdr["FIELD"]) for hdr in coll_hdrs])
         # In the case we have multi-wavelength data, save 4D Stokes cube
         if nfields > 1:
@@ -559,12 +555,8 @@ class Pipeline:
             # TODO some fits keywords here are screwed up
             prim_hdu = fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr)
             err_hdu = fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERR")
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                snr = prim_hdu.data / err_hdu.data
-            snr_hdu = fits.ImageHDU(snr, header=wave_coll_hdr, name="SNR")
             dummy_hdu = fits.ImageHDU(header=wave_coll_hdr, name="COMB")
-            hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu, dummy_hdu])
+            hdul = fits.HDUList([prim_hdu, err_hdu, dummy_hdu])
         # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(

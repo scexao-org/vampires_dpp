@@ -44,7 +44,7 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
             prim_hdrs[key] = prim_hdr
             data[key] = hdul[0].data
             errs[key] = hdul["ERR"].data
-            hdrs[key] = [hdul[i].header for i in range(3, len(hdul))]
+            hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
     if len(data) < 2:
         return None
     # reproject cam2 onto cam1
@@ -108,7 +108,7 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
             prim_hdrs[key] = prim_hdr
             data[key] = hdul[0].data
             errs[key] = hdul["ERR"].data
-            hdrs[key] = [hdul[i].header for i in range(3, len(hdul))]
+            hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
 
     if len(data) < 4:
         return None

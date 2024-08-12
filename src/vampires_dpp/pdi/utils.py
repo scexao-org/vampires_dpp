@@ -145,11 +145,7 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
     prim_hdr = sort_header(prim_hdr)
     prim_hdu = fits.PrimaryHDU(np.squeeze(output_data), header=prim_hdr)
     err_hdu = fits.ImageHDU(np.squeeze(output_err), header=prim_hdr, name="ERR")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        snr = prim_hdu.data / err_hdu.data
-    snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
-    hdul_out = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
+    hdul_out = fits.HDUList([prim_hdu, err_hdu])
     hdul_out.extend([fits.ImageHDU(header=sort_header(hdr)) for hdr in output_hdrs])
     hdul_out.writeto(path, overwrite=True)
 

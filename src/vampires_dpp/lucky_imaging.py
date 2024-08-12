@@ -1,4 +1,3 @@
-import warnings
 from pathlib import Path
 from typing import Final, Literal
 
@@ -252,7 +251,10 @@ def lucky_image_file(
             else:
                 aligned_cube = convert_to_surface_brightness(aligned_cube, hdr)
                 aligned_err_cube = convert_to_surface_brightness(aligned_err_cube, hdr)
-                hdrs = [add_frame_statistics(frame, frame_err, hdr.copy()) for frame, frame_err in zip(aligned_cube, aligned_err_cube)]
+                hdrs = [
+                    add_frame_statistics(frame, frame_err, hdr.copy())
+                    for frame, frame_err in zip(aligned_cube, aligned_err_cube)
+                ]
                 hdr = combine_frames_headers(hdrs, wcs=True)
 
         if method.lower() != "none":
@@ -269,11 +271,7 @@ def lucky_image_file(
     comb_header = sort_header(comb_header)
     prim_hdu = fits.PrimaryHDU(np.array(frames), header=comb_header)
     err_hdu = fits.ImageHDU(np.array(frame_errs), header=comb_header, name="ERR")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        snr = prim_hdu.data / err_hdu.data
-    snr_hdu = fits.ImageHDU(snr, header=comb_header, name="SNR")
-    hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
+    hdul = fits.HDUList([prim_hdu, err_hdu])
     # add headers from each field
     hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=hdr["FIELD"]) for hdr in headers])
     # write to disk

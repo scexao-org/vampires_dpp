@@ -67,12 +67,10 @@ def make_background_file(filename: str, force=False, **kwargs):
     # save to disk
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        snr = master_background / back_err
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_background, header=header),
             fits.ImageHDU(back_err, header=header, name="ERR"),
-            fits.ImageHDU(snr, header=header, name="SNR"),
         ]
     )
     hdul.writeto(outpath, overwrite=True)
@@ -141,12 +139,10 @@ def make_flat_file(
     header = sort_header(header)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        snr = master_flat / back_err
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_flat, header=header),
             fits.ImageHDU(flat_err, header=header, name="ERR"),
-            fits.ImageHDU(snr, header=header, name="SNR"),
         ]
     )
     hdul.writeto(outpath, overwrite=True)

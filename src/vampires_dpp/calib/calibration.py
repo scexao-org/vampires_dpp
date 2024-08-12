@@ -1,6 +1,5 @@
 # library functions for common calibration tasks like
 # background subtraction, collapsing cubes
-import warnings
 from pathlib import Path
 
 import astropy.units as u
@@ -121,8 +120,4 @@ def calibrate_file(
     # clip fot float32 to limit data size
     prim_hdu = fits.PrimaryHDU(cube.astype("f4"), header=header)
     err_hdu = fits.ImageHDU(cube_err.astype("f4"), header=header, name="ERR")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        snr = prim_hdu.data / err_hdu.data
-    snr_hdu = fits.ImageHDU(snr, header=header, name="SNR")
-    return fits.HDUList([prim_hdu, err_hdu, snr_hdu])
+    return fits.HDUList([prim_hdu, err_hdu])

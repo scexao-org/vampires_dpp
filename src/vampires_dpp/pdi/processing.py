@@ -1,5 +1,4 @@
 import itertools
-import warnings
 from collections.abc import Sequence
 from pathlib import Path
 from typing import TypeVar
@@ -114,11 +113,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     prim_hdr = stokes_hdrs.pop("PRIMARY")
     prim_hdu = fits.PrimaryHDU(stokes_cube, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        snr = prim_hdu.data / err_hdu.data
-    snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
-    hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
+    hdul = fits.HDUList([prim_hdu, err_hdu])
     hdul.extend([fits.ImageHDU(header=hdr, name=key) for key, hdr in stokes_hdrs.items()])
     return hdul
 
@@ -188,11 +183,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
     prim_hdr = stokes_hdrs.pop("PRIMARY")
     prim_hdu = fits.PrimaryHDU(stokes_cube, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        snr = prim_hdu.data / err_hdu.data
-    snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
-    hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
+    hdul = fits.HDUList([prim_hdu, err_hdu])
     hdul.extend([fits.ImageHDU(header=hdr, name=key) for key, hdr in stokes_hdrs.items()])
     return hdul
 
@@ -523,7 +514,7 @@ def make_stokes_image(
     stokes_outdata = np.empty_like(stokes_data)
     stokes_outerr = np.empty_like(stokes_err)
     prim_hdr = stokes_hdul[0].header
-    headers = [stokes_hdul[i].header for i in range(3, len(stokes_hdul))]
+    headers = [stokes_hdul[i].header for i in range(2, len(stokes_hdul))]
     mms = []
     for i in range(stokes_data.shape[0]):
         stokes_frame = stokes_data[i]
@@ -592,11 +583,7 @@ def make_stokes_image(
     prim_hdr = sort_header(prim_hdr)
     prim_hdu = fits.PrimaryHDU(stokes_outdata, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        snr = prim_hdu.data / err_hdu.data
-    snr_hdu = fits.ImageHDU(snr, header=prim_hdr, name="SNR")
-    hdul = fits.HDUList([prim_hdu, err_hdu, snr_hdu])
+    hdul = fits.HDUList([prim_hdu, err_hdu])
     hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=hdr["FIELD"]) for hdr in headers])
     if mm_correct:
         for hdr, mm in zip(headers, mms, strict=True):
