@@ -195,7 +195,7 @@ def mueller_matrix_from_file(
     headers = []
     mms = []
     with fits.open(filename) as hdul:
-        for hdu in hdul[3:]:
+        for hdu in hdul[2:]:
             headers.append(hdu.header)
             if "U_MBI" in hdu.header:
                 if ideal:

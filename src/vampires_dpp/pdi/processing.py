@@ -64,7 +64,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
             cube_err = hdul["ERR"].data
             prim_hdr = hdul[0].header
             create_or_append(headers, "PRIMARY", prim_hdr)
-            for hdu in hdul[3:]:
+            for hdu in hdul[2:]:
                 hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
@@ -133,7 +133,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
             cube_err = hdul["ERR"].data
             prim_hdr = hdul[0].header
             create_or_append(headers, "PRIMARY", prim_hdr)
-            for hdu in hdul[3:]:
+            for hdu in hdul[2:]:
                 hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction

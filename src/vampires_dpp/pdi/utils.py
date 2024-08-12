@@ -123,7 +123,7 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
     for i in range(stokes_data.shape[0]):
         data, err = stokes_products(stokes_data[i], stokes_err[i], phi=phi, planetary=planetary)
 
-        hdr = hdul[3 + i].header
+        hdr = hdul[2 + i].header
         hdr["CTYPE3"] = "STOKES"
         if planetary:
             stokes_keys = "I_Q", "I_U", "Q", "U", "Q_R", "U_R", "LP_I", "AOLP"
