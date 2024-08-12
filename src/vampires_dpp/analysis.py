@@ -1,11 +1,8 @@
 import itertools
-import warnings
-import time
 
-from astropy.io import fits
+# import time
 import numpy as np
 import sep
-from photutils import profiles
 
 from .image_registration import offset_centroids
 from .indexing import cutout_inds, frame_center, get_mbi_centers
@@ -68,10 +65,6 @@ def safe_annulus_sum(frame, Rin, Rout, center=None):
 def estimate_strehl(*args, **kwargs):
     raise NotImplementedError()
 
-    ## use PSF centers to recenter
-    if recenter:
-        offsets = np.subtract(old_ctr, ctr)
-        frame = shift_frame(frame, offsets)
 
 def analyze_fields(
     cube,
@@ -90,23 +83,23 @@ def analyze_fields(
     cube_err[inds]
     radii = np.arange(window_size)
     ## Simple statistics
-    t0 = time.perf_counter()
+    # t0 = time.perf_counter()
     output["max"] = np.nanmax(cutout, axis=(-2, -1))
     output["sum"] = np.nansum(cutout, axis=(-2, -1))
     output["mean"] = np.nanmean(cutout, axis=(-2, -1))
     output["med"] = np.nanmedian(cutout, axis=(-2, -1))
     output["var"] = np.nanvar(cutout, axis=(-2, -1))
     output["nvar"] = output["var"] / output["mean"]
-    t1 = time.perf_counter()
+    # t1 = time.perf_counter()
     # print(f"Time for full-frame statistics: {t1 - t0} [s]")
     ## Centroids
     for fidx in range(cube.shape[0]):
         frame = cube[fidx]
         frame_err = cube_err[fidx]
 
-        t3 = time.perf_counter()
+        # t3 = time.perf_counter()
         centroids = offset_centroids(frame, frame_err, inds, psf, dft_factor)
-        
+
         create_or_append(output, "comx", centroids["com"][1])
         create_or_append(output, "comy", centroids["com"][0])
         create_or_append(output, "peakx", centroids["peak"][1])
@@ -120,11 +113,11 @@ def analyze_fields(
             create_or_append(output, "dftx", centroids["dft"][1])
             create_or_append(output, "dfty", centroids["dft"][0])
             ctr_est = centroids["dft"]
-        
-        t4 = time.perf_counter()
+
+        # t4 = time.perf_counter()
         # print(f"Time to measure centroids for one frame: {t4 - t3} [s]")
 
-        t3 = time.perf_counter()
+        # t3 = time.perf_counter()
         # with warnings.catch_warnings():
         #     warnings.simplefilter("ignore")
         #     prof = profiles.RadialProfile(
@@ -133,12 +126,12 @@ def analyze_fields(
         #     try:
         #         fwhm = prof.gaussian_fwhm
         #     except Exception:
-        t4 = time.perf_counter()
+        # t4 = time.perf_counter()
         # print(f"Time to radial profile for one frame: {t4 - t3} [s]")
         fwhm = 0
         create_or_append(output, "fwhm", fwhm)
-        
-        t3 = time.perf_counter()
+
+        # t3 = time.perf_counter()
         if aper_rad == "auto":
             r = max(min(fwhm, radii.max() / 2), 3)
             ann_rad = r + 5, r + fwhm + 5
@@ -150,10 +143,10 @@ def analyze_fields(
         )
         create_or_append(output, "photf", phot)
         create_or_append(output, "phote", photerr)
-        t4 = time.perf_counter()
+        # t4 = time.perf_counter()
         # print(f"Time to radial profile for one frame: {t4 - t3} [s]")
-        
-    t2 = time.perf_counter()
+
+    # t2 = time.perf_counter()
     # print(f"Average time for centroids: {(t2 - t1)/cube.shape[0]} [s]")
     return output
 

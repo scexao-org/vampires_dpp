@@ -253,7 +253,7 @@ def lucky_image_file(
                 aligned_err_cube = convert_to_surface_brightness(aligned_err_cube, hdr)
                 hdrs = [
                     add_frame_statistics(frame, frame_err, hdr.copy())
-                    for frame, frame_err in zip(aligned_cube, aligned_err_cube)
+                    for frame, frame_err in zip(aligned_cube, aligned_err_cube, strict=True)
                 ]
                 hdr = combine_frames_headers(hdrs, wcs=True)
 
