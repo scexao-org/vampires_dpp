@@ -18,7 +18,7 @@ __all__ = (
     "TargetConfig",
     "SpecphotConfig",
     "CalibrateConfig",
-    "CollapseConfig",
+    "CombineConfig",
     "AnalysisConfig",
     "PolarimetryConfig",
     "PipelineConfig",
@@ -168,56 +168,17 @@ class CalibrateConfig(BaseModel):
         If true will look for flat files in ``calib_directory`` and perform flat normalization if found.
     fix_bad_pixels:
         If true, will run adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels. By default false.
+    reproject:
+        If true, will use custom astrometry solution to warp frame
     save_intermediate:
         If true, will save intermediate calibrated data to ``calibrated/`` folder.
     """
 
     calib_directory: Path | None = None
     back_subtract: bool = True
-    flat_correct: bool = True
-    distortion_file: Path | None = None
+    flat_correct: bool = False
     fix_bad_pixels: bool = False
     save_intermediate: bool = False
-
-
-class CollapseConfig(BaseModel):
-    """Cube collapse options
-
-    * median - Pixel-by-pixel median
-    * mean - Pixel-by-pixel mean
-    * varmean - Pixel-by-pixel mean weighted by frame variance
-    * biweight - Pixel-by-pixel biweight location
-
-
-        **File Outputs**
-
-        - Each input file is collapsed and saved into the ``collapsed/`` folder
-
-
-    Parameters
-    ----------
-    method:
-        The collapse method, one of `"median"`, `"mean"`, `"varmean"`, or `"biweight"`. By default
-        `"median"`.
-    frame_select:
-        If provided, will use the given metric to select frames for inclusions/exclusion from each data cube.
-    centroid:
-        If provided, will register each frame using the given method. If not provided for MBI data a very rough
-        estimate of the center will be used to get the cutout crops for each field.
-    select_cutoff:
-        If ``frame_select`` is provided, this is the cutoff _quantile_ (from 0 to 1), where 0.2 means 20% of the frames
-        from each cube will be discarded according the the selection metric.
-    recenter:
-        If a string is provided, will measure the centroids in the higher S/N collapsed frame using the given method.
-    reproject:
-        If true, will reproject cam2 data onto cam1's WCS coordinates
-    """
-
-    method: Literal["median", "mean", "varmean", "biweight", "none"] = "median"
-    frame_select: Literal["max", "l2norm", "normvar"] | None = None
-    centroid: Literal["com", "peak", "gauss", "dft"] | None = None
-    select_cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
-    recenter: Literal["com", "peak", "gauss", "dft"] | None = None
     reproject: bool = False
     satspot_reference: dict[str, float] = {
         "separation": SATSPOT_REF_NACT,
@@ -250,11 +211,111 @@ class AnalysisConfig(BaseModel):
         The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate.
     """
 
-    subtract_radprof: bool = False
-    aper_rad: float | Literal["auto"] = 8
-    ann_rad: Sequence[float] | None = None
+    fit_psf: bool = True
+    psf_model: Literal["moffat", "gaussian"] = "moffat"
+    photometry: bool = True
+    phot_aper_rad: float = 8
+    phot_ann_rad: Sequence[float] | Literal[False] = False
     window_size: int = 30
+
+
+class CombineConfig(BaseModel):
+    """Frame combination options
+
+    VAMPIRES data comes in many shapes and sizes. We like to think the core data product is every individual frame, and therefore the FITS cubes we started with does not have to define the boundaries of our data analysis. There are two methods for reshuffling data, currently:
+
+    1. "cube" -- this method will effectively do nothing; the data will be combined by their original FITS cubes
+    2. "pdi" -- this method will combine all frames from a single HWP angle, and is required for polarimetry
+
+    When data is combined it will become a single FITS file
+
+    Parameters
+    ----------
+    method:
+    """
+
+    method: Literal["cube", "pdi"]
+    save_intermediate: bool = False
+
+
+class FrameSelectConfig(BaseModel):
+    """Frame selection options
+
+    Parameters
+    ----------
+    frame_select:
+        If true, will use the given metric to select frames for inclusions/exclusion from each data cube.
+    metric:
+        Frame selection metric
+    cutoff:
+        If ``frame_select`` is provided, this is the cutoff _quantile_ (from 0 to 1), where 0.2 means 20% of the frames
+        from each cube will be discarded according the the selection metric.
+    save_intermediate:
+        If true, will save the frame-selected files to the `frame_select` folder (WARNING can lead to insane data volume)
+    """
+
+    frame_select: bool = False
+    metric: Literal["max", "l2norm", "normvar"] = "normvar"
+    cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
+    save_intermediate: bool = False
+
+
+class RegisterConfig(BaseModel):
+    """Frame registration options
+
+    Parameters
+    ----------
+    align:
+        If true, data will be aligned by the give method
+    method:
+    dft_factor:
+        Only used if `method` is "dft". Subpixel upsampling factor for the discrete fourier transform, in practice values above 30 do not improve centroid accuracy.
+    save_intermediate:
+        If true, will save the registered files to the ``registered`` folder (WARNING can lead to insance data volume)
+    """
+
+    align: bool = True
+    method: Literal["dft", "com", "peak", "model"] = "dft"
     dft_factor: int = 30
+    save_intermediate: bool = False
+
+
+class CoaddConfig(BaseModel):
+    """Frame combination options
+
+
+    **File Outputs**
+
+        - Each input file is collapsed and saved into the ``collapsed/`` folder if coadd is true, otherwise will save in the ``registered/`` folder.
+
+    Parameters
+    ----------
+    coadd:
+        If true, will coadd each cube of data (where the cube is determined from the combination method). If false, the data will be saved as cubes.
+    method:
+    recenter:
+        If true, will measure the centroid of the PSF in the collapsed frame and realign the data
+    recenter_method:
+        Only used of recenter is true; method for PSF registration.
+    """
+
+    coadd: bool = True
+    method: Literal["median", "mean", "varmean", "biweight"] = "median"
+    recenter: bool = False
+    recenter_method: Literal["dft", "com", "peak", "model"] = "dft"
+
+
+class DiffImageConfig(BaseModel):
+    """Difference image options
+
+    Synchronized/polarimetric data can be automatically difference imaged after registration/coadding. Single diff will take cam1-cam2 and cam1+cam2. Double diff will perform single diff first, and then subtract FLC state B from FLC state A.
+    """
+
+    make_diff: bool = False
+    method: Literal["singlediff", "doublediff"] = "doublediff"
+    save_single: bool = False
+    save_double: bool = False
+    save_triple: bool = False
 
 
 class PolarimetryConfig(BaseModel):
@@ -299,7 +360,7 @@ class PolarimetryConfig(BaseModel):
         If true, will save the plneatary radial Stokes (Qr, Ur) instead of (Qphi, Uphi).
     """
 
-    method: Literal["triplediff", "doublediff", "leastsq"] = "triplediff"
+    method: Literal["triplediff", "doublediff"] = "triplediff"
     mm_correct: bool = True
     hwp_adi_sync: bool = True
     use_ideal_mm: bool = False
@@ -327,39 +388,47 @@ class PipelineConfig(BaseModel):
     ----------
     name:
         filename-friendly name used for outputs from this pipeline. For example "20230101_ABAur"
-    coronagraph:
+    dpp_version:
+        The version of vampires_dpp that this configuration file is valid with. Typically not set by user.
+    coronagraphic:
         If true will use coronagraphic routines for processing.
-    calibrate:
-        Options for basic image calibration
-    analysis:
-        Options for PSF/flux analysis in collapsed data
-    collapse:
-        Options for collapsing image cubes
+    save_adi_cubes:
+        If true, will save ADI cubes and derotation angles in product directory.
     target:
         If set, provides options for target object, primarily coordinates. If not set, will use header values.
     specphot:
         If set, provides options for spectrophotometric calibration. If not set, will leave data in units of ``adu``.
-    polarimetry:
-        If set, provides options for polarimetric differential imaging (PDI)
-    dpp_version:
-        The version of vampires_dpp that this configuration file is valid with. Typically not set by user.
-    save_adi_cubes:
-        If true, will save ADI cubes and derotation angles in product directory.
+    calibrate:
+        Options for basic image calibration
+    analysis:
+        Options for PSF/flux analysis in collapsed data
+    combine:
+        Options for frame combinations
+    frame_select:
+        Options for frame selection
+    register:
+        Options for frame registration
+    coadd:
+        Options for coadding image cubes
     diff_images:
         Diagnostic difference imaging options. Double-differencing requires an FLC.
-
+    polarimetry:
+        If set, provides options for polarimetric differential imaging (PDI)
     """
 
     name: str = ""
-    diff_images: Literal["singlediff", "doublediff", "both"] | None = None
-    save_adi_cubes: bool = True
-    coronagraphic: bool = False
     dpp_version: str = dpp.__version__
+    coronagraphic: bool = False
+    save_adi_cubes: bool = False
     target: TargetConfig | None = None
+    specphot: SpecphotConfig | None = None
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
-    specphot: SpecphotConfig | None = None
-    collapse: CollapseConfig = CollapseConfig()
+    combine: CombineConfig = CombineConfig()
+    frame_select: FrameSelectConfig = FrameSelectConfig()
+    register: RegisterConfig = RegisterConfig()
+    coadd: CoaddConfig = CoaddConfig()
+    diff_images: DiffImageConfig()
     polarimetry: PolarimetryConfig | None = None
 
     @classmethod
