@@ -101,8 +101,9 @@ def radial_stokes(stokes_cube: ArrayLike, stokes_err: ArrayLike | None = None, p
 
 def rotate_stokes(stokes_cube, theta):
     out = stokes_cube.copy()
-    sin2ts = np.sin(2 * theta)
-    cos2ts = np.cos(2 * theta)
+    theta_rad = np.deg2rad(theta)
+    sin2ts = np.sin(2 * theta_rad)
+    cos2ts = np.cos(2 * theta_rad)
     out[2] = stokes_cube[2] * cos2ts - stokes_cube[3] * sin2ts
     out[3] = stokes_cube[2] * sin2ts + stokes_cube[3] * cos2ts
     return out
@@ -176,3 +177,11 @@ def stokes_products(stokes_frame, stokes_err, phi=0, planetary: bool = False):
     data = np.asarray((*stokes_frame, Qphi, Uphi, pi, aolp))
     data_err = np.asarray((*stokes_err, Qphi_err, Uphi_err, pi_err, aolp_err))
     return data, data_err
+
+
+def calculate_pol_efficiency(mmQ, mmU):
+    poleff_Q = np.hypot(mmQ[1], mmU[1])
+    poleff_U = np.hypot(mmQ[2], mmU[2])
+    poleff_QU = np.sqrt(0.5 * (mmQ[1] + mmQ[2]) ** 2 + 0.5 * (mmU[1] + mmU[2]) ** 2)
+    average_poleff = np.mean((poleff_Q, poleff_U, poleff_QU))
+    return average_poleff
