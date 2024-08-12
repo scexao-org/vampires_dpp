@@ -2,6 +2,7 @@ import itertools
 import warnings
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TypeVar
 
 import numpy as np
 import pandas as pd
@@ -12,12 +13,17 @@ from reproject import reproject_interp
 
 from vampires_dpp.headers import sort_header
 from vampires_dpp.image_processing import combine_frames_headers, derotate_cube, derotate_frame
-from vampires_dpp.organization import header_table
 from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs
 
-from .utils import measure_instpol, measure_instpol_ann, rotate_stokes, write_stokes_products
+from .utils import (
+    calculate_pol_efficiency,
+    measure_instpol,
+    measure_instpol_ann,
+    rotate_stokes,
+    write_stokes_products,
+)
 
 
 def polarization_calibration_triplediff(filenames: Sequence[str]):
@@ -213,7 +219,10 @@ def make_doublediff_dict(filenames):
     return output
 
 
-def triple_diff_dict(input_dict):
+T = TypeVar("T")
+
+
+def triple_diff_dict(input_dict: dict[tuple[float, str, int], T]) -> tuple[T, T, T, T]:
     ## make difference images
     # single diff (cams)
     pQ0 = 0.5 * (input_dict[(0.0, "A", 1)] - input_dict[(0.0, "A", 2)])
@@ -258,7 +267,7 @@ def triple_diff_dict(input_dict):
     return IQ, IU, Q, U
 
 
-def double_diff_dict(input_dict):
+def double_diff_dict(input_dict: dict[tuple[float, str, int], T]) -> tuple[T, T, T, T]:
     ## make difference images
     # single diff (cams)
     pQ = 0.5 * (input_dict[(0.0, 1)] - input_dict[(0.0, 2)])
@@ -511,13 +520,14 @@ def make_stokes_image(
 
     stokes_data = stokes_hdul[0].data
     stokes_err = stokes_hdul["ERR"].data
-    stokes_outerr = np.empty_like(stokes_data)
+    stokes_outdata = np.empty_like(stokes_data)
+    stokes_outerr = np.empty_like(stokes_err)
     prim_hdr = stokes_hdul[0].header
     headers = [stokes_hdul[i].header for i in range(3, len(stokes_hdul))]
     mms = []
     for i in range(stokes_data.shape[0]):
-        IQ, IU, Q, U = stokes_frame = stokes_data[i]  # noqa: E741
-        IQ_err, IU_err, Q_err, U_err = stokes_frame_err = stokes_err[i]
+        stokes_frame = stokes_data[i]
+        stokes_frame_err = stokes_err[i]
         stokes_header = headers[i]
         # mm correct
         if mm_correct:
@@ -526,6 +536,8 @@ def make_stokes_image(
             mmQ = 2 * mmQs[i, 0]
             mmU = 2 * mmUs[i, 0]
             mms.append(np.array((mmQ, mmU)))
+            IQ, IU, Q, U = stokes_frame  # noqa: E741
+            IQ_err, IU_err, Q_err, U_err = stokes_frame_err
             # correct IP
             Q -= mmQ[0] * IQ
             U -= mmU[0] * IU
@@ -540,21 +552,19 @@ def make_stokes_image(
             U = res[1].reshape(IU.shape[-2:])
             stokes_frame = np.array((IQ, IU, Q, U))
             stokes_frame_err = np.array((IQ_err, IU_err, Q_err, U_err))
-            poleff_Q = np.hypot(mmQ[1], mmU[1])
-            poleff_U = np.hypot(mmQ[2], mmU[2])
-            poleff_QU = np.sqrt(0.5 * (mmQ[1] + mmQ[2]) ** 2 + 0.5 * (mmU[1] + mmU[2]) ** 2)
             stokes_header["POL_PQ"] = mmQ[0], "DPP IP (I -> Q) from Mueller model"
             stokes_header["POL_PU"] = mmU[0], "DPP IP (I -> U) from Mueller model"
+            average_poleff = calculate_pol_efficiency(mmQ, mmU)
             stokes_header["POL_EFF"] = (
-                np.mean((poleff_Q, poleff_U, poleff_QU)),
+                average_poleff,
                 "DPP polarimetric efficiency from Mueller model",
             )
-
         elif not hwp_adi_sync:
             # if HWP ADI sync is off but we don't do Mueller correction
             # we need to manually rotate stokes values by the derotation angle
-            stokes_frame = rotate_stokes(stokes_frame, stokes_header["DEROTANG"])
-            stokes_frame_err = rotate_stokes(stokes_frame_err, stokes_header["DEROTANG"])
+            angle = stokes_header["DEROTANG"]
+            stokes_frame = rotate_stokes(stokes_frame, angle)
+            stokes_frame_err = rotate_stokes(stokes_frame_err, angle)
 
         # second order IP correction
         if ip_correct:
@@ -567,19 +577,20 @@ def make_stokes_image(
             pQ, pU = stokes_header["IP_PQ"], stokes_header["IP_PU"]
             stokes_frame_err[2] = np.hypot(stokes_frame_err[2], pQ * stokes_frame_err[0])
             stokes_frame_err[3] = np.hypot(stokes_frame_err[3], pU * stokes_frame_err[1])
+
         stokes_header["CTYPE3"] = "STOKES"
         stokes_header["STOKES"] = "I_Q,I_U,Q,U", "Stokes axis data type"
-        stokes_data[i] = stokes_frame
+        stokes_outdata[i] = stokes_frame
         stokes_outerr[i] = stokes_frame_err
         headers[i] = stokes_header
     # have to awkwardly combine since there's no NAXIS keywords
-    prim_hdr = apply_wcs(stokes_data, combine_frames_headers(headers), angle=0)
+    prim_hdr = apply_wcs(stokes_outdata, combine_frames_headers(headers), angle=0)
     if "NCOADD" in prim_hdr:
         prim_hdr["NCOADD"] /= len(headers)
     if "TINT" in prim_hdr:
         prim_hdr["TINT"] /= len(headers)
     prim_hdr = sort_header(prim_hdr)
-    prim_hdu = fits.PrimaryHDU(stokes_data, header=prim_hdr)
+    prim_hdu = fits.PrimaryHDU(stokes_outdata, header=prim_hdr)
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -612,17 +623,3 @@ def polarization_ip_correct(stokes_data, phot_rad, method, header=None):
         header["IP_ANG"] = 0.5 * np.rad2deg(np.arctan2(pU, pQ)), "[deg] Residual IP angle"
         header["IP_METH"] = method, "IP measurement method"
     return stokes_data, header
-
-
-def stokes_info_lines(fileset, set_index: int):
-    table = header_table(fileset, fix=False, quiet=True)
-    cols = ["UT", "PA", "D_IMRANG", "RET-ANG1", "U_FLC", "U_CAMERA", "path"]
-    sub_table = table[cols]
-    output = ""
-    i = 0
-    for _, row in sub_table.sort_values(["UT", "U_FLC", "U_CAMERA"]).iterrows():
-        line = f"{set_index}\t{i}\t" + "\t".join(map(str, row))
-        output += f"{line}\n"
-        i += 1
-
-    return output + "\n"
