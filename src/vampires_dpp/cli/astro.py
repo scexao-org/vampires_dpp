@@ -110,7 +110,7 @@ def astro(config: Path, filenames, num_proc, manual=False):
     pipeline_config = PipelineConfig.from_file(config)
     # figure out outpath
     paths = Paths(Path.cwd())
-    paths.aux_dir.mkdir(parents=True, exist_ok=True)
+    paths.aux.mkdir(parents=True, exist_ok=True)
     table = header_table(filenames, num_proc=num_proc)
     obsmodes = table["OBS-MOD"].unique()
     # default for standard obs, overwritten by MBI
@@ -127,7 +127,7 @@ def astro(config: Path, filenames, num_proc, manual=False):
             astrometry = get_psf_astrometry_manual(cams=cams, npsfs=4)
 
     else:
-        name = paths.aux_dir / f"{pipeline_config.name}_raw_psf"
+        name = paths.aux / f"{pipeline_config.name}_raw_psf"
         raw_psf_dict = create_raw_input_psfs(table, basename=name)
 
         if "MBIR" in obsmodes[0]:
@@ -140,5 +140,5 @@ def astro(config: Path, filenames, num_proc, manual=False):
             astrometry = get_psf_astrometry_mpl(cams=raw_psf_dict, npsfs=4)
 
     # save outputs
-    basename = paths.aux_dir / f"{pipeline_config.name}_astrometry"
+    basename = paths.aux / f"{pipeline_config.name}_astrometry"
     save_astrometry(astrometry, fields=fields, basename=basename)

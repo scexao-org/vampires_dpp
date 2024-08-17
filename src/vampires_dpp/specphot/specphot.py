@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Final
+from typing import Final, Literal, TypeAlias
 
 import astropy.units as u
 import numpy as np
@@ -12,7 +12,9 @@ from vampires_dpp.pipeline.config import SpecphotConfig
 from .filters import FILTERS, save_filter_fits, update_header_with_filt_info
 from .pickles import load_pickles_model
 
-__all__ = ["specphot_calibration", "convert_to_surface_brightness"]
+__all__ = ("specphot_calibration", "convert_to_surface_brightness", "SpecphotUnits")
+
+SpecphotUnits: TypeAlias = Literal["adu/s", "e-/s", "Jy", "Jy/arcsec^2"]
 
 # vampires_dpp/data
 SCEXAO_AREA: Final = 40.64 * u.m**2
@@ -114,3 +116,9 @@ def specphot_calibration(header, outdir: Path, config: SpecphotConfig):
             flux = header["SUM"]
     header = update_header_from_obs(header, config, obs_filt, flux)
     return header
+
+
+def specphot_cal_hdul(
+    hdul: fits.HDUList, metrics, flux_metric: Literal["photometry", "sum"] = "photometry"
+):
+    ...

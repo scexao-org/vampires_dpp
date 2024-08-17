@@ -223,7 +223,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual=False):
     pipeline_config = PipelineConfig.from_file(config)
     # figure out outpath
     paths = Paths(outdir)
-    paths.aux_dir.mkdir(parents=True, exist_ok=True)
+    paths.aux.mkdir(parents=True, exist_ok=True)
     npsfs = 4 if pipeline_config.coronagraphic else 1
     table = header_table(filenames, num_proc=num_proc)
     obsmodes = table["OBS-MOD"].unique()
@@ -241,7 +241,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual=False):
             centroids = get_psf_centroids_manual(cams=cams, npsfs=npsfs)
 
     else:
-        name = paths.aux_dir / f"{pipeline_config.name}_raw_psf"
+        name = paths.aux / f"{pipeline_config.name}_raw_psf"
         raw_psf_dict = create_raw_input_psfs(table, basename=name)
 
         if "MBIR" in obsmodes[0]:
@@ -254,5 +254,5 @@ def centroid(config: Path, filenames, num_proc, outdir, manual=False):
             centroids = get_psf_centroids_mpl(cams=raw_psf_dict, npsfs=npsfs)
 
     # save outputs
-    basename = paths.aux_dir / f"{pipeline_config.name}_centroids"
+    basename = paths.aux / f"{pipeline_config.name}_centroids"
     save_centroids(centroids, fields=fields, basename=basename)

@@ -1,12 +1,20 @@
+import functools
 from typing import Literal
 
+import numpy as np
 import pandas as pd
+from astropy.io import fits
+
+from .image_processing import combine_frames_headers
 
 
 def generate_frame_combinations(
     table: pd.DataFrame, method: Literal["cube", "pdi"], save_intermediate: bool = False
 ):
     work_table = table.sort_values("MJD")
+    # have to force U_FLC to be a string because otherwise we'll never
+    # have matching indices with NaN, due to NaN equality being NaN
+    work_table.loc[work_table["U_FLC"].isna(), "U_FLC"] = "NA"
     tables = []
     for _, group in work_table.groupby(["U_CAMERA", "U_FLC"]):
         match method:
@@ -14,7 +22,7 @@ def generate_frame_combinations(
                 framelist = generate_framelist_for_hwp_angles(group)
             case "cube":
                 framelist = group.copy()
-                framelist["output_index"] = range(len(group))
+                framelist["GROUP_IDX"] = range(len(group))
             case _:
                 msg = f"Unrecognized combination method {method}"
                 raise ValueError(msg)
@@ -33,7 +41,7 @@ def generate_framelist_for_hwp_angles(table: pd.DataFrame) -> pd.DataFrame:
         if prev_row["RET-ANG1"] != cur_row["RET-ANG1"]:
             file_index += 1
         frameinds.append(file_index)
-    work_table["output_index"] = frameinds
+    work_table["GROUP_IDX"] = frameinds
     return work_table
 
 
@@ -53,7 +61,7 @@ def generate_framelist_for_hwp_angles(table: pd.DataFrame) -> pd.DataFrame:
 #         framelist.append({
 #             **cur_row[columns],
 #             "indices": f"0:{max_idx}",
-#             "output_index": file_index
+#             "GROUP_IDX": file_index
 #         })
 #         last_index_to_remove = 0
 #         for i in range(1, len(work_table)):
@@ -65,9 +73,25 @@ def generate_framelist_for_hwp_angles(table: pd.DataFrame) -> pd.DataFrame:
 #             framelist.append({
 #                 **next_row[columns],
 #                 "indices": f"0:{max_idx}",
-#                 "output_index": file_index
+#                 "GROUP_IDX": file_index
 #             })
 #             last_index_to_remove += 1
 #         work_table.drop(work_table.index[:last_index_to_remove], axis=0, inplace=True)
 #         file_index += 1
 #     return pd.DataFrame(framelist)
+
+
+def _merge_two_hdul(hdul1, hdul2):
+    hdul_out = hdul1.copy()
+    for idx in range(len(hdul_out)):
+        data1 = hdul1[idx].data
+        hdr1 = hdul1[idx].header
+        data2 = hdul2[idx].data
+        hdr2 = hdul2[idx].header
+        hdul_out[idx].data = np.stack((data1, data2), axis=0)
+        hdul_out[idx].header = combine_frames_headers((hdr1, hdr2), wcs=True)
+    return hdul_out
+
+
+def combine_hduls(hduls: list[fits.HDUList]):
+    return functools.reduce(_merge_two_hdul, hduls)

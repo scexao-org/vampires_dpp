@@ -206,3 +206,9 @@ def analyze_file(
 
     np.savez_compressed(outpath, **metrics)
     return outpath
+
+
+def update_hdul_with_metrics(hdul, metrics):
+    # TODO
+
+    return hdul

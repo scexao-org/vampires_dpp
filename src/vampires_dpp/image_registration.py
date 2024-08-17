@@ -1,11 +1,18 @@
+import logging
+from typing import Annotated, Literal, TypeAlias
+
 import numpy as np
+from annotated_types import Gt
+from astropy.io import fits
+from astropy.nddata import Cutout2D
 from photutils import centroids
 from skimage.registration import phase_cross_correlation
 
+from .image_processing import shift_frame
 from .indexing import frame_center
 
 
-def offset_dft(frame, inds, psf, *, upsample_factor):
+def offset_dft(frame, inds, psf, *, upsample_factor: Annotated[int, Gt(0)] = 30):
     cutout = frame[inds]
     dft_offset = phase_cross_correlation(
         psf, cutout, return_error=False, upsample_factor=upsample_factor, normalization=None
@@ -21,42 +28,92 @@ def offset_dft(frame, inds, psf, *, upsample_factor):
     return ctr
 
 
-def offset_centroids(frame, frame_err, inds, psf=None, dft_factor=30):
-    """NaN-friendly centroids"""
-    # wy, wx = np.ogrid[inds[-2], inds[-1]]
+def offset_peak_and_com(frame, inds):
     cutout = frame[inds]
-    # cutout_err = frame_err[inds] if frame_err is not None else None
+
     peak_yx = np.unravel_index(np.nanargmax(cutout), cutout.shape)
     com_xy = centroids.centroid_com(cutout)
-    # with warnings.catch_warnings():
-    #     warnings.simplefilter("ignore")
-    #     try:
-    #         gauss_xy = centroids.centroid_2dg(cutout, error=cutout_err)
-    #     except Exception:
-    #         warnings.warn(f"Failed to fit Gaussian, using centroid values instead")
-    #         gauss_xy = com_xy
-
     # offset based on indices
     offx = inds[-1].start
     offy = inds[-2].start
     ctrs = {
         "peak": np.array((peak_yx[0] + offy, peak_yx[1] + offx)),
         "com": np.array((com_xy[1] + offy, com_xy[0] + offx)),
-        # "gauss": np.array((gauss_xy[1] + offy, gauss_xy[0] + offx)),
     }
-    if psf is not None and dft_factor > 0:
-        dft_off, _, _ = phase_cross_correlation(
-            psf, cutout, upsample_factor=dft_factor, normalization=None
-        )
-        # need to update with center of frame
-        ctr_off = np.array(frame_center(cutout)) - dft_off
-
-        # fig, axs = plt.subplots(ncols=2)
-        # axs[0].imshow(psf, origin="lower", cmap="magma")
-        # axs[1].imshow(cutout, origin="lower", cmap="magma")
-        # axs[1].scatter(ctr_off[-1], ctr_off[-2], marker='+', s=100, c="green")
-        # axs[1].scatter(com_xy[0], com_xy[1], marker='x', s=100, c="blue")
-        # plt.show(block=True)
-        ctrs["dft"] = np.array((ctr_off[0] + offy, ctr_off[1] + offx))
-
     return ctrs
+
+
+__all__ = ("register_hdul",)
+
+logger = logging.getLogger(__file__)
+
+RegisterMethod: TypeAlias = Literal["peak", "com", "dft"]
+
+
+def register_hdul(
+    hdul: fits.HDUList, metrics, *, method: RegisterMethod = "dft", crop_width: int = 536, **kwargs
+) -> fits.HDUList:
+    # load centroids
+    # reminder, this has shape (nframes, nlambda, npsfs, 2)
+    # take mean along PSF axis
+    centroids = np.mean(metrics[method], axis=2)
+    center = frame_center(hdul[0].data)
+
+    # determine maximum padding, with sqrt(2)
+    # for radial coverage
+    nframes, ny, nx = hdul[0].shape
+    rad_factor = crop_width / np.sqrt(2)
+    # round to nearest even number
+    npad = int((rad_factor // 2) * 2)
+
+    aligned_data = []
+    aligned_err = []
+
+    for tidx in range(aligned_data.shape[0]):
+        frame = hdul[0].data[tidx]
+        frame_err = hdul["ERR"].data[tidx]
+
+        aligned_frames = []
+        aligned_err_frames = []
+
+        for wlidx in range(aligned_data.shape[1]):
+            # determine offset for each field
+            field_ctr = centroids[tidx, wlidx]
+            offset = center - field_ctr
+            # generate cutouts with crop width
+            cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
+            cutout_err = Cutout2D(frame_err, field_ctr[::-1], size=crop_width, mode="partial")
+
+            # pad and shift data
+            frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)
+            shifted = shift_frame(frame_padded, offset, **kwargs)
+            aligned_frames.append(shifted)
+
+            # pad and shift error
+            frame_err_padded = np.pad(cutout_err.data, npad, constant_values=np.nan)
+            shifted_err = shift_frame(frame_err_padded, offset, **kwargs)
+            aligned_err_frames.append(shifted_err)
+
+        aligned_data.append(aligned_frames)
+        aligned_err.append(aligned_err_frames)
+
+    aligned_cube = np.array(aligned_data)
+    aligned_err_cube = np.array(aligned_err)
+
+    # generate output HDUList
+    output_hdul = fits.HDUList(
+        [
+            fits.PrimaryHDU(aligned_cube, header=hdul[0].header),
+            fits.ImageHDU(aligned_err_cube, header=hdul["ERR"].header, name="ERR"),
+            *hdul[2:],
+        ]
+    )
+
+    # update header info
+    info = fits.Header()
+    info["hierarch DPP REGISTER METHOD"] = method, "Frame registration method"
+
+    for hdu_idx in range(len(hdul)):
+        output_hdul[hdu_idx].header |= info
+
+    return output_hdul

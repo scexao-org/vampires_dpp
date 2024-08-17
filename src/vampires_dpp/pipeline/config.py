@@ -277,6 +277,7 @@ class RegisterConfig(BaseModel):
     align: bool = True
     method: Literal["dft", "com", "peak", "model"] = "dft"
     dft_factor: int = 30
+    crop_width: int = 536
     save_intermediate: bool = False
 
 
@@ -303,6 +304,7 @@ class CoaddConfig(BaseModel):
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
     recenter: bool = False
     recenter_method: Literal["dft", "com", "peak", "model"] = "dft"
+    recenter_dft_factor: int = 30
 
 
 class DiffImageConfig(BaseModel):
@@ -428,7 +430,7 @@ class PipelineConfig(BaseModel):
     frame_select: FrameSelectConfig = FrameSelectConfig()
     register: RegisterConfig = RegisterConfig()
     coadd: CoaddConfig = CoaddConfig()
-    diff_images: DiffImageConfig()
+    diff_images: DiffImageConfig = DiffImageConfig()
     polarimetry: PolarimetryConfig | None = None
 
     @classmethod

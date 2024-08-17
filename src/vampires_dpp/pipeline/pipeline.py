@@ -13,14 +13,17 @@ from tqdm.auto import tqdm
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
+from vampires_dpp.combine_frames import combine_hduls, generate_frame_combinations
+from vampires_dpp.frame_select import frame_select_hdul
 from vampires_dpp.image_processing import (
     collapse_frames,
     combine_frames_files,
     combine_frames_headers,
 )
+from vampires_dpp.image_registration import register_hdul
 from vampires_dpp.lucky_imaging import lucky_image_file
 from vampires_dpp.organization import header_table
-from vampires_dpp.paths import Paths, get_paths, make_dirs
+from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
     doublediff_images,
     get_doublediff_sets,
@@ -44,11 +47,104 @@ class Pipeline:
         self.config = config
         self.workdir = workdir if workdir is not None else Path.cwd()
         self.paths = Paths(workdir=self.workdir)
-        self.output_table_path = self.paths.products_dir / f"{self.config.name}_table.csv"
+        self.output_table_path = self.paths.aux / f"{self.config.name}_table.csv"
+
+    def run(self, filenames, num_proc: int | None = None, force=False):
+        """Run the pipeline
+
+        Parameters
+        ----------
+        filenames : Iterable[PathLike]
+            Input filenames to process
+        num_proc : Optional[int]
+            Number of processes to use for multi-processing, by default None.
+        """
+        make_dirs(self.paths, self.config)
+        conf_copy_path = self.paths.aux / f"{self.config.name}.bak.toml"
+        self.config.save(conf_copy_path)
+        logger.debug(f"Saved copy of config to {conf_copy_path}")
+
+        input_table = self.create_input_table(filenames=filenames, num_proc=num_proc)
+        self.get_centroids()
+        self.get_coordinate()
+        self.make_synth_psfs(input_table)
+        combinations = generate_frame_combinations(input_table, method=self.config.combine.method)
+        input_table["GROUP_IDX"] = combinations["GROUP_IDX"]
+        working_table = self.determine_execution(input_table, force=force)
+
+        if len(working_table) == 0:
+            logger.success("Finished processing files (No files to process)")
+        else:
+            logger.info(
+                f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
+            )
+
+            if self.config.calibrate.calib_directory is not None:
+                self.calib_table = header_table(
+                    self.config.calibrate.calib_directory.glob("**/[!.]*.fits"), quiet=True
+                )
+
+        self.output_paths = []
+        with mp.Pool(num_proc) as pool:
+            jobs = []
+            for group_index, group in working_table.groupby("GROUP_IDX"):
+                output_path = get_reduced_path(self.paths, self.config, group_index)
+                if not force and output_path.exists():
+                    logger.debug("Skipping processing for group %3d", group_index)
+                    self.output_paths.append(output_path)
+                else:
+                    jobs.append(pool.apply_async(self.process_group, args=(group, group_index)))
+
+            for job in tqdm(jobs, desc="Processing files"):
+                self.output_paths.append(job.get())
+        self.output_paths.sort()
+
+        logger.info("Creating table from collapsed headers")
+        self.output_table = header_table(self.output_paths, num_proc=num_proc, quiet=True)
+        self.save_output_header()
+
+        ## products
+        if self.config.save_adi_cubes:
+            self.save_adi_cubes(force=force)
+
+        ## diff images
+        if self.config.diff_images.make_diff:
+            self.make_diff_images(self.output_table, force=force)
+
+        logger.success("Finished processing files")
+
+    def run_polarimetry(self, num_proc, force=False):
+        make_dirs(self.paths, self.config)
+        conf_copy_path = self.paths.aux / f"{self.config.name}.bak.toml"
+        self.config.save(conf_copy_path)
+        logger.debug(f"Saved copy of config to {conf_copy_path}")
+
+        if not self.output_table_path.exists():
+            msg = f"Output table {self.output_table_path} cannot be found"
+            raise RuntimeError(msg)
+
+        working_table = pd.read_csv(self.output_table_path, index_col=0).sort_values("MJD")
+
+        if self.config.polarimetry.mm_correct or self.config.polarimetry.method == "leastsq":
+            working_table["mm_file"] = self.make_mueller_mats(working_table, num_proc=num_proc)
+
+        logger.info("Performing polarimetric calibration")
+        logger.debug(f"Saving Stokes data to {self.paths.pdi.absolute()}")
+        match self.config.polarimetry.method:
+            case "doublediff" | "triplediff":
+                self.polarimetry_difference(
+                    working_table,
+                    method=self.config.polarimetry.method,
+                    force=force,
+                    num_proc=num_proc,
+                )
+            case "leastsq":
+                self.polarimetry_leastsq(working_table, force=force, num_proc=num_proc)
+        logger.success("Finished PDI")
 
     def create_input_table(self, filenames, num_proc) -> pd.DataFrame:
         input_table = header_table(filenames, quiet=True, num_proc=num_proc).sort_values("MJD")
-        table_path = self.paths.aux_dir / f"{self.config.name}_headers.csv"
+        table_path = self.paths.aux / f"{self.config.name}_input_headers.csv"
         input_table.to_csv(table_path)
         logger.info(f"Saved input header table to: {table_path}")
         return input_table
@@ -56,7 +152,7 @@ class Pipeline:
     def get_centroids(self):
         self.centroids = {}
         for key in ("cam1", "cam2"):
-            path = self.paths.aux_dir / f"{self.config.name}_centroids_{key}.toml"
+            path = self.paths.aux / f"{self.config.name}_centroids_{key}.toml"
             if not path.exists():
                 logger.warning(
                     f"Could not locate centroid file for {key}, expected it to be at {path}. Using center of image as default."
@@ -70,37 +166,6 @@ class Pipeline:
 
             logger.debug(f"{key} frame center is {self.centroids[key]} (y, x)")
         return self.centroids
-
-    def add_paths_to_db(self, table):
-        input_paths = table["path"].apply(Path)
-
-        # figure out which metrics need to be calculated, which is necessary to collapse files
-        def func(p):
-            return get_paths(
-                p, suffix="metrics", filetype=".npz", output_directory=self.paths.metrics_dir
-            )[1]
-
-        table["metric_file"] = input_paths.apply(func)
-
-        if self.config.collapse is not None:
-
-            def func(p):
-                return get_paths(
-                    p, suffix="coll", filetype=".fits", output_directory=self.paths.collapsed_dir
-                )[1]
-
-            table["collapse_file"] = input_paths.apply(func)
-
-        if self.config.calibrate.save_intermediate:
-
-            def func(p):
-                return get_paths(
-                    p, suffix="calib", filetype=".fits", output_directory=self.paths.calibrated_dir
-                )[1]
-
-            table["calib_file"] = input_paths.apply(func)
-
-        return table
 
     def determine_execution(self, table, force=False):
         if force:
@@ -139,76 +204,69 @@ class Pipeline:
         self.synth_psfs = {}
         for filt, row in filters.items():
             psf = create_synth_psf(
-                row,
-                filt,
-                npix=self.config.analysis.window_size,
-                output_directory=self.paths.aux_dir,
+                row, filt, npix=self.config.analysis.window_size, output_directory=self.paths.aux
             )
             self.synth_psfs[filt] = psf
 
-    def run(self, filenames, num_proc: int | None = None, force=False):
-        """Run the pipeline
-
-        Parameters
-        ----------
-        filenames : Iterable[PathLike]
-            Input filenames to process
-        num_proc : Optional[int]
-            Number of processes to use for multi-processing, by default None.
-        """
-        make_dirs(self.paths, self.config)
-        conf_copy_path = self.paths.aux_dir / f"{self.config.name}.bak.toml"
-        self.config.save(conf_copy_path)
-        logger.debug(f"Saved copy of config to {conf_copy_path}")
-
-        input_table = self.create_input_table(filenames=filenames, num_proc=num_proc)
-        self.add_paths_to_db(input_table)
-        self.get_centroids()
-        self.get_coordinate()
-        self.make_synth_psfs(input_table)
-        working_table = self.determine_execution(input_table, force=force)
-        if len(working_table) == 0:
-            logger.success("Finished processing files (No files to process)")
-        else:
-            logger.info(
-                f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
-            )
-
-            if self.config.calibrate.calib_directory is not None:
-                self.calib_table = header_table(
-                    self.config.calibrate.calib_directory.glob("**/[!.]*.fits"), quiet=True
-                )
-
-            ## For each file do
-            with mp.Pool(num_proc) as pool:
-                jobs = []
-                for _, row in working_table.iterrows():
-                    jobs.append(pool.apply_async(self.process_one, args=(row,)))
-
-                for job in tqdm(jobs, desc="Processing files"):
-                    job.get()
-        logger.info("Creating table from collapsed headers")
-        self.output_files = input_table["collapse_file"]
-        self.output_table = header_table(self.output_files, num_proc=num_proc, quiet=True)
-        self.save_output_header()
-        ## products
-        if self.config.save_adi_cubes:
-            self.save_adi_cubes(force=force)
-        ## diff images
-        if self.config.diff_images is not None:
-            self.make_diff_images(self.output_table, force=force)
-
-        logger.success("Finished processing files")
-
-    def process_one(self, fileinfo):
+    def process_group(self, group, index: int):
         # fix headers and calibrate
-        logger.debug(f"Processing {fileinfo['path']}")
-        cur_hdul = self.calibrate_one(fileinfo["path"], fileinfo)
+        hdul_list = []
+        for _, row in group.iterrows():
+            logger.debug(f"Calibrating {row['path']}")
+            cur_hdul = self.calibrate_one(row["path"], row)
+            hdul_list.append(cur_hdul)
+        logger.debug("Finished calibrating %d files", len(group))
+        logger.debug("Combining data into single HDU list")
+        hdul = combine_hduls(hdul_list)
         ## Step 2: Frame analysis
-        self.analyze_one(cur_hdul, fileinfo)
-        ## Step 3: collapsing
-        path = self.collapse_one(cur_hdul, fileinfo)
-        return path
+        metric_file = self.paths.metrics / f"{self.config.name}_{index:03d}_metrics.npz"
+        metrics = self.analyze_one(hdul, metric_file)
+        ## Step 3: Frame selection
+        if self.config.frame_select.frame_select:
+            logger.debug("Starting frame selection for group %3d", index)
+            hdul, metrics = frame_select_hdul(
+                hdul,
+                metrics,
+                metric=self.config.frame_select.metric,
+                quantile=self.config.frame_select.cutoff,
+            )
+            logger.debug("Finished frame selection for group %3d", index)
+        ## Step 4: Registration
+        # note: if we're not aligning, this still takes care
+        # of cutting out MBI frames, so it's necessary
+        logger.debug("Starting frame registration for group %3d", index)
+        hdul = register_hdul(
+            hdul, metrics, align=self.config.register.align, method=self.config.register.method
+        )
+        logger.debug("Finished frame registration for group %3d", index)
+
+        ## Step 5: Spectrophotometric calibration
+        logger.debug("Starting specphot cal for group %3d", index)
+        hdul = specphot_cal_hdul(
+            hdul,
+            metrics,
+            unit=self.config.specphot.unit,
+            metric=self.config.specphot.flux_metric,
+            library=self.config.specphot.model,
+            # TODO
+        )
+        logger.debug("Finished specphot cal for group %3d", index)
+        ## Step 6: Coadd
+        if self.config.coadd.coadd:
+            logger.debug("Starting coadding for group %3d", index)
+            coadd_hdul(
+                hdul,
+                method=self.config.coadd.method,
+                recenter=self.config.coadd.recenter,
+                recenter_method=self.config.coadd.recenter_method,
+                dft_factor=self.config.coadd.recenter_dft_factor,
+            )
+            logger.debug("Finished coadding for group %3d", index)
+        else:
+            logger.debug("Saving reduced cube to %s", str(output_path))
+            hdul.writeto(output_path, overwrite=True)
+
+        return output_path
 
     def get_coordinate(self):
         if self.config.target is None:
@@ -247,12 +305,13 @@ class Pipeline:
         logger.debug("Data calibration completed")
         return calib_hdul
 
-    def analyze_one(self, hdul: fits.HDUList, fileinfo, force=False):
+    def analyze_one(self, hdul: fits.HDUList, metric_file, force=False):
         logger.debug("Starting frame analysis")
         config = self.config.analysis
-        psfs = [self.synth_psfs[filt] for filt in self._determine_filts_from_header(fileinfo)]
+        hdr = hdul[0].header
+        psfs = [self.synth_psfs[filt] for filt in self._determine_filts_from_header(hdr)]
 
-        key = f"cam{fileinfo['U_CAMERA']:.0f}"
+        key = f"cam{hdr['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdul,
             centroids=self.centroids.get(key, None),
@@ -260,7 +319,7 @@ class Pipeline:
             subtract_radprof=config.subtract_radprof,
             aper_rad=config.aper_rad,
             ann_rad=config.ann_rad,
-            outpath=fileinfo["metric_file"],
+            outpath=metric_file,
             force=force,
             window_size=config.window_size,
             dft_factor=config.dft_factor,
@@ -272,7 +331,7 @@ class Pipeline:
         config = self.config.collapse
         outpath = Path(fileinfo["collapse_file"])
         if config.reproject:
-            with Path(self.paths.aux_dir / f"{self.config.name}_astrometry.toml").open("rb") as fh:
+            with Path(self.paths.aux / f"{self.config.name}_astrometry.toml").open("rb") as fh:
                 astrometry = tomli.load(fh)
         else:
             astrometry = None
@@ -293,7 +352,7 @@ class Pipeline:
             outpath=outpath,
             force=force,
             specphot=self.config.specphot,
-            aux_dir=self.paths.aux_dir,
+            aux_dir=self.paths.aux,
             window=self.config.analysis.window_size,
             psfs=psfs,
         )
@@ -319,7 +378,7 @@ class Pipeline:
         hduls = []
         cam_groups = self.output_table.groupby("U_CAMERA")
         for cam_num, group in cam_groups:
-            cube_path = self.paths.adi_dir / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
+            cube_path = self.paths.adi / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
             combine_frames_files(group["path"], output=cube_path, force=force, crop=False)
             hduls.append(fits.open(cube_path, memmap=False))
             logger.info(f"Saved cam {cam_num:.0f} ADI cube to {cube_path}")
@@ -353,16 +412,16 @@ class Pipeline:
         if self.config.diff_images == "singlediff":
             path_sets = get_singlediff_sets(table)
             diff_func = partial(singlediff_images, force=force)
-            outdir = self.paths.diff_dir / "single"
+            outdir = self.paths.diff / "single"
         elif self.config.diff_images == "doublediff":
             path_sets = get_doublediff_sets(table)
             diff_func = partial(doublediff_images, force=force)
-            outdir = self.paths.diff_dir / "double"
+            outdir = self.paths.diff / "double"
         elif self.config.diff_images == "both":
             # do singlediff first, then deliberate to doublediff
             path_sets = get_singlediff_sets(table)
             diff_func = partial(singlediff_images, force=force)
-            outdir = self.paths.diff_dir / "single"
+            outdir = self.paths.diff / "single"
             outdir.mkdir(exist_ok=True)
             with mp.Pool(num_proc) as pool:
                 jobs = []
@@ -377,7 +436,7 @@ class Pipeline:
             # now set for double-diff
             path_sets = get_doublediff_sets(table)
             diff_func = partial(doublediff_images, force=force)
-            outdir = self.paths.diff_dir / "double"
+            outdir = self.paths.diff / "double"
         outdir.mkdir(exist_ok=True)
         with mp.Pool(num_proc) as pool:
             jobs = []
@@ -388,35 +447,6 @@ class Pipeline:
             self.diff_files.extend(job.get() for job in tqdm(jobs, desc="Making diff images"))
         logger.info("Done making difference frames")
         return self.diff_files
-
-    def run_polarimetry(self, num_proc, force=False):
-        make_dirs(self.paths, self.config)
-        conf_copy_path = self.paths.aux_dir / f"{self.config.name}.bak.toml"
-        self.config.save(conf_copy_path)
-        logger.debug(f"Saved copy of config to {conf_copy_path}")
-
-        if not self.output_table_path.exists():
-            msg = f"Output table {self.output_table_path} cannot be found"
-            raise RuntimeError(msg)
-
-        working_table = pd.read_csv(self.output_table_path, index_col=0).sort_values("MJD")
-
-        if self.config.polarimetry.mm_correct or self.config.polarimetry.method == "leastsq":
-            working_table["mm_file"] = self.make_mueller_mats(working_table, num_proc=num_proc)
-
-        logger.info("Performing polarimetric calibration")
-        logger.debug(f"Saving Stokes data to {self.paths.pdi_dir.absolute()}")
-        match self.config.polarimetry.method:
-            case "doublediff" | "triplediff":
-                self.polarimetry_difference(
-                    working_table,
-                    method=self.config.polarimetry.method,
-                    force=force,
-                    num_proc=num_proc,
-                )
-            case "leastsq":
-                self.polarimetry_leastsq(working_table, force=force, num_proc=num_proc)
-        logger.success("Finished PDI")
 
     def make_mueller_mats(self, table, num_proc=None, force=False):
         logger.info("Creating Mueller matrices")
@@ -429,7 +459,7 @@ class Pipeline:
         with mp.Pool(num_proc) as pool:
             jobs = []
             for row in table.itertuples(index=False):
-                _, outpath = get_paths(row.path, suffix="mm", output_directory=self.paths.mm_dir)
+                _, outpath = get_paths(row.path, suffix="mm", output_directory=self.paths.mm)
                 jobs.append(
                     pool.apply_async(mueller_matrix_from_file, args=(row.path, outpath), kwds=kwds)
                 )
@@ -441,7 +471,7 @@ class Pipeline:
 
     def polarimetry_difference(self, table, method, num_proc=None, force=False):
         config = self.config.polarimetry
-        stokes_sets_path = self.paths.pdi_dir / f"{self.config.name}_stokes_sets.csv"
+        stokes_sets_path = self.paths.pdi / f"{self.config.name}_stokes_sets.csv"
         if stokes_sets_path.exists():
             stokes_sets = pd.read_csv(stokes_sets_path)
             logger.info(f"Loaded HWP cycle combinations from {stokes_sets_path}")
@@ -459,7 +489,7 @@ class Pipeline:
 
         ## Save CSV of Stokes values
         stokes_tbl = header_table(stokes_sets["path"], fix=False, quiet=True)
-        stokes_tbl_path = self.paths.pdi_dir / f"{self.config.name}_stokes_table.csv"
+        stokes_tbl_path = self.paths.pdi / f"{self.config.name}_stokes_table.csv"
         stokes_tbl.to_csv(stokes_tbl_path)
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
 
@@ -482,7 +512,7 @@ class Pipeline:
             jobs = []
             for set_idx, group in stokes_sets.query("STOKES_IDX != -1").groupby("STOKES_IDX"):
                 paths = group["path"]
-                outpath = self.paths.stokes_dir / f"{self.config.name}_stokes_{set_idx:03d}.fits"
+                outpath = self.paths.stokes / f"{self.config.name}_stokes_{set_idx:03d}.fits"
                 if config.mm_correct:
                     mask = [p in paths.values for p in table["path"]]
                     subset = table.loc[mask]
@@ -509,7 +539,7 @@ class Pipeline:
         coll_frame, _ = collapse_frames(np.nan_to_num(stokes_data))
         footprint = np.mean(np.isfinite(stokes_data).astype("f4"), axis=0)
         fits.writeto(
-            self.paths.pdi_dir / f"{self.config.name}_footprint.fits", footprint, overwrite=True
+            self.paths.pdi / f"{self.config.name}_footprint.fits", footprint, overwrite=True
         )
         # coll_frame *= footprint
         with warnings.catch_warnings():
@@ -537,7 +567,7 @@ class Pipeline:
         hdul.extend([fits.ImageHDU(header=hdr, name=hdr["FIELD"]) for hdr in coll_hdrs])
         # In the case we have multi-wavelength data, save 4D Stokes cube
         if nfields > 1:
-            stokes_cube_path = self.paths.pdi_dir / f"{self.config.name}_stokes_cube.fits"
+            stokes_cube_path = self.paths.pdi / f"{self.config.name}_stokes_cube.fits"
             write_stokes_products(
                 hdul, outname=stokes_cube_path, force=True, planetary=config.planetary
             )
@@ -558,7 +588,7 @@ class Pipeline:
             dummy_hdu = fits.ImageHDU(header=wave_coll_hdr, name="COMB")
             hdul = fits.HDUList([prim_hdu, err_hdu, dummy_hdu])
         # save single-wavelength (or wavelength-collapsed) Stokes cube
-        stokes_coll_path = self.paths.pdi_dir / f"{self.config.name}_stokes_coll.fits"
+        stokes_coll_path = self.paths.pdi / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(
             hdul, outname=stokes_coll_path, force=True, planetary=config.planetary
         )
