@@ -30,15 +30,21 @@ def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):  # noqa: E741
     float
         The instrumental polarization coefficient
     """
-    x = X / I
-    pX, _ = safe_aperture_sum(x, r=r)
-    return pX / (np.pi * r**2) - expected
+    pX, _ = safe_aperture_sum(X, r=r)
+    pI, _ = safe_aperture_sum(I, r=r)
+    # x = X / I
+    # pX, _ = safe_aperture_sum(x, r=r)
+    px = pX / pI
+    return px / (np.pi * r**2) - expected
 
 
 def measure_instpol_ann(I: NDArray, X: NDArray, Rin, Rout, expected=0):  # noqa: E741
-    x = X / I
-    pX, _ = safe_annulus_sum(x, Rin, Rout)
-    return pX / (np.pi * (Rout**2 - Rin**2)) - expected
+    pX, _ = safe_annulus_sum(X, Rin, Rout)
+    pI, _ = safe_annulus_sum(I, Rin, Rout)
+    # x = X / I
+    # pX, _ = safe_annulus_sum(x, Rin, Rout)
+    px = pX / pI
+    return px / (np.pi * (Rout**2 - Rin**2)) - expected
 
 
 # def instpol_correct(stokes_cube: NDArray, pQ=0, pU=0):

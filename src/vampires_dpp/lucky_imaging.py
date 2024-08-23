@@ -280,7 +280,7 @@ def lucky_image_file(
     return hdul
 
 
-COMMENT_FSTRS: Final[dict[str, str]] = {
+COMMENT_FSTRS: Final = {
     "max": "[{}] Peak signal{}in window {}",
     "sum": "[{}] Total signal{}in window {}",
     "mean": "[{}] Mean signal{}in window {}",
@@ -292,7 +292,7 @@ COMMENT_FSTRS: Final[dict[str, str]] = {
     "phote": "[{}] Photometric fluxerr{}in window {}",
     "psff": "[{}] PSF flux{}in window {}",
 }
-CENTROID_COMM_FSTRS: Final[dict[str, str]] = {
+CENTROID_COMM_FSTRS: Final = {
     "comx": "[pix] COM x{}in window {}",
     "comy": "[pix] COM y{}in window {}",
     "peakx": "[pix] Peak index x{}in window {}",

@@ -11,6 +11,12 @@ from skimage.registration import phase_cross_correlation
 from .image_processing import shift_frame
 from .indexing import frame_center
 
+__all__ = ("register_hdul",)
+
+logger = logging.getLogger(__file__)
+
+RegisterMethod: TypeAlias = Literal["peak", "com", "dft"]
+
 
 def offset_dft(frame, inds, psf, *, upsample_factor: Annotated[int, Gt(0)] = 30):
     cutout = frame[inds]
@@ -41,13 +47,6 @@ def offset_peak_and_com(frame, inds):
         "com": np.array((com_xy[1] + offy, com_xy[0] + offx)),
     }
     return ctrs
-
-
-__all__ = ("register_hdul",)
-
-logger = logging.getLogger(__file__)
-
-RegisterMethod: TypeAlias = Literal["peak", "com", "dft"]
 
 
 def register_hdul(

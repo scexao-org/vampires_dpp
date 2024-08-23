@@ -13,15 +13,15 @@ from tqdm.auto import tqdm
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
-from vampires_dpp.combine_frames import combine_hduls, generate_frame_combinations
-from vampires_dpp.frame_select import frame_select_hdul
-from vampires_dpp.image_processing import (
-    collapse_frames,
+from vampires_dpp.coadd import coadd_hdul, collapse_frames
+from vampires_dpp.combine_frames import (
     combine_frames_files,
     combine_frames_headers,
+    combine_hduls,
+    generate_frame_combinations,
 )
+from vampires_dpp.frame_select import frame_select_hdul
 from vampires_dpp.image_registration import register_hdul
-from vampires_dpp.lucky_imaging import lucky_image_file
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
@@ -34,6 +34,7 @@ from vampires_dpp.pdi.models import mueller_matrix_from_file
 from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
+from vampires_dpp.specphot.specphot import specphot_cal_hdul
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.wcs import apply_wcs
 
@@ -70,30 +71,24 @@ class Pipeline:
         self.make_synth_psfs(input_table)
         combinations = generate_frame_combinations(input_table, method=self.config.combine.method)
         input_table["GROUP_IDX"] = combinations["GROUP_IDX"]
-        working_table = self.determine_execution(input_table, force=force)
 
-        if len(working_table) == 0:
-            logger.success("Finished processing files (No files to process)")
-        else:
-            logger.info(
-                f"Processing {len(working_table)} files using {len(input_table) - len(working_table)} cached files"
+        if self.config.calibrate.calib_directory is not None:
+            self.calib_table = header_table(
+                self.config.calibrate.calib_directory.glob("**/[!.]*.fits"), quiet=True
             )
-
-            if self.config.calibrate.calib_directory is not None:
-                self.calib_table = header_table(
-                    self.config.calibrate.calib_directory.glob("**/[!.]*.fits"), quiet=True
-                )
 
         self.output_paths = []
         with mp.Pool(num_proc) as pool:
             jobs = []
-            for group_index, group in working_table.groupby("GROUP_IDX"):
+            for group_index, group in input_table.groupby("GROUP_IDX"):
                 output_path = get_reduced_path(self.paths, self.config, group_index)
                 if not force and output_path.exists():
-                    logger.debug("Skipping processing for group %3d", group_index)
+                    logger.debug("Skipping processing for group %3d", output_path)
                     self.output_paths.append(output_path)
                 else:
-                    jobs.append(pool.apply_async(self.process_group, args=(group, group_index)))
+                    jobs.append(
+                        pool.apply_async(self.process_group, args=(group, group_index, output_path))
+                    )
 
             for job in tqdm(jobs, desc="Processing files"):
                 self.output_paths.append(job.get())
@@ -103,13 +98,13 @@ class Pipeline:
         self.output_table = header_table(self.output_paths, num_proc=num_proc, quiet=True)
         self.save_output_header()
 
-        ## products
-        if self.config.save_adi_cubes:
-            self.save_adi_cubes(force=force)
+        # ## products
+        # if self.config.save_adi_cubes:
+        #     self.save_adi_cubes(force=force)
 
-        ## diff images
-        if self.config.diff_images.make_diff:
-            self.make_diff_images(self.output_table, force=force)
+        # ## diff images
+        # if self.config.diff_images.make_diff:
+        #     self.make_diff_images(self.output_table, force=force)
 
         logger.success("Finished processing files")
 
@@ -208,7 +203,7 @@ class Pipeline:
             )
             self.synth_psfs[filt] = psf
 
-    def process_group(self, group, index: int):
+    def process_group(self, group, index: int, output_path: Path):
         # fix headers and calibrate
         hdul_list = []
         for _, row in group.iterrows():
@@ -242,19 +237,12 @@ class Pipeline:
 
         ## Step 5: Spectrophotometric calibration
         logger.debug("Starting specphot cal for group %3d", index)
-        hdul = specphot_cal_hdul(
-            hdul,
-            metrics,
-            unit=self.config.specphot.unit,
-            metric=self.config.specphot.flux_metric,
-            library=self.config.specphot.model,
-            # TODO
-        )
+        hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config.specphot)
         logger.debug("Finished specphot cal for group %3d", index)
         ## Step 6: Coadd
         if self.config.coadd.coadd:
             logger.debug("Starting coadding for group %3d", index)
-            coadd_hdul(
+            hdul = coadd_hdul(
                 hdul,
                 method=self.config.coadd.method,
                 recenter=self.config.coadd.recenter,
@@ -262,9 +250,9 @@ class Pipeline:
                 dft_factor=self.config.coadd.recenter_dft_factor,
             )
             logger.debug("Finished coadding for group %3d", index)
-        else:
-            logger.debug("Saving reduced cube to %s", str(output_path))
-            hdul.writeto(output_path, overwrite=True)
+
+        logger.debug("Saving reduced cube to %s", str(output_path))
+        hdul.writeto(output_path, overwrite=True)
 
         return output_path
 
@@ -332,30 +320,30 @@ class Pipeline:
         outpath = Path(fileinfo["collapse_file"])
         if config.reproject:
             with Path(self.paths.aux / f"{self.config.name}_astrometry.toml").open("rb") as fh:
-                astrometry = tomli.load(fh)
+                tomli.load(fh)
         else:
-            astrometry = None
-        psfs = [self.synth_psfs[filt] for filt in self._determine_filts_from_header(fileinfo)]
-        lucky_image_file(
-            hdul,
-            method=config.method,
-            frame_select=config.frame_select,
-            select_cutoff=config.select_cutoff,
-            register=config.centroid,
-            metric_file=fileinfo["metric_file"],
-            recenter=config.recenter,
-            reproject=config.reproject,
-            astrometry=astrometry,
-            refsep=config.satspot_reference["separation"],
-            refang=config.satspot_reference["angle"],
-            centroids=self.centroids,
-            outpath=outpath,
-            force=force,
-            specphot=self.config.specphot,
-            aux_dir=self.paths.aux,
-            window=self.config.analysis.window_size,
-            psfs=psfs,
-        )
+            pass
+        [self.synth_psfs[filt] for filt in self._determine_filts_from_header(fileinfo)]
+        # lucky_image_file(
+        #     hdul,
+        #     method=config.method,
+        #     frame_select=config.frame_select,
+        #     select_cutoff=config.select_cutoff,
+        #     register=config.centroid,
+        #     metric_file=fileinfo["metric_file"],
+        #     recenter=config.recenter,
+        #     reproject=config.reproject,
+        #     astrometry=astrometry,
+        #     refsep=config.satspot_reference["separation"],
+        #     refang=config.satspot_reference["angle"],
+        #     centroids=self.centroids,
+        #     outpath=outpath,
+        #     force=force,
+        #     specphot=self.config.specphot,
+        #     aux_dir=self.paths.aux,
+        #     window=self.config.analysis.window_size,
+        #     psfs=psfs,
+        # )
         logger.debug("Data collapsing completed")
         logger.debug(f"Saved collapsed data to {outpath}")
         return outpath
