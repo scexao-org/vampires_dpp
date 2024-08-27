@@ -4,8 +4,8 @@ import numpy as np
 from astropy.io import fits
 from reproject import reproject_interp
 
+from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
-from vampires_dpp.image_processing import combine_frames_headers
 from vampires_dpp.paths import any_file_newer
 from vampires_dpp.wcs import apply_wcs
 

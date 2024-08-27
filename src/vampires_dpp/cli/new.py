@@ -1,4 +1,3 @@
-import contextlib
 import re
 import readline
 from pathlib import Path
@@ -146,33 +145,29 @@ def get_analysis_settings(template: PipelineConfig) -> PipelineConfig:
     template.analysis.window_size = click.prompt(
         "Enter analysis window size (px)", type=int, default=template.analysis.window_size
     )
-    template.analysis.fit_psf = click.prompt(
-        "Would you like to fit a PSF model?", default=template.analysis.fit_psf
-    )
-    if template.analysis.fit_psf:
-        template.analysis.psf_model = click.prompt(
-            " - Choose PSF model",
-            type=click.Choice(["moffat", "gaussian"], case_sensitive=False),
-            default=template.analysis.psf_model,
-        )
+    # template.analysis.fit_psf_model = click.prompt(
+    #     "Would you like to fit a PSF model?", default=template.analysis.fit_psf_model
+    # )
+    # if template.analysis.fit_psf_model:
+    #     template.analysis.psf_model = click.prompt(
+    #         " - Choose PSF model",
+    #         type=click.Choice(["moffat", "gaussian"], case_sensitive=False),
+    #         default=template.analysis.psf_model,
+    #     )
     template.analysis.photometry = click.prompt(
         "Would you like to do aperture photometry?", default=template.analysis.photometry
     )
     if template.analysis.photometry:
         aper_rad = click.prompt(
-            'Enter aperture radius (px/"auto")', default=template.analysis.aper_rad
+            "Enter aperture radius (px)", default=template.analysis.aper_rad, type=float
         )
-        with contextlib.suppress(ValueError):
-            aper_rad = float(aper_rad)
-        if not isinstance(aper_rad, str) and aper_rad > template.analysis.window_size / 2:
+        if aper_rad > template.analysis.window_size / 2:
             aper_rad = template.analysis.window_size / 2
             click.echo(f" ! Reducing aperture radius to match window size ({aper_rad:.0f} px)")
         template.analysis.aper_rad = aper_rad
 
         ann_rad = None
-        if template.analysis.aper_rad != "auto" and click.confirm(
-            "Would you like to subtract background annulus?", default=False
-        ):
+        if click.confirm("Would you like to subtract background annulus?", default=False):
             in_rad = max(aper_rad, template.analysis.window_size / 2 - 5)
             out_rad = template.analysis.window_size / 2
             resp = click.prompt(
@@ -231,16 +226,16 @@ def get_frame_select_settings(template: PipelineConfig) -> PipelineConfig:
     return template
 
 
-def get_register_settings(template: PipelineConfig) -> PipelineConfig:
+def get_alignment_settings(template: PipelineConfig) -> PipelineConfig:
     ## Registration
     template.register.align = click.confirm(
         "Would you like to align each frame?", default=template.register.align
     )
     if template.register.align:
-        method_choices = ["dft", "com", "peak", "gauss", "quad"]
+        method_choices = ["dft", "com", "peak", "model"]
         readline.set_completer(createListCompleter(method_choices))
         template.register.method = click.prompt(
-            " - Choose a registration method",
+            " - Choose centroiding metric",
             type=click.Choice(method_choices, case_sensitive=False),
             default=template.register.method,
         )
@@ -458,7 +453,7 @@ def new_config(ctx, config, edit):
     tpl = get_calib_settings(tpl)
     tpl = get_analysis_settings(tpl)
     tpl = get_frame_select_settings(tpl)
-    tpl = get_register_settings(tpl)
+    tpl = get_alignment_settings(tpl)
     tpl = get_coadd_settings(tpl)
     tpl = get_specphot_settings(tpl)
     tpl = get_diff_image_config(tpl)

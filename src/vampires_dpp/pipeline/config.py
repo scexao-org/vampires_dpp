@@ -211,10 +211,10 @@ class AnalysisConfig(BaseModel):
         The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate.
     """
 
-    fit_psf: bool = True
+    fit_psf_model: bool = True
     psf_model: Literal["moffat", "gaussian"] = "moffat"
     photometry: bool = True
-    phot_aper_rad: float = 8
+    phot_aper_rad: float = 4
     phot_ann_rad: Sequence[float] | Literal[False] = False
     window_size: int = 30
 
@@ -234,7 +234,7 @@ class CombineConfig(BaseModel):
     method:
     """
 
-    method: Literal["cube", "pdi"]
+    method: Literal["cube", "pdi"] = "cube"
     save_intermediate: bool = False
 
 
@@ -260,8 +260,8 @@ class FrameSelectConfig(BaseModel):
     save_intermediate: bool = False
 
 
-class RegisterConfig(BaseModel):
-    """Frame registration options
+class AlignmentConfig(BaseModel):
+    """Frame alignment options
 
     Parameters
     ----------
@@ -427,7 +427,7 @@ class PipelineConfig(BaseModel):
     analysis: AnalysisConfig = AnalysisConfig()
     combine: CombineConfig = CombineConfig()
     frame_select: FrameSelectConfig = FrameSelectConfig()
-    register: RegisterConfig = RegisterConfig()
+    align: AlignmentConfig = AlignmentConfig()
     coadd: CoaddConfig = CoaddConfig()
     diff_images: DiffImageConfig = DiffImageConfig()
     polarimetry: PolarimetryConfig | None = None

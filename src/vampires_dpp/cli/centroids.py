@@ -9,8 +9,8 @@ import tomli_w
 from numpy.typing import NDArray
 from skimage import filters
 
-from vampires_dpp.image_processing import collapse_frames_files
-from vampires_dpp.image_registration import offset_centroids
+from vampires_dpp.coadd import collapse_frames_files
+from vampires_dpp.image_registration import offset_peak_and_com
 from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths
@@ -86,7 +86,7 @@ def get_psf_centroids_mpl(
 
         for i, point in enumerate(points):
             inds = cutout_inds(data, center=(point[1], point[0]), window=15)
-            cent_arr[0, i] = offset_centroids(data, None, inds)["com"]
+            cent_arr[0, i] = offset_peak_and_com(data, inds)["com"]
             ax.text(cent_arr[0, i, 1] + 2, cent_arr[0, i, 0] + 2, str(i), c="green")
         ax.scatter(cent_arr[0, i, 1], cent_arr[0, i, 0], marker="+", c="green")
         fig.show()
@@ -131,7 +131,7 @@ def get_mbi_centroids_mpl(
 
             for j, point in enumerate(points):
                 wind_inds = cutout_inds(field_cutout, center=(point[1], point[0]), window=15)
-                cent_arr[i, j] = offset_centroids(field_cutout, None, wind_inds)["com"]
+                cent_arr[i, j] = offset_peak_and_com(field_cutout, wind_inds)["com"]
                 # ax.text(cent_arr[i, j, 1] + 2, cent_arr[i, j, 0] + 2, str(i), c="green")
             # ax.scatter(cent_arr[i, :, 1], cent_arr[i, :, 0], marker="+", c="green")
             fig.show()

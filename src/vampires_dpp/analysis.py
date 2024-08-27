@@ -1,10 +1,11 @@
 import itertools
+from typing import Literal
 
 # import time
 import numpy as np
 import sep
 
-from .image_registration import offset_centroids
+from .image_registration import offset_dft, offset_peak_and_com
 from .indexing import cutout_inds, frame_center, get_mbi_centers
 from .util import create_or_append, get_center
 
@@ -70,18 +71,18 @@ def analyze_fields(
     cube,
     cube_err,
     inds,
-    aper_rad,
+    aper_rad=4,
     ann_rad=None,
-    strehl: bool = False,
     window_size=30,
     dft_factor=30,
+    do_phot: bool = True,
+    fit_psf_model: bool = False,
+    psf_model="moffat",
     psf=None,
-    **kwargs,
 ):
     output = {}
     cutout = cube[inds]
     cube_err[inds]
-    radii = np.arange(window_size)
     ## Simple statistics
     # t0 = time.perf_counter()
     output["max"] = np.nanmax(cutout, axis=(-2, -1))
@@ -98,51 +99,37 @@ def analyze_fields(
         frame_err = cube_err[fidx]
 
         # t3 = time.perf_counter()
-        centroids = offset_centroids(frame, frame_err, inds, psf, dft_factor)
+        centroids = offset_peak_and_com(frame, inds)
 
         create_or_append(output, "comx", centroids["com"][1])
         create_or_append(output, "comy", centroids["com"][0])
         create_or_append(output, "peakx", centroids["peak"][1])
         create_or_append(output, "peaky", centroids["peak"][0])
         ctr_est = centroids["com"]
-        if "gauss" in centroids:
-            create_or_append(output, "gausx", centroids["gauss"][1])
-            create_or_append(output, "gausy", centroids["gauss"][0])
-            ctr_est = centroids["gauss"]
-        if "dft" in centroids:
-            create_or_append(output, "dftx", centroids["dft"][1])
-            create_or_append(output, "dfty", centroids["dft"][0])
-            ctr_est = centroids["dft"]
+        if fit_psf_model:
+            msg = "TODO :)"
+            raise NotImplementedError(msg)
+            # psf_info = fit_psf_model(frame, inds, model=psf_model)
+            # create_or_append(output, "gausx", centroids["gauss"][1])
+            # create_or_append(output, "gausy", centroids["gauss"][0])
+            # ctr_est = centroids["gauss"]
+        if psf is not None and dft_factor > 0:
+            dft_ctrs = offset_dft(frame, inds, psf=psf, upsample_factor=dft_factor)
+            create_or_append(output, "dftx", dft_ctrs[1])
+            create_or_append(output, "dfty", dft_ctrs[0])
+            ctr_est = dft_ctrs
 
         # t4 = time.perf_counter()
         # print(f"Time to measure centroids for one frame: {t4 - t3} [s]")
 
         # t3 = time.perf_counter()
-        # with warnings.catch_warnings():
-        #     warnings.simplefilter("ignore")
-        #     prof = profiles.RadialProfile(
-        #         frame, ctr_est[::-1], radii, error=frame_err, mask=np.isnan(frame)
-        #     )
-        #     try:
-        #         fwhm = prof.gaussian_fwhm
-        #     except Exception:
-        # t4 = time.perf_counter()
-        # print(f"Time to radial profile for one frame: {t4 - t3} [s]")
-        fwhm = 0
-        create_or_append(output, "fwhm", fwhm)
-
-        # t3 = time.perf_counter()
-        if aper_rad == "auto":
-            r = max(min(fwhm, radii.max() / 2), 3)
-            ann_rad = r + 5, r + fwhm + 5
-        else:
-            r = aper_rad
-        create_or_append(output, "photr", r)
-        phot, photerr = safe_aperture_sum(
-            frame, err=frame_err, r=r, center=ctr_est, ann_rad=ann_rad
-        )
-        create_or_append(output, "photf", phot)
-        create_or_append(output, "phote", photerr)
+        if do_phot:
+            create_or_append(output, "photr", aper_rad)
+            phot, photerr = safe_aperture_sum(
+                frame, err=frame_err, r=aper_rad, center=ctr_est, ann_rad=ann_rad
+            )
+            create_or_append(output, "photf", phot)
+            create_or_append(output, "phote", photerr)
         # t4 = time.perf_counter()
         # print(f"Time to radial profile for one frame: {t4 - t3} [s]")
 
@@ -155,13 +142,15 @@ def analyze_file(
     hdul,
     outpath,
     centroids,
-    aper_rad="auto",
+    aper_rad: int = 4,
     ann_rad=None,
-    strehl=False,
     force=False,
     window_size=30,
+    do_phot: bool = True,
+    dft_factor: int = 30,
     psfs=None,
-    **kwargs,
+    fit_psf_model: bool = False,
+    psf_model: Literal["moffat", "gauss"] = "moffat",
 ):
     if not force and outpath.is_file():
         return outpath
@@ -192,10 +181,11 @@ def analyze_file(
                 inds=inds,
                 aper_rad=aper_rad,
                 ann_rad=ann_rad,
-                strehl=strehl,
+                do_phot=do_phot,
                 psf=psf,
                 window_size=window_size,
-                **kwargs,
+                fit_psf_model=fit_psf_model,
+                psf_model=psf_model,
             )
             # append psf result to this field's dictionary
             for k, v in results.items():

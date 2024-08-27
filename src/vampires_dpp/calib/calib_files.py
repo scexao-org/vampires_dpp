@@ -16,8 +16,9 @@ from scipy import optimize
 from skimage import filters, morphology
 from tqdm.auto import tqdm
 
+from vampires_dpp.coadd import collapse_cube
 from vampires_dpp.headers import fix_header, sort_header
-from vampires_dpp.image_processing import adaptive_sigma_clip_mask, collapse_cube
+from vampires_dpp.image_processing import adaptive_sigma_clip_mask
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import get_paths
 from vampires_dpp.util import load_fits, load_fits_header

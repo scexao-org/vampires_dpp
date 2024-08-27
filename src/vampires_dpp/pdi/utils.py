@@ -6,8 +6,8 @@ from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
 
 from vampires_dpp.analysis import safe_annulus_sum, safe_aperture_sum
+from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
-from vampires_dpp.image_processing import combine_frames_headers
 from vampires_dpp.indexing import frame_angles
 from vampires_dpp.wcs import apply_wcs
 

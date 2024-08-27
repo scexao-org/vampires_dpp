@@ -10,8 +10,9 @@ from astropy.io import fits
 from numpy.typing import NDArray
 from reproject import reproject_interp
 
+from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
-from vampires_dpp.image_processing import combine_frames_headers, derotate_cube, derotate_frame
+from vampires_dpp.image_processing import derotate_cube, derotate_frame
 from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Final, Literal, TypeAlias
+from typing import Final, Literal, TypeAlias
 
 import astropy.units as u
 import numpy as np
@@ -11,9 +11,8 @@ from vampires_dpp.pipeline.config import SpecphotConfig
 from .filters import FILTERS, update_header_with_filt_info
 from .pickles import load_pickles_model
 
-if TYPE_CHECKING:
-    SpecphotUnits: TypeAlias = Literal["e-/s", "Jy", "Jy/arcsec^2"]
-    FluxMetric: TypeAlias = Literal["photometry", "sum"]
+SpecphotUnits: TypeAlias = Literal["e-/s", "Jy", "Jy/arcsec^2"]
+FluxMetric: TypeAlias = Literal["photometry", "sum"]
 
 # vampires_dpp/data
 SCEXAO_AREA: Final = 40.64 * u.m**2

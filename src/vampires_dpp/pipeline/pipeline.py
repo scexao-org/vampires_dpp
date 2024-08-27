@@ -34,6 +34,7 @@ from vampires_dpp.pdi.models import mueller_matrix_from_file
 from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
+from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.specphot.specphot import specphot_cal_hdul
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.wcs import apply_wcs
@@ -205,7 +206,11 @@ class Pipeline:
         # of cutting out MBI frames, so it's necessary
         logger.debug("Starting frame registration for group %3d", index)
         hdul = register_hdul(
-            hdul, metrics, align=self.config.register.align, method=self.config.register.method
+            hdul,
+            metrics,
+            align=self.config.align.align,
+            method=self.config.align.method,
+            crop_width=self.config.align.crop_width,
         )
         logger.debug("Finished frame registration for group %3d", index)
 
@@ -271,20 +276,26 @@ class Pipeline:
         logger.debug("Starting frame analysis")
         config = self.config.analysis
         hdr = hdul[0].header
-        psfs = [self.synth_psfs[filt] for filt in self._determine_filts_from_header(hdr)]
-
+        if self.config.align.align and self.config.align.method == "dft":
+            psfs = [self.synth_psfs[filt] for filt in determine_filterset_from_header(hdr)]
+            dft_factor = self.config.align.dft_factor
+        else:
+            psfs = None
+            dft_factor = -1
         key = f"cam{hdr['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdul,
             centroids=self.centroids.get(key, None),
+            window_size=config.window_size,
+            aper_rad=config.phot_aper_rad,
+            ann_rad=config.phot_ann_rad,
             psfs=psfs,
-            subtract_radprof=config.subtract_radprof,
-            aper_rad=config.aper_rad,
-            ann_rad=config.ann_rad,
+            dft_factor=dft_factor,
+            do_phot=config.photometry,
+            fit_psf_model=config.fit_psf_model,
+            psf_model=config.psf_model,
             outpath=metric_file,
             force=force,
-            window_size=config.window_size,
-            dft_factor=config.dft_factor,
         )
         return outpath
 
