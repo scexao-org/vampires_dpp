@@ -78,3 +78,16 @@ def save_filter_fits(filt: SpectralElement, outpath: Path, force=False) -> Path:
     # with fits.open(outpath, "update") as hdul:
     #     update_header_with_filt_info(hdul[0].header)
     return outpath
+
+
+def determine_filterset_from_header(self, header):
+    mod = header["OBS-MOD"]
+    if mod.endswith("MBIR"):
+        filts = ("F670", "F720", "F760")
+    elif mod.endswith("MBI"):
+        filts = ("F610", "F670", "F720", "F760")
+    elif mod.endswith("SDI"):
+        filts = (header["FILTER02"],)
+    else:
+        filts = (header["FILTER01"],)
+    return filts

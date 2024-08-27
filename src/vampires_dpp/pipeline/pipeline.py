@@ -34,6 +34,7 @@ from vampires_dpp.pdi.models import mueller_matrix_from_file
 from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
+from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.specphot.specphot import specphot_cal_hdul
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.wcs import apply_wcs
@@ -176,24 +177,12 @@ class Pipeline:
         subset = table.loc[files_to_calibrate]
         return subset.copy()
 
-    def _determine_filts_from_header(self, header):
-        mod = header["OBS-MOD"]
-        if mod.endswith("MBIR"):
-            filts = ("F670", "F720", "F760")
-        elif mod.endswith("MBI"):
-            filts = ("F610", "F670", "F720", "F760")
-        elif mod.endswith("SDI"):
-            filts = (header["FILTER02"],)
-        else:
-            filts = (header["FILTER01"],)
-        return filts
-
     def make_synth_psfs(self, input_table):
         # make PSFs ahead of time so they don't overwhelm
         # during multiprocessing
         filters = {}
         for _, row in input_table.iterrows():
-            for filt in self._determine_filts_from_header(row):
+            for filt in self.determine_filterset_from_header(row):
                 filters[filt] = row
 
         self.synth_psfs = {}
@@ -323,7 +312,7 @@ class Pipeline:
                 tomli.load(fh)
         else:
             pass
-        [self.synth_psfs[filt] for filt in self._determine_filts_from_header(fileinfo)]
+        [self.synth_psfs[filt] for filt in determine_filterset_from_header(fileinfo)]
         # lucky_image_file(
         #     hdul,
         #     method=config.method,

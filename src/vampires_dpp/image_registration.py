@@ -9,7 +9,7 @@ from photutils import centroids
 from skimage.registration import phase_cross_correlation
 
 from .image_processing import shift_frame
-from .indexing import frame_center
+from .indexing import cutout_inds, frame_center
 
 __all__ = ("register_hdul",)
 
@@ -116,3 +116,39 @@ def register_hdul(
         output_hdul[hdu_idx].header |= info
 
     return output_hdul
+
+
+def recenter_hdul(
+    hdul: fits.HDUList,
+    *,
+    method: RegisterMethod = "dft",
+    window_size: int = 30,
+    dft_factor: int = 30,
+    psf: None = None,
+):
+    data_cube = hdul[0].data
+    err_cube = hdul["ERR"].data
+    field_center = frame_center(data_cube)
+    inds = cutout_inds(data_cube, center=field_center, window=window_size)
+    ## Measure centroid
+    for wl_idx in range(data_cube.shape[0]):
+        frame = data_cube[wl_idx]
+        match method:
+            case "com" | "peak":
+                center = offset_peak_and_com(frame, inds)[method]
+            case "dft":
+                assert psf is not None
+                center = offset_dft(frame, inds, psf=psf)
+
+        offset = center - field_center
+        data_cube[wl_idx] = shift_frame(frame, offset)
+        err_cube[wl_idx] = shift_frame(err_cube[wl_idx], offset)
+
+    info = fits.Header()
+    info["hierarch DPP RECENTER"] = True, "Data was registered after coadding"
+    info["hierarch DPP RECENTER METHOD"] = method, "DPP recentering registration method"
+
+    for hdu in hdul:
+        hdu.header |= info
+
+    return hdul
