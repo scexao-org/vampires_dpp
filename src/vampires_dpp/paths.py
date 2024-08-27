@@ -27,8 +27,8 @@ class Paths:
         return self.workdir / "selected"
 
     @property
-    def registered(self) -> Path:
-        return self.workdir / "registered"
+    def aligned(self) -> Path:
+        return self.workdir / "aligned"
 
     @property
     def coadded(self) -> Path:
@@ -69,8 +69,8 @@ def make_dirs(paths, config):
         paths.selected.mkdir(parents=True, exist_ok=True)
     # intermediate registered, or we are not coadding
     # (i.e., registered data is final product)
-    if config.register.save_intermediate:
-        paths.registered.mkdir(parents=True, exist_ok=True)
+    if config.align.save_intermediate:
+        paths.aligned.mkdir(parents=True, exist_ok=True)
     # final collapsed data
     if config.coadd.coadd:
         paths.coadded.mkdir(parents=True, exist_ok=True)

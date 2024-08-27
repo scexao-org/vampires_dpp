@@ -130,6 +130,7 @@ class SpecphotConfig(BaseModel):
     source: Literal["pickles"] | Path = "pickles"
     sptype: str | None = None
     mag: float | None = None
+    unit: Literal["e-/s", "Jy", "Jy/arcsec^2"] = "Jy"
     mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = "V"
     flux_metric: Literal["photometry", "sum"] = "photometry"
 
@@ -211,7 +212,7 @@ class AnalysisConfig(BaseModel):
         The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate.
     """
 
-    fit_psf_model: bool = True
+    fit_psf_model: bool = False
     psf_model: Literal["moffat", "gaussian"] = "moffat"
     photometry: bool = True
     phot_aper_rad: float = 4
@@ -422,13 +423,13 @@ class PipelineConfig(BaseModel):
     coronagraphic: bool = False
     save_adi_cubes: bool = False
     target: TargetConfig | None = None
-    specphot: SpecphotConfig | None = None
+    combine: CombineConfig = CombineConfig()
     calibrate: CalibrateConfig = CalibrateConfig()
     analysis: AnalysisConfig = AnalysisConfig()
-    combine: CombineConfig = CombineConfig()
     frame_select: FrameSelectConfig = FrameSelectConfig()
     align: AlignmentConfig = AlignmentConfig()
     coadd: CoaddConfig = CoaddConfig()
+    specphot: SpecphotConfig | None = None
     diff_images: DiffImageConfig = DiffImageConfig()
     polarimetry: PolarimetryConfig | None = None
 

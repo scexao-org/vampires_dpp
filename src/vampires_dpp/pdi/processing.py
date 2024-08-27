@@ -400,8 +400,11 @@ def get_triplediff_set(table) -> dict | None:
                     bad_table = bad_table.loc[~indices_to_drop]
 
             output_tables.append(current_table)
-
-    final_table = pd.concat(output_tables)
+    if len(output_tables) > 0:
+        final_table = pd.concat(output_tables)
+    else:
+        msg = "Could not generate any valid Stokes sets."
+        raise RuntimeError(msg)
 
     return final_table.sort_values(["MJD", "U_FLC", "U_CAMERA"])
 

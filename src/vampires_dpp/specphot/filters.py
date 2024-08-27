@@ -80,7 +80,7 @@ def save_filter_fits(filt: SpectralElement, outpath: Path, force=False) -> Path:
     return outpath
 
 
-def determine_filterset_from_header(self, header):
+def determine_filterset_from_header(header):
     mod = header["OBS-MOD"]
     if mod.endswith("MBIR"):
         filts = ("F670", "F720", "F760")

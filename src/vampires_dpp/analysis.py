@@ -41,6 +41,8 @@ def safe_aperture_sum(frame, r, err=None, center=None, ann_rad=None):
     _frame = frame.astype("=f4")
     _err = err.astype("=f4") if err is not None else None
     mask = ~np.isfinite(_frame)
+    if not ann_rad:
+        ann_rad = None
     flux, fluxerr, flag = sep.sum_circle(
         _frame, (center[1],), (center[0],), r, err=_err, mask=mask, bkgann=ann_rad
     )
@@ -71,14 +73,15 @@ def analyze_fields(
     cube,
     cube_err,
     inds,
+    *,
+    window_size=30,
+    do_phot: bool = True,
     aper_rad=4,
     ann_rad=None,
-    window_size=30,
+    psf=None,
     dft_factor=30,
-    do_phot: bool = True,
     fit_psf_model: bool = False,
     psf_model="moffat",
-    psf=None,
 ):
     output = {}
     cutout = cube[inds]
@@ -126,7 +129,7 @@ def analyze_fields(
         if do_phot:
             create_or_append(output, "photr", aper_rad)
             phot, photerr = safe_aperture_sum(
-                frame, err=frame_err, r=aper_rad, center=ctr_est, ann_rad=ann_rad
+                frame, r=aper_rad, err=frame_err, center=ctr_est, ann_rad=ann_rad
             )
             create_or_append(output, "photf", phot)
             create_or_append(output, "phote", photerr)
@@ -177,7 +180,6 @@ def analyze_file(
             results = analyze_fields(
                 data,
                 data_err,
-                header=hdr,
                 inds=inds,
                 aper_rad=aper_rad,
                 ann_rad=ann_rad,

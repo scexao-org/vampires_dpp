@@ -168,7 +168,7 @@ class Pipeline:
         # during multiprocessing
         filters = {}
         for _, row in input_table.iterrows():
-            for filt in self.determine_filterset_from_header(row):
+            for filt in determine_filterset_from_header(row):
                 filters[filt] = row
 
         self.synth_psfs = {}
@@ -221,12 +221,16 @@ class Pipeline:
         ## Step 6: Coadd
         if self.config.coadd.coadd:
             logger.debug("Starting coadding for group %3d", index)
+            psfs = [
+                self.synth_psfs[filt] for filt in determine_filterset_from_header(hdul[0].header)
+            ]
             hdul = coadd_hdul(
                 hdul,
                 method=self.config.coadd.method,
                 recenter=self.config.coadd.recenter,
                 recenter_method=self.config.coadd.recenter_method,
                 dft_factor=self.config.coadd.recenter_dft_factor,
+                psfs=psfs,
             )
             logger.debug("Finished coadding for group %3d", index)
 
@@ -245,7 +249,9 @@ class Pipeline:
         logger.debug("Starting data calibration")
         config = self.config.calibrate
         if config.save_intermediate:
-            outpath = Path(fileinfo["calib_file"])
+            outpath = get_paths(
+                path, suffix="calib", filetype=".fits", output_directory=self.paths.calibrated
+            )[1]
             if not force and outpath.exists():
                 return fits.open(outpath)
 
@@ -261,19 +267,21 @@ class Pipeline:
             path,
             back_filename=back_filename,
             flat_filename=flat_filename,
-            transform_filename=config.distortion_file,
+            # transform_filename=config.distortion_file,
             bpfix=config.fix_bad_pixels,
             coord=self.coord,
             force=force,
         )
         if config.save_intermediate:
-            calib_hdul.writeto(fileinfo["calib_file"], overwrite=True)
-            logger.debug(f"Calibrated data saved to {fileinfo['calib_file']}")
+            calib_hdul.writeto(outpath, overwrite=True)
+            logger.debug(f"Calibrated data saved to {outpath}")
         logger.debug("Data calibration completed")
         return calib_hdul
 
     def analyze_one(self, hdul: fits.HDUList, metric_file, force=False):
         logger.debug("Starting frame analysis")
+        if not force and metric_file.exists():
+            return np.load(metric_file)
         config = self.config.analysis
         hdr = hdul[0].header
         if self.config.align.align and self.config.align.method == "dft":
@@ -297,7 +305,7 @@ class Pipeline:
             outpath=metric_file,
             force=force,
         )
-        return outpath
+        return np.load(outpath)
 
     def save_output_header(self):
         self.output_table.to_csv(self.output_table_path)

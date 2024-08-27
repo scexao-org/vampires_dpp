@@ -51,6 +51,6 @@ def frame_select_hdul(
     )
 
     for hdu_idx in range(len(hdul)):
-        hdul[hdu_idx].header |= info
+        hdul[hdu_idx].header.update(info)
 
     return hdul, metrics

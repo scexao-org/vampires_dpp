@@ -9,7 +9,7 @@ from photutils import centroids
 from skimage.registration import phase_cross_correlation
 
 from .image_processing import shift_frame
-from .indexing import cutout_inds, frame_center
+from .indexing import cutout_inds, frame_center, get_mbi_centers
 
 __all__ = ("register_hdul",)
 
@@ -20,8 +20,8 @@ RegisterMethod: TypeAlias = Literal["peak", "com", "dft"]
 
 def offset_dft(frame, inds, psf, *, upsample_factor: Annotated[int, Gt(0)] = 30):
     cutout = frame[inds]
-    dft_offset = phase_cross_correlation(
-        psf, cutout, return_error=False, upsample_factor=upsample_factor, normalization=None
+    dft_offset, _, _ = phase_cross_correlation(
+        psf, cutout, upsample_factor=upsample_factor, normalization=None
     )
     ctr = np.array(frame_center(psf)) - dft_offset
     # plt.imshow(cutout, origin="lower", cmap="magma")
@@ -49,18 +49,55 @@ def offset_peak_and_com(frame, inds):
     return ctrs
 
 
+def get_centroids_from(metrics, input_key):
+    cx = np.swapaxes(metrics[f"{input_key[:4]}x"], 0, 2)
+    cy = np.swapaxes(metrics[f"{input_key[:4]}y"], 0, 2)
+    # if there are values from multiple PSFs (e.g. satspots)
+    # take the mean centroid of each PSF
+    if cx.ndim == 3:
+        cx = np.mean(cx, axis=1)
+    if cy.ndim == 3:
+        cy = np.mean(cy, axis=1)
+
+    # stack so size is (Nframes, Nfields, x/y)
+    centroids = np.stack((cy, cx), axis=-1)
+    return centroids
+
+
 def register_hdul(
-    hdul: fits.HDUList, metrics, *, method: RegisterMethod = "dft", crop_width: int = 536, **kwargs
+    hdul: fits.HDUList,
+    metrics,
+    *,
+    align: bool = True,
+    method: RegisterMethod = "dft",
+    crop_width: int = 536,
 ) -> fits.HDUList:
     # load centroids
     # reminder, this has shape (nframes, nlambda, npsfs, 2)
     # take mean along PSF axis
-    centroids = np.mean(metrics[method], axis=2)
+    nframes, ny, nx = hdul[0].shape
     center = frame_center(hdul[0].data)
+    header = hdul[0].header
+    if align:
+        centroids = get_centroids_from(metrics, method)
+    elif "MBIR" in header["OBS-MOD"]:
+        ctr_dict = get_mbi_centers(hdul[0].data, reduced=True)
+        centroids = np.zeros((nframes, 3, 2))
+        fields = ("F670", "F720", "F760")
+        for idx, key in enumerate(fields):
+            centroids[:, idx] = ctr_dict[key]
+    elif "MBI" in header["OBS-MOD"]:
+        ctr_dict = get_mbi_centers(hdul[0].data)
+        centroids = np.zeros((nframes, 4, 2))
+        fields = ("F610", "F670", "F720", "F760")
+        for idx, key in enumerate(fields):
+            centroids[:, idx] = ctr_dict[key]
+    else:
+        centroids = np.zeros((nframes, 1, 2))
+        centroids[:] = center
 
     # determine maximum padding, with sqrt(2)
     # for radial coverage
-    nframes, ny, nx = hdul[0].shape
     rad_factor = crop_width / np.sqrt(2)
     # round to nearest even number
     npad = int((rad_factor // 2) * 2)
@@ -68,14 +105,14 @@ def register_hdul(
     aligned_data = []
     aligned_err = []
 
-    for tidx in range(aligned_data.shape[0]):
+    for tidx in range(centroids.shape[0]):
         frame = hdul[0].data[tidx]
         frame_err = hdul["ERR"].data[tidx]
 
         aligned_frames = []
         aligned_err_frames = []
 
-        for wlidx in range(aligned_data.shape[1]):
+        for wlidx in range(centroids.shape[1]):
             # determine offset for each field
             field_ctr = centroids[tidx, wlidx]
             offset = center - field_ctr
@@ -85,12 +122,12 @@ def register_hdul(
 
             # pad and shift data
             frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)
-            shifted = shift_frame(frame_padded, offset, **kwargs)
+            shifted = shift_frame(frame_padded, offset)
             aligned_frames.append(shifted)
 
             # pad and shift error
             frame_err_padded = np.pad(cutout_err.data, npad, constant_values=np.nan)
-            shifted_err = shift_frame(frame_err_padded, offset, **kwargs)
+            shifted_err = shift_frame(frame_err_padded, offset)
             aligned_err_frames.append(shifted_err)
 
         aligned_data.append(aligned_frames)
@@ -110,10 +147,10 @@ def register_hdul(
 
     # update header info
     info = fits.Header()
-    info["hierarch DPP REGISTER METHOD"] = method, "Frame registration method"
+    info["hierarch DPP ALIGN METHOD"] = method, "Frame alignment method"
 
     for hdu_idx in range(len(hdul)):
-        output_hdul[hdu_idx].header |= info
+        output_hdul[hdu_idx].header.update(info)
 
     return output_hdul
 
@@ -124,7 +161,7 @@ def recenter_hdul(
     method: RegisterMethod = "dft",
     window_size: int = 30,
     dft_factor: int = 30,
-    psf: None = None,
+    psfs: None = None,
 ):
     data_cube = hdul[0].data
     err_cube = hdul["ERR"].data
@@ -137,8 +174,8 @@ def recenter_hdul(
             case "com" | "peak":
                 center = offset_peak_and_com(frame, inds)[method]
             case "dft":
-                assert psf is not None
-                center = offset_dft(frame, inds, psf=psf)
+                assert psfs is not None
+                center = offset_dft(frame, inds, psf=psfs[wl_idx])
 
         offset = center - field_center
         data_cube[wl_idx] = shift_frame(frame, offset)
@@ -149,6 +186,6 @@ def recenter_hdul(
     info["hierarch DPP RECENTER METHOD"] = method, "DPP recentering registration method"
 
     for hdu in hdul:
-        hdu.header |= info
+        hdu.header.update(info)
 
     return hdul

@@ -28,11 +28,12 @@ def coadd_hdul(
     recenter: bool = False,
     recenter_method: RegisterMethod = "dft",
     dft_factor=30,
+    psfs=None,
 ) -> fits.HDUList:
     # collapse data along time axis
     ncoadd = hdul[0].shape[0]
-    coll_data = collapse_cube(hdul[0].data, method=method)
-    coll_err = np.sqrt(bn.nansum(hdul["ERR"] ** 2, axis=0)) / ncoadd
+    coll_data, _ = collapse_cube(hdul[0].data, method=method)
+    coll_err = np.sqrt(bn.nansum(hdul["ERR"].data ** 2, axis=0)) / ncoadd
     # coll_err = collapse_cube(hdul["ERR"].data, method=method)
     output_hdul = fits.HDUList(
         [
@@ -48,10 +49,12 @@ def coadd_hdul(
     info["hierarch DPP COADD NCOADD"] = ncoadd, "Number of coadded frames"
 
     for hdu in output_hdul:
-        hdu.header |= info
+        hdu.header.update(info)
 
     if recenter:
-        output_hdul = recenter_hdul(output_hdul, method=recenter_method, dft_factor=dft_factor)
+        output_hdul = recenter_hdul(
+            output_hdul, psfs=psfs, method=recenter_method, dft_factor=dft_factor
+        )
 
     return output_hdul
 

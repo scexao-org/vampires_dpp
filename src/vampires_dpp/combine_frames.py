@@ -97,7 +97,7 @@ def _merge_two_hdul(hdul1, hdul2):
         hdr1 = hdul1[idx].header
         data2 = hdul2[idx].data
         hdr2 = hdul2[idx].header
-        hdul_out[idx].data = np.stack((data1, data2), axis=0)
+        hdul_out[idx].data = np.vstack((data1, data2))
         hdul_out[idx].header = combine_frames_headers((hdr1, hdr2), wcs=True)
     return hdul_out
 

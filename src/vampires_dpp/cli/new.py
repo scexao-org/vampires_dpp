@@ -117,6 +117,7 @@ def get_base_settings(template: PipelineConfig) -> PipelineConfig:
 
 
 def get_calib_settings(template: PipelineConfig) -> PipelineConfig:
+    click.secho("Frame Calibration", bold=True)
     readline.set_completer(pathCompleter)
     calib_dir = click.prompt("Enter path to calibration files", default="")
     readline.set_completer()
@@ -141,6 +142,7 @@ def get_calib_settings(template: PipelineConfig) -> PipelineConfig:
 
 
 def get_analysis_settings(template: PipelineConfig) -> PipelineConfig:
+    click.secho("Frame Analysis", bold=True)
     ## Analysis
     template.analysis.window_size = click.prompt(
         "Enter analysis window size (px)", type=int, default=template.analysis.window_size
@@ -154,17 +156,17 @@ def get_analysis_settings(template: PipelineConfig) -> PipelineConfig:
     #         type=click.Choice(["moffat", "gaussian"], case_sensitive=False),
     #         default=template.analysis.psf_model,
     #     )
-    template.analysis.photometry = click.prompt(
+    template.analysis.photometry = click.confirm(
         "Would you like to do aperture photometry?", default=template.analysis.photometry
     )
     if template.analysis.photometry:
         aper_rad = click.prompt(
-            "Enter aperture radius (px)", default=template.analysis.aper_rad, type=float
+            "Enter aperture radius (px)", default=template.analysis.phot_aper_rad, type=float
         )
         if aper_rad > template.analysis.window_size / 2:
             aper_rad = template.analysis.window_size / 2
             click.echo(f" ! Reducing aperture radius to match window size ({aper_rad:.0f} px)")
-        template.analysis.aper_rad = aper_rad
+        template.analysis.phot_aper_rad = aper_rad
 
         ann_rad = None
         if click.confirm("Would you like to subtract background annulus?", default=False):
@@ -183,12 +185,13 @@ def get_analysis_settings(template: PipelineConfig) -> PipelineConfig:
             if ann_rad[0] >= ann_rad[1]:
                 ann_rad[0] = max(aper_rad, ann_rad[0] - 5)
                 click.echo(f" ! Reducing annulus inner radius to ({ann_rad[0]:.0f} px)")
-            template.analysis.ann_rad = ann_rad
+            template.analysis.phot_ann_rad = ann_rad
 
     return template
 
 
 def get_combine_settings(template: PipelineConfig) -> PipelineConfig:
+    click.secho("Combining Data", bold=True)
     template.combine.method = click.prompt(
         "How would you like to combine data?",
         type=click.Choice(["cube", "pdi"], case_sensitive=False),
@@ -203,6 +206,7 @@ def get_combine_settings(template: PipelineConfig) -> PipelineConfig:
 
 def get_frame_select_settings(template: PipelineConfig) -> PipelineConfig:
     ## Frame selection
+    click.secho("Frame Selection", bold=True)
     template.frame_select.frame_select = click.confirm(
         "Would you like to do frame selection?", default=template.frame_select.frame_select
     )
@@ -228,28 +232,29 @@ def get_frame_select_settings(template: PipelineConfig) -> PipelineConfig:
 
 def get_alignment_settings(template: PipelineConfig) -> PipelineConfig:
     ## Registration
-    template.register.align = click.confirm(
-        "Would you like to align each frame?", default=template.register.align
+    click.secho("Frame Alignment", bold=True)
+    template.align.align = click.confirm(
+        "Would you like to align each frame?", default=template.align.align
     )
-    if template.register.align:
+    if template.align.align:
         method_choices = ["dft", "com", "peak", "model"]
         readline.set_completer(createListCompleter(method_choices))
-        template.register.method = click.prompt(
+        template.align.method = click.prompt(
             " - Choose centroiding metric",
             type=click.Choice(method_choices, case_sensitive=False),
-            default=template.register.method,
+            default=template.align.method,
         )
         readline.set_completer()
-        if template.register.method == "dft":
-            template.register.dft_factor = click.prompt(
-                " - Enter DFT upsample factor", default=template.register.dft_factor, type=int
+        if template.align.method == "dft":
+            template.align.dft_factor = click.prompt(
+                " - Enter DFT upsample factor", default=template.align.dft_factor, type=int
             )
-    template.register.crop_width = click.prompt(
-        "Enter post-align crop size", default=template.register.crop_width, type=int
+    template.align.crop_width = click.prompt(
+        "Enter post-align crop size", default=template.align.crop_width, type=int
     )
     template.frame_select.save_intermediate = click.confirm(
         "Would you like to save the intermediate registered data?",
-        default=template.register.save_intermediate,
+        default=template.align.save_intermediate,
     )
 
     return template
@@ -257,6 +262,7 @@ def get_alignment_settings(template: PipelineConfig) -> PipelineConfig:
 
 def get_coadd_settings(template: PipelineConfig) -> PipelineConfig:
     ## Collapsing
+    click.secho("Coadding", bold=True)
     template.coadd.coadd = click.confirm(
         "Would you like to coadd your data?", default=template.coadd.coadd
     )
@@ -271,16 +277,16 @@ def get_coadd_settings(template: PipelineConfig) -> PipelineConfig:
         readline.set_completer()
 
         template.coadd.recenter = click.confirm(
-            "Would you like to recenter the coadded data?", default=template.coadd.recenter
+            " - Would you like to recenter the coadded data?", default=template.coadd.recenter
         )
         if template.coadd.recenter:
-            template.coadd.recenter = click.prompt(
+            template.coadd.recenter_method = click.prompt(
                 " - Enter post-align registration method",
                 type=click.Choice(["com", "peak", "gauss", "dft"], case_sensitive=False),
                 default=template.coadd.recenter_method,
             )
             if template.coadd.recenter_method == "dft":
-                template.register.dft_factor = click.prompt(
+                template.coadd.recenter_dft_factor = click.prompt(
                     " - Enter DFT upsample factor",
                     default=template.coadd.recenter_dft_factor,
                     type=int,
@@ -290,6 +296,7 @@ def get_coadd_settings(template: PipelineConfig) -> PipelineConfig:
 
 def get_diff_image_config(template: PipelineConfig) -> PipelineConfig:
     ## Diff images
+    click.secho("Difference Imaging", bold=True)
     template.diff_images.make_diff = click.confirm(
         "Would you like to make difference/sum images?", default=template.diff_images.make_diff
     )
@@ -316,6 +323,7 @@ def get_diff_image_config(template: PipelineConfig) -> PipelineConfig:
 
 
 def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
+    click.secho("Spectrophotometric Calibration", bold=True)
     ## Specphot Cal
     if click.confirm(
         "Would you like to do flux calibration?", default=template.specphot is not None
@@ -374,6 +382,7 @@ def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
 
 
 def get_pdi_settings(template: PipelineConfig) -> PipelineConfig:
+    click.secho("Polarimetry", bold=True)
     ## Polarization
     if click.confirm("Would you like to do polarimetry?", default=template.polarimetry is not None):
         calib_choices = ["doublediff", "triplediff", "leastsq"]
