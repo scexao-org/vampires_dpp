@@ -34,7 +34,6 @@ from vampires_dpp.pdi.models import mueller_matrix_from_file
 from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
-from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.specphot.specphot import specphot_cal_hdul
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.wcs import apply_wcs
@@ -163,20 +162,6 @@ class Pipeline:
             logger.debug(f"{key} frame center is {self.centroids[key]} (y, x)")
         return self.centroids
 
-    def determine_execution(self, table, force=False):
-        if force:
-            return table
-
-        def file_doesnt_exist(p):
-            return not Path(p).exists()
-
-        files_to_calibrate = table["metric_file"].apply(file_doesnt_exist)
-        if self.config.collapse is not None:
-            files_to_calibrate |= table["collapse_file"].apply(file_doesnt_exist)
-
-        subset = table.loc[files_to_calibrate]
-        return subset.copy()
-
     def make_synth_psfs(self, input_table):
         # make PSFs ahead of time so they don't overwhelm
         # during multiprocessing
@@ -301,40 +286,6 @@ class Pipeline:
             window_size=config.window_size,
             dft_factor=config.dft_factor,
         )
-        return outpath
-
-    def collapse_one(self, hdul, fileinfo, force=False):
-        logger.debug("Starting data collapsing")
-        config = self.config.collapse
-        outpath = Path(fileinfo["collapse_file"])
-        if config.reproject:
-            with Path(self.paths.aux / f"{self.config.name}_astrometry.toml").open("rb") as fh:
-                tomli.load(fh)
-        else:
-            pass
-        [self.synth_psfs[filt] for filt in determine_filterset_from_header(fileinfo)]
-        # lucky_image_file(
-        #     hdul,
-        #     method=config.method,
-        #     frame_select=config.frame_select,
-        #     select_cutoff=config.select_cutoff,
-        #     register=config.centroid,
-        #     metric_file=fileinfo["metric_file"],
-        #     recenter=config.recenter,
-        #     reproject=config.reproject,
-        #     astrometry=astrometry,
-        #     refsep=config.satspot_reference["separation"],
-        #     refang=config.satspot_reference["angle"],
-        #     centroids=self.centroids,
-        #     outpath=outpath,
-        #     force=force,
-        #     specphot=self.config.specphot,
-        #     aux_dir=self.paths.aux,
-        #     window=self.config.analysis.window_size,
-        #     psfs=psfs,
-        # )
-        logger.debug("Data collapsing completed")
-        logger.debug(f"Saved collapsed data to {outpath}")
         return outpath
 
     def save_output_header(self):
