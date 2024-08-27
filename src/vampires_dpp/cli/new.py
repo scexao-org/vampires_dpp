@@ -7,16 +7,10 @@ import astropy.units as u
 import click
 
 from vampires_dpp.pipeline.config import (
-    CollapseConfig,
+    PipelineConfig,
     PolarimetryConfig,
     SpecphotConfig,
     TargetConfig,
-)
-from vampires_dpp.pipeline.templates import (
-    VAMPIRES_BLANK,
-    VAMPIRES_PDI,
-    VAMPIRES_SDI,
-    VAMPIRES_SINGLECAM,
 )
 from vampires_dpp.specphot.filters import FILTERS
 from vampires_dpp.specphot.query import (
@@ -66,30 +60,7 @@ def createListCompleter(items):
     return listCompleter
 
 
-def get_starting_template():
-    ## get template
-    template_choices = ["none", "singlecam", "pdi", "sdi"]
-
-    readline.set_completer(createListCompleter(template_choices))
-    template = click.prompt(
-        "Choose a starting template",
-        type=click.Choice(template_choices, case_sensitive=False),
-        default="none",
-    )
-    match template:
-        case "singlecam":
-            tpl = VAMPIRES_SINGLECAM
-        case "pdi":
-            tpl = VAMPIRES_PDI
-        case "sdi":
-            tpl = VAMPIRES_SDI
-        case _:
-            tpl = VAMPIRES_BLANK
-    readline.set_completer()
-    return tpl
-
-
-def get_target_settings(template):
+def get_target_settings(template: PipelineConfig) -> PipelineConfig:
     ## get target
     name = click.prompt("SIMBAD-friendly object name (optional)", default="")
     coord = None
@@ -137,7 +108,7 @@ def get_target_settings(template):
     return template
 
 
-def get_base_settings(template):
+def get_base_settings(template: PipelineConfig) -> PipelineConfig:
     ## Coronagraph
     template.coronagraphic = click.confirm("Did you use a coronagraph?", default=False)
     template.save_adi_cubes = click.confirm(
@@ -146,81 +117,217 @@ def get_base_settings(template):
     return template
 
 
-def get_calib_settings(template):
+def get_calib_settings(template: PipelineConfig) -> PipelineConfig:
     readline.set_completer(pathCompleter)
     calib_dir = click.prompt("Enter path to calibration files", default="")
     readline.set_completer()
     if calib_dir != "":
         template.calibrate.calib_directory = Path(calib_dir)
         template.calibrate.back_subtract = click.confirm(
-            " - Subtract backgrounds?", default=template.calibrate.back_subtract
+            " - Subtract backgrounds (if available)?", default=template.calibrate.back_subtract
         )
         template.calibrate.flat_correct = click.confirm(
-            " - Flat correct?", default=template.calibrate.flat_correct
+            " - Flat correct (if available)?", default=template.calibrate.flat_correct
         )
     else:
         template.calibrate.calib_directory = None
-
+    template.calibrate.reproject = click.confirm(
+        "Would you like to apply custom astrometric solution?", default=template.calibrate.reproject
+    )
     template.calibrate.save_intermediate = click.confirm(
-        "Would you like to save calibrated files?", default=template.calibrate.save_intermediate
+        "Would you like to save intermediate calibrated files?",
+        default=template.calibrate.save_intermediate,
     )
     return template
 
 
-def get_analysis_settings(template):
+def get_analysis_settings(template: PipelineConfig) -> PipelineConfig:
     ## Analysis
     template.analysis.window_size = click.prompt(
         "Enter analysis window size (px)", type=int, default=template.analysis.window_size
     )
-    # template.analysis.subtract_radprof = click.confirm(
-    #     "Would you like to subtract a radial profile for analysis?", default=template.coronagraphic
-    # )
-    # template.analysis.strehl = click.confirm(
-    #     "Would you like to estimate the Strehl ratio?", default=False
-    # )
-
-    aper_rad = click.prompt('Enter aperture radius (px/"auto")', default=template.analysis.aper_rad)
-    with contextlib.suppress(ValueError):
-        aper_rad = float(aper_rad)
-    if not isinstance(aper_rad, str) and aper_rad > template.analysis.window_size / 2:
-        aper_rad = template.analysis.window_size / 2
-        click.echo(f" ! Reducing aperture radius to match window size ({aper_rad:.0f} px)")
-    template.analysis.aper_rad = aper_rad
-
-    ann_rad = None
-    if template.analysis.aper_rad != "auto" and click.confirm(
-        "Would you like to subtract background annulus?", default=False
-    ):
-        in_rad = max(aper_rad, template.analysis.window_size / 2 - 5)
-        out_rad = template.analysis.window_size / 2
-        resp = click.prompt(
-            " - Enter comma-separated inner and outer radius (px)", default=f"{in_rad}, {out_rad}"
+    template.analysis.fit_psf = click.prompt(
+        "Would you like to fit a PSF model?", default=template.analysis.fit_psf
+    )
+    if template.analysis.fit_psf:
+        template.analysis.psf_model = click.prompt(
+            " - Choose PSF model",
+            type=click.Choice(["moffat", "gaussian"], case_sensitive=False),
+            default=template.analysis.psf_model,
         )
-        ann_rad = list(map(float, resp.replace(" ", "").split(",")))
-        if ann_rad[1] > template.analysis.window_size / 2:
-            ann_rad[1] = template.analysis.window_size / 2
-            click.echo(
-                f" ! Reducing annulus outer radius to match window size ({ann_rad[1]:.0f} px)"
-            )
-        if ann_rad[0] >= ann_rad[1]:
-            ann_rad[0] = max(aper_rad, ann_rad[0] - 5)
-            click.echo(f" ! Reducing annulus inner radius to ({ann_rad[0]:.0f} px)")
-        template.analysis.ann_rad = ann_rad
+    template.analysis.photometry = click.prompt(
+        "Would you like to do aperture photometry?", default=template.analysis.photometry
+    )
+    if template.analysis.photometry:
+        aper_rad = click.prompt(
+            'Enter aperture radius (px/"auto")', default=template.analysis.aper_rad
+        )
+        with contextlib.suppress(ValueError):
+            aper_rad = float(aper_rad)
+        if not isinstance(aper_rad, str) and aper_rad > template.analysis.window_size / 2:
+            aper_rad = template.analysis.window_size / 2
+            click.echo(f" ! Reducing aperture radius to match window size ({aper_rad:.0f} px)")
+        template.analysis.aper_rad = aper_rad
 
-    template.analysis.dft_factor = click.prompt(
-        " - Enter DFT upsample factor", default=template.analysis.dft_factor, type=int
+        ann_rad = None
+        if template.analysis.aper_rad != "auto" and click.confirm(
+            "Would you like to subtract background annulus?", default=False
+        ):
+            in_rad = max(aper_rad, template.analysis.window_size / 2 - 5)
+            out_rad = template.analysis.window_size / 2
+            resp = click.prompt(
+                " - Enter comma-separated inner and outer radius (px)",
+                default=f"{in_rad}, {out_rad}",
+            )
+            ann_rad = list(map(float, resp.replace(" ", "").split(",")))
+            if ann_rad[1] > template.analysis.window_size / 2:
+                ann_rad[1] = template.analysis.window_size / 2
+                click.echo(
+                    f" ! Reducing annulus outer radius to match window size ({ann_rad[1]:.0f} px)"
+                )
+            if ann_rad[0] >= ann_rad[1]:
+                ann_rad[0] = max(aper_rad, ann_rad[0] - 5)
+                click.echo(f" ! Reducing annulus inner radius to ({ann_rad[0]:.0f} px)")
+            template.analysis.ann_rad = ann_rad
+
+    return template
+
+
+def get_combine_settings(template: PipelineConfig) -> PipelineConfig:
+    template.combine.method = click.prompt(
+        "How would you like to combine data?",
+        type=click.Choice(["cube", "pdi"], case_sensitive=False),
+        default=template.combine.method,
+    )
+    template.combine.save_intermediate = click.confirm(
+        "Would you like to save the intermediate combined data?",
+        default=template.combine.save_intermediate,
     )
     return template
 
 
-def get_specphot_settings(template):
+def get_frame_select_settings(template: PipelineConfig) -> PipelineConfig:
+    ## Frame selection
+    template.frame_select.frame_select = click.confirm(
+        "Would you like to do frame selection?", default=template.frame_select.frame_select
+    )
+    if template.frame_select.frame_select:
+        metric_choices = ["normvar", "peak", "strehl"]
+        readline.set_completer(createListCompleter(metric_choices))
+        template.collapse.frame_select = click.prompt(
+            " - Choose a frame selection metric",
+            type=click.Choice(metric_choices, case_sensitive=False),
+            default=template.frame_select.metric,
+        )
+        template.collapse.select_cutoff = click.prompt(
+            " - Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
+        )
+        readline.set_completer()
+        template.frame_select.save_intermediate = click.confirm(
+            "Would you like to save the intermediate selected data?",
+            default=template.frame_select.save_intermediate,
+        )
+
+    return template
+
+
+def get_register_settings(template: PipelineConfig) -> PipelineConfig:
+    ## Registration
+    template.register.align = click.confirm(
+        "Would you like to align each frame?", default=template.register.align
+    )
+    if template.register.align:
+        method_choices = ["dft", "com", "peak", "gauss", "quad"]
+        readline.set_completer(createListCompleter(method_choices))
+        template.register.method = click.prompt(
+            " - Choose a registration method",
+            type=click.Choice(method_choices, case_sensitive=False),
+            default=template.register.method,
+        )
+        readline.set_completer()
+        if template.register.method == "dft":
+            template.register.dft_factor = click.prompt(
+                " - Enter DFT upsample factor", default=template.register.dft_factor, type=int
+            )
+    template.register.crop_width = click.prompt(
+        "Enter post-align crop size", default=template.register.crop_width, type=int
+    )
+    template.frame_select.save_intermediate = click.confirm(
+        "Would you like to save the intermediate registered data?",
+        default=template.register.save_intermediate,
+    )
+
+    return template
+
+
+def get_coadd_settings(template: PipelineConfig) -> PipelineConfig:
+    ## Collapsing
+    template.coadd.coadd = click.confirm(
+        "Would you like to coadd your data?", default=template.coadd.coadd
+    )
+    if template.coadd.coadd:
+        collapse_choices = ["median", "mean", "varmean", "biweight"]
+        readline.set_completer(createListCompleter(collapse_choices))
+        template.coadd.method = click.prompt(
+            " - Choose a coadd method",
+            type=click.Choice(collapse_choices, case_sensitive=False),
+            default=template.coadd.method,
+        )
+        readline.set_completer()
+
+        template.coadd.recenter = click.confirm(
+            "Would you like to recenter the coadded data?", default=template.coadd.recenter
+        )
+        if template.coadd.recenter:
+            template.coadd.recenter = click.prompt(
+                " - Enter post-align registration method",
+                type=click.Choice(["com", "peak", "gauss", "dft"], case_sensitive=False),
+                default=template.coadd.recenter_method,
+            )
+            if template.coadd.recenter_method == "dft":
+                template.register.dft_factor = click.prompt(
+                    " - Enter DFT upsample factor",
+                    default=template.coadd.recenter_dft_factor,
+                    type=int,
+                )
+    return template
+
+
+def get_diff_image_config(template: PipelineConfig) -> PipelineConfig:
+    ## Diff images
+    template.diff_images.make_diff = click.confirm(
+        "Would you like to make difference/sum images?", default=template.diff_images.make_diff
+    )
+    if template.diff_images.make_diff:
+        choices = ["singlediff", "doublediff"]
+        readline.set_completer(createListCompleter(choices))
+        template.diff_images.method = click.prompt(
+            " - Choose a difference method",
+            type=click.Choice(choices, case_sensitive=False),
+            default=template.diff_images.method,
+        )
+        readline.set_completer()
+
+        template.diff_images.save_single = click.confirm(
+            "Would you like to save the single diff/sum images?",
+            default=template.diff_images.save_single,
+        )
+        if template.diff_images.method == "doublediff":
+            template.diff_images.save_double = click.confirm(
+                "Would you like to save the double diff/sum images?",
+                default=template.diff_images.save_double,
+            )
+    return template
+
+
+def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
     ## Specphot Cal
     if click.confirm(
         "Would you like to do flux calibration?", default=template.specphot is not None
     ):
         readline.set_completer(pathCompleter)
         source = click.prompt(
-            ' - Enter source type ("pickles"/path to spectrum)', default="pickles"
+            ' - Enter source type ("pickles" or path to spectrum)', default="pickles"
         )
         readline.set_completer()
         if source == "pickles":
@@ -243,7 +350,6 @@ def get_specphot_settings(template):
                         click.echo(" ! Could not determine object flux automatically")
                         mag = ""
                         mag_band = "V"
-
             else:
                 mag = ""
                 mag_band = "V"
@@ -272,74 +378,7 @@ def get_specphot_settings(template):
     return template
 
 
-def get_collapse_settings(template):
-    ## Collapsing
-    if click.confirm(
-        "Would you like to collapse your data?", default=template.collapse is not None
-    ):
-        collapse_choices = ["median", "mean", "varmean", "biweight"]
-        readline.set_completer(createListCompleter(collapse_choices))
-        collapse_method = click.prompt(
-            " - Choose a collapse method",
-            type=click.Choice(collapse_choices, case_sensitive=False),
-            default="median",
-        )
-        readline.set_completer()
-        template.collapse = CollapseConfig(method=collapse_method)
-
-        ## Frame selection
-        if click.confirm(
-            "Would you like to do frame selection?",
-            default=template.collapse.frame_select is not None,
-        ):
-            template.collapse.select_cutoff = click.prompt(
-                " - Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
-            )
-
-            metric_choices = ["normvar", "peak", "strehl"]
-            readline.set_completer(createListCompleter(metric_choices))
-            template.collapse.frame_select = click.prompt(
-                " - Choose a frame selection metric",
-                type=click.Choice(metric_choices, case_sensitive=False),
-                default="normvar",
-            )
-            readline.set_completer()
-        else:
-            template.collapse.frame_select = None
-
-        ## Registration
-        if click.confirm(
-            "Would you like to do frame registration?",
-            default=template.collapse.centroid is not None,
-        ):
-            centroid_choices = ["dft", "com", "peak", "gauss", "quad"]
-            readline.set_completer(createListCompleter(centroid_choices))
-            template.collapse.centroid = click.prompt(
-                " - Choose a registration method",
-                type=click.Choice(centroid_choices, case_sensitive=False),
-                default="dft",
-            )
-            readline.set_completer()
-        else:
-            template.collapse.centroid = None
-
-        if click.confirm("Would you like to recenter the collapsed data?", default=True):
-            template.collapse.recenter = click.prompt(
-                " - Enter recenter registration method",
-                type=click.Choice(["com", "peak", "gauss", "dft"], case_sensitive=False),
-                default="dft",
-            )
-        else:
-            template.collapse.recenter = None
-        template.collapse.reproject = click.confirm(
-            "Would you like to reproject WCS between cameras?", default=template.collapse.reproject
-        )
-    else:
-        template.collapse = None
-    return template
-
-
-def get_pdi_settings(template):
+def get_pdi_settings(template: PipelineConfig) -> PipelineConfig:
     ## Polarization
     if click.confirm("Would you like to do polarimetry?", default=template.polarimetry is not None):
         calib_choices = ["doublediff", "triplediff", "leastsq"]
@@ -411,25 +450,23 @@ def new_config(ctx, config, edit):
     name_guess = config.stem
     name = click.prompt("Path-friendly name for this reduction", default=name_guess)
 
-    tpl = get_starting_template()
+    tpl = PipelineConfig()
     tpl = get_base_settings(tpl)
     tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
     tpl = get_target_settings(tpl)
+    tpl = get_combine_settings(tpl)
     tpl = get_calib_settings(tpl)
     tpl = get_analysis_settings(tpl)
+    tpl = get_frame_select_settings(tpl)
+    tpl = get_register_settings(tpl)
+    tpl = get_coadd_settings(tpl)
     tpl = get_specphot_settings(tpl)
-    tpl = get_collapse_settings(tpl)
+    tpl = get_diff_image_config(tpl)
     tpl = get_pdi_settings(tpl)
-
-    if click.confirm("Would you like to make difference images?", default=False):
-        tpl.diff_images = click.prompt(
-            " - Select difference method", type=click.Choice(("singlediff", "doublediff"))
-        )
-    else:
-        tpl.diff_images = None
 
     tpl.save(config)
     click.echo(f"File saved to {config.name}")
+
     if not edit:
         edit |= click.confirm("Would you like to edit this config file now?")
 

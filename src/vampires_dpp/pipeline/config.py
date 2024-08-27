@@ -317,7 +317,6 @@ class DiffImageConfig(BaseModel):
     method: Literal["singlediff", "doublediff"] = "doublediff"
     save_single: bool = False
     save_double: bool = False
-    save_triple: bool = False
 
 
 class PolarimetryConfig(BaseModel):
