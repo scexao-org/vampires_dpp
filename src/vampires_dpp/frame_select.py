@@ -1,5 +1,5 @@
 import logging
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Final, Literal, TypeAlias
 
 import numpy as np
 from annotated_types import Interval
@@ -13,6 +13,9 @@ logger = logging.getLogger(__file__)
 FrameSelectMetric: TypeAlias = Literal["max", "l2norm", "normvar"]
 
 
+FRAME_SELECT_MAP: Final = {"peak": "max", "normvar": "nvar", "l2norm": "var"}
+
+
 def frame_select_hdul(
     hdul: fits.HDUList,
     metrics,
@@ -24,33 +27,34 @@ def frame_select_hdul(
         logger.debug("Skipping frame selection because quantile was 0")
         return hdul
 
-    values = metrics[metric]
+    # create masked metrics
+    values = metrics[FRAME_SELECT_MAP[metric]]
 
     # determine cutoff value and create mask
     # only remove if ALL wavelengths and all PSFs fail
-    # reminder, values have shape (nframes, nlambda, npsfs)
-    cutoff = np.nanquantile(values, quantile, axis=0, keepdims=True)
-    metrics_mask = np.any(values >= cutoff, axis=(1, 2), keepdims=True)
+    # reminder, values have shape (nlambda, npsfs, nframes)
+    cutoff = np.nanquantile(values, quantile, axis=2, keepdims=True)
+    metrics_mask = np.any(values >= cutoff, axis=(0, 1))
     # filter our metrics (so that in the future we can get the filtered centroids)
+    output_metrics = {}
     for key in metrics:
-        metrics[key] = metrics[key][metrics_mask]
+        output_metrics[key] = metrics[key][..., metrics_mask]
 
     # now, filter data and error arrays using mask
-    data_mask = np.squeeze(metrics_mask)
-    hdul[0].data = hdul[0].data[data_mask]
+    hdul[0].data = hdul[0].data[metrics_mask]
     bunit = hdul[0].header.get("BUNIT", "")
-    hdul["ERR"].data = hdul["ERR"].data[data_mask]
+    hdul["ERR"].data = hdul["ERR"].data[metrics_mask]
 
     # update header info
     info = fits.Header()
     info["hierarch DPP FRAME_SELECT METRIC"] = metric, "Frame selection metric"
-    info["hierarch DPP FRAME_SELECT QUANTILE"] = quantile, "Frame selection exclusion quantile"
+    info["hierarch DPP FRAME_SELECT QUANTILE"] = quantile, "Frame selection quantile"
     info["hierarch DPP FRAME_SELECT CUTOFF"] = (
-        cutoff,
-        f"[{bunit}] cutoff value for frame selection metric",
+        np.median(cutoff),
+        f"[{bunit}] median frame selection cutoff value",
     )
 
     for hdu_idx in range(len(hdul)):
         hdul[hdu_idx].header.update(info)
 
-    return hdul, metrics
+    return hdul, output_metrics

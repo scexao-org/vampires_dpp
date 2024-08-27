@@ -200,11 +200,18 @@ class Pipeline:
                 metric=self.config.frame_select.metric,
                 quantile=self.config.frame_select.cutoff,
             )
+            if self.config.frame_select.save_intermediate:
+                _, outpath = get_paths(output_path, output_directory=self.paths.selected)
+                hdul.writeto(outpath, overwrite=True)
+                logger.debug("Saved selected HDU list to %s", str(outpath.absolute()))
+                outpath_np = outpath.with_suffix(".npz")
+                np.savez_compressed(outpath_np, metrics)
+                logger.debug("Saved selected metrics to %s", str(outpath_np.absolute()))
             logger.debug("Finished frame selection for group %3d", index)
         ## Step 4: Registration
         # note: if we're not aligning, this still takes care
         # of cutting out MBI frames, so it's necessary
-        logger.debug("Starting frame registration for group %3d", index)
+        logger.debug("Starting frame aligned for group %3d", index)
         hdul = register_hdul(
             hdul,
             metrics,
@@ -212,7 +219,11 @@ class Pipeline:
             method=self.config.align.method,
             crop_width=self.config.align.crop_width,
         )
-        logger.debug("Finished frame registration for group %3d", index)
+        if self.config.align.save_intermediate:
+            _, outpath = get_paths(output_path, output_directory=self.paths.aligned)
+            hdul.writeto(outpath, overwrite=True)
+            logger.debug("Saved aligned HDU list to %s", str(outpath.absolute()))
+        logger.debug("Finished frame aligned for group %3d", index)
 
         ## Step 5: Spectrophotometric calibration
         logger.debug("Starting specphot cal for group %3d", index)
