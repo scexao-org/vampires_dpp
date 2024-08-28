@@ -99,7 +99,7 @@ def register_hdul(
 
     # determine maximum padding, with sqrt(2)
     # for radial coverage
-    rad_factor = crop_width / np.sqrt(2)
+    rad_factor = (crop_width / 2) * (np.sqrt(2) - 1)
     # round to nearest even number
     npad = int((rad_factor // 2) * 2)
 
