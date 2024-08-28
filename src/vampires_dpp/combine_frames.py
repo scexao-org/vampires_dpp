@@ -23,24 +23,19 @@ def generate_frame_combinations(
     work_table = table.sort_values("MJD")
     if method == "cube":
         output_table = work_table.copy()
-        output_table["GROUP_IDX"] = range(len(work_table))
+        output_table["GROUP_KEY"] = [f"{idx:04d}" for idx in range(len(work_table))]
         return output_table
     # have to force U_FLC to be a string because otherwise we'll never
     # have matching indices with NaN, due to NaN equality being NaN
     work_table.loc[work_table["U_FLC"].isna(), "U_FLC"] = "NA"
     tables = []
-    for _, group in work_table.groupby(["U_CAMERA", "U_FLC"]):
-        match method:
-            case "pdi":
-                framelist = generate_framelist_for_hwp_angles(group)
-            case _:
-                msg = f"Unrecognized combination method {method}"
-                raise ValueError(msg)
+    for key, group in work_table.groupby(["U_CAMERA", "U_FLC"]):
+        framelist = generate_framelist_for_hwp_angles(group, key)
         tables.append(framelist)
     return pd.concat(tables)
 
 
-def generate_framelist_for_hwp_angles(table: pd.DataFrame) -> pd.DataFrame:
+def generate_framelist_for_hwp_angles(table: pd.DataFrame, key: tuple[int, str]) -> pd.DataFrame:
     ## find consistent runs of HWP angles
     work_table = table.copy()
     file_index = 0
@@ -51,7 +46,7 @@ def generate_framelist_for_hwp_angles(table: pd.DataFrame) -> pd.DataFrame:
         if prev_row["RET-ANG1"] != cur_row["RET-ANG1"]:
             file_index += 1
         frameinds.append(file_index)
-    work_table["GROUP_IDX"] = frameinds
+    work_table["GROUP_KEY"] = [f"{idx:03d}_cam{key[0]:.0f}_FLC{key[1]}" for idx in frameinds]
     return work_table
 
 

@@ -75,7 +75,7 @@ class Pipeline:
         combinations_path = self.paths.aux / f"{self.config.name}_file_combinations.csv"
         combinations.to_csv(combinations_path, index=False)
         logger.info(f"Saved file combination table to {combinations_path.absolute()}")
-        input_table["GROUP_IDX"] = combinations["GROUP_IDX"]
+        input_table["GROUP_KEY"] = combinations["GROUP_KEY"]
 
         if self.config.calibrate.calib_directory is not None:
             self.calib_table = header_table(
@@ -85,14 +85,14 @@ class Pipeline:
         self.output_paths = []
         with mp.Pool(num_proc) as pool:
             jobs = []
-            for group_index, group in input_table.groupby("GROUP_IDX"):
-                output_path = get_reduced_path(self.paths, self.config, group_index)
+            for group_key, group in input_table.groupby("GROUP_KEY"):
+                output_path = get_reduced_path(self.paths, self.config, group_key)
                 if not force and output_path.exists():
-                    logger.debug("Skipping processing for group %3d", output_path)
+                    logger.debug(f"Skipping processing for group {output_path}")
                     self.output_paths.append(output_path)
                 else:
                     jobs.append(
-                        pool.apply_async(self.process_group, args=(group, group_index, output_path))
+                        pool.apply_async(self.process_group, args=(group, group_key, output_path))
                     )
 
             for job in tqdm(jobs, desc="Processing files"):
@@ -182,22 +182,22 @@ class Pipeline:
             )
             self.synth_psfs[filt] = psf
 
-    def process_group(self, group, index: int, output_path: Path):
+    def process_group(self, group, group_key: str, output_path: Path):
         # fix headers and calibrate
         hdul_list = []
         for _, row in group.iterrows():
             logger.debug(f"Calibrating {row['path']}")
             cur_hdul = self.calibrate_one(row["path"], row)
             hdul_list.append(cur_hdul)
-        logger.debug("Finished calibrating %d files", len(group))
+        logger.debug(f"Finished calibrating {len(group)} files")
         logger.debug("Combining data into single HDU list")
         hdul = combine_hduls(hdul_list)
         ## Step 2: Frame analysis
-        metric_file = self.paths.metrics / f"{self.config.name}_{index:03d}_metrics.npz"
+        metric_file = self.paths.metrics / f"{self.config.name}_{group_key}_metrics.npz"
         metrics = self.analyze_one(hdul, metric_file)
         ## Step 3: Frame selection
         if self.config.frame_select.frame_select:
-            logger.debug("Starting frame selection for group %3d", index)
+            logger.debug(f"Starting frame selection for group {group_key}")
             hdul, metrics = frame_select_hdul(
                 hdul,
                 metrics,
@@ -207,15 +207,15 @@ class Pipeline:
             if self.config.frame_select.save_intermediate:
                 _, outpath = get_paths(output_path, output_directory=self.paths.selected)
                 hdul.writeto(outpath, overwrite=True)
-                logger.debug("Saved selected HDU list to %s", str(outpath.absolute()))
+                logger.debug(f"Saved selected HDU list to {outpath.absolute()}")
                 outpath_np = outpath.with_suffix(".npz")
                 np.savez_compressed(outpath_np, metrics)
-                logger.debug("Saved selected metrics to %s", str(outpath_np.absolute()))
-            logger.debug("Finished frame selection for group %3d", index)
+                logger.debug(f"Saved selected metrics to {outpath_np.absolute()}")
+            logger.debug(f"Finished frame selection for group {group_key}")
         ## Step 4: Registration
         # note: if we're not aligning, this still takes care
         # of cutting out MBI frames, so it's necessary
-        logger.debug("Starting frame aligned for group %3d", index)
+        logger.debug(f"Starting frame aligned for group {group_key}")
         hdul = register_hdul(
             hdul,
             metrics,
@@ -226,20 +226,20 @@ class Pipeline:
         if self.config.align.save_intermediate:
             _, outpath = get_paths(output_path, output_directory=self.paths.aligned)
             hdul.writeto(outpath, overwrite=True)
-            logger.debug("Saved aligned HDU list to %s", str(outpath.absolute()))
-        logger.debug("Finished frame aligned for group %3d", index)
+            logger.debug(f"Saved aligned HDU list to {outpath.absolute()}")
+        logger.debug(f"Finished frame aligned for group {group_key}")
 
         ## Step 5: Spectrophotometric calibration
-        logger.debug("Starting specphot cal for group %3d", index)
+        logger.debug(f"Starting specphot cal for group {group_key}")
         hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config.specphot)
-        logger.debug("Finished specphot cal for group %3d", index)
+        logger.debug(f"Finished specphot cal for group {group_key}")
         ## Step 6: Coadd
         if self.config.coadd.coadd:
-            logger.debug("Starting coadding for group %3d", index)
+            logger.debug(f"Starting coadding for group {group_key}")
             hdul = coadd_hdul(hdul, method=self.config.coadd.method)
-            logger.debug("Finished coadding for group %3d", index)
+            logger.debug(f"Finished coadding for group {group_key}")
         if self.config.coadd.recenter:
-            logger.debug("Starting recentering for group %3d", index)
+            logger.debug(f"Starting recentering for group {group_key}")
             psfs = [
                 self.synth_psfs[filt] for filt in determine_filterset_from_header(hdul[0].header)
             ]
@@ -258,9 +258,9 @@ class Pipeline:
                 dft_factor=self.config.coadd.recenter_dft_factor,
                 psfs=psfs,
             )
-            logger.debug("Finished recentering for group %3d", index)
+            logger.debug(f"Finished recentering for group {group_key}")
 
-        logger.debug("Saving reduced cube to %s", str(output_path))
+        logger.debug(f"Saving reduced cube to {output_path.absolute()}")
         hdul.writeto(output_path, overwrite=True)
 
         return output_path

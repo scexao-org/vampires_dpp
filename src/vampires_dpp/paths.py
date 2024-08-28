@@ -110,7 +110,7 @@ def any_file_newer(filenames, outpath):
         return any(Path(f).stat().st_mtime > out_mt for f in filenames)
 
 
-def get_reduced_path(paths: Paths, config, group_index: int) -> Path:
+def get_reduced_path(paths: Paths, config, group_key: str) -> Path:
     if config.coadd.coadd:
         base = paths.coadded
         suffix = "coll"
@@ -123,4 +123,4 @@ def get_reduced_path(paths: Paths, config, group_index: int) -> Path:
     elif config.combine.save_intermediate:
         base = paths.combined
         suffix = "comb"
-    return base / f"{config.name}_{group_index:03d}_{suffix}.fits"
+    return base / f"{config.name}_{group_key}_{suffix}.fits"
