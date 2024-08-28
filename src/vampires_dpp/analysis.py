@@ -173,7 +173,7 @@ def analyze_file(
             centroids = {"": [frame_center(data)]}
     if psfs is None:
         psfs = itertools.repeat(None)
-    for ctrs, psf in zip(centroids.values(), psfs, strict=True):
+    for ctrs, psf in zip(centroids.values(), psfs, strict=False):
         field_metrics = {}
         for ctr in ctrs:
             inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)

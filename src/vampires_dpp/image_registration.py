@@ -115,10 +115,10 @@ def register_hdul(
         for wlidx in range(centroids.shape[1]):
             # determine offset for each field
             field_ctr = centroids[tidx, wlidx]
-            offset = field_ctr - center
             # generate cutouts with crop width
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
             cutout_err = Cutout2D(frame_err, field_ctr[::-1], size=crop_width, mode="partial")
+            offset = field_ctr - cutout.position_original[::-1]
 
             # pad and shift data
             frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)
@@ -175,7 +175,7 @@ def recenter_hdul(
                 center = offset_peak_and_com(frame, inds)[method]
             case "dft":
                 assert psfs is not None
-                center = offset_dft(frame, inds, psf=psfs[wl_idx])
+                center = offset_dft(frame, inds, psf=psfs[wl_idx], upsample_factor=dft_factor)
 
         offset = field_center - center
         data_cube[wl_idx] = shift_frame(frame, offset)
