@@ -21,7 +21,7 @@ from vampires_dpp.combine_frames import (
     generate_frame_combinations,
 )
 from vampires_dpp.frame_select import frame_select_hdul
-from vampires_dpp.image_registration import register_hdul
+from vampires_dpp.image_registration import recenter_hdul, register_hdul
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
@@ -37,6 +37,7 @@ from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.specphot.specphot import specphot_cal_hdul
 from vampires_dpp.synthpsf import create_synth_psf
+from vampires_dpp.util import get_center
 from vampires_dpp.wcs import apply_wcs
 
 
@@ -71,6 +72,9 @@ class Pipeline:
         self.get_coordinate()
         self.make_synth_psfs(input_table)
         combinations = generate_frame_combinations(input_table, method=self.config.combine.method)
+        combinations_path = self.paths.aux / f"{self.config.name}_file_combinations.csv"
+        combinations.to_csv(combinations_path, index=False)
+        logger.info(f"Saved file combination table to {combinations_path.absolute()}")
         input_table["GROUP_IDX"] = combinations["GROUP_IDX"]
 
         if self.config.calibrate.calib_directory is not None:
@@ -232,18 +236,29 @@ class Pipeline:
         ## Step 6: Coadd
         if self.config.coadd.coadd:
             logger.debug("Starting coadding for group %3d", index)
+            hdul = coadd_hdul(hdul, method=self.config.coadd.method)
+            logger.debug("Finished coadding for group %3d", index)
+        if self.config.coadd.recenter:
+            logger.debug("Starting recentering for group %3d", index)
             psfs = [
                 self.synth_psfs[filt] for filt in determine_filterset_from_header(hdul[0].header)
             ]
-            hdul = coadd_hdul(
+            cam_num = int(hdul[0].header["U_CAMERA"])
+            cam_key = f"cam{cam_num}"
+            window_centers = self.centroids[cam_key]
+            for key in window_centers:
+                for idx in range(window_centers[key].shape[0]):
+                    window_centers[key][idx] = get_center(
+                        hdul[0].data, window_centers[key][idx], cam_num
+                    )
+            hdul = recenter_hdul(
                 hdul,
-                method=self.config.coadd.method,
-                recenter=self.config.coadd.recenter,
-                recenter_method=self.config.coadd.recenter_method,
+                window_centers,
+                method=self.config.coadd.recenter_method,
                 dft_factor=self.config.coadd.recenter_dft_factor,
                 psfs=psfs,
             )
-            logger.debug("Finished coadding for group %3d", index)
+            logger.debug("Finished recentering for group %3d", index)
 
         logger.debug("Saving reduced cube to %s", str(output_path))
         hdul.writeto(output_path, overwrite=True)

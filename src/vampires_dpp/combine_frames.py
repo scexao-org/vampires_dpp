@@ -21,6 +21,10 @@ def generate_frame_combinations(
     table: pd.DataFrame, method: Literal["cube", "pdi"], save_intermediate: bool = False
 ):
     work_table = table.sort_values("MJD")
+    if method == "cube":
+        output_table = work_table.copy()
+        output_table["GROUP_IDX"] = range(len(work_table))
+        return output_table
     # have to force U_FLC to be a string because otherwise we'll never
     # have matching indices with NaN, due to NaN equality being NaN
     work_table.loc[work_table["U_FLC"].isna(), "U_FLC"] = "NA"
@@ -29,9 +33,6 @@ def generate_frame_combinations(
         match method:
             case "pdi":
                 framelist = generate_framelist_for_hwp_angles(group)
-            case "cube":
-                framelist = group.copy()
-                framelist["GROUP_IDX"] = range(len(group))
             case _:
                 msg = f"Unrecognized combination method {method}"
                 raise ValueError(msg)

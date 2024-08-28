@@ -15,21 +15,12 @@ from vampires_dpp.util import load_fits
 
 from .combine_frames import combine_frames
 from .image_processing import derotate_cube
-from .image_registration import RegisterMethod, recenter_hdul
 from .paths import any_file_newer, get_paths
 
 CoaddMethod: TypeAlias = Literal["median", "mean", "varmean", "biweight"]
 
 
-def coadd_hdul(
-    hdul: fits.HDUList,
-    *,
-    method: CoaddMethod = "median",
-    recenter: bool = False,
-    recenter_method: RegisterMethod = "dft",
-    dft_factor=30,
-    psfs=None,
-) -> fits.HDUList:
+def coadd_hdul(hdul: fits.HDUList, *, method: CoaddMethod = "median") -> fits.HDUList:
     # collapse data along time axis
     ncoadd = hdul[0].shape[0]
     coll_data, _ = collapse_cube(hdul[0].data, method=method)
@@ -47,14 +38,13 @@ def coadd_hdul(
     info = fits.Header()
     info["hierarch DPP COADD METHOD"] = method, "Coadd method"
     info["hierarch DPP COADD NCOADD"] = ncoadd, "Number of coadded frames"
+    info["hierarch DPP COADD TINT"] = (
+        hdul[0].header["EXPTIME"] * ncoadd,
+        "[s] total integrated exposure time",
+    )
 
     for hdu in output_hdul:
         hdu.header.update(info)
-
-    if recenter:
-        output_hdul = recenter_hdul(
-            output_hdul, psfs=psfs, method=recenter_method, dft_factor=dft_factor
-        )
 
     return output_hdul
 
