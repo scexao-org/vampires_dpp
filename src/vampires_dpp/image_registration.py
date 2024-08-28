@@ -28,7 +28,7 @@ def offset_dft(frame, inds, psf, *, upsample_factor: Annotated[int, Gt(0)] = 30)
     ctr = np.array(frame_center(psf)) - dft_offset
     # plt.imshow(cutout, origin="lower", cmap="magma")
     # plt.imshow(psf, origin="lower", cmap="magma")
-    # plt.scatter(ctr[-1], ctr[-2], marker='+', ms=100, c="green")
+    # plt.scatter(ctr[-1], ctr[-2], marker='+', s=100, c="green")
     # plt.show(block=True)
     # offset based on    indices
     ctr[-2] += inds[-2].start
@@ -116,9 +116,9 @@ def register_hdul(
             # determine offset for each field
             field_ctr = centroids[tidx, wlidx]
             # generate cutouts with crop width
-            cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
-            cutout_err = Cutout2D(frame_err, field_ctr[::-1], size=crop_width, mode="partial")
-            offset = field_ctr - cutout.position_original[::-1]
+            cutout = Cutout2D(frame, field_ctr[::-1] + 5, size=crop_width, mode="partial")
+            cutout_err = Cutout2D(frame_err, field_ctr[::-1] - 5, size=crop_width, mode="partial")
+            offset = cutout.position_original[::-1] - field_ctr
 
             # pad and shift data
             frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)

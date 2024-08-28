@@ -74,7 +74,7 @@ def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
         Warped frame
     """
     default_kwargs = {
-        "flags": cv2.INTER_LINEAR,
+        "flags": cv2.INTER_LANCZOS4,
         "borderMode": cv2.BORDER_CONSTANT,
         "borderValue": np.nan,
     }
