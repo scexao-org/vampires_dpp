@@ -354,10 +354,7 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.AnalysisConfig"><code class="docutils literal notranslate"><span class="pre">AnalysisConfig</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame-collapsing</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CollapseConfig"><code class="docutils literal notranslate"><span class="pre">CollapseConfig</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame-collapsing</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spectrophotometric-calibration">Spectrophotometric Calibration</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.SpecphotConfig"><code class="docutils literal notranslate"><span class="pre">SpecphotConfig</span></code></a></li>
 </ul>
@@ -445,17 +442,20 @@ document.write(`
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – filename-friendly name used for outputs from this pipeline. For example “20230101_ABAur”</p></li>
-<li><p><strong>coronagraph</strong> – If true will use coronagraphic routines for processing.</p></li>
-<li><p><strong>calibrate</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CalibrateConfig" title="vampires_dpp.pipeline.config.CalibrateConfig"><em>CalibrateConfig</em></a>) – Options for basic image calibration</p></li>
-<li><p><strong>analysis</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.AnalysisConfig" title="vampires_dpp.pipeline.config.AnalysisConfig"><em>AnalysisConfig</em></a>) – Options for PSF/flux analysis in collapsed data</p></li>
-<li><p><strong>collapse</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CollapseConfig" title="vampires_dpp.pipeline.config.CollapseConfig"><em>CollapseConfig</em></a>) – Options for collapsing image cubes</p></li>
+<li><p><strong>dpp_version</strong> (<em>str</em>) – The version of vampires_dpp that this configuration file is valid with. Typically not set by user.</p></li>
+<li><p><strong>coronagraphic</strong> (<em>bool</em>) – If true will use coronagraphic routines for processing.</p></li>
+<li><p><strong>save_adi_cubes</strong> (<em>bool</em>) – If true, will save ADI cubes and derotation angles in product directory.</p></li>
 <li><p><strong>target</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.TargetConfig" title="vampires_dpp.pipeline.config.TargetConfig"><em>TargetConfig</em></a><em> | </em><em>None</em>) – If set, provides options for target object, primarily coordinates. If not set, will use header values.</p></li>
 <li><p><strong>specphot</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="vampires_dpp.pipeline.config.SpecphotConfig"><em>SpecphotConfig</em></a><em> | </em><em>None</em>) – If set, provides options for spectrophotometric calibration. If not set, will leave data in units of <code class="docutils literal notranslate"><span class="pre">adu</span></code>.</p></li>
+<li><p><strong>calibrate</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CalibrateConfig" title="vampires_dpp.pipeline.config.CalibrateConfig"><em>CalibrateConfig</em></a>) – Options for basic image calibration</p></li>
+<li><p><strong>analysis</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.AnalysisConfig" title="vampires_dpp.pipeline.config.AnalysisConfig"><em>AnalysisConfig</em></a>) – Options for PSF/flux analysis in collapsed data</p></li>
+<li><p><strong>combine</strong> (<em>CombineConfig</em>) – Options for frame combinations</p></li>
+<li><p><strong>frame_select</strong> (<em>FrameSelectConfig</em>) – Options for frame selection</p></li>
+<li><p><strong>register</strong> – Options for frame registration</p></li>
+<li><p><strong>coadd</strong> (<em>CoaddConfig</em>) – Options for coadding image cubes</p></li>
+<li><p><strong>diff_images</strong> (<em>DiffImageConfig</em>) – Diagnostic difference imaging options. Double-differencing requires an FLC.</p></li>
 <li><p><strong>polarimetry</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.PolarimetryConfig" title="vampires_dpp.pipeline.config.PolarimetryConfig"><em>PolarimetryConfig</em></a><em> | </em><em>None</em>) – If set, provides options for polarimetric differential imaging (PDI)</p></li>
-<li><p><strong>dpp_version</strong> (<em>str</em>) – The version of vampires_dpp that this configuration file is valid with. Typically not set by user.</p></li>
-<li><p><strong>save_adi_cubes</strong> (<em>bool</em>) – If true, will save ADI cubes and derotation angles in product directory.</p></li>
-<li><p><strong>diff_images</strong> (<em>Literal</em><em>[</em><em>'singlediff'</em><em>, </em><em>'doublediff'</em><em>, </em><em>'both'</em><em>] </em><em>| </em><em>None</em>) – Diagnostic difference imaging options. Double-differencing requires an FLC.</p></li>
-<li><p><strong>coronagraphic</strong> (<em>bool</em>)</p></li>
+<li><p><strong>align</strong> (<em>AlignmentConfig</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -566,8 +566,9 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 <li><p><strong>back_subtract</strong> (<em>bool</em>) – If true will look for background files in <code class="docutils literal notranslate"><span class="pre">calib_directory</span></code> and subtract them if found. If not found, will subtract detector bias value.</p></li>
 <li><p><strong>flat_correct</strong> (<em>bool</em>) – If true will look for flat files in <code class="docutils literal notranslate"><span class="pre">calib_directory</span></code> and perform flat normalization if found.</p></li>
 <li><p><strong>fix_bad_pixels</strong> (<em>bool</em>) – If true, will run adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels. By default false.</p></li>
+<li><p><strong>reproject</strong> (<em>bool</em>) – If true, will use custom astrometry solution to warp frame</p></li>
 <li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save intermediate calibrated data to <code class="docutils literal notranslate"><span class="pre">calibrated/</span></code> folder.</p></li>
-<li><p><strong>distortion_file</strong> (<em>Path</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>satspot_reference</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -600,11 +601,16 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>aper_rad</strong> (<em>float</em><em> | </em><em>Literal</em><em>[</em><em>'auto'</em><em>]</em>) – Aperture radius in pixels for circular aperture photometry. If “auto”, will use the FWHM from the file header.</p></li>
-<li><p><strong>ann_rad</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.</p></li>
-<li><p><strong>dft_factor</strong> (<em>int</em>) – The DFT upsampling factor for measuring phase cross-correlation centroid.</p></li>
-<li><p><strong>subtract_radprof</strong> (<em>bool</em>) – If true, will subtract a radial profile for measuring centroids and Strehl ratio, but no other metrics</p></li>
+<li><p><strong>aper_rad</strong> – Aperture radius in pixels for circular aperture photometry. If “auto”, will use the FWHM from the file header.</p></li>
+<li><p><strong>ann_rad</strong> – If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.</p></li>
+<li><p><strong>dft_factor</strong> – The DFT upsampling factor for measuring phase cross-correlation centroid.</p></li>
+<li><p><strong>subtract_radprof</strong> – If true, will subtract a radial profile for measuring centroids and Strehl ratio, but no other metrics</p></li>
 <li><p><strong>window_size</strong> (<em>int</em>) – The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate.</p></li>
+<li><p><strong>fit_psf_model</strong> (<em>bool</em>)</p></li>
+<li><p><strong>psf_model</strong> (<em>Literal</em><em>[</em><em>'moffat'</em><em>, </em><em>'gaussian'</em><em>]</em>)</p></li>
+<li><p><strong>photometry</strong> (<em>bool</em>)</p></li>
+<li><p><strong>phot_aper_rad</strong> (<em>float</em>)</p></li>
+<li><p><strong>phot_ann_rad</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>Literal</em><em>[</em><em>False</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -617,41 +623,6 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 <p class="sidebar-title">💾 File Output</p>
 <p>‎</p>
 </aside>
-<dl class="py class">
-<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CollapseConfig">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CollapseConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CollapseConfig" title="Link to this definition">#</a></dt>
-<dd><p>Cube collapse options</p>
-<ul>
-<li><p>median - Pixel-by-pixel median</p></li>
-<li><p>mean - Pixel-by-pixel mean</p></li>
-<li><p>varmean - Pixel-by-pixel mean weighted by frame variance</p></li>
-<li><p>biweight - Pixel-by-pixel biweight location</p>
-<blockquote>
-<div><p><strong>File Outputs</strong></p>
-<ul class="simple">
-<li><p>Each input file is collapsed and saved into the <code class="docutils literal notranslate"><span class="pre">collapsed/</span></code> folder</p></li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'median'</em><em>, </em><em>'mean'</em><em>, </em><em>'varmean'</em><em>, </em><em>'biweight'</em><em>, </em><em>'none'</em><em>]</em>) – The collapse method, one of <cite>“median”</cite>, <cite>“mean”</cite>, <cite>“varmean”</cite>, or <cite>“biweight”</cite>. By default
-<cite>“median”</cite>.</p></li>
-<li><p><strong>frame_select</strong> (<em>Literal</em><em>[</em><em>'max'</em><em>, </em><em>'l2norm'</em><em>, </em><em>'normvar'</em><em>] </em><em>| </em><em>None</em>) – If provided, will use the given metric to select frames for inclusions/exclusion from each data cube.</p></li>
-<li><p><strong>centroid</strong> (<em>Literal</em><em>[</em><em>'com'</em><em>, </em><em>'peak'</em><em>, </em><em>'gauss'</em><em>, </em><em>'dft'</em><em>] </em><em>| </em><em>None</em>) – If provided, will register each frame using the given method. If not provided for MBI data a very rough
-estimate of the center will be used to get the cutout crops for each field.</p></li>
-<li><p><strong>select_cutoff</strong> (<em>Annotated</em><em>[</em><em>float</em><em>, </em><em>Interval</em><em>(</em><em>gt=None</em><em>, </em><em>ge=0</em><em>, </em><em>lt=None</em><em>, </em><em>le=1</em><em>)</em><em>]</em>) – If <code class="docutils literal notranslate"><span class="pre">frame_select</span></code> is provided, this is the cutoff _quantile_ (from 0 to 1), where 0.2 means 20% of the frames
-from each cube will be discarded according the the selection metric.</p></li>
-<li><p><strong>recenter</strong> (<em>Literal</em><em>[</em><em>'com'</em><em>, </em><em>'peak'</em><em>, </em><em>'gauss'</em><em>, </em><em>'dft'</em><em>] </em><em>| </em><em>None</em>) – If a string is provided, will measure the centroids in the higher S/N collapsed frame using the given method.</p></li>
-<li><p><strong>reproject</strong> (<em>bool</em>) – If true, will reproject cam2 data onto cam1’s WCS coordinates</p></li>
-<li><p><strong>satspot_reference</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="spectrophotometric-calibration">
 <h3><a class="toc-backref" href="#id7" role="doc-backlink">Spectrophotometric Calibration</a><a class="headerlink" href="#spectrophotometric-calibration" title="Link to this heading">#</a></h3>
@@ -699,6 +670,7 @@ cameras’ data to maintain accurate spectrophotometric calibration.</p>
 <li><p><strong>mag</strong> (<em>float</em><em> | </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar reference magnitude</p></li>
 <li><p><strong>mag_band</strong> (<em>Literal</em><em>[</em><em>'U'</em><em>, </em><em>'B'</em><em>, </em><em>'V'</em><em>, </em><em>'r'</em><em>, </em><em>'i'</em><em>, </em><em>'J'</em><em>, </em><em>'H'</em><em>, </em><em>'K'</em><em>] </em><em>| </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar reference magnitude band</p></li>
 <li><p><strong>flux_metric</strong> (<em>Literal</em><em>[</em><em>'photometry'</em><em>, </em><em>'sum'</em><em>]</em>) – Which frame analysis statistic to use for determining flux. “photometry” uses an aperture sum, while “sum” uses the sum in the analysis cutout window.</p></li>
+<li><p><strong>unit</strong> (<em>Literal</em><em>[</em><em>'e-/s'</em><em>, </em><em>'Jy'</em><em>, </em><em>'Jy/arcsec^2'</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -739,7 +711,7 @@ cameras’ data to maintain accurate spectrophotometric calibration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'triplediff'</em><em>, </em><em>'doublediff'</em><em>, </em><em>'leastsq'</em><em>]</em>) – Determines the polarization calibration method, either the double/triple-difference method (<cite>difference</cite>) or using the inverse least-squares solution from Mueller calculus (<cite>leastsq</cite>). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.</p></li>
+<li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'triplediff'</em><em>, </em><em>'doublediff'</em><em>]</em>) – Determines the polarization calibration method, either the double/triple-difference method (<cite>difference</cite>) or using the inverse least-squares solution from Mueller calculus (<cite>leastsq</cite>). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.</p></li>
 <li><p><strong>mm_correct</strong> (<em>bool</em>) – Apply Mueller-matrix correction (only applicable to data reduced using the <cite>“difference”</cite> method). By default, True.</p></li>
 <li><p><strong>hwp_adi_sync</strong> (<em>bool</em>) – If true, will assume the HWP is in pupil-tracking mode. By default, True.</p></li>
 <li><p><strong>use_ideal_mm</strong> (<em>bool</em>) – If true and doing Mueller-matrix correction (<code class="docutils literal notranslate"><span class="pre">mm_correct=True</span></code>) will use only idealized versions for the components in the
@@ -828,10 +800,7 @@ Mueller-matrix model.</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.AnalysisConfig"><code class="docutils literal notranslate"><span class="pre">AnalysisConfig</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame-collapsing</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CollapseConfig"><code class="docutils literal notranslate"><span class="pre">CollapseConfig</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame-collapsing</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spectrophotometric-calibration">Spectrophotometric Calibration</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.SpecphotConfig"><code class="docutils literal notranslate"><span class="pre">SpecphotConfig</span></code></a></li>
 </ul>

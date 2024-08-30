@@ -312,7 +312,9 @@ document.write(`
   </button>
 `);
 </script>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -328,6 +330,14 @@ document.write(`
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.specphot.specphot.color_correction"><code class="docutils literal notranslate"><span class="pre">color_correction()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -339,7 +349,27 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.specphot.filters">
 <span id="spectrophotometric-calibration"></span><h1>Spectrophotometric Calibration<a class="headerlink" href="#module-vampires_dpp.specphot.filters" title="Link to this heading">#</a></h1>
-<span class="target" id="module-vampires_dpp.specphot.specphot"><span id="module-vampires_dpp.specphot.query"></span><span id="module-vampires_dpp.specphot.pickles"></span></span></section>
+<dl class="py function" id="module-vampires_dpp.specphot.specphot">
+<span id="module-vampires_dpp.specphot.query"></span><span id="module-vampires_dpp.specphot.pickles"></span><dt class="sig sig-object py" id="vampires_dpp.specphot.specphot.color_correction">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.specphot.specphot.</span></span><span class="sig-name descname"><span class="pre">color_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filt2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.specphot.specphot.color_correction" title="Link to this definition">#</a></dt>
+<dd><p>Return the magnitude of the color correction from the first filter to the second filter.</p>
+<p>delta = m1 - m2
+m2 = m1 - delta</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>model</strong> (<em>SourceSpectrum</em>)</p></li>
+<li><p><strong>filt1</strong> (<em>SpectralElement</em>)</p></li>
+<li><p><strong>filt2</strong> (<em>SpectralElement</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 
 
                 </article>
@@ -376,6 +406,21 @@ document.write(`
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.specphot.specphot.color_correction"><code class="docutils literal notranslate"><span class="pre">color_correction()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>
