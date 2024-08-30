@@ -46,6 +46,10 @@ def specphot_cal_hdul(hdul: fits.HDUList, metrics, config: SpecphotConfig):
     return hdul
 
 
+def _format(number, sigfigs=4):
+    return float(f"%.{sigfigs-1}g" % number)
+
+
 def measure_inst_flux(hdul, metrics, flux_metric: FluxMetric):
     info = fits.Header()
 
@@ -57,19 +61,13 @@ def measure_inst_flux(hdul, metrics, flux_metric: FluxMetric):
     # flux has units (nlambda, npsfs, ntime)
     # collapse all but wavelength axis
     inst_flux = np.nanmedian(flux, axis=(1, 2))
-    inst_mag = -2.5 * np.log10(inst_flux)
-    if len(inst_flux) > 1:
-        for flux, hdu in zip(inst_flux, hdul[2:], strict=True):
-            field = hdu.header["FIELD"]
-            info[f"hierarch DPP SPECPHOT INSTFLUX {field}"] = flux, "[e-/s] Instrumental flux"
-            info[f"hierarch DPP SPECPHOT INSTMAG {field}"] = (
-                -2.5 * np.log10(flux),
-                "[mag] Instrumental magnitude",
-            )
-    else:
-        # get calibrated flux (e- / s)
-        info["hierarch DPP SPECPHOT INSTFLUX"] = inst_flux[0], "[e-/s] Instrumental flux"
-        info["hierarch DPP SPECPHOT INSTMAG"] = inst_mag[0], "[mag] Instrumental magnitude"
+    for flux, hdu in zip(inst_flux, hdul[2:], strict=True):
+        field = hdu.header["FIELD"]
+        info[f"hierarch DPP SPECPHOT INSTFLUX {field}"] = _format(flux), "[e-/s] Instrumental flux"
+        info[f"hierarch DPP SPECPHOT INSTMAG {field}"] = (
+            np.round(-2.5 * np.log10(flux), 3),
+            "[mag] Instrumental magnitude",
+        )
 
     for hdu in hdul:
         hdu.header.update(info)
@@ -79,7 +77,10 @@ def measure_inst_flux(hdul, metrics, flux_metric: FluxMetric):
 def determine_jy_factor(hdul, fluxes, config: SpecphotConfig):
     info = fits.Header()
     # config inputs
-    info["hierarch DPP SPECPHOT REFMAG"] = config.mag, "[mag] Reference source magnitude"
+    info["hierarch DPP SPECPHOT REFMAG"] = (
+        np.round(config.mag, 3),
+        "[mag] Reference source magnitude",
+    )
     info["hierarch DPP SPECPHOT REFFILT"] = config.mag_band, "Reference source filter"
 
     # determine whether MBI or not
@@ -92,33 +93,33 @@ def determine_jy_factor(hdul, fluxes, config: SpecphotConfig):
         obs = get_observation(config, obs_filt)
         obs_mag = obs.effstim(VEGAMAG, vegaspec=VEGASPEC)
         obs_jy = obs.effstim(u.Jy)
-        info[f"hierarch DPP SPECTPHOT MAG {field}"] = (
-            obs_mag.value,
+        info[f"hierarch DPP SPECPHOT MAG {field}"] = (
+            np.round(obs_mag.value, 3),
             "[mag] Source magnitude after color correction",
         )
         info[f"hierarch DPP SPECPHOT REFFLUX {field}"] = (
-            obs_jy.value,
+            _format(obs_jy.value),
             "[Jy] Source flux after color correction",
         )
         # calculate surface density conversion factory
         inst_mag = -2.5 * np.log10(flux)
         c_fd = obs_jy.value / flux
         info[f"hierarch DPP SPECPHOT CALIBFAC {field}"] = (
-            c_fd,
+            _format(c_fd),
             "[Jy/(e-/s)] Absolute flux conversion factor",
         )
         # calculate Vega zero point
         zp = obs_mag.value - inst_mag
         zp_jy = c_fd * 10 ** (0.4 * zp)
         info[f"hierarch DPP SPECPHOT ZEROPT {field}"] = (
-            zp,
+            np.round(zp, 3),
             "[mag] Zero point in the Vega magnitude system",
         )
         info[f"hierarch DPP SPECPHOT ZEROPTJY {field}"] = (zp_jy, "[Jy] Vega zero point in Jy")
         # calculate total throughput (atmosphere + instrument + QE)
         throughput = flux / obs.countrate(area=SCEXAO_AREA).value
         info[f"hierarch DPP SPECPHOT THROUGH {field}"] = (
-            throughput,
+            _format(throughput),
             "[e-/ct] Est. total throughput (Atm+Inst+QE)",
         )
         conv_factors.append(c_fd)

@@ -54,7 +54,7 @@ def frame_select_hdul(
         f"[{bunit}] median frame selection cutoff value",
     )
 
-    for hdu_idx in range(len(hdul)):
-        hdul[hdu_idx].header.update(info)
+    for hdu in hdul:
+        hdu.header.update(info)
 
     return hdul, output_metrics

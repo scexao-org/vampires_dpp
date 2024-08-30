@@ -442,7 +442,7 @@ def get_doublediff_set(table) -> dict | None:
         work_table = table[columns].copy()
         while len(bad_table) > 0:
             row = bad_table.iloc[0]
-            row_key = (row["RET-ANG1"], row["U_FLC"], int(row["U_CAMERA"]))
+            row_key = (row["RET-ANG1"], int(row["U_CAMERA"]))
             work_table["DELTA_PA"] = np.abs(work_table["PA"] - row["PA"])
             work_table["DELTA_TIME"] = np.abs(work_table["MJD"] - row["MJD"])
 
