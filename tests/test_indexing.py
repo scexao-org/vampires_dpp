@@ -26,7 +26,7 @@ def test_window_centers_two():
 
 def test_cutout_slice():
     frame = np.empty((101, 101))
-    sy, sx = cutout_slice(frame, center=(80, 50), window=30)
+    sy, sx = cutout_slice(frame, center=(80, 50), window=31)
     assert sy.start == 65
     assert sy.stop == 96
     assert sx.start == 35
@@ -35,7 +35,7 @@ def test_cutout_slice():
 
 def test_cutout_slice_window_shape():
     frame = np.empty((101, 101))
-    sy, sx = cutout_slice(frame, center=(80, 50), window=(30, 40))
+    sy, sx = cutout_slice(frame, center=(80, 50), window=(31, 40))
     assert sy.start == 65
     assert sy.stop == 96
     assert sx.start == 30
@@ -44,25 +44,25 @@ def test_cutout_slice_window_shape():
 
 def test_cutout_slice_out_of_bounds():
     frame = np.empty((101, 101))
-    sy, sx = cutout_slice(frame, center=(90, 90), window=30)
+    sy, sx = cutout_slice(frame, center=(90, 90), window=31)
     assert sy.start == 75
     assert sy.stop == 101
     assert sx.start == 75
     assert sx.stop == 101
 
-    sy, sx = cutout_slice(frame, center=(10, 90), window=30)
+    sy, sx = cutout_slice(frame, center=(10, 90), window=31)
     assert sy.start == 0
     assert sy.stop == 26
     assert sx.start == 75
     assert sx.stop == 101
 
-    sy, sx = cutout_slice(frame, center=(10, 10), window=30)
+    sy, sx = cutout_slice(frame, center=(10, 10), window=31)
     assert sy.start == 0
     assert sy.stop == 26
     assert sx.start == 0
     assert sx.stop == 26
 
-    sy, sx = cutout_slice(frame, center=(90, 10), window=30)
+    sy, sx = cutout_slice(frame, center=(90, 10), window=31)
     assert sy.start == 75
     assert sy.stop == 101
     assert sx.start == 0

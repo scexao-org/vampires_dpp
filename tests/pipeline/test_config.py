@@ -97,7 +97,7 @@ class TestFrameSelectOptions:
         conf = FrameSelectOptions(cutoff=0.2)
         assert conf.cutoff == 0.2
         assert conf.metric == "normvar"
-        assert conf.window_size == 30
+        assert conf.window_size == 31
         assert not conf.force
         assert conf.output_directory is None
         toml_conf = FrameSelectOptions(**tomli.loads(to_toml(conf)))
@@ -121,7 +121,7 @@ class TestRegisterOptions:
     def test_default_creation(self):
         conf = RegisterOptions()
         assert conf.method == "com"
-        assert conf.window_size == 30
+        assert conf.window_size == 31
         assert not conf.force
         assert conf.output_directory is None
         toml_conf = RegisterOptions(**tomli.loads(to_toml(conf)))

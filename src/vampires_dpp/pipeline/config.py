@@ -217,7 +217,7 @@ class AnalysisConfig(BaseModel):
     photometry: bool = True
     phot_aper_rad: float = 4
     phot_ann_rad: Sequence[float] | Literal[False] = False
-    window_size: int = 30
+    window_size: int = 31
 
 
 class CombineConfig(BaseModel):

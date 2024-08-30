@@ -57,7 +57,7 @@ def get_centroids_from(metrics, input_key):
     return centroids
 
 
-def get_recenter_offset(frame, method, offsets, window=30, psf=None, **kwargs):
+def get_recenter_offset(frame, method, offsets, window=31, psf=None, **kwargs):
     frame_ctr = frame_center(frame)
     ctr = 0
     n = 1
@@ -122,7 +122,7 @@ def lucky_image_file(
     crop_width=None,
     aux_dir=None,
     specphot=None,
-    window: int = 30,
+    window: int = 31,
     psfs=None,
     **kwargs,
 ) -> Path:

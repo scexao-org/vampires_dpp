@@ -162,7 +162,7 @@ def recenter_hdul(
     window_centers,
     *,
     method: RegisterMethod = "dft",
-    window_size: int = 30,
+    window_size: int = 31,
     dft_factor: int = 30,
     psfs: None = None,
 ):
@@ -199,3 +199,9 @@ def recenter_hdul(
         hdu.header.update(info)
 
     return hdul
+
+
+# def autocentroid_hdul(hdul: fits.HDUList, window_size=31):
+#     data = np.nanmean(hdul[0].data, axis=0)
+
+#     rough_ctr = centroids.centroid_com(data)

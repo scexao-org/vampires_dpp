@@ -26,7 +26,7 @@ def field_combine(field1, field2):
     return lambda grid: field1(grid) * field2(grid)
 
 
-def create_synth_psf(header, filt, npix=30, output_directory=None, nwave=7, **kwargs):
+def create_synth_psf(header, filt, npix=31, output_directory=None, nwave=7, **kwargs):
     if output_directory is not None:
         outfile = output_directory / f"VAMPIRES_{filt}_synthpsf.fits"
         if outfile.exists():
