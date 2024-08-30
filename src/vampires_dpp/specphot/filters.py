@@ -34,6 +34,20 @@ VAMPIRES_FILTER_URL: Final[
 ] = f"https://docs.google.com/spreadsheets/d/{VAMP_FILT_KEY}/gviz/tq?tqx=out:csv&sheet={VAMP_FILT_NAME}"
 
 
+def determine_primary_filter(header):
+    if "MBI" in header["OBS-MOD"]:
+        if "FIELD" in header:
+            filt_name = header["FIELD"]
+        else:
+            msg = "Unable to load MBI filter without 'FIELD' keyword, provide filter manually."
+            raise ValueError(msg)
+    elif "SDI" in header["OBS-MOD"] or header["FILTER02"].lower() != "open":
+        filt_name = header["FILTER02"]
+    else:
+        filt_name = header["FILTER01"]
+    return filt_name
+
+
 def load_vampires_filter(name: str) -> SpectralElement:
     if name not in VAMPIRES_FILTERS:
         msg = f"VAMPIRES filter '{name}' not recognized"
@@ -43,12 +57,7 @@ def load_vampires_filter(name: str) -> SpectralElement:
 
 
 def update_header_with_filt_info(header: fits.Header) -> tuple[fits.Header, SpectralElement]:
-    if "MBI" in header["OBS-MOD"]:
-        filt_name = header["FIELD"]
-    elif "SDI" in header["OBS-MOD"]:
-        filt_name = header["FILTER02"]
-    else:
-        filt_name = header["FILTER01"]
+    filt_name = determine_primary_filter(header)
     filt = load_vampires_filter(filt_name)
     waves = filt.waveset
     through = filt.model.lookup_table

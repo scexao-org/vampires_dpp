@@ -1,6 +1,7 @@
 import numpy as np
 import sep
 
+from .specphot.filters import determine_primary_filter
 from .synthpsf import create_synth_psf
 from .util import load_fits
 
@@ -125,7 +126,7 @@ def measure_strehl(
 def measure_strehl_mbi(cube, header, psfs=None, **kwargs):
     filters = ("F610", "F670", "F720", "F760")
     if psfs is None:
-        psfs = {filt: create_synth_psf(header, filt, 201) for filt in filters}
+        psfs = {filt: create_synth_psf(header, filt, npix=201) for filt in filters}
     results = {}
     for i, filt in enumerate(psfs.keys()):
         results[filt] = measure_strehl(cube[i], psfs[filt], pxscale=header["PXSCALE"], **kwargs)
@@ -136,14 +137,16 @@ def measure_strehl_mbi(cube, header, psfs=None, **kwargs):
 def measure_strehl_frame(frame, header, psf=None, **kwargs):
     if "MBI" in header["OBS-MOD"]:
         filters = ("F610", "F670", "F720", "F760")
-        for filt in filters:
+        for i, filt in enumerate(filters):
             psf = create_synth_psf(header, filt, 201)
         return measure_strehl_mbi(frame, header, **kwargs)
 
     # return image
     if psf is None:
-        psf = create_synth_psf(header, header["FILTER01"].strip(), 201)
-    if header["U_CAMERA"] == 1:
+        psf = create_synth_psf(header, npix=201)
+
+    # if raw frame make sure to flip cam 1
+    if header["U_CAMERA"] == 1 and "DPP_VER" not in header:
         psf = np.flipud(psf)
     return measure_strehl(frame, psf, pxscale=header["PXSCALE"], **kwargs)
 
@@ -151,7 +154,10 @@ def measure_strehl_frame(frame, header, psf=None, **kwargs):
 def measure_strehl_cube(cube, header, **kwargs):
     if "MBI" in header["OBS-MOD"]:
         psfs = {
-            filt: create_synth_psf(header, filt, 201) for filt in ("F610", "F670", "F720", "F760")
+            
+            filt: create_synth_psf(header, filt, npix=201)
+            for filt in ("F610", "F670", "F720", "F760")
+        
         }
         if "MBIR" in header["OBS-MOD"]:
             del psfs["F610"]
@@ -160,12 +166,14 @@ def measure_strehl_cube(cube, header, **kwargs):
             results.append(measure_strehl_mbi(cube[:, i], header, psfs=psfs))
         return results
 
-    psf = create_synth_psf(header, header["FILTER01"].strip(), 201)
-    if header["U_CAMERA"] == 1:
+    psf = create_synth_psf(header, npix=201)
+    # if raw frame make sure to flip cam 1
+    if header["U_CAMERA"] == 1 and "DPP_VER" not in header:
         psf = np.flipud(psf)
-    results = [measure_strehl(frame, psf, header=["PXSCALE"]) for frame in cube]
+    results = [measure_strehl(frame, psf, pxscale=header["PXSCALE"]) for frame in cube[0]]
+    filt = determine_primary_filter(header)
     for i in range(len(results)):
-        results[i] = {header["FILTER01"].strip(): results[0]}
+        results[i] = {"index": i, filt: results[i]}
     return results
 
 

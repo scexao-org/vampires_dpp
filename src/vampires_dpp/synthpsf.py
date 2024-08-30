@@ -4,7 +4,7 @@ from astropy.io import fits
 from loguru import logger
 
 from .headers import get_instrument_from
-from .specphot.filters import load_vampires_filter
+from .specphot.filters import determine_primary_filter, load_vampires_filter
 
 ## constants
 PUPIL_DIAMETER = 7.92  # m
@@ -26,7 +26,10 @@ def field_combine(field1, field2):
     return lambda grid: field1(grid) * field2(grid)
 
 
-def create_synth_psf(header, filt, npix=31, output_directory=None, nwave=7, **kwargs):
+def create_synth_psf(header, filt=None, npix=31, output_directory=None, nwave=7, **kwargs):
+    if filt is None:
+        filt = determine_primary_filter(header)
+
     if output_directory is not None:
         outfile = output_directory / f"VAMPIRES_{filt}_synthpsf.fits"
         if outfile.exists():
