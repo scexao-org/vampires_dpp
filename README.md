@@ -11,7 +11,7 @@
 
 (Experimental) Tools for processing VAMPIRES data
 
-WARNING: version 0.13.0 has breaking changes! Contact Miles for more details.
+WARNING: version 0.13.0 has breaking changes that have not been fully documented! Contact Miles for more details.
 
 ## Installation
 
