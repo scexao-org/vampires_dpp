@@ -11,6 +11,8 @@
 
 (Experimental) Tools for processing VAMPIRES data
 
+WARNING: version 0.13.0 has breaking changes! Contact Miles for more details.
+
 ## Installation
 
 For now, install directly from GitHub
