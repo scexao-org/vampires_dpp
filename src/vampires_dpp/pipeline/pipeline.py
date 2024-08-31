@@ -230,9 +230,10 @@ class Pipeline:
         logger.debug(f"Finished frame aligned for group {group_key}")
 
         ## Step 5: Spectrophotometric calibration
-        logger.debug(f"Starting specphot cal for group {group_key}")
-        hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config.specphot)
-        logger.debug(f"Finished specphot cal for group {group_key}")
+        if self.config.specphot is not None:
+            logger.debug(f"Starting specphot cal for group {group_key}")
+            hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config.specphot)
+            logger.debug(f"Finished specphot cal for group {group_key}")
         ## Step 6: Coadd
         if self.config.coadd.coadd:
             logger.debug(f"Starting coadding for group {group_key}")
