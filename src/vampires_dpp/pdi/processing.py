@@ -387,8 +387,8 @@ def get_triplediff_set(table) -> dict | None:
             if output_set is None:
                 # pop this row from working table, and any temporal matches
                 indices_to_drop = bad_table["UT"] == row["UT"]
-                table = bad_table.loc[indices_to_drop].copy()
-                table["STOKES_IDX"] = -1
+                current_table = bad_table.loc[indices_to_drop].copy()
+                current_table["STOKES_IDX"] = -1
                 bad_table = bad_table.loc[~indices_to_drop]
             else:
                 current_table = pd.DataFrame(output_set).drop(["DELTA_PA", "DELTA_TIME"], axis=1)
@@ -463,8 +463,8 @@ def get_doublediff_set(table) -> dict | None:
             if output_set is None:
                 # pop this row from working table, and any temporal matches
                 indices_to_drop = bad_table["UT"] == row["UT"]
-                table = bad_table.loc[indices_to_drop].copy()
-                table["STOKES_IDX"] = -1
+                current_table = bad_table.loc[indices_to_drop].copy()
+                current_table["STOKES_IDX"] = -1
                 bad_table = bad_table.loc[~indices_to_drop]
             else:
                 current_table = pd.DataFrame(output_set).drop(["DELTA_PA", "DELTA_TIME"], axis=1)

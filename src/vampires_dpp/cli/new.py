@@ -213,12 +213,12 @@ def get_frame_select_settings(template: PipelineConfig) -> PipelineConfig:
     if template.frame_select.frame_select:
         metric_choices = ["normvar", "peak", "strehl"]
         readline.set_completer(createListCompleter(metric_choices))
-        template.collapse.frame_select = click.prompt(
+        template.frame_select.metric = click.prompt(
             " - Choose a frame selection metric",
             type=click.Choice(metric_choices, case_sensitive=False),
             default=template.frame_select.metric,
         )
-        template.collapse.select_cutoff = click.prompt(
+        template.frame_select.select_cutoff = click.prompt(
             " - Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
         )
         readline.set_completer()
