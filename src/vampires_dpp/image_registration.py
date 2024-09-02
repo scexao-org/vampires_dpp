@@ -75,8 +75,10 @@ def get_centroids_from(metrics, input_key):
     cy = np.swapaxes(metrics[f"{input_key[:4]}y"], 0, 2)
     # if there are values from multiple PSFs (e.g. satspots)
     # determine
-    if cx.ndim == 3:
+    if cx.shape[1] == 4:
         cx, cy = get_intersection(cx, cy)
+    else:
+        cx, cy = cx[:, 0], cy[:, 0]
 
     # stack so size is (Nframes, Nfields, x/y)
     centroids = np.stack((cy, cx), axis=-1)
@@ -204,8 +206,11 @@ def recenter_hdul(
 
             offsets.append(field_center - center)
         offsets = np.array(offsets)
-        ox, oy = get_intersection(offsets[None, :, 1], offsets[None, :, 0])
-        offset = np.array((oy[0], ox[0]))
+        if len(offsets) == 4:
+            ox, oy = get_intersection(offsets[None, :, 1], offsets[None, :, 0])
+            offset = np.array((oy[0], ox[0]))
+        else:
+            offset = offsets[0]
         data_cube[wl_idx] = shift_frame(frame, offset)
         err_cube[wl_idx] = shift_frame(err_cube[wl_idx], offset)
 
