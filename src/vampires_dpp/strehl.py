@@ -68,9 +68,7 @@ def find_peak(image, xc, yc, boxsize, oversamp=8):
     return peak
 
 
-def measure_strehl(
-    image, psf_model, pxscale, pos=None, phot_rad=0.5, peak_search_rad=0.1, dft_factor: int = 30
-):
+def measure_strehl(image, psf_model, pxscale, pos=None, phot_rad=0.5, peak_search_rad=0.1):
     ## Step 1: find approximate location of PSF in image
 
     # If no position given, start at the nan-max
@@ -137,7 +135,7 @@ def measure_strehl_mbi(cube, header, psfs=None, **kwargs):
 def measure_strehl_frame(frame, header, psf=None, **kwargs):
     if "MBI" in header["OBS-MOD"]:
         filters = ("F610", "F670", "F720", "F760")
-        for i, filt in enumerate(filters):
+        for filt in filters:
             psf = create_synth_psf(header, filt, 201)
         return measure_strehl_mbi(frame, header, **kwargs)
 
@@ -154,10 +152,8 @@ def measure_strehl_frame(frame, header, psf=None, **kwargs):
 def measure_strehl_cube(cube, header, **kwargs):
     if "MBI" in header["OBS-MOD"]:
         psfs = {
-            
             filt: create_synth_psf(header, filt, npix=201)
             for filt in ("F610", "F670", "F720", "F760")
-        
         }
         if "MBIR" in header["OBS-MOD"]:
             del psfs["F610"]

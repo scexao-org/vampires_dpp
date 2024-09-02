@@ -204,8 +204,6 @@ class AnalysisConfig(BaseModel):
         Aperture radius in pixels for circular aperture photometry. If "auto", will use the FWHM from the file header.
     ann_rad:
         If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.
-    dft_factor:
-        The DFT upsampling factor for measuring phase cross-correlation centroid.
     subtract_radprof:
         If true, will subtract a radial profile for measuring centroids and Strehl ratio, but no other metrics
     window_size:
@@ -217,7 +215,7 @@ class AnalysisConfig(BaseModel):
     photometry: bool = True
     phot_aper_rad: float = 4
     phot_ann_rad: Sequence[float] | Literal[False] = False
-    window_size: int = 31
+    window_size: int = 21
 
 
 class CombineConfig(BaseModel):
@@ -269,15 +267,12 @@ class AlignmentConfig(BaseModel):
     align:
         If true, data will be aligned by the give method
     method:
-    dft_factor:
-        Only used if `method` is "dft". Subpixel upsampling factor for the discrete fourier transform, in practice values above 30 do not improve centroid accuracy.
     save_intermediate:
         If true, will save the registered files to the ``registered`` folder (WARNING can lead to insance data volume)
     """
 
     align: bool = True
     method: Literal["dft", "com", "peak", "model"] = "dft"
-    dft_factor: int = 30
     crop_width: int = 536
     save_intermediate: bool = False
 
@@ -305,7 +300,6 @@ class CoaddConfig(BaseModel):
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
     recenter: bool = False
     recenter_method: Literal["dft", "com", "peak", "model"] = "dft"
-    recenter_dft_factor: int = 30
 
 
 class DiffImageConfig(BaseModel):

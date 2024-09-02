@@ -74,12 +74,10 @@ def analyze_fields(
     cube_err,
     inds,
     *,
-    window_size=31,
     do_phot: bool = True,
     aper_rad=4,
     ann_rad=None,
     psf=None,
-    dft_factor=30,
     fit_psf_model: bool = False,
     psf_model="moffat",
 ):
@@ -100,7 +98,7 @@ def analyze_fields(
     for fidx in range(cube.shape[0]):
         frame = cube[fidx]
         frame_err = cube_err[fidx]
-
+        # highpass_frame = frame - filters.median(frame, np.ones((9, 9)))
         # t3 = time.perf_counter()
         centroids = offset_peak_and_com(frame, inds)
 
@@ -116,8 +114,8 @@ def analyze_fields(
             # create_or_append(output, "gausx", centroids["gauss"][1])
             # create_or_append(output, "gausy", centroids["gauss"][0])
             # ctr_est = centroids["gauss"]
-        if psf is not None and dft_factor > 0:
-            dft_ctrs = offset_dft(frame, inds, psf=psf, upsample_factor=dft_factor)
+        if psf is not None:
+            dft_ctrs = offset_dft(frame, inds, psf=psf)
             create_or_append(output, "dftx", dft_ctrs[1])
             create_or_append(output, "dfty", dft_ctrs[0])
             ctr_est = dft_ctrs
@@ -148,9 +146,8 @@ def analyze_file(
     aper_rad: int = 4,
     ann_rad=None,
     force=False,
-    window_size=31,
+    window_size=21,
     do_phot: bool = True,
-    dft_factor: int = 30,
     psfs=None,
     fit_psf_model: bool = False,
     psf_model: Literal["moffat", "gauss"] = "moffat",
@@ -185,7 +182,6 @@ def analyze_file(
                 ann_rad=ann_rad,
                 do_phot=do_phot,
                 psf=psf,
-                window_size=window_size,
                 fit_psf_model=fit_psf_model,
                 psf_model=psf_model,
             )

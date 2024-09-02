@@ -245,10 +245,6 @@ def get_alignment_settings(template: PipelineConfig) -> PipelineConfig:
             default=template.align.method,
         )
         readline.set_completer()
-        if template.align.method == "dft":
-            template.align.dft_factor = click.prompt(
-                " - Enter DFT upsample factor", default=template.align.dft_factor, type=int
-            )
     template.align.crop_width = click.prompt(
         "Enter post-align crop size", default=template.align.crop_width, type=int
     )
@@ -285,12 +281,6 @@ def get_coadd_settings(template: PipelineConfig) -> PipelineConfig:
                 type=click.Choice(["com", "peak", "gauss", "dft"], case_sensitive=False),
                 default=template.coadd.recenter_method,
             )
-            if template.coadd.recenter_method == "dft":
-                template.coadd.recenter_dft_factor = click.prompt(
-                    " - Enter DFT upsample factor",
-                    default=template.coadd.recenter_dft_factor,
-                    type=int,
-                )
     return template
 
 

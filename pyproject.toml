@@ -33,6 +33,7 @@ dependencies = [
     "tomli_w",
     "tomli",
     "tqdm",
+    "image-registration"
 ]
 
 [project.urls]

@@ -26,7 +26,7 @@ def field_combine(field1, field2):
     return lambda grid: field1(grid) * field2(grid)
 
 
-def create_synth_psf(header, filt=None, npix=31, output_directory=None, nwave=7, **kwargs):
+def create_synth_psf(header, filt=None, npix=21, output_directory=None, nwave=7, **kwargs):
     if filt is None:
         filt = determine_primary_filter(header)
 

@@ -41,7 +41,7 @@ def determine_primary_filter(header):
         else:
             msg = "Unable to load MBI filter without 'FIELD' keyword, provide filter manually."
             raise ValueError(msg)
-    elif "SDI" in header["OBS-MOD"] or header["FILTER02"].lower() != "open":
+    elif "SDI" in header["OBS-MOD"] or header["FILTER02"].lower() not in ("open", "unknown"):
         filt_name = header["FILTER02"]
     else:
         filt_name = header["FILTER01"]

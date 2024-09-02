@@ -192,6 +192,11 @@ class Pipeline:
         logger.debug(f"Finished calibrating {len(group)} files")
         logger.debug("Combining data into single HDU list")
         hdul = combine_hduls(hdul_list)
+        if self.config.combine.save_intermediate:
+            _, outpath = get_paths(output_path, suffix="comb", output_directory=self.paths.combined)
+            hdul.writeto(outpath, overwrite=True)
+            logger.debug(f"Saved combined HDU list to {outpath.absolute()}")
+
         ## Step 2: Frame analysis
         metric_file = self.paths.metrics / f"{self.config.name}_{group_key}_metrics.npz"
         metrics = self.analyze_one(hdul, metric_file)
@@ -253,11 +258,7 @@ class Pipeline:
                         hdul[0].data, window_centers[key][idx], cam_num
                     )
             hdul = recenter_hdul(
-                hdul,
-                window_centers,
-                method=self.config.coadd.recenter_method,
-                dft_factor=self.config.coadd.recenter_dft_factor,
-                psfs=psfs,
+                hdul, window_centers, method=self.config.coadd.recenter_method, psfs=psfs
             )
             logger.debug(f"Finished recentering for group {group_key}")
 
@@ -313,10 +314,8 @@ class Pipeline:
         hdr = hdul[0].header
         if self.config.align.align and self.config.align.method == "dft":
             psfs = [self.synth_psfs[filt] for filt in determine_filterset_from_header(hdr)]
-            dft_factor = self.config.align.dft_factor
         else:
             psfs = None
-            dft_factor = -1
         key = f"cam{hdr['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdul,
@@ -325,7 +324,6 @@ class Pipeline:
             aper_rad=config.phot_aper_rad,
             ann_rad=config.phot_ann_rad,
             psfs=psfs,
-            dft_factor=dft_factor,
             do_phot=config.photometry,
             fit_psf_model=config.fit_psf_model,
             psf_model=config.psf_model,
