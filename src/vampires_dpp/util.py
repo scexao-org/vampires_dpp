@@ -81,7 +81,11 @@ def load_fits(filename, ext=0, **kwargs):
     path = Path(filename)
     if ".fits.fz" in path.name:
         ext = 1
-    return fits.getdata(path, ext=ext, **kwargs)
+    try:
+        return fits.getdata(path, ext=ext, **kwargs)
+    except TypeError as e:
+        msg = f"Could not load FITS file: {filename}"
+        raise RuntimeError(msg) from e
 
 
 def load_fits_header(filename, ext=0, **kwargs):
