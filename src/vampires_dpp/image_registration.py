@@ -136,7 +136,7 @@ def register_hdul(
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
             cutout_err = Cutout2D(frame_err, field_ctr[::-1], size=crop_width, mode="partial")
 
-            offset = cutout.position_original[::-1] - field_ctr
+            offset = field_ctr - cutout.position_original[::-1]
 
             # pad and shift data
             frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)
