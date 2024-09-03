@@ -248,7 +248,7 @@ def get_alignment_settings(template: PipelineConfig) -> PipelineConfig:
     template.align.crop_width = click.prompt(
         "Enter post-align crop size", default=template.align.crop_width, type=int
     )
-    template.frame_select.save_intermediate = click.confirm(
+    template.align.save_intermediate = click.confirm(
         "Would you like to save the intermediate registered data?",
         default=template.align.save_intermediate,
     )

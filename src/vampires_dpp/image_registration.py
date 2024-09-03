@@ -2,6 +2,7 @@ import itertools
 import logging
 from typing import Literal, TypeAlias
 
+import matplotlib.pyplot as plt
 import numpy as np
 from astropy.convolution import convolve_fft
 from astropy.io import fits
@@ -10,12 +11,11 @@ from image_registration import chi2_shift
 from photutils import centroids
 from skimage import filters
 
-from vampires_dpp.indexing import frame_radii
+from vampires_dpp.headers import fix_header
+from vampires_dpp.image_processing import shift_frame
+from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii, get_mbi_centers
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.synthpsf import create_synth_psf
-
-from .image_processing import shift_frame
-from .indexing import cutout_inds, frame_center, get_mbi_centers
 
 __all__ = ("register_hdul",)
 
@@ -26,7 +26,7 @@ RegisterMethod: TypeAlias = Literal["peak", "com", "dft"]
 
 def offset_dft(frame, inds, psf):
     cutout = frame[inds]
-    xoff, yoff, exoff, eyoff = chi2_shift(psf, cutout, upsample_factor="auto", return_error=True)
+    xoff, yoff = chi2_shift(psf, cutout, upsample_factor="auto", return_error=False)
     dft_offset = np.array((yoff, xoff))
     ctr = np.array(frame_center(psf)) + dft_offset
     # offset based on    indices
@@ -278,7 +278,7 @@ def test_triangle_plus_one_is_square(
 
 def find_square_satspots(frame, radius=3, max_counter=50):
     # initialize
-    # frame = frame.copy()
+    frame = frame.copy().astype("f4")  # because we're writing NaN's in place
     max_ind = np.nanargmax(frame)
 
     counter = 0
@@ -300,7 +300,7 @@ def find_square_satspots(frame, radius=3, max_counter=50):
                     if test_triangle_plus_one_is_square(tricomb, last_spot):
                         return [*tricomb, last_spot]
 
-        # as soon as we have 3 spots, start the list of good candidates
+        # as soon as we have 3 spots, start the list of triangle candidates
         if len(locs) >= 3:
             # generate all combinations of pairs of two coordinates, without repetition
             triangle_sets = find_right_triangles(locs)
@@ -351,58 +351,88 @@ def get_mbi_cutout(
     return Cutout2D(data, (x, y), 300, mode="partial")
 
 
-def autocentroid_hdul(hdul: fits.HDUList, coronagraphic: bool = False, psfs=None, window_size=21):
-    data = np.nanmedian(hdul[0].data, axis=0)
-
+def autocentroid_hdul(
+    hdul: fits.HDUList,
+    coronagraphic: bool = False,
+    psfs=None,
+    crop_size=200,
+    window_size=21,
+    plot: bool = False,
+):
+    # collapse cubes, if need
+    data = np.nanmedian(hdul[0].data, axis=0) if hdul[0].data.ndim == 3 else hdul[0].data
+    # fix header
+    header = fix_header(hdul[0].header)
+    output = []
+    fields = determine_filterset_from_header(header)
     if psfs is None:
-        if "MBI" in hdul[0].header["OBS-MOD"]:
-            psfs = [
-                create_synth_psf(hdul[0].header, filt, npix=20)
-                for filt in ("F610", "F670", "F720", "F760")
-            ]
-        else:
-            psfs = [create_synth_psf(hdul[0].header, npix=20)]
-        if "MBIR" in hdul[0].header["OBS-MOD"]:
-            del psfs["F610"]
-
-    if hdul[0].header["OBS-MOD"].endswith("MBI"):
+        psfs = [create_synth_psf(header, filt, npix=window_size) for filt in fields]
+    # for MBI data, divide input image into octants and account for
+    # image flip between cam1 and cam2
+    if "MBI" in header["OBS-MOD"]:
+        reduced = "MBIR" in header["OBS-MOD"]
         cutouts = [
-            get_mbi_cutout(data, hdul[0].header["U_CAMERA"], field)
-            for field in ["F610", "F670", "F720", "F760"]
+            get_mbi_cutout(data, header["U_CAMERA"], field, reduced=reduced) for field in fields
         ]
-    elif hdul[0].header["OBS-MOD"].endswith("MBIR"):
-        cutouts = [
-            get_mbi_cutout(data, hdul[0].header["U_CAMERA"], field)
-            for field in ["F670", "F720", "F760"]
-        ]
+    # otherwise, just take the whole frame
     else:
-        cutouts = [Cutout2D(data, frame_center(data), data.shape[-1], mode="partial")]
+        cutouts = [Cutout2D(data, frame_center(data)[::-1], data.shape[-1])]
 
-    for cutout, psf in zip(cutouts, psfs, strict=True):
-        rough_ctr = centroids.centroid_com(cutout.data)
-        rough_cutout = Cutout2D(cutout.data, rough_ctr, 200, mode="partial")
+    # for each frame (1, 3, or 4)
+    for idx in range(len(fields)):
+        psfs[idx] /= np.nansum(psfs[idx])
+        # find centroid of image with square scaling to help bias towards PSF
+        rough_ctr = centroids.centroid_com(cutouts[idx].data ** 2, mask=np.isnan(cutouts[idx].data))
+        # take a large crop, large enough to see satellite spots plus misregistration
+        rough_cutout = Cutout2D(cutouts[idx].data, rough_ctr, crop_size, mode="partial")
+        # high-pass filter the data with a large median-- note, this requires the data to have
+        # a certain level of S/N or it will wipe out the satellite spots. Therefore it's only suggested
+        # to run the autocentroid on a big stack of mean-combined data instead of individual frames
         filtered_cutout = rough_cutout.data - filters.median(rough_cutout.data, np.ones((9, 9)))
-        filtered_cutout = convolve_fft(filtered_cutout, psf)
+        # convolve high-pass filtered data with the PSF for better S/N (unsharp-mask-ish)
+        filtered_cutout = convolve_fft(filtered_cutout, psfs[idx])
 
-        # if coronagraphic:
-        #     points = find_square_satspots(filtered_cutout)
-        # else:
-        #     points = None # TODO!
-        # fig, axs = plt.subplots(ncols=3)
-        # axs[0].imshow(cutout.data, origin="lower", cmap="magma")
-        # axs[0].scatter(*rough_ctr[::-1], marker="+", s=100, c="green")
-        # axs[1].imshow(filtered_cutout, origin="lower", cmap="magma")
+        # when using the coronagraph, find four maxima which form a square
+        if coronagraphic:
+            points = find_square_satspots(filtered_cutout)
+        else:
+            # otherwise use DFT cross-correlation to find the PSF localized around peak index
+            ctr = np.unravel_index(np.nanargmax(filtered_cutout), filtered_cutout.shape)
+            inds = cutout_inds(filtered_cutout, center=ctr, window=window_size)
+            points = [offset_dft(filtered_cutout, inds, psfs[idx])]
+        # make sure to offset for indices
+        rough_points = [rough_cutout.to_original_position(p[::-1]) for p in points]
+        orig_points = [cutouts[idx].to_original_position(p)[::-1] for p in rough_points]
+        output.append(orig_points)
 
-        # axs[2].imshow(filtered_cutout, origin="lower", cmap="magma")
-        # if points is not None:
-        #     xs = [p[1] for p in points]
-        #     ys = [p[0] for p in points]
-        # # plt.imshow(psf, origin="lower", cmap="magma")
-        # axs[1].scatter(*rough_cutout.position_cutout, marker="+", s=100, c="green")
-        # axs[2].scatter(*rough_cutout.position_cutout, marker="+", s=100, c="green")
-        # if points is not None:
-        #     axs[1].scatter(xs, ys, marker="x", s=100, c="cyan")
-        #     axs[1].scatter(np.mean(xs), np.mean(ys), marker="x", s=100, c="cyan")
-        #     axs[2].scatter(xs, ys, marker="x", s=100, c="cyan")
-        #     axs[2].scatter(np.mean(xs), np.mean(ys), marker="x", s=100, c="cyan")
-        # plt.show(block=True)
+        ## plotting
+        if plot:
+            fig, axs = plt.subplots(ncols=2)
+            axs[0].imshow(cutouts[idx].data, origin="lower", cmap="magma")
+            axs[0].scatter(*rough_ctr, marker="+", s=100, c="green")
+            axs[1].imshow(filtered_cutout, origin="lower", cmap="magma")
+
+            axs[1].scatter(*rough_cutout.position_cutout, marker="+", s=100, c="green")
+
+            if points is not None:
+                xs = np.array([p[1] for p in points])
+                ys = np.array([p[0] for p in points])
+                axs[1].scatter(xs, ys, marker=".", s=100, c="cyan")
+                if len(xs) == 4:
+                    # plot lines
+                    idxs = np.argsort(xs)
+                    xs = xs[idxs]
+                    ys = ys[idxs]
+                    axs[1].plot([xs[0], xs[3]], [ys[0], ys[3]], c="cyan")
+                    axs[1].plot([xs[1], xs[2]], [ys[1], ys[2]], c="cyan")
+                    px, py = get_intersection(xs[None, :], ys[None, :])
+                    axs[1].scatter(px, py, marker="+", s=100, c="cyan")
+                else:
+                    axs[1].scatter(xs[0], ys[0], marker="x", s=100, c="cyan")
+
+            axs[0].set_title("Starting cutout")
+            axs[1].set_title("Centroided cutout")
+            fig.suptitle(fields[idx])
+            plt.show(block=True)
+
+    return np.array(output)

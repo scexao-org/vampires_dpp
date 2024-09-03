@@ -505,7 +505,7 @@ class Pipeline:
                     hdrs = [hdul[i].header for i in range(2, len(hdul))]
                     stokes_hdrs.append(hdrs)
         ## Collapse outputs
-        logger.info(f"Collapsing {len(stokes_tbl)} Stokes files...")
+        logger.info(f"Collapsing {stokes_tbl['STOKES_IDX'].max()} Stokes files...")
         stokes_data = np.array(stokes_data)
         stokes_err = np.array(stokes_err)
         coll_frame, _ = collapse_frames(np.nan_to_num(stokes_data))

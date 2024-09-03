@@ -148,9 +148,7 @@ def collapse_frames(frames, headers=None, method="median", **kwargs):
     return collapse_cube(cube, method=method, header=header)
 
 
-def collapse_frames_files(
-    filenames, output, force=False, cubes=False, quiet=True, fix=False, **kwargs
-):
+def collapse_frames_files(filenames, output, force=False, quiet=True, fix=False, **kwargs):
     path = Path(output)
     if not force and path.is_file() and not any_file_newer(filenames, path):
         return path
@@ -164,9 +162,6 @@ def collapse_frames_files(
         frame, header = load_fits(filename, header=True, memmap=False)
         if fix:
             header = fix_header(header)
-        if cubes:
-            rand_idx = np.random.default_rng().integers(low=0, high=len(frame))
-            frame = frame[rand_idx]
         frames.append(frame)
         headers.append(header)
 

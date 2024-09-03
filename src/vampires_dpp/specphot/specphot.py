@@ -111,11 +111,11 @@ def determine_jy_factor(hdul, fluxes, config: SpecphotConfig):
         # calculate Vega zero point
         zp = obs_mag.value - inst_mag
         zp_jy = c_fd * 10 ** (0.4 * zp)
-        info[f"hierarch DPP SPECPHOT ZEROPT {field}"] = (
+        info[f"hierarch DPP SPECPHOT ZP {field}"] = (
             np.round(zp, 3),
             "[mag] Zero point in the Vega magnitude system",
         )
-        info[f"hierarch DPP SPECPHOT ZEROPTJY {field}"] = (zp_jy, "[Jy] Vega zero point in Jy")
+        info[f"hierarch DPP SPECPHOT ZPJY {field}"] = (zp_jy, "[Jy] Vega zero point in Jy")
         # calculate total throughput (atmosphere + instrument + QE)
         throughput = flux / obs.countrate(area=SCEXAO_AREA).value
         info[f"hierarch DPP SPECPHOT THROUGH {field}"] = (
