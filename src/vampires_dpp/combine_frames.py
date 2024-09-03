@@ -245,8 +245,9 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     # WCS
     if wcs:
         # need to get average CRVALs and PCs
-        output_header["CRVAL1"] = np.rad2deg(ave_ra), test_header.comments["CRVAL1"]
-        output_header["CRVAL2"] = np.rad2deg(ave_dec), test_header.comments["CRVAL2"]
+        if "CRVAL1" in test_header and "CRVAL2" in test_header:
+            output_header["CRVAL1"] = np.rad2deg(ave_ra), test_header.comments["CRVAL1"]
+            output_header["CRVAL2"] = np.rad2deg(ave_dec), test_header.comments["CRVAL2"]
         if "PC1_1" in test_header:
             output_header["PC1_1"] = table["PC1_1"].mean(), test_header.comments["PC1_1"]
             output_header["PC1_2"] = table["PC1_2"].mean(), test_header.comments["PC1_2"]
