@@ -446,16 +446,15 @@ document.write(`
 <li><p><strong>coronagraphic</strong> (<em>bool</em>) – If true will use coronagraphic routines for processing.</p></li>
 <li><p><strong>save_adi_cubes</strong> (<em>bool</em>) – If true, will save ADI cubes and derotation angles in product directory.</p></li>
 <li><p><strong>target</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.TargetConfig" title="vampires_dpp.pipeline.config.TargetConfig"><em>TargetConfig</em></a><em> | </em><em>None</em>) – If set, provides options for target object, primarily coordinates. If not set, will use header values.</p></li>
-<li><p><strong>specphot</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="vampires_dpp.pipeline.config.SpecphotConfig"><em>SpecphotConfig</em></a><em> | </em><em>None</em>) – If set, provides options for spectrophotometric calibration. If not set, will leave data in units of <code class="docutils literal notranslate"><span class="pre">adu</span></code>.</p></li>
+<li><p><strong>combine</strong> (<em>CombineConfig</em>) – Options for frame combinations</p></li>
 <li><p><strong>calibrate</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CalibrateConfig" title="vampires_dpp.pipeline.config.CalibrateConfig"><em>CalibrateConfig</em></a>) – Options for basic image calibration</p></li>
 <li><p><strong>analysis</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.AnalysisConfig" title="vampires_dpp.pipeline.config.AnalysisConfig"><em>AnalysisConfig</em></a>) – Options for PSF/flux analysis in collapsed data</p></li>
-<li><p><strong>combine</strong> (<em>CombineConfig</em>) – Options for frame combinations</p></li>
 <li><p><strong>frame_select</strong> (<em>FrameSelectConfig</em>) – Options for frame selection</p></li>
-<li><p><strong>register</strong> – Options for frame registration</p></li>
+<li><p><strong>align</strong> (<em>AlignmentConfig</em>) – Options for frame alignment</p></li>
 <li><p><strong>coadd</strong> (<em>CoaddConfig</em>) – Options for coadding image cubes</p></li>
+<li><p><strong>specphot</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="vampires_dpp.pipeline.config.SpecphotConfig"><em>SpecphotConfig</em></a><em> | </em><em>None</em>) – If set, provides options for spectrophotometric calibration. If not set, will leave data in units of <code class="docutils literal notranslate"><span class="pre">adu</span></code>.</p></li>
 <li><p><strong>diff_images</strong> (<em>DiffImageConfig</em>) – Diagnostic difference imaging options. Double-differencing requires an FLC.</p></li>
-<li><p><strong>polarimetry</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.PolarimetryConfig" title="vampires_dpp.pipeline.config.PolarimetryConfig"><em>PolarimetryConfig</em></a><em> | </em><em>None</em>) – If set, provides options for polarimetric differential imaging (PDI)</p></li>
-<li><p><strong>align</strong> (<em>AlignmentConfig</em>)</p></li>
+<li><p><strong>polarimetry</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.PolarimetryConfig" title="vampires_dpp.pipeline.config.PolarimetryConfig"><em>PolarimetryConfig</em></a><em> | </em><em>None</em>) – If set, enables and provides settings for polarimetric differential imaging (PDI).</p></li>
 </ul>
 </dd>
 </dl>
@@ -601,15 +600,12 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>aper_rad</strong> – Aperture radius in pixels for circular aperture photometry. If “auto”, will use the FWHM from the file header.</p></li>
-<li><p><strong>ann_rad</strong> – If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.</p></li>
-<li><p><strong>subtract_radprof</strong> – If true, will subtract a radial profile for measuring centroids and Strehl ratio, but no other metrics</p></li>
-<li><p><strong>window_size</strong> (<em>int</em>) – The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate.</p></li>
-<li><p><strong>fit_psf_model</strong> (<em>bool</em>)</p></li>
-<li><p><strong>psf_model</strong> (<em>Literal</em><em>[</em><em>'moffat'</em><em>, </em><em>'gaussian'</em><em>]</em>)</p></li>
-<li><p><strong>photometry</strong> (<em>bool</em>)</p></li>
-<li><p><strong>phot_aper_rad</strong> (<em>float</em>)</p></li>
-<li><p><strong>phot_ann_rad</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>Literal</em><em>[</em><em>False</em><em>]</em>)</p></li>
+<li><p><strong>fit_psf_model</strong> (<em>bool</em>) – NOTE: BROKEN If true, fits a PSF model to each window</p></li>
+<li><p><strong>psf_model</strong> (<em>Literal</em><em>[</em><em>'moffat'</em><em>, </em><em>'gaussian'</em><em>]</em>) – NOTE: BROKEN PSF model to use</p></li>
+<li><p><strong>photometry</strong> (<em>bool</em>) – If true, will measure photometric sums in apertures at the centroid (or the DFT centroid if available)</p></li>
+<li><p><strong>phot_aper_rad</strong> (<em>float</em>) – Aperture radius in pixels for circular aperture photometry. If “auto”, will use the FWHM from the file header.</p></li>
+<li><p><strong>phot_ann_rad</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>Literal</em><em>[</em><em>False</em><em>]</em>) – If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.</p></li>
+<li><p><strong>window_size</strong> (<em>int</em>) – The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate. A size of 21 is a decent size to avoid including too much of the PSF halo around any coronagraph masks.</p></li>
 </ul>
 </dd>
 </dl>
@@ -668,8 +664,8 @@ cameras’ data to maintain accurate spectrophotometric calibration.</p>
 <li><p><strong>sptype</strong> (<em>str</em><em> | </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar spectral type. Note: must be one of the spectral types available in the pickles model atlas. Refer to the STScI documentation for more information on available spectral types.</p></li>
 <li><p><strong>mag</strong> (<em>float</em><em> | </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar reference magnitude</p></li>
 <li><p><strong>mag_band</strong> (<em>Literal</em><em>[</em><em>'U'</em><em>, </em><em>'B'</em><em>, </em><em>'V'</em><em>, </em><em>'r'</em><em>, </em><em>'i'</em><em>, </em><em>'J'</em><em>, </em><em>'H'</em><em>, </em><em>'K'</em><em>] </em><em>| </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar reference magnitude band</p></li>
+<li><p><strong>unit</strong> (<em>Literal</em><em>[</em><em>'e-/s'</em><em>, </em><em>'Jy'</em><em>, </em><em>'Jy/arcsec^2'</em><em>]</em>) – Output unit. (Note: e-/s is the default without spectrophotometry, and source calibration will be skipped)</p></li>
 <li><p><strong>flux_metric</strong> (<em>Literal</em><em>[</em><em>'photometry'</em><em>, </em><em>'sum'</em><em>]</em>) – Which frame analysis statistic to use for determining flux. “photometry” uses an aperture sum, while “sum” uses the sum in the analysis cutout window.</p></li>
-<li><p><strong>unit</strong> (<em>Literal</em><em>[</em><em>'e-/s'</em><em>, </em><em>'Jy'</em><em>, </em><em>'Jy/arcsec^2'</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
