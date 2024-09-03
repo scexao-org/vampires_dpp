@@ -381,7 +381,6 @@ def autocentroid_hdul(
 
     # for each frame (1, 3, or 4)
     for idx in range(len(fields)):
-        psfs[idx] /= np.nansum(psfs[idx])
         # find centroid of image with square scaling to help bias towards PSF
         rough_ctr = centroids.centroid_com(cutouts[idx].data ** 2, mask=np.isnan(cutouts[idx].data))
         # take a large crop, large enough to see satellite spots plus misregistration
