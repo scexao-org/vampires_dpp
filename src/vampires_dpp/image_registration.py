@@ -2,6 +2,7 @@ import itertools
 import logging
 from typing import Literal, TypeAlias
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.convolution import convolve_fft
@@ -17,6 +18,7 @@ from vampires_dpp.image_processing import shift_frame
 from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii, get_mbi_centers
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.synthpsf import create_synth_psf
+from vampires_dpp.util import get_center
 
 __all__ = ("register_hdul",)
 
@@ -90,6 +92,7 @@ def register_hdul(
     hdul: fits.HDUList,
     metrics,
     *,
+    init_centroids=None,
     align: bool = True,
     method: RegisterMethod = "dft",
     crop_width: int = 536,
@@ -103,6 +106,13 @@ def register_hdul(
     fields = determine_filterset_from_header(header)
     if align:
         centroids = get_centroids_from(metrics, method)
+    elif init_centroids is not None:
+        init_centroids = np.mean(list(init_centroids.values()), axis=1)
+        centroids = np.zeros((nframes, len(init_centroids), 2))
+        for j in range(centroids.shape[1]):
+            centroids[:, j] = get_center(
+                hdul[0].data, init_centroids[j], hdul[0].header["U_CAMERA"]
+            )
     elif "MBIR" in header["OBS-MOD"]:
         ctr_dict = get_mbi_centers(hdul[0].data, reduced=True)
         centroids = np.zeros((nframes, 3, 2))
@@ -324,7 +334,11 @@ def mask_circle(frame, inds, radius):
 
 
 def get_mbi_cutout(
-    data, camera: int, field: Literal["F610", "F670", "F720", "F760"], reduced: bool = False
+    data,
+    camera: int,
+    field: Literal["F610", "F670", "F720", "F760"],
+    reduced: bool = False,
+    cutout_size=536,
 ):
     hy, hx = frame_center(data)
     # use cam2 as reference
@@ -349,12 +363,13 @@ def get_mbi_cutout(
     # flip y axis for cam 1 indices
     if camera == 1:
         y = data.shape[-2] - y
-    return Cutout2D(data, (x, y), 300, mode="partial")
+    return Cutout2D(data, (x, y), cutout_size, mode="partial")
 
 
 def autocentroid_hdul(
     hdul: fits.HDUList,
     coronagraphic: bool = False,
+    planetary: bool = False,
     psfs=None,
     crop_size=200,
     window_size=21,
@@ -379,12 +394,15 @@ def autocentroid_hdul(
     else:
         cutouts = [Cutout2D(data, frame_center(data)[::-1], data.shape[-1])]
 
+    if plot:
+        fig, axs = plt.subplots(ncols=2)
     # for each frame (1, 3, or 4)
     for idx in range(len(fields)):
+        cutout = cutouts[idx]
         # find centroid of image with square scaling to help bias towards PSF
-        rough_ctr = centroids.centroid_com(cutouts[idx].data ** 2, mask=np.isnan(cutouts[idx].data))
+        rough_ctr = centroids.centroid_com(cutout.data**2, mask=np.isnan(cutout.data))
         # take a large crop, large enough to see satellite spots plus misregistration
-        rough_cutout = Cutout2D(cutouts[idx].data, rough_ctr, crop_size, mode="partial")
+        rough_cutout = Cutout2D(cutout.data, rough_ctr, crop_size, mode="partial")
         # high-pass filter the data with a large median-- note, this requires the data to have
         # a certain level of S/N or it will wipe out the satellite spots. Therefore it's only suggested
         # to run the autocentroid on a big stack of mean-combined data instead of individual frames
@@ -401,6 +419,17 @@ def autocentroid_hdul(
                     filtered_cutout, points[point_idx][::-1], psfs[idx].shape
                 ).slices_original
                 points[point_idx] = offset_dft(filtered_cutout, inds, psfs[idx])
+            # make sure to offset for indices
+            rough_points = [rough_cutout.to_original_position(p[::-1]) for p in points]
+            orig_points = [cutout.to_original_position(p) for p in rough_points]
+        elif planetary:
+            ellipse = fit_ellipse_to_image(cutout.data, psf=psfs[idx])
+            if plot:
+                plot_ellipse(cutout.data, ellipse, ax=axs[1])
+            ell_xy = ellipse[:2]
+            orig_points = [
+                [ell_xy[0] + cutout.origin_original[0], ell_xy[1] + cutout.origin_original[1]]
+            ]
         else:
             # otherwise use DFT cross-correlation to find the PSF localized around peak index
             ctr = np.unravel_index(np.nanargmax(filtered_cutout), filtered_cutout.shape)
@@ -408,23 +437,20 @@ def autocentroid_hdul(
                 filtered_cutout, ctr[::-1], size=psfs[idx].shape[-2:], mode="partial"
             ).slices_original
             points = [offset_dft(filtered_cutout, inds, psfs[idx])]
-        # make sure to offset for indices
-        rough_points = [rough_cutout.to_original_position(p[::-1]) for p in points]
-        orig_points = [cutouts[idx].to_original_position(p) for p in rough_points]
-        output.append(orig_points)
+            # make sure to offset for indices
+            rough_points = [rough_cutout.to_original_position(p[::-1]) for p in points]
+            orig_points = [cutout.to_original_position(p) for p in rough_points]
 
         ## plotting
         if plot:
-            fig, axs = plt.subplots(ncols=2)
-            norm = simple_norm(cutouts[idx].data, stretch="sqrt")
-            axs[0].imshow(cutouts[idx].data, origin="lower", cmap="magma", norm=norm)
+            norm = simple_norm(cutout.data, stretch="sqrt")
+            axs[0].imshow(cutout.data, origin="lower", cmap="magma", norm=norm)
             axs[0].scatter(*rough_ctr, marker="+", s=100, c="green")
             norm = None if coronagraphic else simple_norm(filtered_cutout, stretch="sqrt")
-            axs[1].imshow(filtered_cutout, origin="lower", cmap="magma", norm=norm)
 
-            axs[1].scatter(*rough_cutout.position_cutout, marker="+", s=100, c="green")
-
-            if points is not None:
+            if not planetary and points is not None:
+                axs[1].imshow(filtered_cutout, origin="lower", cmap="magma", norm=norm)
+                axs[1].scatter(*rough_cutout.position_cutout, marker="+", s=100, c="green")
                 xs = np.array([p[1] for p in points])
                 ys = np.array([p[0] for p in points])
                 axs[1].scatter(xs, ys, marker=".", s=100, c="cyan")
@@ -446,4 +472,71 @@ def autocentroid_hdul(
             fig.tight_layout()
             plt.show(block=True)
 
+        output.append(orig_points)
+
     return np.array(output)
+
+
+def ellipse_func(xy, x0, y0, a, b, theta):
+    """
+    Equation of an ellipse.
+    """
+    x, y = xy
+    cos_theta = np.cos(np.radians(theta))
+    sin_theta = np.sin(np.radians(theta))
+
+    term1 = (((x - x0) * cos_theta + (y - y0) * sin_theta) / a) ** 2
+    term2 = (((x - x0) * sin_theta - (y - y0) * cos_theta) / b) ** 2
+
+    return term1 + term2
+
+
+def fit_ellipse_to_image(data, psf=None):
+    """
+    Fit an ellipse to the bright region of the image (assuming Neptune).
+    :param image: Input grayscale image of Neptune.
+    :return: Parameters of the fitted ellipse (x0, y0, a, b, theta)
+    """
+    image = np.nan_to_num(data)
+    # Threshold the image to create a binary mask
+    # threshold = np.nanquantile(image, 0.7)
+    gray_img = np.array((image - image.min()) / (image.max() - image.min()) * 255, dtype=np.uint8)
+    if psf is None:
+        blurred = cv2.medianBlur(gray_img, 5)
+    else:
+        gray_psf = np.array((psf - psf.min()) / (psf.max() - psf.min()) * 255, dtype=np.uint8)
+        blurred = convolve_fft(gray_img, gray_psf)
+
+    _, thresholded = cv2.threshold(
+        blurred.astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
+    # frame_asu8 = image.astype(np.uint8)
+    # thresholded = cv2.adaptiveThreshold(frame_asu8, np.nanmax(frame_asu8), cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 7, 0)
+    contours, _ = cv2.findContours(thresholded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Assuming the largest contour corresponds to Neptune
+    largest_contour = max(contours, key=cv2.contourArea)
+
+    # Fit an ellipse to the largest contour
+    ellipse = cv2.fitEllipse(largest_contour)
+    (x0, y0), (a, b), theta = ellipse
+
+    return x0, y0, a / 2, b / 2, theta
+
+
+def plot_ellipse(image, ellipse_params, ax):
+    """
+    Plot the fitted ellipse on the image.
+    :param image: Input image.
+    :param ellipse_params: Parameters of the fitted ellipse (x0, y0, a, b, theta).
+    """
+    x0, y0, a, b, theta = ellipse_params
+    y, x = np.mgrid[: image.shape[0], : image.shape[1]]
+    fitted_ellipse = ellipse_func((x, y), x0, y0, a, b, theta)
+
+    # Create a mask from the fitted ellipse
+    ellipse_mask = fitted_ellipse <= 1
+
+    # Plot the image and the fitted ellipse
+    ax.imshow(image, cmap="magma", origin="lower")
+    ax.contour(ellipse_mask, [0.5], colors="cyan")
+    ax.scatter([x0], [y0], marker="x", s=100, color="cyan")  # Mark the center

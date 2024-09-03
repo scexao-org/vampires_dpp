@@ -224,6 +224,7 @@ class Pipeline:
         hdul = register_hdul(
             hdul,
             metrics,
+            init_centroids=self.centroids.get(f"cam{hdul[0].header['U_CAMERA']:.0f}", None),
             align=self.config.align.align,
             method=self.config.align.method,
             crop_width=self.config.align.crop_width,

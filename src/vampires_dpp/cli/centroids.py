@@ -133,6 +133,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
                 autocentroid_hdul(
                     input_hdul,
                     coronagraphic=pipeline_config.coronagraphic,
+                    planetary=pipeline_config.planetary,
                     window_size=pipeline_config.analysis.window_size,
                     plot=plot,
                 )

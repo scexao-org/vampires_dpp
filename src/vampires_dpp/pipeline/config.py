@@ -399,6 +399,8 @@ class PipelineConfig(BaseModel):
         The version of vampires_dpp that this configuration file is valid with. Typically not set by user.
     coronagraphic:
         If true will use coronagraphic routines for processing.
+    planetary:
+        If true will use planetary routines for processing.
     save_adi_cubes:
         If true, will save ADI cubes and derotation angles in product directory.
     target:
@@ -426,6 +428,7 @@ class PipelineConfig(BaseModel):
     name: str = ""
     dpp_version: str = dpp.__version__
     coronagraphic: bool = False
+    planetary: bool = False
     save_adi_cubes: bool = False
     target: TargetConfig | None = None
     combine: CombineConfig = CombineConfig()
