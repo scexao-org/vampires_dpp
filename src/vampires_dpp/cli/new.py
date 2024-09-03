@@ -218,7 +218,7 @@ def get_frame_select_settings(template: PipelineConfig) -> PipelineConfig:
             type=click.Choice(metric_choices, case_sensitive=False),
             default=template.frame_select.metric,
         )
-        template.frame_select.select_cutoff = click.prompt(
+        template.frame_select.cutoff = click.prompt(
             " - Enter a cutoff quantile (0 to 1, larger means more discarding)", type=float
         )
         readline.set_completer()

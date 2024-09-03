@@ -7,6 +7,7 @@ import numpy as np
 from astropy.convolution import convolve_fft
 from astropy.io import fits
 from astropy.nddata import Cutout2D
+from astropy.visualization import simple_norm
 from image_registration import chi2_shift
 from photutils import centroids
 from skimage import filters
@@ -355,7 +356,7 @@ def autocentroid_hdul(
     hdul: fits.HDUList,
     coronagraphic: bool = False,
     psfs=None,
-    crop_size=200,
+    crop_size=150,
     window_size=21,
     plot: bool = False,
 ):
@@ -398,7 +399,9 @@ def autocentroid_hdul(
         else:
             # otherwise use DFT cross-correlation to find the PSF localized around peak index
             ctr = np.unravel_index(np.nanargmax(filtered_cutout), filtered_cutout.shape)
-            inds = cutout_inds(filtered_cutout, center=ctr, window=window_size)
+            inds = Cutout2D(
+                filtered_cutout, ctr[::-1], size=psfs[idx].shape[-2:], mode="partial"
+            ).slices_original
             points = [offset_dft(filtered_cutout, inds, psfs[idx])]
         # make sure to offset for indices
         rough_points = [rough_cutout.to_original_position(p[::-1]) for p in points]
@@ -408,9 +411,11 @@ def autocentroid_hdul(
         ## plotting
         if plot:
             fig, axs = plt.subplots(ncols=2)
-            axs[0].imshow(cutouts[idx].data, origin="lower", cmap="magma")
+            norm = simple_norm(cutouts[idx].data, stretch="sqrt")
+            axs[0].imshow(cutouts[idx].data, origin="lower", cmap="magma", norm=norm)
             axs[0].scatter(*rough_ctr, marker="+", s=100, c="green")
-            axs[1].imshow(filtered_cutout, origin="lower", cmap="magma")
+            norm = None if coronagraphic else simple_norm(filtered_cutout, stretch="sqrt")
+            axs[1].imshow(filtered_cutout, origin="lower", cmap="magma", norm=norm)
 
             axs[1].scatter(*rough_cutout.position_cutout, marker="+", s=100, c="green")
 
@@ -433,6 +438,7 @@ def autocentroid_hdul(
             axs[0].set_title("Starting cutout")
             axs[1].set_title("Centroided cutout")
             fig.suptitle(fields[idx])
+            fig.tight_layout()
             plt.show(block=True)
 
     return np.array(output)
