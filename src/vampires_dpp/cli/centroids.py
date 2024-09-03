@@ -124,12 +124,16 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
         input_hduls_dict = create_raw_input_psfs(table, basename=name, max_files=number_files)
         centroids = {}
         for key, input_hdul in input_hduls_dict.items():
-            centroids[key] = autocentroid_hdul(
-                input_hdul,
-                coronagraphic=pipeline_config.coronagraphic,
-                window_size=pipeline_config.analysis.window_size,
-                plot=plot,
+            centroids[key] = (
+                autocentroid_hdul(
+                    input_hdul,
+                    coronagraphic=pipeline_config.coronagraphic,
+                    window_size=pipeline_config.analysis.window_size,
+                    plot=plot,
+                )
+                + 1
             )
+            # add 1 to get back to ds9 from numpy coords
 
     # save outputs
     basename = paths.aux / f"{pipeline_config.name}_centroids"

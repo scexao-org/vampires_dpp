@@ -405,7 +405,7 @@ def autocentroid_hdul(
             points = [offset_dft(filtered_cutout, inds, psfs[idx])]
         # make sure to offset for indices
         rough_points = [rough_cutout.to_original_position(p[::-1]) for p in points]
-        orig_points = [cutouts[idx].to_original_position(p)[::-1] for p in rough_points]
+        orig_points = [cutouts[idx].to_original_position(p) for p in rough_points]
         output.append(orig_points)
 
         ## plotting
