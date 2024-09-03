@@ -12,6 +12,7 @@ from vampires_dpp.pipeline.config import (
     TargetConfig,
 )
 from vampires_dpp.specphot.filters import FILTERS
+from vampires_dpp.specphot.pickles import check_spectral_type_in_pickles
 from vampires_dpp.specphot.query import (
     get_simbad_flux,
     get_simbad_table,
@@ -329,6 +330,7 @@ def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
                 sptype = re.match(r"\w\d[IV]{0,3}", simbad_table["SP_TYPE"][0]).group()
                 if len(sptype) == 2:
                     sptype += "V"
+
                 ucac_table = get_ucac_table(template.target.name)
                 ucac_res = get_ucac_flux(ucac_table)
                 if ucac_res is not None:
@@ -348,6 +350,9 @@ def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
                 mag_band = "V"
                 sptype = "G0V"
             sptype = click.prompt(" - Enter spectral type", default=sptype)
+            while not check_spectral_type_in_pickles(sptype):
+                sptype = click.prompt(" - Enter spectral type", default=sptype)
+
             mag = click.prompt(" - Enter source magnitude", default=mag, type=float)
             mag_band = click.prompt(
                 " - Enter source magnitude passband",
