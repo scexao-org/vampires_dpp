@@ -123,6 +123,8 @@ class SpecphotConfig(BaseModel):
         Only used if `source` is "pickles". Stellar reference magnitude
     mag_band:
         Only used if `source` is "pickles". Stellar reference magnitude band
+    unit:
+        Output unit. (Note: e-/s is the default without spectrophotometry, and source calibration will be skipped)
     flux_metric:
         Which frame analysis statistic to use for determining flux. "photometry" uses an aperture sum, while "sum" uses the sum in the analysis cutout window.
     """
@@ -130,8 +132,8 @@ class SpecphotConfig(BaseModel):
     source: Literal["pickles"] | Path = "pickles"
     sptype: str | None = None
     mag: float | None = None
-    unit: Literal["e-/s", "Jy", "Jy/arcsec^2"] = "Jy"
     mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = "V"
+    unit: Literal["e-/s", "Jy", "Jy/arcsec^2"] = "Jy"
     flux_metric: Literal["photometry", "sum"] = "photometry"
 
 
@@ -200,14 +202,18 @@ class AnalysisConfig(BaseModel):
 
     Parameters
     ----------
-    aper_rad:
+    fit_psf_model:
+        NOTE: BROKEN If true, fits a PSF model to each window
+    psf_model:
+        NOTE: BROKEN PSF model to use
+    photometry:
+        If true, will measure photometric sums in apertures at the centroid (or the DFT centroid if available)
+    phot_aper_rad:
         Aperture radius in pixels for circular aperture photometry. If "auto", will use the FWHM from the file header.
-    ann_rad:
+    phot_ann_rad:
         If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.
-    subtract_radprof:
-        If true, will subtract a radial profile for measuring centroids and Strehl ratio, but no other metrics
     window_size:
-        The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate.
+        The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate. A size of 21 is a decent size to avoid including too much of the PSF halo around any coronagraph masks.
     """
 
     fit_psf_model: bool = False
@@ -231,6 +237,8 @@ class CombineConfig(BaseModel):
     Parameters
     ----------
     method:
+    save_intermediate:
+        If true, will save the combined data cubes into the ``<output>/combined`` folder (WARNING can lead to insane data volume)
     """
 
     method: Literal["cube", "pdi"] = "cube"
@@ -250,7 +258,7 @@ class FrameSelectConfig(BaseModel):
         If ``frame_select`` is provided, this is the cutoff _quantile_ (from 0 to 1), where 0.2 means 20% of the frames
         from each cube will be discarded according the the selection metric.
     save_intermediate:
-        If true, will save the frame-selected files to the `frame_select` folder (WARNING can lead to insane data volume)
+        If true, will save the frame-selected files to the ``<output>frame_select`` folder (WARNING can lead to insane data volume)
     """
 
     frame_select: bool = False
@@ -267,12 +275,15 @@ class AlignmentConfig(BaseModel):
     align:
         If true, data will be aligned by the give method
     method:
+        Alignment method, (if "dft" is not provided, it will not be measured at all)
+    crop_width:
+        Post-alignment crop width, should be roughly equal to FOV. Cropped data can set this lower for reduced memory footprint.
     save_intermediate:
-        If true, will save the registered files to the ``registered`` folder (WARNING can lead to insance data volume)
+        If true, will save the registered files to the ``<output>/registered`` folder (WARNING can lead to insance data volume)
     """
 
     align: bool = True
-    method: Literal["dft", "com", "peak", "model"] = "dft"
+    method: Literal["dft", "com", "peak"] = "dft"
     crop_width: int = 536
     save_intermediate: bool = False
 
@@ -392,24 +403,24 @@ class PipelineConfig(BaseModel):
         If true, will save ADI cubes and derotation angles in product directory.
     target:
         If set, provides options for target object, primarily coordinates. If not set, will use header values.
-    specphot:
-        If set, provides options for spectrophotometric calibration. If not set, will leave data in units of ``adu``.
+    combine:
+        Options for frame combinations
     calibrate:
         Options for basic image calibration
     analysis:
         Options for PSF/flux analysis in collapsed data
-    combine:
-        Options for frame combinations
     frame_select:
         Options for frame selection
-    register:
-        Options for frame registration
+    align:
+        Options for frame alignment
     coadd:
         Options for coadding image cubes
+    specphot:
+        If set, provides options for spectrophotometric calibration. If not set, will leave data in units of ``adu``.
     diff_images:
         Diagnostic difference imaging options. Double-differencing requires an FLC.
     polarimetry:
-        If set, provides options for polarimetric differential imaging (PDI)
+        If set, enables and provides settings for polarimetric differential imaging (PDI).
     """
 
     name: str = ""
