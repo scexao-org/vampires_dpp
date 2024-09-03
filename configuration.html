@@ -444,6 +444,7 @@ document.write(`
 <li><p><strong>name</strong> (<em>str</em>) – filename-friendly name used for outputs from this pipeline. For example “20230101_ABAur”</p></li>
 <li><p><strong>dpp_version</strong> (<em>str</em>) – The version of vampires_dpp that this configuration file is valid with. Typically not set by user.</p></li>
 <li><p><strong>coronagraphic</strong> (<em>bool</em>) – If true will use coronagraphic routines for processing.</p></li>
+<li><p><strong>planetary</strong> (<em>bool</em>) – If true will use planetary routines for processing.</p></li>
 <li><p><strong>save_adi_cubes</strong> (<em>bool</em>) – If true, will save ADI cubes and derotation angles in product directory.</p></li>
 <li><p><strong>target</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.TargetConfig" title="vampires_dpp.pipeline.config.TargetConfig"><em>TargetConfig</em></a><em> | </em><em>None</em>) – If set, provides options for target object, primarily coordinates. If not set, will use header values.</p></li>
 <li><p><strong>combine</strong> (<em>CombineConfig</em>) – Options for frame combinations</p></li>
