@@ -82,8 +82,8 @@ def save_centroids(
 @click.command(name="centroid", help="Get image centroid estimates")
 @click.option("-m", "--manual", is_flag=True, default=False, help="Enter centroids manually")
 @click.option(
-    "-p",
-    "--plot",
+    "-p/-np",
+    "--plot/--no-plot",
     is_flag=True,
     default=bool(os.environ.get("DISPLAY", None)),
     help="Show centroiding plots (requires a display)",
