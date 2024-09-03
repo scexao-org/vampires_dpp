@@ -716,7 +716,8 @@ Mueller-matrix model.</p></li>
 <li><p><strong>ip_method</strong> (<em>Literal</em><em>[</em><em>'aperture'</em><em>, </em><em>'annulus'</em><em>]</em>) – If <code class="docutils literal notranslate"><span class="pre">ip_correct=True</span></code> this determines the region type for IP measurement.</p></li>
 <li><p><strong>ip_radius</strong> (<em>float</em>) – The first radius for IP correction, if set. For “aperture” this is the radius, for “annulus” this is the inner radius.</p></li>
 <li><p><strong>ip_radius2</strong> (<em>float</em><em> | </em><em>None</em>) – The second radius for IP correction. This is only used if <code class="docutils literal notranslate"><span class="pre">ip_method=&quot;annulus&quot;</span></code>- this is the outer radius.</p></li>
-<li><p><strong>planetary</strong> (<em>bool</em>) – If true, will save the plneatary radial Stokes (Qr, Ur) instead of (Qphi, Uphi).</p></li>
+<li><p><strong>planetary</strong> – If true, will save the plneatary radial Stokes (Qr, Ur) instead of (Qphi, Uphi).</p></li>
+<li><p><strong>cyl_stokes</strong> (<em>Literal</em><em>[</em><em>'azimuthal'</em><em>, </em><em>'radial'</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
