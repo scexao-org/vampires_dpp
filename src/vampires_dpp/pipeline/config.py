@@ -375,7 +375,7 @@ class PolarimetryConfig(BaseModel):
     ip_method: Literal["aperture", "annulus"] = "aperture"
     ip_radius: float = 15
     ip_radius2: float | None = None
-    planetary: bool = False
+    cyl_stokes: Literal["azimuthal", "radial"] = "azimuthal"
 
 
 class PipelineConfig(BaseModel):
