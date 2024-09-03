@@ -424,8 +424,6 @@ def autocentroid_hdul(
             orig_points = [cutout.to_original_position(p) for p in rough_points]
         elif planetary:
             ellipse = fit_ellipse_to_image(cutout.data, psf=psfs[idx])
-            if plot:
-                plot_ellipse(cutout.data, ellipse, ax=axs[1])
             ell_xy = ellipse[:2]
             orig_points = [
                 [ell_xy[0] + cutout.origin_original[0], ell_xy[1] + cutout.origin_original[1]]
@@ -448,7 +446,9 @@ def autocentroid_hdul(
             axs[0].scatter(*rough_ctr, marker="+", s=100, c="green")
             norm = None if coronagraphic else simple_norm(filtered_cutout, stretch="sqrt")
 
-            if not planetary and points is not None:
+            if planetary:
+                plot_ellipse(cutout.data, ellipse, ax=axs[1])
+            elif points is not None:
                 axs[1].imshow(filtered_cutout, origin="lower", cmap="magma", norm=norm)
                 axs[1].scatter(*rough_cutout.position_cutout, marker="+", s=100, c="green")
                 xs = np.array([p[1] for p in points])
@@ -468,7 +468,7 @@ def autocentroid_hdul(
 
             axs[0].set_title("Starting cutout")
             axs[1].set_title("Centroided cutout")
-            fig.suptitle(fields[idx])
+            fig.suptitle(f"Field: {fields[idx]}")
             fig.tight_layout()
             plt.show(block=True)
 

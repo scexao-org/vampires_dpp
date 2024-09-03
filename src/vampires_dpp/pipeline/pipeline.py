@@ -81,6 +81,9 @@ class Pipeline:
             self.calib_table = header_table(
                 self.config.calibrate.calib_directory.glob("**/[!.]*.fits"), quiet=True
             )
+            if len(self.calib_table) == 0:
+                msg = f"Could not find any FITS files in {self.config.calibrate.calib_directory} double-check config or set `calib_directory` to False"
+                raise ValueError(msg)
 
         self.output_paths = []
         with mp.Pool(num_proc) as pool:
@@ -542,7 +545,7 @@ class Pipeline:
         if nfields > 1:
             stokes_cube_path = self.paths.pdi / f"{self.config.name}_stokes_cube.fits"
             write_stokes_products(
-                hdul, outname=stokes_cube_path, force=True, planetary=config.planetary
+                hdul, outname=stokes_cube_path, force=True, planetary=config.cyl_stokes == "radial"
             )
             logger.info(f"Saved Stokes cube to {stokes_cube_path}")
 
@@ -563,7 +566,7 @@ class Pipeline:
         # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(
-            hdul, outname=stokes_coll_path, force=True, planetary=config.planetary
+            hdul, outname=stokes_coll_path, force=True, planetary=config.cyl_stokes == "radial"
         )
         logger.info(f"Saved collapsed Stokes cube to {stokes_coll_path}")
 

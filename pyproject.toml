@@ -18,7 +18,10 @@ dependencies = [
     "bottleneck",
     "click",
     "hcipy",
+    
+    "image-registration",
     "loguru",
+    "matplotlib",
     "numpy",
     "opencv_python",
     "pandas",
@@ -33,7 +36,6 @@ dependencies = [
     "tomli_w",
     "tomli",
     "tqdm",
-    "image-registration"
 ]
 
 [project.urls]

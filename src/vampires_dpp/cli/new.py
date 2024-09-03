@@ -111,6 +111,8 @@ def get_target_settings(template: PipelineConfig) -> PipelineConfig:
 def get_base_settings(template: PipelineConfig) -> PipelineConfig:
     ## Coronagraph
     template.coronagraphic = click.confirm("Did you use a coronagraph?", default=False)
+    if not template.coronagraphic:
+        template.planetary = click.confirm("Was this a planet/solar system object?", default=False)
     template.save_adi_cubes = click.confirm(
         "Would you like to save ADI cubes?", default=template.save_adi_cubes
     )
@@ -420,6 +422,12 @@ def get_pdi_settings(template: PipelineConfig) -> PipelineConfig:
                 ann_rad = list(map(float, resp.replace(" ", "").split(",")))
                 template.polarimetry.ip_radius = ann_rad[0]
                 template.polarimetry.ip_radius2 = ann_rad[1]
+
+        template.polarimetry.cyl_stokes = click.prompt(
+            " - Choose cylindrical Stokes system",
+            type=click.Choice(["azimuthal", "radial"], case_sensitive=False),
+            default=template.polarimetry.cyl_stokes,
+        )
     else:
         template.polarimetry = None
 
