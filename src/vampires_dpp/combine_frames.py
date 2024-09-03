@@ -13,6 +13,7 @@ from vampires_dpp.headers import sort_header
 from vampires_dpp.organization import dict_from_header
 from vampires_dpp.util import delta_angle, hst_from_ut_time, iso_time_stats, load_fits
 
+from .headers import fix_header
 from .image_processing import crop_to_nans_inds
 from .paths import any_file_newer
 
@@ -86,20 +87,28 @@ def generate_framelist_for_hwp_angles(table: pd.DataFrame, key: tuple[int, str])
 #     return pd.DataFrame(framelist)
 
 
-def _merge_two_hdul(hdul1, hdul2):
+def _merge_two_hdul(hdul1, hdul2, fix: bool = False):
     hdul_out = hdul1.copy()
     for idx in range(len(hdul_out)):
         data1 = hdul1[idx].data
         hdr1 = hdul1[idx].header
         data2 = hdul2[idx].data
         hdr2 = hdul2[idx].header
+        if fix:
+            hdr1 = fix_header(hdr1)
+            hdr2 = fix_header(hdr2)
         hdul_out[idx].data = np.vstack((data1, data2))
         hdul_out[idx].header = combine_frames_headers((hdr1, hdr2), wcs=True)
     return hdul_out
 
 
-def combine_hduls(hduls: list[fits.HDUList]):
-    return functools.reduce(_merge_two_hdul, hduls)
+def combine_hduls(hduls: list[fits.HDUList], **kwargs):
+    func = functools.partial(_merge_two_hdul, **kwargs)
+    return functools.reduce(func, hduls)
+
+
+def combine_filelist(filelist, **kwargs):
+    return combine_hduls([fits.open(f) for f in filelist], **kwargs)
 
 
 def combine_frames(frames, headers=None, **kwargs):
@@ -238,10 +247,16 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
         # need to get average CRVALs and PCs
         output_header["CRVAL1"] = np.rad2deg(ave_ra), test_header.comments["CRVAL1"]
         output_header["CRVAL2"] = np.rad2deg(ave_dec), test_header.comments["CRVAL2"]
-        output_header["PC1_1"] = table["PC1_1"].mean(), test_header.comments["PC1_1"]
-        output_header["PC1_2"] = table["PC1_2"].mean(), test_header.comments["PC1_2"]
-        output_header["PC2_1"] = table["PC2_1"].mean(), test_header.comments["PC2_1"]
-        output_header["PC2_2"] = table["PC2_2"].mean(), test_header.comments["PC2_2"]
+        if "PC1_1" in test_header:
+            output_header["PC1_1"] = table["PC1_1"].mean(), test_header.comments["PC1_1"]
+            output_header["PC1_2"] = table["PC1_2"].mean(), test_header.comments["PC1_2"]
+            output_header["PC2_1"] = table["PC2_1"].mean(), test_header.comments["PC2_1"]
+            output_header["PC2_2"] = table["PC2_2"].mean(), test_header.comments["PC2_2"]
+        elif "CD1_1" in test_header:
+            output_header["CD1_1"] = table["CD1_1"].mean(), test_header.comments["CD1_1"]
+            output_header["CD1_2"] = table["CD1_2"].mean(), test_header.comments["CD1_2"]
+            output_header["CD2_1"] = table["CD2_1"].mean(), test_header.comments["CD2_1"]
+            output_header["CD2_2"] = table["CD2_2"].mean(), test_header.comments["CD2_2"]
     else:
         wcskeys = filter(
             lambda k: any(wcsk.startswith(k) for wcsk in WCS_KEYS), output_header.keys()

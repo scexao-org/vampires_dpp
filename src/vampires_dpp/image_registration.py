@@ -277,7 +277,7 @@ def test_triangle_plus_one_is_square(
     )
 
 
-def find_square_satspots(frame, radius=3, max_counter=50):
+def find_square_peaks(frame, radius=3, max_counter=50):
     # initialize
     frame = frame.copy().astype("f4")  # because we're writing NaN's in place
     max_ind = np.nanargmax(frame)
@@ -356,7 +356,7 @@ def autocentroid_hdul(
     hdul: fits.HDUList,
     coronagraphic: bool = False,
     psfs=None,
-    crop_size=150,
+    crop_size=200,
     window_size=21,
     plot: bool = False,
 ):
@@ -395,7 +395,13 @@ def autocentroid_hdul(
 
         # when using the coronagraph, find four maxima which form a square
         if coronagraphic:
-            points = find_square_satspots(filtered_cutout)
+            points = find_square_peaks(filtered_cutout)
+            # refine with DFT
+            for point_idx in range(len(points)):
+                inds = Cutout2D(
+                    filtered_cutout, points[point_idx][::-1], psfs[idx].shape
+                ).slices_original
+                points[point_idx] = offset_dft(filtered_cutout, inds, psfs[idx])
         else:
             # otherwise use DFT cross-correlation to find the PSF localized around peak index
             ctr = np.unravel_index(np.nanargmax(filtered_cutout), filtered_cutout.shape)

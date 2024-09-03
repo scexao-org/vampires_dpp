@@ -9,7 +9,7 @@ import tomli_w
 from astropy.io import fits
 from numpy.typing import NDArray
 
-from vampires_dpp.coadd import collapse_frames_files
+from vampires_dpp.coadd import collapse_cubes_filelist
 from vampires_dpp.image_registration import autocentroid_hdul
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths
@@ -51,10 +51,15 @@ def create_raw_input_psfs(table, basename: Path, max_files=5) -> dict[str, Path]
     for cam_num, group in table.groupby("U_CAMERA"):
         paths = group["path"].sample(n=min(len(group), max_files))
         outname = basename.with_name(f"{basename.name}_cam{cam_num:.0f}.fits")
-        outfile = collapse_frames_files(paths, output=outname, fix=True, quiet=False)
-        outhdul = fits.open(outfile)
-        outhduls[f"cam{cam_num:.0f}"] = outhdul
-        logger.info(f"Saved raw PSF frame to {outname}")
+        if outname.exists():
+            logger.info(f"Loading raw PSF frame from {outname}")
+            hdul = fits.open(outname)
+        else:
+            logger.info(f"Creating mean frame from {len(paths)} files")
+            hdul = collapse_cubes_filelist(paths, fix=True)
+            hdul.writeto(outname, overwrite=True)
+            logger.info(f"Saved raw PSF frame to {outname}")
+        outhduls[f"cam{cam_num:.0f}"] = hdul
     return outhduls
 
 
@@ -120,7 +125,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
     else:
         name = paths.aux / f"{pipeline_config.name}_raw_psf"
         # choose 4 to 20 files, depending on file size (avoid loading more than 500 frames, ~2GB of MBI)
-        number_files = max(4, min(20, 500 // table["NAXIS3"].median()))
+        number_files = max(4, min(10, 500 // table["NAXIS3"].median()))
         input_hduls_dict = create_raw_input_psfs(table, basename=name, max_files=number_files)
         centroids = {}
         for key, input_hdul in input_hduls_dict.items():
