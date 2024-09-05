@@ -75,6 +75,7 @@ def analyze_fields(
     inds,
     *,
     do_phot: bool = True,
+    do_strehl: bool = False,
     aper_rad=4,
     ann_rad=None,
     psf=None,
@@ -131,12 +132,100 @@ def analyze_fields(
             )
             create_or_append(output, "photf", phot)
             create_or_append(output, "phote", photerr)
+
         # t4 = time.perf_counter()
         # print(f"Time to radial profile for one frame: {t4 - t3} [s]")
+        if do_strehl and psf is not None:
+            strehl = measure_strehl(frame, psf, pos=ctr_est)
+            create_or_append(output, "strehl", strehl)
 
     # t2 = time.perf_counter()
     # print(f"Average time for centroids: {(t2 - t1)/cube.shape[0]} [s]")
     return output
+
+
+def measure_strehl(image, psf_model, pos=None, phot_rad=8):
+    if pos is None:
+        pos = frame_center(image)
+
+    image_norm_peak = find_norm_peak(image, pos, phot_rad=phot_rad)
+    ## Step 3: Calculate flux of PSF model
+    # note: our models are alrady centered
+    # note: our models have zero background signal
+    model_norm_peak = find_norm_peak(psf_model, frame_center(psf_model), phot_rad=phot_rad)
+    ## Step 4: Calculate Strehl via normalized ratio
+    strehl = image_norm_peak / model_norm_peak
+    # bad strehls become negative
+    if strehl < 0 or strehl > 1:
+        return -1
+
+    return strehl
+
+
+## This is not my code, I'd love to see ways to improve it
+def find_norm_peak(image, center, window_size=10, phot_rad=8, oversamp=4) -> float:
+    """
+    usage: peak = find_peak(image, xc, yc, boxsize)
+    finds the subpixel peak of an image
+
+    image: an image of a point source for which we would like to find the peak
+    xc, yc: approximate coordinate of the point source
+    boxsize: region in which most of the flux is contained (typically 20)
+    oversamp: how many times to oversample the image in the FFT interpolation in order to find the peak
+
+    :return: peak of the oversampled image
+
+    Marcos van Dam, October 2022, translated from IDL code of the same name
+    """
+    boxhalf = int(np.ceil(window_size / 2))
+    window_size = 2 * boxhalf
+    ext = np.array(window_size * oversamp, dtype=int)
+
+    # need to deconvolve the image by dividing by a sinc in order to "undo" the sampling
+    fftsinc = np.zeros(ext)
+    fftsinc[:oversamp] = 1
+
+    sinc = (
+        window_size
+        * np.fft.fft(fftsinc, norm="forward")
+        * np.exp(
+            1j * np.pi * (oversamp - 1) * np.roll(np.arange(-ext / 2, ext / 2), int(ext / 2)) / ext
+        )
+    )
+    sinc = sinc.real
+    sinc = np.roll(sinc, int(ext / 2))
+    sinc = sinc[int(ext / 2) - window_size // 2 : ext // 2 + window_size // 2]
+    sinc2d = np.outer(sinc, sinc)
+
+    # define a box around the center of the star
+    blx = int(np.floor(center[1] - boxhalf))
+    bly = int(np.floor(center[0] - boxhalf))
+
+    # make sure that the box is contained by the image
+    blx = np.clip(blx, 0, image.shape[0] - window_size)
+    bly = np.clip(bly, 0, image.shape[1] - window_size)
+
+    # extract the star
+    subim = image[bly : bly + window_size, blx : blx + window_size]
+
+    # deconvolve the image by dividing by a sinc in order to "undo" the pixelation
+    fftim1 = np.fft.fft2(subim, norm="forward")
+    shfftim1 = np.roll(fftim1, (-boxhalf, -boxhalf), axis=(1, 0))
+    shfftim1 /= sinc2d  # deconvolve
+
+    zpshfftim1 = np.zeros((oversamp * window_size, oversamp * window_size), dtype=np.complex64)
+    zpshfftim1[0:window_size, 0:window_size] = shfftim1
+
+    zpfftim1 = np.roll(zpshfftim1, (-boxhalf, -boxhalf), axis=(1, 0))
+    subimupsamp = np.real(np.fft.ifft2(zpfftim1, norm="forward"))
+
+    peak = np.nanmax(subimupsamp)
+
+    norm_val, _, _ = sep.sum_circle(
+        image.astype("f4"), (center[1],), (center[0],), phot_rad, mask=np.isnan(image)
+    )
+
+    return peak / norm_val[0]
 
 
 def analyze_file(
@@ -148,10 +237,14 @@ def analyze_file(
     force=False,
     window_size=21,
     do_phot: bool = True,
+    do_strehl: bool = False,
     psfs=None,
     fit_psf_model: bool = False,
     psf_model: Literal["moffat", "gauss"] = "moffat",
 ):
+    if do_strehl and psfs is None:
+        msg = "Cannot measure strehl without PSF models!"
+        raise ValueError(msg)
     if not force and outpath.is_file():
         return outpath
 
@@ -181,6 +274,7 @@ def analyze_file(
                 aper_rad=aper_rad,
                 ann_rad=ann_rad,
                 do_phot=do_phot,
+                do_strehl=do_strehl,
                 psf=psf,
                 fit_psf_model=fit_psf_model,
                 psf_model=psf_model,

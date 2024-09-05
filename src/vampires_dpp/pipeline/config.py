@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 import astropy.units as u
 import tomli
@@ -212,6 +212,8 @@ class AnalysisConfig(BaseModel):
         Aperture radius in pixels for circular aperture photometry. If "auto", will use the FWHM from the file header.
     phot_ann_rad:
         If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.
+    strehl:
+        If true, will measure the Strehl ratio by comparing the PSF peak to the synthetic PSF peak, normalized by the flux in an aperture 16 pixels wide.
     window_size:
         The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate. A size of 21 is a decent size to avoid including too much of the PSF halo around any coronagraph masks.
     """
@@ -219,8 +221,9 @@ class AnalysisConfig(BaseModel):
     fit_psf_model: bool = False
     psf_model: Literal["moffat", "gaussian"] = "moffat"
     photometry: bool = True
-    phot_aper_rad: float = 4
+    phot_aper_rad: float = 8
     phot_ann_rad: Sequence[float] | Literal[False] = False
+    strehl: bool = True
     window_size: int = 21
 
 
@@ -262,7 +265,7 @@ class FrameSelectConfig(BaseModel):
     """
 
     frame_select: bool = False
-    metric: Literal["max", "l2norm", "normvar"] = "normvar"
+    metric: Literal["max", "l2norm", "normvar", "strehl"] = "strehl"
     cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
     save_intermediate: bool = False
 
@@ -440,6 +443,16 @@ class PipelineConfig(BaseModel):
     specphot: SpecphotConfig | None = None
     diff_images: DiffImageConfig = DiffImageConfig()
     polarimetry: PolarimetryConfig | None = None
+
+    def model_post_init(self, __context: Any) -> None:
+        if (
+            self.frame_select.frame_select
+            and self.frame_select.metric == "strehl"
+            and not self.analysis.strehl
+        ):
+            msg = "You must set `strehl=true` in the analysis section if you want to use the Strehl ratio as a selection metric"
+            raise ValueError(msg)
+        return super().model_post_init(__context)
 
     @classmethod
     def from_file(cls, filename: PathLike):

@@ -10,10 +10,10 @@ __all__ = ("frame_select_hdul", "FrameSelectMetric")
 
 logger = logging.getLogger(__file__)
 
-FrameSelectMetric: TypeAlias = Literal["max", "l2norm", "normvar"]
+FrameSelectMetric: TypeAlias = Literal["max", "l2norm", "normvar", "strehl"]
 
 
-FRAME_SELECT_MAP: Final = {"peak": "max", "normvar": "nvar", "l2norm": "var"}
+FRAME_SELECT_MAP: Final = {"peak": "max", "normvar": "nvar", "l2norm": "var", "strehl": "strehl"}
 
 
 def frame_select_hdul(
@@ -21,7 +21,7 @@ def frame_select_hdul(
     metrics,
     *,
     quantile: Annotated[float, Interval(ge=0, le=1)] = 0,
-    metric: FrameSelectMetric = "normvar",
+    metric: FrameSelectMetric = "strehl",
 ) -> tuple[fits.HDUList, dict[str, NDArray]]:
     if quantile == 0:
         logger.debug("Skipping frame selection because quantile was 0")
@@ -47,9 +47,9 @@ def frame_select_hdul(
 
     # update header info
     info = fits.Header()
-    info["hierarch DPP FRAME_SELECT METRIC"] = metric, "Frame selection metric"
-    info["hierarch DPP FRAME_SELECT QUANTILE"] = quantile, "Frame selection quantile"
-    info["hierarch DPP FRAME_SELECT CUTOFF"] = (
+    info["hierarch DPP SELECT METRIC"] = metric, "Frame selection metric"
+    info["hierarch DPP SELECT QUANTILE"] = quantile, "Frame selection quantile"
+    info["hierarch DPP SELECT CUTOFF"] = (
         np.median(cutoff),
         f"[{bunit}] median frame selection cutoff value",
     )

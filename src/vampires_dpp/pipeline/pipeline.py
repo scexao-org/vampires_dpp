@@ -331,6 +331,7 @@ class Pipeline:
             do_phot=config.photometry,
             fit_psf_model=config.fit_psf_model,
             psf_model=config.psf_model,
+            do_strehl=config.strehl,
             outpath=metric_file,
             force=force,
         )
