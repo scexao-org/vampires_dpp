@@ -335,7 +335,11 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame Collapsing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.coadd">Frame Collapsing</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.coadd.collapse_cube"><code class="docutils literal notranslate"><span class="pre">collapse_cube()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.coadd.weighted_collapse"><code class="docutils literal notranslate"><span class="pre">weighted_collapse()</span></code></a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -349,8 +353,49 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.image_registration">
 <span id="image-registration"></span><h1>Image Registration<a class="headerlink" href="#module-vampires_dpp.image_registration" title="Link to this heading">#</a></h1>
-<section id="frame-collapsing">
-<h2>Frame Collapsing<a class="headerlink" href="#frame-collapsing" title="Link to this heading">#</a></h2>
+<section id="module-vampires_dpp.coadd">
+<span id="frame-collapsing"></span><h2>Frame Collapsing<a class="headerlink" href="#module-vampires_dpp.coadd" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.coadd.collapse_cube">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.coadd.</span></span><span class="sig-name descname"><span class="pre">collapse_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.coadd.collapse_cube" title="Link to this definition">#</a></dt>
+<dd><p>Collapse a cube along its time axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cube</strong> (<em>NDArray</em>) – 3D cube</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – One of “median”, “mean”, “varmean”, “biweight”, by default “median”</p></li>
+<li><p><strong>header</strong> (<em>fits.Header</em><em>, </em><em>optional</em>) – FITS header, which will be updated with metadata if provided. By default None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of collapsed frame and updated header. If header is not provided, will be None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[NDArray, Optional[fits.Header]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.coadd.weighted_collapse">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.coadd.</span></span><span class="sig-name descname"><span class="pre">weighted_collapse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angles</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.coadd.weighted_collapse" title="Link to this definition">#</a></dt>
+<dd><p>Do a variance-weighted simultaneous derotation and collapse of ADI data based on the algorithm presented in <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2017RNAAS...1...30B">Bottom 2017</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>NDArray</em>) – 3D cube</p></li>
+<li><p><strong>angles</strong> (<em>NDArray</em>) – Vector of angles to derotate data cube by</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2D derotated and collapsed frame</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>NDArray</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -399,7 +444,11 @@ document.write(`
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame Collapsing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.coadd">Frame Collapsing</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.coadd.collapse_cube"><code class="docutils literal notranslate"><span class="pre">collapse_cube()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.coadd.weighted_collapse"><code class="docutils literal notranslate"><span class="pre">weighted_collapse()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
