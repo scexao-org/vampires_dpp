@@ -157,7 +157,7 @@ def measure_strehl(image, psf_model, pos=None, phot_rad=8):
     model_norm_peak = find_norm_peak(psf_model, frame_center(psf_model), phot_rad=phot_rad)
     ## Step 4: Calculate Strehl via normalized ratio
     strehl = image_norm_peak / model_norm_peak
-    # bad strehls become negative
+    # bad strehls become -1
     if strehl < 0 or strehl > 1:
         return -1
 
@@ -165,7 +165,7 @@ def measure_strehl(image, psf_model, pos=None, phot_rad=8):
 
 
 ## This is not my code, I'd love to see ways to improve it
-def find_norm_peak(image, center, window_size=10, phot_rad=8, oversamp=4) -> float:
+def find_norm_peak(image, center, window_size=20, phot_rad=8, oversamp=4) -> float:
     """
     usage: peak = find_peak(image, xc, yc, boxsize)
     finds the subpixel peak of an image
