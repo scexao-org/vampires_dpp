@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=1539091c"></script>
+    <script src="_static/documentation_options.js?v=aec58b01"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -606,6 +606,7 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 <li><p><strong>photometry</strong> (<em>bool</em>) – If true, will measure photometric sums in apertures at the centroid (or the DFT centroid if available)</p></li>
 <li><p><strong>phot_aper_rad</strong> (<em>float</em>) – Aperture radius in pixels for circular aperture photometry. If “auto”, will use the FWHM from the file header.</p></li>
 <li><p><strong>phot_ann_rad</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>Literal</em><em>[</em><em>False</em><em>]</em>) – If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.</p></li>
+<li><p><strong>strehl</strong> (<em>bool</em>) – If true, will measure the Strehl ratio by comparing the PSF peak to the synthetic PSF peak, normalized by the flux in an aperture 16 pixels wide.</p></li>
 <li><p><strong>window_size</strong> (<em>int</em>) – The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate. A size of 21 is a decent size to avoid including too much of the PSF halo around any coronagraph masks.</p></li>
 </ul>
 </dd>
