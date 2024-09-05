@@ -8,6 +8,6 @@
 ## Frame Collapsing
 
 ```{eval-rst}
-.. automodule:: vampires_dpp.lucky_imaging
+.. automodule:: vampires_dpp.coadd
     :members:
 ```

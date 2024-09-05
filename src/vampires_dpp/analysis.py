@@ -1,9 +1,11 @@
 import itertools
-from typing import Literal
+from typing import Final, Literal
 
 # import time
 import numpy as np
+import scipy.stats as st
 import sep
+from astropy.io import fits
 
 from .image_registration import offset_dft, offset_peak_and_com
 from .indexing import cutout_inds, frame_center, get_mbi_centers
@@ -294,3 +296,64 @@ def update_hdul_with_metrics(hdul, metrics):
     # TODO
 
     return hdul
+
+
+COMMENT_FSTRS: Final = {
+    "max": "[{}] Peak signal{}in window {}",
+    "sum": "[{}] Total signal{}in window {}",
+    "mean": "[{}] Mean signal{}in window {}",
+    "med": "[{}] Median signal{}in window {}",
+    "var": "[({})^2] Signal variance{}in window {}",
+    "nvar": "[{}] Normed variance{}in window {}",
+    "photr": "[pix] Photometric aperture radius",
+    "photf": "[{}] Photometric flux{}in window {}",
+    "phote": "[{}] Photometric fluxerr{}in window {}",
+    "psff": "[{}] PSF flux{}in window {}",
+}
+CENTROID_COMM_FSTRS: Final = {
+    "comx": "[pix] COM x{}in window {}",
+    "comy": "[pix] COM y{}in window {}",
+    "peakx": "[pix] Peak index x{}in window {}",
+    "peaky": "[pix] Peak index y{}in window {}",
+    "gausx": "[pix] Gauss. fit x{}in window {}",
+    "gausy": "[pix] Gauss. fit y{}in window {}",
+    "dftx": "[pix] Cross-corr. x{}in window {}",
+    "dfty": "[pix] Cross-corr. y{}in window {}",
+    "fwhm": "[pix] Gauss. fit fwhm{}in window {}",
+}
+
+
+def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Header:
+    for key, field_arrs in metrics.items():
+        arr = field_arrs[index]
+        if key not in COMMENT_FSTRS:
+            continue
+        key_up = key.upper()
+        if key_up == "PHOTR":
+            hdr[key_up] = arr[0][0], COMMENT_FSTRS[key]
+            continue
+        mean_val = 0
+        unit = hdr["BUNIT"]
+        N = len(arr)
+        for i, psf in enumerate(arr):
+            # mean val
+            if key in COMMENT_FSTRS:
+                comment = COMMENT_FSTRS[key].format(unit, " ", i)
+                err_comment = COMMENT_FSTRS[key].format(unit, " err ", i)
+            elif key in CENTROID_COMM_FSTRS:
+                comment = CENTROID_COMM_FSTRS[key].format(" ", i)
+                err_comment = CENTROID_COMM_FSTRS[key].format(" err ", i)
+
+            psf_val = np.mean(psf)
+            mean_val += (psf_val - mean_val) / (i + 1)
+            hdr[f"{key_up}{i}"] = np.nan_to_num(psf_val), comment
+            # sem
+            if len(psf) == 1:
+                sem = 0
+            elif "PHOTE" in key_up:
+                sem = np.sqrt(np.mean(psf**2) / N)
+            else:
+                sem = st.sem(psf, nan_policy="omit")
+            hdr[f"{key_up[:5]}ER{i}"] = np.nan_to_num(sem), err_comment
+        hdr[f"{key_up[:5]}"] = np.nan_to_num(mean_val), comment.split(" in window")[0]
+    return hdr
