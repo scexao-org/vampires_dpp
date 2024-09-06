@@ -2,7 +2,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from vampires_dpp.util import average_angle, check_version, get_paths
+from vampires_dpp.paths import get_paths
+from vampires_dpp.util import average_angle, check_version
 
 rng = np.random.default_rng(4796)
 

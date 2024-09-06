@@ -36,10 +36,9 @@ def load_pickles_model(sptype: str) -> SourceSpectrum:
 
 
 # Regex pattern to match stellar spectral types
+SPTYPE_CHARS: Final = ("O", "B", "A", "F", "G", "K", "M", "L", "T", "Y", "W")
 
-sptype_chars: Final = ["O", "B", "A", "F", "G", "K", "M", "L", "T", "Y", "W"]
-
-spectral_type_pattern = re.compile(
+SPECTRAL_TYPE_RE: Final = re.compile(
     r"""
     ([wr])?
     ([OBAFGKMLTYW])          # Spectral class (e.g., O, B, A, F, G, K, M, L, T, Y, W)
@@ -50,38 +49,28 @@ spectral_type_pattern = re.compile(
 )
 
 
-def parse_spectral_type(spectral_type) -> dict | None:
-    """
-    Parse a stellar spectral type into its components.
-
-    :param spectral_type: The stellar spectral type to parse (e.g., 'G2V')
-    :return: A dictionary with the parsed components, or None if not matched
-    """
-    match = spectral_type_pattern.match(spectral_type)
-    if match:
-        return match.groups()
-    else:
-        return None
-
-
-def check_spectral_type_in_pickles(sptype_to_check: str):
-    sptuple_to_check = parse_spectral_type(sptype_to_check)
-    if sptuple_to_check is None:
+def check_spectral_type_in_pickles(sptype_to_check: str) -> bool:
+    match = SPECTRAL_TYPE_RE.match(sptype_to_check)
+    if match is None:
+        print(f"Failed to parse spectral type {sptype_to_check}")
         return False
+    sptuple_to_check = match.groups()
     tbl = fits.getdata(download_file(PICKLES_MAP_URL, cache=True))
     close_matches = []
     for sptype in tbl["SPTYPE"]:
-        sptuple = parse_spectral_type(sptype)
+        match = SPECTRAL_TYPE_RE.match(sptype)
+        assert match is not None, f"Couldn't parse pickles SPTYPE {sptype}"
+        sptuple = match.groups()
         if sptuple_to_check == sptuple:
             return True
         elif (
             sptuple_to_check[3] == sptuple[3]
-            and abs(sptype_chars.index(sptuple_to_check[1]) - sptype_chars.index(sptuple[1])) <= 1
+            and abs(SPTYPE_CHARS.index(sptuple_to_check[1]) - SPTYPE_CHARS.index(sptuple[1])) <= 1
         ):
             close_matches.append(sptuple)
 
     print(
-        f"Could not find a matching model for the '{sptype_to_check}' spectral type in the pickles_uvk library"
+        f"! Could not find a matching model for the '{sptype_to_check}' spectral type in the pickles_uvk library"
     )
     if len(close_matches) > 0:
         print("We found the following close substitutes:")

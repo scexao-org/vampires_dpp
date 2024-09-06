@@ -32,7 +32,7 @@ def offset_dft(frame, inds, psf):
     xoff, yoff = chi2_shift(psf, cutout, upsample_factor="auto", return_error=False)
     dft_offset = np.array((yoff, xoff))
     ctr = np.array(frame_center(psf)) + dft_offset
-    # offset based on    indices
+    # offset based on indices
     ctr[-2] += inds[-2].start
     ctr[-1] += inds[-1].start
     # plt.imshow(frame, origin="lower", cmap="magma")
@@ -57,20 +57,23 @@ def offset_peak_and_com(frame, inds):
     return ctrs
 
 
-def get_intersection(xs, ys):
-    idxs = np.argsort(xs, axis=1)
-    xs = np.take_along_axis(xs, idxs, axis=1)
-    ys = np.take_along_axis(ys, idxs, axis=1)
+def intersect_point(xs, ys):
+    # sort points so we know how to pair into intersecting lines
+    idxs = np.argsort(xs, axis=-1)
+    xs = np.take_along_axis(xs, idxs, axis=-1)
+    ys = np.take_along_axis(ys, idxs, axis=-1)
 
-    a = xs[:, 0] * ys[:, 3] - ys[:, 0] * xs[:, 3]
-    b = xs[:, 1] * ys[:, 2] - ys[:, 1] * xs[:, 2]
-    d = (xs[:, 0] - xs[:, 3]) * (ys[:, 1] - ys[:, 2]) - (ys[:, 0] - ys[:, 3]) * (
-        xs[:, 1] - xs[:, 2]
+    # calculations are verbose, storing in temp variables
+    a = xs[..., 0] * ys[..., 3] - ys[..., 0] * xs[..., 3]
+    b = xs[..., 1] * ys[..., 2] - ys[..., 1] * xs[..., 2]
+    d = (xs[..., 0] - xs[..., 3]) * (ys[..., 1] - ys[..., 2]) - (ys[..., 0] - ys[..., 3]) * (
+        xs[..., 1] - xs[..., 2]
     )
-    px = (a * (xs[:, 1] - xs[:, 2]) - (xs[:, 0] - xs[:, 3]) * b) / d
-    py = (a * (ys[:, 1] - ys[:, 2]) - (ys[:, 0] - ys[:, 3]) * b) / d
+    # calculate intersection from determinants of line segments
+    px = (a * (xs[..., 1] - xs[..., 2]) - (xs[..., 0] - xs[..., 3]) * b) / d
+    py = (a * (ys[..., 1] - ys[..., 2]) - (ys[..., 0] - ys[..., 3]) * b) / d
 
-    return px, py
+    return np.stack((px, py), axis=-1)
 
 
 def get_centroids_from(metrics, input_key):
@@ -79,13 +82,12 @@ def get_centroids_from(metrics, input_key):
     # if there are values from multiple PSFs (e.g. satspots)
     # determine
     if cx.shape[1] == 4:
-        cx, cy = get_intersection(cx, cy)
+        centroids_xy = intersect_point(cx, cy)
     else:
-        cx, cy = cx[:, 0], cy[:, 0]
+        centroids_xy = np.stack((cx[:, 0], cy[:, 0]), axis=-1)
 
     # stack so size is (Nframes, Nfields, x/y)
-    centroids = np.stack((cy, cx), axis=-1)
-    return centroids
+    return centroids_xy[..., ::-1]
 
 
 def register_hdul(
@@ -218,7 +220,7 @@ def recenter_hdul(
             offsets.append(field_center - center)
         offsets = np.array(offsets)
         if len(offsets) == 4:
-            ox, oy = get_intersection(offsets[None, :, 1], offsets[None, :, 0])
+            ox, oy = intersect_point(offsets[:, 1], offsets[:, 0])
             offset = np.array((oy[0], ox[0]))
         else:
             offset = offsets[0]
@@ -461,7 +463,7 @@ def autocentroid_hdul(
                     ys = ys[idxs]
                     axs[1].plot([xs[0], xs[3]], [ys[0], ys[3]], c="cyan")
                     axs[1].plot([xs[1], xs[2]], [ys[1], ys[2]], c="cyan")
-                    px, py = get_intersection(xs[None, :], ys[None, :])
+                    px, py = intersect_point(xs, ys)
                     axs[1].scatter(px, py, marker="+", s=100, c="cyan")
                 else:
                     axs[1].scatter(xs[0], ys[0], marker="x", s=100, c="cyan")

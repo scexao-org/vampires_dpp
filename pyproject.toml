@@ -18,7 +18,7 @@ dependencies = [
     "bottleneck",
     "click",
     "hcipy",
-    
+
     "image-registration",
     "loguru",
     "matplotlib",
@@ -48,7 +48,7 @@ dev = ["ruff"]
 test = [
     "pytest",
     "pytest_cov",
-    "pytest_randomly"
+    "pytest_randomly",
 ]
 docs = [
     "proplot",
