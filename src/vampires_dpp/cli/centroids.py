@@ -125,7 +125,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
     else:
         name = paths.aux / f"{pipeline_config.name}_raw_psf"
         # choose 4 to 20 files, depending on file size (avoid loading more than 500 frames, ~2GB of MBI)
-        number_files = max(4, min(10, 500 // table["NAXIS3"].median()))
+        number_files = int(max(4, min(10, 500 // table["NAXIS3"].median())))
         input_hduls_dict = create_raw_input_psfs(table, basename=name, max_files=number_files)
         centroids = {}
         for key, input_hdul in input_hduls_dict.items():

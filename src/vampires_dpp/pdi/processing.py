@@ -77,7 +77,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
         header_dict[key] = prim_hdr
         cube_dict[key] = cube_derot
         cube_errs[key] = cube_err_derot
-
+    assert len(cube_dict) == 16
     # reproject cam 2 onto cam 1
     for subkey in itertools.product((0.0, 45.0, 22.5, 67.5), ("A", "B")):
         key1 = (subkey[0], subkey[1], 1)
