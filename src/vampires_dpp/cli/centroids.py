@@ -108,6 +108,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
     paths = Paths(outdir)
     paths.aux.mkdir(parents=True, exist_ok=True)
     npsfs = 4 if pipeline_config.coronagraphic else 1
+    # choose 5 random files
     table = header_table(filenames, num_proc=num_proc)
     obsmodes = table["OBS-MOD"].unique()
     if len(obsmodes) > 1:
