@@ -22,7 +22,7 @@ from vampires_dpp.combine_frames import (
 )
 from vampires_dpp.frame_select import frame_select_hdul
 from vampires_dpp.image_registration import recenter_hdul, register_hdul
-from vampires_dpp.organization import header_table
+from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
     doublediff_images,
@@ -464,14 +464,9 @@ class Pipeline:
             stokes_sets.to_csv(stokes_sets_path, index=False)
             logger.info(f"Saved HWP cycle combinations to {stokes_sets_path}")
 
-        ## Save CSV of Stokes values
-        stokes_tbl = header_table(stokes_sets["path"], fix=False, quiet=True)
-        stokes_tbl_path = self.paths.pdi / f"{self.config.name}_stokes_table.csv"
-        stokes_tbl.to_csv(stokes_tbl_path)
-        logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
-
         stokes_data = []
         stokes_err = []
+        prim_hdrs = []
         stokes_hdrs = []
         stokes_func = partial(
             make_stokes_image,
@@ -507,8 +502,17 @@ class Pipeline:
                 with fits.open(outpath, memmap=False) as hdul:
                     stokes_data.append(hdul[0].data)
                     stokes_err.append(hdul["ERR"].data)
+                    prim_hdrs.append(hdul[0].header)
                     hdrs = [hdul[i].header for i in range(2, len(hdul))]
                     stokes_hdrs.append(hdrs)
+
+        ## Save CSV of Stokes values
+        stokes_tbl = pd.DataFrame(
+            [dict_from_header(hdr, fix=False) for hdr in prim_hdrs]
+        ).sort_values("MJD")
+        stokes_tbl_path = self.paths.pdi / f"{self.config.name}_stokes_table.csv"
+        stokes_tbl.to_csv(stokes_tbl_path, index=False)
+        logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
         ## Collapse outputs
         logger.info(f"Collapsing {stokes_sets['STOKES_IDX'].max()} Stokes files...")
         stokes_data = np.array(stokes_data)

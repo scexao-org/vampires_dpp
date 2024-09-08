@@ -82,7 +82,10 @@ def get_centroids_from(metrics, input_key):
     # if there are values from multiple PSFs (e.g. satspots)
     # determine
     if cx.shape[1] == 4:
-        centroids_xy = intersect_point(cx, cy)
+        centroids_xy = []
+        for wlidx in range(cx.shape[-1]):
+            centroids_xy.append(intersect_point(cx[..., wlidx], cy[..., wlidx]))
+        centroids_xy = np.swapaxes(centroids_xy, 0, 1)
     else:
         centroids_xy = np.stack((cx[:, 0], cy[:, 0]), axis=-1)
 
@@ -221,7 +224,7 @@ def recenter_hdul(
         offsets = np.array(offsets)
         if len(offsets) == 4:
             ox, oy = intersect_point(offsets[:, 1], offsets[:, 0])
-            offset = np.array((oy[0], ox[0]))
+            offset = np.array((oy, ox))
         else:
             offset = offsets[0]
         data_cube[wl_idx] = shift_frame(frame, offset)
@@ -396,8 +399,6 @@ def autocentroid_hdul(
     else:
         cutouts = [Cutout2D(data, frame_center(data)[::-1], data.shape[-1])]
 
-    if plot:
-        fig, axs = plt.subplots(ncols=2)
     # for each frame (1, 3, or 4)
     for idx in range(len(fields)):
         cutout = cutouts[idx]
@@ -443,6 +444,7 @@ def autocentroid_hdul(
 
         ## plotting
         if plot:
+            fig, axs = plt.subplots(ncols=2)
             norm = simple_norm(cutout.data, stretch="sqrt")
             axs[0].imshow(cutout.data, origin="lower", cmap="magma", norm=norm)
             axs[0].scatter(*rough_ctr, marker="+", s=100, c="green")
@@ -464,7 +466,7 @@ def autocentroid_hdul(
                     axs[1].plot([xs[0], xs[3]], [ys[0], ys[3]], c="cyan")
                     axs[1].plot([xs[1], xs[2]], [ys[1], ys[2]], c="cyan")
                     px, py = intersect_point(xs, ys)
-                    axs[1].scatter(px, py, marker="+", s=100, c="cyan")
+                    axs[1].scatter(px, py, marker="x", s=100, c="cyan")
                 else:
                     axs[1].scatter(xs[0], ys[0], marker="x", s=100, c="cyan")
 
@@ -472,10 +474,10 @@ def autocentroid_hdul(
             axs[1].set_title("Centroided cutout")
             fig.suptitle(f"Field: {fields[idx]}")
             fig.tight_layout()
-            plt.show(block=True)
 
         output.append(orig_points)
-
+    if plot:
+        plt.show(block=True)
     return np.array(output)
 
 

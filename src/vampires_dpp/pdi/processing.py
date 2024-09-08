@@ -406,7 +406,10 @@ def get_triplediff_set(table) -> dict | None:
         msg = "Could not generate any valid Stokes sets."
         raise RuntimeError(msg)
 
-    return final_table.sort_values(["MJD", "U_FLC", "U_CAMERA"])
+    final_table.sort_values(["MJD", "U_FLC", "U_CAMERA"], inplace=True)
+    final_table["STOKES_IDX"] = reindex_stokes_index(final_table["STOKES_IDX"])
+
+    return final_table
 
 
 def get_doublediff_set(table) -> dict | None:
@@ -479,7 +482,21 @@ def get_doublediff_set(table) -> dict | None:
 
     final_table = pd.concat(output_tables)
 
-    return final_table.sort_values(["MJD", "U_CAMERA"])
+    final_table.sort_values(["MJD", "U_CAMERA"], inplace=True)
+    final_table["STOKES_IDX"] = reindex_stokes_index(final_table["STOKES_IDX"])
+
+    return final_table
+
+
+def reindex_stokes_index(stokes_idxs: pd.Series):
+    # sorted unique elements
+    unique_sorted = stokes_idxs.unique()
+    # map indices to their indec in the unique sorted list
+    mapping = {num: i for i, num in enumerate(unique_sorted)}
+    mapped_list = [mapping[num] for num in stokes_idxs]
+    assert min(mapped_list) == stokes_idxs.min()
+    assert max(mapped_list) == stokes_idxs.max()
+    return mapped_list
 
 
 def make_stokes_image(
@@ -524,6 +541,7 @@ def make_stokes_image(
         stokes_frame = stokes_data[i]
         stokes_frame_err = stokes_err[i]
         stokes_header = headers[i]
+        field = stokes_header["FIELD"]
         # mm correct
         if mm_correct:
             # get first row of diffed Mueller-matrix
@@ -547,12 +565,18 @@ def make_stokes_image(
             U = res[1].reshape(IU.shape[-2:])
             stokes_frame = np.array((IQ, IU, Q, U))
             stokes_frame_err = np.array((IQ_err, IU_err, Q_err, U_err))
-            stokes_header["POL_PQ"] = mmQ[0], "DPP IP (I -> Q) from Mueller model"
-            stokes_header["POL_PU"] = mmU[0], "DPP IP (I -> U) from Mueller model"
+            stokes_header[f"hierarch DPP PDI MM IP_PQ {field}"] = (
+                mmQ[0],
+                "DPP IP (I -> Q) from Mueller matrix",
+            )
+            stokes_header[f"hierarch DPP PDI MM IP_PU {field}"] = (
+                mmU[0],
+                "DPP IP (I -> U) from Mueller matrix",
+            )
             average_poleff = calculate_pol_efficiency(mmQ, mmU)
-            stokes_header["POL_EFF"] = (
+            stokes_header[f"hierarch DPP PDI MM POLEFF {field}"] = (
                 average_poleff,
-                "DPP polarimetric efficiency from Mueller model",
+                "DPP polarimetric efficiency from Mueller matrix",
             )
         elif not hwp_adi_sync:
             # if HWP ADI sync is off but we don't do Mueller correction
@@ -569,7 +593,10 @@ def make_stokes_image(
                 method=ip_method,
                 header=stokes_header,
             )
-            pQ, pU = stokes_header["IP_PQ"], stokes_header["IP_PU"]
+            pQ, pU = (
+                stokes_header[f"hierarch DPP PDI IP_PQ {field}"],
+                stokes_header[f"hierarch DPP PDI IP_PU {field}"],
+            )
             stokes_frame_err[2] = np.hypot(stokes_frame_err[2], pQ * stokes_frame_err[0])
             stokes_frame_err[3] = np.hypot(stokes_frame_err[3], pU * stokes_frame_err[1])
 
@@ -608,9 +635,13 @@ def polarization_ip_correct(stokes_data, phot_rad, method, header=None):
     stokes_data[3] -= pU * stokes_data[1]
 
     if header is not None:
-        header["IP_PQ"] = pQ, "I -> Q IP correction value"
-        header["IP_PU"] = pU, "I -> U IP correction value"
-        header["IP_POL"] = np.hypot(pU, pQ) * 100, "[%] Residual IP"
-        header["IP_ANG"] = 0.5 * np.rad2deg(np.arctan2(pU, pQ)), "[deg] Residual IP angle"
-        header["IP_METH"] = method, "IP measurement method"
+        field = header["FIELD"]
+        header[f"hierarch DPP PDI IP_PQ {field}"] = pQ, "I -> Q IP correction value"
+        header[f"hierarch DPP PDI IP_PU {field}"] = pU, "I -> U IP correction value"
+        header[f"hierarch DPP PDI IP_POL {field}"] = np.hypot(pU, pQ), "Residual IP DoLP"
+        header[f"hierarch DPP PDI IP_ANG {field}"] = (
+            0.5 * np.rad2deg(np.arctan2(pU, pQ)),
+            "[deg] Residual IP AoLP",
+        )
+        header[f"hierarch DPP PDI IP_METH {field}"] = method, "IP measurement method"
     return stokes_data, header

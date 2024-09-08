@@ -84,7 +84,7 @@ class VAMPIRESMuellerMatrix(BaseModel):
         flc_theta = np.deg2rad(self.flc_theta[flc_state])
         flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
 
-        # beamsplitter - horiztonal to camera 1
+        # beamsplitter - horizontal/ordinary to camera 1
         is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
 
