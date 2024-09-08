@@ -2,7 +2,6 @@
 # background subtraction, collapsing cubes
 import functools
 import multiprocessing as mp
-import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -66,8 +65,6 @@ def make_background_file(filename: str, force=False, **kwargs):
     master_background[bpmask] = np.nan
     back_err[bpmask] = np.nan
     # save to disk
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_background, header=header),
@@ -138,8 +135,6 @@ def make_flat_file(
     # flat_err[bpmask] = np.nan
     # save to disk
     header = sort_header(header)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
     hdul = fits.HDUList(
         [
             fits.PrimaryHDU(master_flat, header=header),

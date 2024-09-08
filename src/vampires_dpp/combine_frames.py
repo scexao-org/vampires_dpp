@@ -1,4 +1,5 @@
 import functools
+import warnings
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Final, Literal
@@ -8,6 +9,7 @@ import numpy as np
 import pandas as pd
 from astropy.coordinates import Angle
 from astropy.io import fits
+from astropy.utils.exceptions import AstropyWarning
 
 from vampires_dpp.headers import sort_header
 from vampires_dpp.organization import dict_from_header
@@ -164,8 +166,11 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     unique_values = table.apply(lambda col: col.unique())
     unique_mask = unique_values.apply(lambda values: len(values) == 1)
     unique_row = table.loc[0, unique_mask]
+
     for key, val in unique_row.items():
-        output_header[key] = val, test_header.comments[key]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", AstropyWarning)
+            output_header[key] = val, test_header.comments[key]
 
     # as a start, for everything else just median it
     for key in table.columns[~unique_mask]:
@@ -178,11 +183,13 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
         except KeyError:
             comment = None
             is_err = False
-        if is_err:
-            stderr = np.sqrt(np.nanmean(table[key] ** 2) / len(table))
-            output_header[key] = stderr * np.sqrt(np.pi / 2), comment
-        else:
-            output_header[key] = np.nanmedian(table[key]), comment
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", AstropyWarning)
+            if is_err:
+                stderr = np.sqrt(np.nanmean(table[key] ** 2) / len(table))
+                output_header[key] = stderr * np.sqrt(np.pi / 2), comment
+            else:
+                output_header[key] = np.nanmean(table[key]), comment
 
     ## everything below here has special rules for combinations
     # sum exposure times

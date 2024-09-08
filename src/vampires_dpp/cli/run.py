@@ -48,7 +48,7 @@ def run(config: Path, filenames, num_proc, outdir):
         pipeline.run_polarimetry(num_proc=num_proc)
 
 
-########## pdi ##########
+########## pimport warnings ##########
 
 
 @click.command(name="pdi", help="Run the PDI pipeline only")
@@ -76,4 +76,5 @@ def pdi(config, filenames, num_proc, quiet, outdir):
                 `dpp upgrade {config}`."
         raise ValueError(msg)
     logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
+
     pipeline.run_polarimetry(num_proc=num_proc)

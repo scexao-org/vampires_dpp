@@ -1,6 +1,9 @@
+import warnings
+
 import numpy as np
 from astropy.io import fits
 from astropy.time import Time
+from astropy.utils.exceptions import AstropyWarning
 
 from vampires_dpp.constants import CMOSVAMPIRES, EMCCDVAMPIRES, SUBARU_LOC, InstrumentInfo
 from vampires_dpp.util import hst_from_ut_time, iso_time_stats, mjd_time_stats, wrap_angle
@@ -212,6 +215,7 @@ def sort_header(header: fits.Header) -> fits.Header:
         # skip structural keys
         if key in ("SIMPLE", "BITPIX", "EXTEND", "COMMENT", "HISTORY") or key.startswith("NAXIS"):
             continue
-
-        output_header[key] = header[key], header.comments[key]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", AstropyWarning)
+            output_header[key] = header[key], header.comments[key]
     return output_header
