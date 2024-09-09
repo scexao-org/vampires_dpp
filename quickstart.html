@@ -41,8 +41,6 @@
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'quickstart';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -347,13 +345,8 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-calibration-files">Create calibration files</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-configuration-files">Set up configuration files</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-image-centroids-estimates">Prepare image centroids estimates</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interactive-mode">Interactive mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automated-mode">Automated mode</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-mode">Manual mode</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-astrometric-solution">Prepare astrometric solution</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#satellite-spot-fitting">Satellite spot fitting</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinhole-grid-fitting">Pinhole grid fitting</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-pipeline">Running the pipeline</a><ul class="nav section-nav flex-column">
@@ -385,9 +378,8 @@ document.write(`
 <li><p><a class="reference internal" href="#create-calibration-files" id="id4">Create calibration files</a></p></li>
 <li><p><a class="reference internal" href="#set-up-configuration-files" id="id5">Set up configuration files</a></p></li>
 <li><p><a class="reference internal" href="#prepare-image-centroids-estimates" id="id6">Prepare image centroids estimates</a></p></li>
-<li><p><a class="reference internal" href="#prepare-astrometric-solution" id="id7">Prepare astrometric solution</a></p></li>
-<li><p><a class="reference internal" href="#running-the-pipeline" id="id8">Running the pipeline</a></p></li>
-<li><p><a class="reference internal" href="#re-running-the-pipeline" id="id9">Re-running the pipeline</a></p></li>
+<li><p><a class="reference internal" href="#running-the-pipeline" id="id7">Running the pipeline</a></p></li>
+<li><p><a class="reference internal" href="#re-running-the-pipeline" id="id8">Re-running the pipeline</a></p></li>
 </ul>
 </nav>
 <div class="tip admonition">
@@ -510,8 +502,8 @@ document.write(`
 <p class="admonition-title">Do I need to run centroid?</p>
 <p>We recommend running the centroid step as it greatly reduces the chances for errors in image registration. In addition, for coronagraphic data you <em>must</em> run the centroid step to specify which satellite spots to use for analysis. The centroid step is not <em>strictly</em> required for non-coronagraphic data, though- if you do not provide it the center of the frame will be used as the starting estimate, and your analysis window size can be made larger to accommadate misalignment. Nonetheless, we highly recommend this step.</p>
 </div>
-<section id="interactive-mode">
-<h3>Interactive mode<a class="headerlink" href="#interactive-mode" title="Link to this heading">#</a></h3>
+<section id="automated-mode">
+<h3>Automated mode<a class="headerlink" href="#automated-mode" title="Link to this heading">#</a></h3>
 <p>If the terminal you are connected to has working graphics (i.e., X-forwarding for SSH connections, not inside a tmux sesssion) and you have a copy of matplotlib installed you can run</p>
 <aside class="margin sidebar">
 <p class="sidebar-title">🚀 MP enabled</p>
@@ -519,12 +511,6 @@ document.write(`
 </aside>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">centroid</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00100ms_512x512</span><span class="o">/*.</span><span class="n">fits</span>
 </pre></div>
-</div>
-<p>and you will be prompted with matplotlib figures to click on the PSFs you want to centroid. For non-coronagraphic data you should click on the central star, and for coronagraphic data you can choose any set of four satellite spots. Multi-band imaging data will show you one field at a time.</p>
-<div class="important admonition">
-<p class="admonition-title">VCAM1 orientation</p>
-<p>Because camera 1 gets flipped along the y-axis during calibration, if you care about having consistently labeled PSF statistics (i.e., PSF sum for field 1 on cam 1 matches PSF sum for field 1 on cam 2) you should start with the top satellite PSF and go counter-clockwise for camera 1 and use the bottom satellite PSF and proceed clockwise for comera 2</p>
-<p><img alt="" src="_images/satspot_convention.png" /></p>
 </div>
 </section>
 <section id="manual-mode">
@@ -536,34 +522,8 @@ document.write(`
 </div>
 </section>
 </section>
-<section id="prepare-astrometric-solution">
-<h2><a class="toc-backref" href="#id7" role="doc-backlink">Prepare astrometric solution</a><a class="headerlink" href="#prepare-astrometric-solution" title="Link to this heading">#</a></h2>
-<p>We have discovered that frequently the VCAM1 and VCAM2 astrometry is not perfectly-matched. This can be seen with imperfect cancellation of the satellite spots (passive or driven) in difference images <code class="docutils literal notranslate"><span class="pre">cam1</span> <span class="pre">-</span> <span class="pre">cam2</span></code>. This is essentially due to slightly different plate-scales and pupil rotations between the two camera paths. This is excarbated by the fact that VAMPIRES is not telecentric and differences in focus will change the pixel plate scale.</p>
-<div class="important admonition">
-<p class="admonition-title">Imperfect difference images</p>
-<p>The effects of differing astrometric solutions between cam1 and cam2 can be seen in the following image- if we subtract <code class="docutils literal notranslate"><span class="pre">cam1</span> <span class="pre">-</span> <span class="pre">cam2</span></code> without <em>post hoc</em> reprojection there is clear over/under-subtraction around the astrogrid speckles</p>
-<p><img alt="" src="_images/imperfect_difference.png" /></p>
-</div>
-<section id="satellite-spot-fitting">
-<h3>Satellite spot fitting<a class="headerlink" href="#satellite-spot-fitting" title="Link to this heading">#</a></h3>
-<p>The first solution we offer is fitting the centroid of the satellite spots induced by the deformable-mirror (DM) actuator grid. This grid forms speckles at a separation of <span class="math notranslate nohighlight">\(N * \lambda/D\)</span> where <span class="math notranslate nohighlight">\(N\)</span> is the number of actuators across the pupil, nominally 46.7 (from investigation by M. Lucas), and rotationally aligned orthogonal to the actuator grid. We determine the pixel plate scale in <code class="docutils literal notranslate"><span class="pre">mas/px</span></code> by estimating the location of these speckles from the formula above given the observing filter. We determine the pupil rotation angle by offsetting with a calibrated value based on investigations of the DM by J. Lozi.</p>
-<p>You can interactively select the satellite spots using <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> with</p>
-<aside class="margin sidebar">
-<p class="sidebar-title">🚀 MP enabled</p>
-<p>‎</p>
-</aside>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">astro</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00100ms_512x512</span><span class="o">/*.</span><span class="n">fits</span>
-</pre></div>
-</div>
-<p>this will create a <code class="docutils literal notranslate"><span class="pre">*_astrometry.toml</span></code> file in the <code class="docutils literal notranslate"><span class="pre">aux/</span></code> folder with the average separation of the speckles in pixels and the average angle around the center modulo 90°, typically around 48°.</p>
-</section>
-<section id="pinhole-grid-fitting">
-<h3>Pinhole grid fitting<a class="headerlink" href="#pinhole-grid-fitting" title="Link to this heading">#</a></h3>
-<p>This is not implemented, yet.</p>
-</section>
-</section>
 <section id="running-the-pipeline">
-<h2><a class="toc-backref" href="#id8" role="doc-backlink">Running the pipeline</a><a class="headerlink" href="#running-the-pipeline" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Running the pipeline</a><a class="headerlink" href="#running-the-pipeline" title="Link to this heading">#</a></h2>
 <p>After you’ve selected your configuration options, you can run the pipeline from the command line with <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">run</span></code></p>
 <aside class="margin sidebar">
 <p class="sidebar-title">🚀 MP enabled</p>
@@ -594,6 +554,11 @@ document.write(`
 <li><p>Precise coordinate lookup and normalization of FITS headers</p></li>
 </ul>
 </li>
+<li><p>Frame combination</p>
+<ul class="simple">
+<li><p>Used to collect frames from multiple data files for e.g., polarimetry</p></li>
+</ul>
+</li>
 <li><p>Frame analysis</p>
 <ul class="simple">
 <li><p>Measure image statistics, centroids, and photometry in windows around the PSF(s)</p></li>
@@ -610,18 +575,17 @@ document.write(`
 <li><p>If desired the frames will be co-aligned and centered with a selectable metric</p></li>
 </ul>
 </li>
-<li><p>Collapse data cubes</p>
-<ul class="simple">
-<li><p>Combine frames using median, mean, etc</p></li>
-<li><p>After combining, another round of registration can be enabled to recenter with the higher S/N combined image</p></li>
-</ul>
-</li>
 <li><p>(Optional) Spectrophotometric calibration</p>
 <ul class="simple">
 <li><p>Calibrate data with a spectrum or stellar model using a selectable metric for the estimated image flux</p></li>
 </ul>
 </li>
-<li><p>(Optional) Reproject camera WCS</p></li>
+<li><p>(Optional) Coadd data cubes</p>
+<ul class="simple">
+<li><p>Combine frames using median, mean, etc</p></li>
+<li><p>After combining, another round of registration can be enabled to recenter with the higher S/N combined image</p></li>
+</ul>
+</li>
 <li><p>(Optional) Create ADI cubes</p>
 <ul class="simple">
 <li><p>Concatenate cam1, cam2, and cam1+cam2 collapsed data into cubes along with the derotation angles for ADI analysis</p></li>
@@ -653,12 +617,14 @@ document.write(`
 </section>
 <section id="pipeline-outputs">
 <h3>Pipeline outputs<a class="headerlink" href="#pipeline-outputs" title="Link to this heading">#</a></h3>
-<p>The pipeline will save data in a strict folder format-</p>
+<p>The pipeline will save data in a strict folder format (some folders will be missing/empty if they are not specified in the configuration)–</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.
 ├── aux # auxilliary processing configs and data
-├── calibrated # only saved if `save_intermediate` enabled for calibration step
+├── calibrated # calibrated data
 ├── metrics # NPZ file with metrics for each frame for each file
-├── collapsed # collapsed data
+├── aligned # aligned data
+├── coadded # coadded data
+├── selected # frame-selected data
 ├── diff # diagnostic difference images
 │   ├── single
 │   └── double
@@ -673,7 +639,7 @@ document.write(`
 </section>
 </section>
 <section id="re-running-the-pipeline">
-<span id="rerunning"></span><h2><a class="toc-backref" href="#id9" role="doc-backlink">Re-running the pipeline</a><a class="headerlink" href="#re-running-the-pipeline" title="Link to this heading">#</a></h2>
+<span id="rerunning"></span><h2><a class="toc-backref" href="#id8" role="doc-backlink">Re-running the pipeline</a><a class="headerlink" href="#re-running-the-pipeline" title="Link to this heading">#</a></h2>
 <p>The pipeline is written to use saved, cached data as much as possible to save time. This means, for example, re-running the PDI steps will use the already saved collapsed frames as inputs. Re-running the pipeline, then, will only process files which are missing or which have newer input files. To explain, this means if you delete a collapsed file, for example, and re-run the pipeline, the collapsed data will be reprocessed using the saved metrics (and calibrated data, if saved). Or, in the latter case, if I delete a metric file, the corresponding collapsed file (which depends on the metric file) will be reprocessed.</p>
 <p>This behavior can be controlled in two ways- the first is manual management of data by deleting or moving files. To reprocess all the file metrics (becuase you changed an analysis parameter, for example) you can just delete <code class="docutils literal notranslate"><span class="pre">metrics/</span></code> (or change its name). The second is through the command line, using the <code class="docutils literal notranslate"><span class="pre">-f</span></code>/<code class="docutils literal notranslate"><span class="pre">--force</span></code> flag. With this flag you will be prompted on which pipeline steps to force reprocessing. For example, if I change my centroid and recentering algorithms, I can generate new collapsed frames with</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">run</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00010ms_512x512</span><span class="o">/*</span> <span class="o">--</span><span class="n">force</span>
@@ -738,13 +704,8 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-calibration-files">Create calibration files</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-configuration-files">Set up configuration files</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-image-centroids-estimates">Prepare image centroids estimates</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interactive-mode">Interactive mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automated-mode">Automated mode</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-mode">Manual mode</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-astrometric-solution">Prepare astrometric solution</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#satellite-spot-fitting">Satellite spot fitting</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinhole-grid-fitting">Pinhole grid fitting</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-pipeline">Running the pipeline</a><ul class="nav section-nav flex-column">

@@ -141,7 +141,7 @@ We recommend running the centroid step as it greatly reduces the chances for err
 ```
 
 
-### Interactive mode
+### Automated mode
 
 If the terminal you are connected to has working graphics (i.e., X-forwarding for SSH connections, not inside a tmux sesssion) and you have a copy of matplotlib installed you can run
 ```{margin} 🚀 MP enabled
@@ -149,15 +149,6 @@ If the terminal you are connected to has working graphics (i.e., X-forwarding fo
 ```
 ```
 dpp centroid [-j 1] 20230101_ABAur.toml 750-50_em300_00100ms_512x512/*.fits
-```
-and you will be prompted with matplotlib figures to click on the PSFs you want to centroid. For non-coronagraphic data you should click on the central star, and for coronagraphic data you can choose any set of four satellite spots. Multi-band imaging data will show you one field at a time.
-
-```{admonition} VCAM1 orientation
-:class: important
-
-Because camera 1 gets flipped along the y-axis during calibration, if you care about having consistently labeled PSF statistics (i.e., PSF sum for field 1 on cam 1 matches PSF sum for field 1 on cam 2) you should start with the top satellite PSF and go counter-clockwise for camera 1 and use the bottom satellite PSF and proceed clockwise for comera 2
-
-![](satspot_convention.png)
 ```
 
 ### Manual mode
@@ -169,38 +160,6 @@ If you do not have a graphics-ready terminal, or you want to skip the interactiv
 
 If previewing data with DS9, you can copy the x, y coordinates directly after subtracting 1 (because python starts indexing at 0). This allows you to use region centroids or the cross for assistance with manual entry.
 ```
-
-## Prepare astrometric solution
-
-We have discovered that frequently the VCAM1 and VCAM2 astrometry is not perfectly-matched. This can be seen with imperfect cancellation of the satellite spots (passive or driven) in difference images `cam1 - cam2`. This is essentially due to slightly different plate-scales and pupil rotations between the two camera paths. This is excarbated by the fact that VAMPIRES is not telecentric and differences in focus will change the pixel plate scale.
-
-
-```{admonition} Imperfect difference images
-:class: important
-
-The effects of differing astrometric solutions between cam1 and cam2 can be seen in the following image- if we subtract `cam1 - cam2` without *post hoc* reprojection there is clear over/under-subtraction around the astrogrid speckles
-
-![](imperfect_difference.png)
-```
-
-### Satellite spot fitting
-
-The first solution we offer is fitting the centroid of the satellite spots induced by the deformable-mirror (DM) actuator grid. This grid forms speckles at a separation of $N * \lambda/D$ where $N$ is the number of actuators across the pupil, nominally 46.7 (from investigation by M. Lucas), and rotationally aligned orthogonal to the actuator grid. We determine the pixel plate scale in `mas/px` by estimating the location of these speckles from the formula above given the observing filter. We determine the pupil rotation angle by offsetting with a calibrated value based on investigations of the DM by J. Lozi.
-
-You can interactively select the satellite spots using `matplotlib` with
-
-```{margin} 🚀 MP enabled
-‎
-```
-```
-dpp astro [-j 1] 20230101_ABAur.toml 750-50_em300_00100ms_512x512/*.fits
-```
-
-this will create a `*_astrometry.toml` file in the `aux/` folder with the average separation of the speckles in pixels and the average angle around the center modulo 90°, typically around 48°.
-
-### Pinhole grid fitting
-
-This is not implemented, yet.
 
 ## Running the pipeline
 
@@ -235,7 +194,8 @@ The pipeline will reduce the data in the following order
     * (Optional) background/dark-subtraction, flat-fielding, bad-pixel correction
     * Flip cam 1 data
     * Precise coordinate lookup and normalization of FITS headers
-
+1. Frame combination
+    * Used to collect frames from multiple data files for e.g., polarimetry
 1. Frame analysis
     * Measure image statistics, centroids, and photometry in windows around the PSF(s)
     * Measures a few full-frame statistics.
@@ -246,14 +206,12 @@ The pipeline will reduce the data in the following order
 1. (Optional) image registration
     * If desired the frames will be co-aligned and centered with a selectable metric
 
-1. Collapse data cubes
-    * Combine frames using median, mean, etc
-    * After combining, another round of registration can be enabled to recenter with the higher S/N combined image
-
 1. (Optional) Spectrophotometric calibration
     * Calibrate data with a spectrum or stellar model using a selectable metric for the estimated image flux
 
-1. (Optional) Reproject camera WCS
+1. (Optional) Coadd data cubes
+    * Combine frames using median, mean, etc
+    * After combining, another round of registration can be enabled to recenter with the higher S/N combined image
 
 1. (Optional) Create ADI cubes
     * Concatenate cam1, cam2, and cam1+cam2 collapsed data into cubes along with the derotation angles for ADI analysis
@@ -278,13 +236,15 @@ dpp pdi [-j 1] 20230101_ABAur.toml 750-50_em300_00010ms_512x512/*
 
 ### Pipeline outputs
 
-The pipeline will save data in a strict folder format-
+The pipeline will save data in a strict folder format (some folders will be missing/empty if they are not specified in the configuration)--
 ```
 .
 ├── aux # auxilliary processing configs and data
-├── calibrated # only saved if `save_intermediate` enabled for calibration step
+├── calibrated # calibrated data
 ├── metrics # NPZ file with metrics for each frame for each file
-├── collapsed # collapsed data
+├── aligned # aligned data
+├── coadded # coadded data
+├── selected # frame-selected data
 ├── diff # diagnostic difference images
 │   ├── single
 │   └── double
