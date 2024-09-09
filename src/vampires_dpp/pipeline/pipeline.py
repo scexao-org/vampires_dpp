@@ -102,7 +102,7 @@ class Pipeline:
                 self.output_paths.append(job.get())
         self.output_paths.sort()
 
-        logger.info("Creating table from collapsed headers")
+        logger.info("Creating table from output headers")
         self.output_table = header_table(self.output_paths, num_proc=num_proc, quiet=True)
         self.save_output_header()
 
@@ -232,8 +232,9 @@ class Pipeline:
             method=self.config.align.method,
             crop_width=self.config.align.crop_width,
         )
-        if self.config.align.save_intermediate:
+        if self.config.align.save_intermediate and self.config.coadd.coadd:
             _, outpath = get_paths(output_path, output_directory=self.paths.aligned)
+            outpath = outpath.with_name(outpath.name.replace("_coll", "_reg"))
             hdul.writeto(outpath, overwrite=True)
             logger.debug(f"Saved aligned HDU list to {outpath.absolute()}")
         logger.debug(f"Finished frame aligned for group {group_key}")
@@ -248,23 +249,24 @@ class Pipeline:
             logger.debug(f"Starting coadding for group {group_key}")
             hdul = coadd_hdul(hdul, method=self.config.coadd.method)
             logger.debug(f"Finished coadding for group {group_key}")
-        if self.config.coadd.recenter:
-            logger.debug(f"Starting recentering for group {group_key}")
-            psfs = [
-                self.synth_psfs[filt] for filt in determine_filterset_from_header(hdul[0].header)
-            ]
-            cam_num = int(hdul[0].header["U_CAMERA"])
-            cam_key = f"cam{cam_num}"
-            window_centers = self.centroids[cam_key]
-            for key in window_centers:
-                for idx in range(window_centers[key].shape[0]):
-                    window_centers[key][idx] = get_center(
-                        hdul[0].data, window_centers[key][idx], cam_num
-                    )
-            hdul = recenter_hdul(
-                hdul, window_centers, method=self.config.coadd.recenter_method, psfs=psfs
-            )
-            logger.debug(f"Finished recentering for group {group_key}")
+            if self.config.coadd.recenter:
+                logger.debug(f"Starting recentering for group {group_key}")
+                psfs = [
+                    self.synth_psfs[filt]
+                    for filt in determine_filterset_from_header(hdul[0].header)
+                ]
+                cam_num = int(hdul[0].header["U_CAMERA"])
+                cam_key = f"cam{cam_num}"
+                window_centers = self.centroids[cam_key]
+                for key in window_centers:
+                    for idx in range(window_centers[key].shape[0]):
+                        window_centers[key][idx] = get_center(
+                            hdul[0].data, window_centers[key][idx], cam_num
+                        )
+                hdul = recenter_hdul(
+                    hdul, window_centers, method=self.config.coadd.recenter_method, psfs=psfs
+                )
+                logger.debug(f"Finished recentering for group {group_key}")
 
         logger.debug(f"Saving reduced cube to {output_path.absolute()}")
         hdul.writeto(output_path, overwrite=True)
@@ -471,6 +473,7 @@ class Pipeline:
         stokes_func = partial(
             make_stokes_image,
             method=method,
+            coadded=self.config.coadd.coadd,
             mm_correct=config.mm_correct,
             hwp_adi_sync=config.hwp_adi_sync,
             ip_correct=config.ip_correct,

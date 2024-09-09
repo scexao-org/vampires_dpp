@@ -4,15 +4,15 @@ from pathlib import Path
 import numpy as np
 from astropy.io import fits
 from numpy.typing import ArrayLike, NDArray
+from photutils.aperture import CircularAnnulus, CircularAperture
 
-from vampires_dpp.analysis import safe_annulus_sum, safe_aperture_sum
 from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
-from vampires_dpp.indexing import frame_angles
+from vampires_dpp.indexing import frame_angles, frame_center
 from vampires_dpp.wcs import apply_wcs
 
 
-def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):  # noqa: E741
+def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0) -> float:  # noqa: E741
     """Use aperture photometry to estimate the instrument polarization.
 
     Parameters
@@ -30,19 +30,24 @@ def measure_instpol(I: NDArray, X: NDArray, r=5, expected=0):  # noqa: E741
     float
         The instrumental polarization coefficient
     """
+    cy, cx = frame_center(I)
+    aper = CircularAperture((cx, cy), r)
+    aper_mask = aper.to_mask()
     # take sum of each and reduce after (less noise than taking sum of divided image)
-    pX, _ = safe_aperture_sum(X, r=r)
-    pI, _ = safe_aperture_sum(I, r=r)
-    px = pX / pI
-    return px / (np.pi * r**2) - expected
+    pX = np.nanmedian(aper_mask.get_values(X))
+    pI = np.nanmedian(aper_mask.get_values(I))
+    return pX / pI - expected
 
 
-def measure_instpol_ann(I: NDArray, X: NDArray, Rin, Rout, expected=0):  # noqa: E741
+def measure_instpol_ann(I: NDArray, X: NDArray, Rin, Rout, expected=0) -> float:  # noqa: E741
     # take sum of each and reduce after (less noise than taking sum of divided image)
-    pX, _ = safe_annulus_sum(X, Rin, Rout)
-    pI, _ = safe_annulus_sum(I, Rin, Rout)
-    px = pX / pI
-    return px / (np.pi * (Rout**2 - Rin**2)) - expected
+    cy, cx = frame_center(I)
+    aper = CircularAnnulus((cx, cy), Rin, Rout)
+    aper_mask = aper.to_mask()
+    # take sum of each and reduce after (less noise than taking sum of divided image)
+    pX = np.nanmedian(aper_mask.get_values(X))
+    pI = np.nanmedian(aper_mask.get_values(I))
+    return pX / pI - expected
 
 
 def radial_stokes(stokes_cube: ArrayLike, stokes_err: ArrayLike | None = None, phi: float = 0):

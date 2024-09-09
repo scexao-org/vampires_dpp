@@ -114,8 +114,8 @@ def get_reduced_path(paths: Paths, config, group_key: str) -> Path:
     if config.coadd.coadd:
         base = paths.coadded
         suffix = "coll"
-    elif config.register.save_intermediate:
-        base = paths.registered
+    elif config.align.save_intermediate:
+        base = paths.aligned
         suffix = "reg"
     elif config.frame_select.save_intermediate:
         base = paths.selected
