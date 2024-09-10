@@ -60,8 +60,7 @@ def measure_inst_flux(hdul, metrics, flux_metric: FluxMetric):
             flux = metrics["sum"]
     # flux has units (nlambda, npsfs, ntime)
     # collapse all but wavelength axis
-    flux = np.where(flux <= 0, np.nan, flux)
-    inst_flux = np.nanmedian(flux, axis=(1, 2))
+    inst_flux = np.nanmedian(np.where(flux <= 0, np.nan, flux), axis=(1, 2))
     for flux, hdu in zip(inst_flux, hdul[2:], strict=True):
         field = hdu.header["FIELD"]
         info[f"hierarch DPP SPECPHOT INSTFLUX {field}"] = _format(flux), "[e-/s] Instrumental flux"
