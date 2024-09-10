@@ -142,10 +142,10 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
 def stokes_products(stokes_frame, stokes_err, phi=0, planetary: bool = False):
     pi = np.hypot(stokes_frame[3], stokes_frame[2])
     aolp = 0.5 * np.arctan2(stokes_frame[3], stokes_frame[2])
-    Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(stokes_frame, stokes_err, phi=phi)
-    # radial Stokes is just negative of azimuthal stokes
     if planetary:
-        Qphi, Uphi, Qphi_err, Uphi_err = -Qphi, -Uphi, -Qphi_err, -Uphi_err
+        Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(-stokes_frame, stokes_err, phi=phi)
+    else:
+        Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(stokes_frame, stokes_err, phi=phi)
     # error propagation
     # suppress all-divide error warnings
     with warnings.catch_warnings():
