@@ -600,16 +600,11 @@ def get_doublediff_set(table) -> dict | None:
 
 def reindex_stokes_index(stokes_idxs: pd.Series):
     # sorted unique elements
-    unique_sorted = stokes_idxs.unique()
+    unique_sorted = stokes_idxs[stokes_idxs != -1].unique()
     # map indices to their indec in the unique sorted list
     mapping = {num: i for i, num in enumerate(unique_sorted)}
-    mapped_list = []
-    for num in stokes_idxs:
-        if num == -1:
-            mapped_list.append(num)
-        else:
-            mapped_list.append(mapping[num])
-    mapped_list = [mapping[num] for num in stokes_idxs]
+    mapping[-1] = -1
+    mapped_list = [mapping[num] for num in stokes_idxs.values]
     assert min(mapped_list) == stokes_idxs.min()
     assert max(mapped_list) == stokes_idxs.max()
     return mapped_list
