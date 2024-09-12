@@ -370,7 +370,7 @@ document.write(`
 <span id="processing-and-polarization-analysis"></span><h2>Processing and polarization analysis<a class="headerlink" href="#module-vampires_dpp.pdi.processing" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.pdi.processing.polarization_calibration_triplediff">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.processing.</span></span><span class="sig-name descname"><span class="pre">polarization_calibration_triplediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.processing.</span></span><span class="sig-name descname"><span class="pre">polarization_calibration_triplediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derotate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff" title="Link to this definition">#</a></dt>
 <dd><p>Return a Stokes cube using the <em>bona fide</em> triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.</p>
 <div class="tip admonition">
 <p class="admonition-title">Pupil-tracking mode</p>
@@ -379,7 +379,10 @@ document.write(`
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>filenames</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – list of input filenames to construct Stokes frames from</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – list of input filenames to construct Stokes frames from</p></li>
+<li><p><strong>derotate</strong> (<em>bool</em>)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ValueError:</strong> – If the input filenames are not a clean multiple of 16. To ensure you have proper 16 frame sets, use <code class="docutils literal notranslate"><span class="pre">pol_inds</span></code> with a sorted observation table.</p>
