@@ -518,7 +518,7 @@ class Pipeline:
         stokes_tbl.to_csv(stokes_tbl_path, index=False)
         logger.info(f"Saved table of Stokes file headers to {stokes_tbl_path}")
         ## Collapse outputs
-        logger.info(f"Collapsing {stokes_sets['STOKES_IDX'].max()} Stokes files...")
+        logger.info(f"Collapsing {stokes_sets['STOKES_IDX'].max() + 1} Stokes files...")
         stokes_data = np.array(stokes_data)
         stokes_err = np.array(stokes_err)
         coll_frame, _ = collapse_frames(np.nan_to_num(stokes_data))
