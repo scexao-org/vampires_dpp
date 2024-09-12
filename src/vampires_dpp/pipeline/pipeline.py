@@ -474,6 +474,7 @@ class Pipeline:
             make_stokes_image,
             method=method,
             coadded=self.config.coadd.coadd,
+            derotate=config.derotate,
             mm_correct=config.mm_correct,
             hwp_adi_sync=config.hwp_adi_sync,
             ip_correct=config.ip_correct,

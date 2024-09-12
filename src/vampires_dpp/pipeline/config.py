@@ -351,6 +351,8 @@ class PolarimetryConfig(BaseModel):
     ----------
     method:
         Determines the polarization calibration method, either the double/triple-difference method (`difference`) or using the inverse least-squares solution from Mueller calculus (`leastsq`). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.
+    derotate:
+        Derotate images to north up east left when forming Stokes images. Required for Mueller-matrix correction
     mm_correct:
         Apply Mueller-matrix correction (only applicable to data reduced using the `"difference"` method). By default, True.
     hwp_adi_sync:
@@ -371,6 +373,7 @@ class PolarimetryConfig(BaseModel):
     """
 
     method: Literal["triplediff", "doublediff"] = "triplediff"
+    derotate: bool = True
     mm_correct: bool = True
     hwp_adi_sync: bool = True
     use_ideal_mm: bool = False
@@ -379,6 +382,12 @@ class PolarimetryConfig(BaseModel):
     ip_radius: float = 15
     ip_radius2: float | None = None
     cyl_stokes: Literal["azimuthal", "radial"] = "azimuthal"
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.mm_correct and not self.derotate:
+            msg = "Cannot do MM correction without derotation!"
+            raise ValueError(msg)
+        return super().model_post_init(__context)
 
 
 class PipelineConfig(BaseModel):

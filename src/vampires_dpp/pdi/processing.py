@@ -26,7 +26,7 @@ from .utils import (
 )
 
 
-def polarization_calibration_triplediff(filenames: Sequence[str]):
+def polarization_calibration_triplediff(filenames: Sequence[str], derotate: bool = True):
     """Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
     .. admonition:: Pupil-tracking mode
@@ -69,14 +69,15 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
                 hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
-        cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
-        cube_err_derot = derotate_cube(cube_err, prim_hdr["DEROTANG"])
-        prim_hdr = apply_wcs(cube, prim_hdr, angle=0)
+        if derotate:
+            cube = derotate_cube(cube, prim_hdr["DEROTANG"])
+            cube_err = derotate_cube(cube_err, prim_hdr["DEROTANG"])
+            prim_hdr = apply_wcs(cube, prim_hdr, angle=0)
         # store into dictionaries
         key = prim_hdr["RET-ANG1"], prim_hdr["U_FLC"], prim_hdr["U_CAMERA"]
         header_dict[key] = prim_hdr
-        cube_dict[key] = cube_derot
-        cube_errs[key] = cube_err_derot
+        cube_dict[key] = cube
+        cube_errs[key] = cube_err
     assert len(cube_dict) == 16
 
     stokes_cube = triple_diff_dict(cube_dict)
@@ -103,7 +104,7 @@ def polarization_calibration_triplediff(filenames: Sequence[str]):
     return hdul
 
 
-def polarization_calibration_triplediff_cube(filenames: Sequence[str]):
+def polarization_calibration_triplediff_cube(filenames: Sequence[str], derotate: bool = True):
     if len(filenames) % 16 != 0:
         msg = "Cannot do triple-differential calibration without exact sets of 16 frames for each HWP cycle"
         raise ValueError(msg)
@@ -122,17 +123,16 @@ def polarization_calibration_triplediff_cube(filenames: Sequence[str]):
                 hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
-        cube_derot = cube.copy()
-        cube_err_derot = cube_err.copy()
-        for wl_idx in range(cube.shape[1]):
-            cube_derot[:, wl_idx] = derotate_cube(cube[:, wl_idx], prim_hdr["DEROTANG"])
-            cube_err_derot[:, wl_idx] = derotate_cube(cube_err[:, wl_idx], prim_hdr["DEROTANG"])
+        if derotate:
+            for wl_idx in range(cube.shape[1]):
+                cube[:, wl_idx] = derotate_cube(cube[:, wl_idx], prim_hdr["DEROTANG"])
+                cube_err[:, wl_idx] = derotate_cube(cube_err[:, wl_idx], prim_hdr["DEROTANG"])
         prim_hdr = apply_wcs(cube, prim_hdr, angle=0)
         # store into dictionaries
         key = prim_hdr["RET-ANG1"], prim_hdr["U_FLC"], prim_hdr["U_CAMERA"]
         header_dict[key] = prim_hdr
-        cube_dict[key] = cube_derot
-        cube_errs[key] = cube_err_derot
+        cube_dict[key] = cube
+        cube_errs[key] = cube_err
     assert len(cube_dict) == 16
 
     # make sure all arrays are same length
@@ -167,7 +167,7 @@ def polarization_calibration_triplediff_cube(filenames: Sequence[str]):
     return hdul
 
 
-def polarization_calibration_doublediff(filenames: Sequence[str]):
+def polarization_calibration_doublediff(filenames: Sequence[str], derotate: bool = True):
     if len(filenames) % 8 != 0:
         msg = "Cannot do double-differential calibration without exact sets of 8 frames for each HWP cycle"
         raise ValueError(msg)
@@ -186,31 +186,15 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
                 hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
-        cube_derot = derotate_cube(cube, prim_hdr["DEROTANG"])
-        cube_err_derot = derotate_cube(cube_err, prim_hdr["DEROTANG"])
+        if derotate:
+            cube = derotate_cube(cube, prim_hdr["DEROTANG"])
+            cube_err = derotate_cube(cube_err, prim_hdr["DEROTANG"])
         # store into dictionaries
         prim_hdr = apply_wcs(cube, prim_hdr, angle=0)
         key = prim_hdr["RET-ANG1"], prim_hdr["U_CAMERA"]
         header_dict[key] = prim_hdr
-        cube_dict[key] = cube_derot
-        cube_errs[key] = cube_err_derot
-
-    # reproject cam 2 onto cam 1
-    # for subkey in (0.0, 45.0, 22.5, 67.5):
-    #     key1 = (subkey, 1)
-    #     key2 = (subkey, 2)
-    #     reproject_interp(
-    #         (np.nan_to_num(cube_dict[key2]), header_dict[key2]),
-    #         header_dict[key1],
-    #         output_array=cube_dict[key2],
-    #         order="bicubic",
-    #     )
-    #     reproject_interp(
-    #         (np.nan_to_num(cube_errs[key2]), header_dict[key2]),
-    #         header_dict[key1],
-    #         output_array=cube_errs[key2],
-    #         order="bicubic",
-    #     )
+        cube_dict[key] = cube
+        cube_errs[key] = cube_err
 
     stokes_cube = double_diff_dict(cube_dict)
     # swap stokes and field axes so field is first
@@ -237,7 +221,7 @@ def polarization_calibration_doublediff(filenames: Sequence[str]):
     return hdul
 
 
-def polarization_calibration_doublediff_cube(filenames: Sequence[str]):
+def polarization_calibration_doublediff_cube(filenames: Sequence[str], derotate: bool = True):
     if len(filenames) % 8 != 0:
         msg = "Cannot do double-differential calibration without exact sets of 8 frames for each HWP cycle"
         raise ValueError(msg)
@@ -256,17 +240,16 @@ def polarization_calibration_doublediff_cube(filenames: Sequence[str]):
                 hdr = apply_wcs(cube, hdu.header, angle=0)
                 create_or_append(headers, hdr["FIELD"], hdr)
         # derotate frame - necessary for crosstalk correction
-        cube_derot = cube.copy()
-        cube_err_derot = cube_err.copy()
-        for wl_idx in range(cube.shape[1]):
-            cube_derot[:, wl_idx] = derotate_cube(cube[:, wl_idx], prim_hdr["DEROTANG"])
-            cube_err_derot[:, wl_idx] = derotate_cube(cube_err[:, wl_idx], prim_hdr["DEROTANG"])
+        if derotate:
+            for wl_idx in range(cube.shape[1]):
+                cube[:, wl_idx] = derotate_cube(cube[:, wl_idx], prim_hdr["DEROTANG"])
+                cube_err[:, wl_idx] = derotate_cube(cube_err[:, wl_idx], prim_hdr["DEROTANG"])
         # store into dictionaries
         prim_hdr = apply_wcs(cube, prim_hdr, angle=0)
         key = prim_hdr["RET-ANG1"], prim_hdr["U_CAMERA"]
         header_dict[key] = prim_hdr
-        cube_dict[key] = cube_derot
-        cube_errs[key] = cube_err_derot
+        cube_dict[key] = cube
+        cube_errs[key] = cube_err
 
     # make sure all arrays are same length
     min_length = min(c.shape[0] for c in cube_dict.values())
@@ -598,13 +581,15 @@ def get_doublediff_set(table) -> dict | None:
     return final_table
 
 
-def reindex_stokes_index(stokes_idxs: pd.Series):
+def reindex_stokes_index(stokes_idxs: pd.Series) -> list:
     # sorted unique elements
     unique_sorted = stokes_idxs[stokes_idxs != -1].unique()
-    # map indices to their indec in the unique sorted list
+    # map indices to their index in the unique sorted list
     mapping = {num: i for i, num in enumerate(unique_sorted)}
+    # except for -1, which we propagate without keeping it in our unique last
     mapping[-1] = -1
     mapped_list = [mapping[num] for num in stokes_idxs.values]
+    # make sure we haven't borked it
     assert min(mapped_list) == stokes_idxs.min()
     assert max(mapped_list) == stokes_idxs.max()
     return mapped_list
@@ -616,31 +601,36 @@ def make_stokes_image(
     mm_paths=None,
     method="triplediff",
     coadded: bool = True,
-    mm_correct=True,
-    ip_correct=True,
-    hwp_adi_sync=True,
+    derotate: bool = True,
+    mm_correct: bool = True,
+    ip_correct: bool = True,
+    hwp_adi_sync: bool = True,
     ip_radius=8,
     ip_radius2=8,
     ip_method="photometry",
-    force=False,
+    force: bool = False,
 ):
     if not force and outpath.exists() and not any_file_newer(path_set, outpath):
         return outpath
 
+    if mm_correct and not derotate:
+        msg = "You cannot apply MM correction without derotating data, please check configuration"
+        raise ValueError(msg)
+
     # create stokes cube
     if method == "triplediff":
         if coadded:
-            stokes_hdul = polarization_calibration_triplediff(path_set)
+            stokes_hdul = polarization_calibration_triplediff(path_set, derotate=derotate)
         else:
-            stokes_hdul = polarization_calibration_triplediff_cube(path_set)
+            stokes_hdul = polarization_calibration_triplediff_cube(path_set, derotate=derotate)
         if mm_correct:
             mm_dict = make_triplediff_dict(mm_paths)
             _, _, mmQs, mmUs = triple_diff_dict(mm_dict)
     elif method == "doublediff":
         if coadded:
-            stokes_hdul = polarization_calibration_doublediff(path_set)
+            stokes_hdul = polarization_calibration_doublediff(path_set, derotate=derotate)
         else:
-            stokes_hdul = polarization_calibration_doublediff_cube(path_set)
+            stokes_hdul = polarization_calibration_doublediff_cube(path_set, derotate=derotate)
         if mm_correct:
             mm_dict = make_doublediff_dict(mm_paths)
             _, _, mmQs, mmUs = double_diff_dict(mm_dict)
@@ -696,7 +686,7 @@ def make_stokes_image(
                 average_poleff,
                 "DPP polarimetric efficiency from Mueller matrix",
             )
-        elif not hwp_adi_sync:
+        elif derotate and not hwp_adi_sync:
             # if HWP ADI sync is off but we don't do Mueller correction
             # we need to manually rotate stokes values by the derotation angle
             angle = stokes_header["DEROTANG"]
