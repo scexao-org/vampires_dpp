@@ -184,7 +184,7 @@ def register_hdul(
 
     # update header info
     info = fits.Header()
-    info["hierarch DPP ALIGN METHOD"] = method, "Frame alignment method"
+    info["hierarch DPP ALIGN METH"] = method, "Frame alignment method"
 
     for hdu_idx in range(len(hdul)):
         output_hdul[hdu_idx].header.update(info)
@@ -232,7 +232,7 @@ def recenter_hdul(
 
     info = fits.Header()
     info["hierarch DPP RECENTER"] = True, "Data was registered after coadding"
-    info["hierarch DPP RECENTER METHOD"] = method, "DPP recentering registration method"
+    info["hierarch DPP RECENTER METH"] = method, "DPP recentering registration method"
 
     for hdu in hdul:
         hdu.header.update(info)

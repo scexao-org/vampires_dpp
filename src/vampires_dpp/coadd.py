@@ -37,7 +37,7 @@ def coadd_hdul(hdul: fits.HDUList, *, method: CoaddMethod = "median") -> fits.HD
 
     # header info
     info = fits.Header()
-    info["hierarch DPP COADD METHOD"] = method, "Coadd method"
+    info["hierarch DPP COADD METH"] = method, "Coadd method"
     info["hierarch DPP COADD NCOADD"] = ncoadd, "Number of coadded frames"
     info["hierarch DPP COADD TINT"] = (
         hdul[0].header["EXPTIME"] * ncoadd,
