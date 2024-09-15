@@ -669,8 +669,8 @@ def make_stokes_image(
             Sarr = np.array((Q.ravel(), U.ravel()))
             Marr = np.array((mmQ[1:3], mmU[1:3]))
             res = np.linalg.lstsq(Marr, Sarr, rcond=None)[0]
-            Q = res[0].reshape(IQ.shape[-2:])
-            U = res[1].reshape(IU.shape[-2:])
+            Q = res[0].reshape(Q.shape[-2:])
+            U = res[1].reshape(U.shape[-2:])
             stokes_frame = np.array((IQ, IU, Q, U))
             stokes_frame_err = np.array((IQ_err, IU_err, Q_err, U_err))
             stokes_header[f"hierarch DPP PDI MM IP_PQ {field}"] = (

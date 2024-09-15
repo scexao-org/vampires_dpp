@@ -11,10 +11,10 @@ from astropy.nddata import Cutout2D
 from astropy.visualization import simple_norm
 from image_registration import chi2_shift
 from photutils import centroids
-from skimage import filters
+from skimage import filters, transform
 
 from vampires_dpp.headers import fix_header
-from vampires_dpp.image_processing import shift_frame
+from vampires_dpp.image_processing import shift_frame, warp_frame
 from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii, get_mbi_centers
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.synthpsf import create_synth_psf
@@ -101,6 +101,7 @@ def register_hdul(
     align: bool = True,
     method: RegisterMethod = "dft",
     crop_width: int = 536,
+    reproject_tforms: None | dict[str, transform.SimilarityTransform],
 ) -> fits.HDUList:
     # load centroids
     # reminder, this has shape (nframes, nlambda, npsfs, 2)
@@ -132,20 +133,22 @@ def register_hdul(
         centroids = np.zeros((nframes, 1, 2))
         centroids[:] = center
 
+    if reproject_tforms is not None and hdul[0].header["U_CAMERA"] == 2:
+        tforms = list(reproject_tforms[field] for field in fields)
+        print(f"{tforms = }")
+    else:
+        tforms = None
     # determine maximum padding, with sqrt(2)
     # for radial coverage
     rad_factor = (crop_width / 2) * (np.sqrt(2) - 1)
     # round to nearest even number
     npad = int((rad_factor // 2) * 2)
-
-    aligned_data = []
-    aligned_err = []
+    npix = crop_width + 2 * npad
+    aligned_cube = np.empty((*centroids.shape[:2], npix, npix), dtype="f4")
+    aligned_err_cube = np.empty((*centroids.shape[:2], npix, npix), dtype="f4")
     for tidx in range(centroids.shape[0]):
         frame = hdul[0].data[tidx]
         frame_err = hdul["ERR"].data[tidx]
-
-        aligned_frames = []
-        aligned_err_frames = []
 
         for wlidx in range(centroids.shape[1]):
             # determine offset for each field
@@ -156,20 +159,19 @@ def register_hdul(
 
             offset = field_ctr - cutout.position_original[::-1]
 
-            # pad and shift data
-            frame_padded = np.pad(cutout.data, npad, constant_values=np.nan)
-            shifted = shift_frame(frame_padded, offset)
-            aligned_frames.append(shifted)
+            # shift arrays, since it's subpixel don't worry about losing edges
+            shifted = shift_frame(cutout.data, offset)
+            shifted_err = shift_frame(cutout_err.data, offset)
 
-            # pad and shift error
-            frame_err_padded = np.pad(cutout_err.data, npad, constant_values=np.nan)
-            shifted_err = shift_frame(frame_err_padded, offset)
-            aligned_err_frames.append(shifted_err)
-        aligned_data.append(aligned_frames)
-        aligned_err.append(aligned_err_frames)
+            # if reprojecting, scale + rotate images
+            if tforms is not None:
+                shifted = warp_frame(shifted, tforms[wlidx].params[:2])
+                shifted_err = warp_frame(shifted_err, tforms[wlidx].params[:2])
 
-    aligned_cube = np.array(aligned_data)
-    aligned_err_cube = np.array(aligned_err)
+            # pad output
+            aligned_cube[tidx, wlidx] = np.pad(shifted, npad, constant_values=np.nan)
+            aligned_err_cube[tidx, wlidx] = np.pad(shifted_err, npad, constant_values=np.nan)
+
     # generate output HDUList
     output_hdul = fits.HDUList(
         [

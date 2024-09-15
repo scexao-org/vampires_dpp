@@ -11,7 +11,6 @@ from astropy.coordinates import Angle, SkyCoord
 from pydantic import BaseModel
 
 import vampires_dpp as dpp
-from vampires_dpp.constants import SATSPOT_REF_ANGLE, SATSPOT_REF_NACT
 from vampires_dpp.util import check_version
 
 __all__ = (
@@ -182,11 +181,6 @@ class CalibrateConfig(BaseModel):
     flat_correct: bool = False
     fix_bad_pixels: bool = False
     save_intermediate: bool = False
-    reproject: bool = False
-    satspot_reference: dict[str, float] = {
-        "separation": SATSPOT_REF_NACT,
-        "angle": SATSPOT_REF_ANGLE,
-    }
 
 
 class AnalysisConfig(BaseModel):
@@ -281,6 +275,8 @@ class AlignmentConfig(BaseModel):
         Alignment method, (if "dft" is not provided, it will not be measured at all)
     crop_width:
         Post-alignment crop width, should be roughly equal to FOV. Cropped data can set this lower for reduced memory footprint.
+    reproject:
+        If true, will reproject cam2 astrometry onto cam1 for better image differences
     save_intermediate:
         If true, will save the registered files to the ``<output>/registered`` folder (WARNING can lead to insance data volume)
     """
@@ -288,6 +284,7 @@ class AlignmentConfig(BaseModel):
     align: bool = True
     method: Literal["dft", "com", "peak"] = "dft"
     crop_width: int = 536
+    reproject: bool = False
     save_intermediate: bool = False
 
 

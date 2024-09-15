@@ -134,9 +134,6 @@ def get_calib_settings(template: PipelineConfig) -> PipelineConfig:
         )
     else:
         template.calibrate.calib_directory = None
-    template.calibrate.reproject = click.confirm(
-        "Would you like to apply custom astrometric solution?", default=template.calibrate.reproject
-    )
     template.calibrate.save_intermediate = click.confirm(
         "Would you like to save intermediate calibrated files?",
         default=template.calibrate.save_intermediate,

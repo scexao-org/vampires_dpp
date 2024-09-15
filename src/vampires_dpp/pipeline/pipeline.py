@@ -8,6 +8,7 @@ import pandas as pd
 import tomli
 from astropy.io import fits
 from loguru import logger
+from skimage import transform
 from tqdm.auto import tqdm
 
 from vampires_dpp.analysis import analyze_file
@@ -21,7 +22,7 @@ from vampires_dpp.combine_frames import (
     generate_frame_combinations,
 )
 from vampires_dpp.frame_select import frame_select_hdul
-from vampires_dpp.image_registration import recenter_hdul, register_hdul
+from vampires_dpp.image_registration import intersect_point, recenter_hdul, register_hdul
 from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
@@ -47,6 +48,8 @@ class Pipeline:
         self.master_flats = {1: None, 2: None}
         self.diff_files = None
         self.calib_table = None
+        self.centroids = None
+        self.reproject_tforms = None
         self.config = config
         self.workdir = workdir if workdir is not None else Path.cwd()
         self.paths = Paths(workdir=self.workdir)
@@ -69,6 +72,8 @@ class Pipeline:
 
         input_table = self.create_input_table(filenames=filenames, num_proc=num_proc)
         self.get_centroids()
+        if self.config.align.reproject:
+            self.get_reproject_tforms()
         self.get_coordinate()
         self.make_synth_psfs(input_table)
         combinations = generate_frame_combinations(input_table, method=self.config.combine.method)
@@ -170,6 +175,34 @@ class Pipeline:
             logger.debug(f"{key} frame center is {self.centroids[key]} (y, x)")
         return self.centroids
 
+    def get_reproject_tforms(self):
+        cam1_centroids = self.centroids["cam1"].copy()
+        cam2_centroids = self.centroids["cam2"].copy()
+        # flip cam1 on y!!
+        for key in cam1_centroids:
+            cam1_middle = intersect_point(cam1_centroids[key][:, 0], cam1_centroids[key][:, 1])
+            cam1_offs = cam1_centroids[key] - cam1_middle
+            cam1_offs[:, 1] *= -1
+            cam1_centroids[key] = cam1_offs + cam1_middle
+
+        # sort both sets by x-index
+        self.reproject_tforms = {}
+        cam1_offsets = recenter_centroids(cam1_centroids)
+        cam2_offsets = recenter_centroids(cam2_centroids)
+        for key in cam1_offsets:
+            # fit similarity transform (scale + rotation + translation) from cam2 centroids to cam1 centroids
+            tform = transform.SimilarityTransform()
+            success = tform.estimate(cam2_offsets[key], cam1_offsets[key])
+            assert (
+                success
+            ), "Determining scale+rot transformation between cameras failed, check input centroids!"
+            # only save the rotation and scaling portions-- the translation will be handled during image registration
+            self.reproject_tforms[key] = transform.SimilarityTransform(
+                scale=tform.scale, rotation=tform.rotation
+            )
+
+        return self.reproject_tforms
+
     def make_synth_psfs(self, input_table):
         # make PSFs ahead of time so they don't overwhelm
         # during multiprocessing
@@ -223,7 +256,8 @@ class Pipeline:
         ## Step 4: Registration
         # note: if we're not aligning, this still takes care
         # of cutting out MBI frames, so it's necessary
-        logger.debug(f"Starting frame aligned for group {group_key}")
+        logger.debug(f"Starting frame alignment for group {group_key}")
+        reproject_tforms = self.reproject_tforms if self.config.align.reproject else None
         hdul = register_hdul(
             hdul,
             metrics,
@@ -231,19 +265,20 @@ class Pipeline:
             align=self.config.align.align,
             method=self.config.align.method,
             crop_width=self.config.align.crop_width,
+            reproject_tforms=reproject_tforms,
         )
-        if self.config.align.save_intermediate and self.config.coadd.coadd:
-            _, outpath = get_paths(output_path, output_directory=self.paths.aligned)
-            outpath = outpath.with_name(outpath.name.replace("_coll", "_reg"))
-            hdul.writeto(outpath, overwrite=True)
-            logger.debug(f"Saved aligned HDU list to {outpath.absolute()}")
-        logger.debug(f"Finished frame aligned for group {group_key}")
-
+        logger.debug(f"Finished frame alignment for group {group_key}")
         ## Step 5: Spectrophotometric calibration
         if self.config.specphot is not None:
             logger.debug(f"Starting specphot cal for group {group_key}")
             hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config.specphot)
             logger.debug(f"Finished specphot cal for group {group_key}")
+        # Awkward: save registered data AFTER specphot calibration
+        if self.config.align.save_intermediate and self.config.coadd.coadd:
+            _, outpath = get_paths(output_path, output_directory=self.paths.aligned)
+            outpath = outpath.with_name(outpath.name.replace("_coll", "_reg"))
+            hdul.writeto(outpath, overwrite=True)
+            logger.debug(f"Saved aligned HDU list to {outpath.absolute()}")
         ## Step 6: Coadd
         if self.config.coadd.coadd:
             logger.debug(f"Starting coadding for group {group_key}")
@@ -301,7 +336,6 @@ class Pipeline:
             path,
             back_filename=back_filename,
             flat_filename=flat_filename,
-            # transform_filename=config.distortion_file,
             bpfix=config.fix_bad_pixels,
             coord=self.coord,
             force=force,
@@ -365,25 +399,6 @@ class Pipeline:
             angles = np.asarray(group["DEROTANG"], dtype="f4")
             fits.writeto(angles_path, angles, overwrite=True)
             logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
-        # take cam 1 as refernce, why not
-        # if len(hduls) > 1:
-        #     # cam1_cube, cam1_hdr, cam2_cube, cam2_hdr = reproject_data(
-        #     #     hduls[0][0].data, hduls[0][0].header, hduls[1][0].data, hduls[1][0].header
-        #     # )
-        #     cam1_cube = hduls[0][0].data
-        #     cam1_hdr = hduls[0][0].header
-        #     cam2_cube = hduls[1][0].data
-        #     # cam2_hdr = hduls[1][0].header
-
-        #     mean_cube = 0.5 * (cam1_cube + cam2_cube)
-        #     cube_path = self.paths.adi_dir / f"{self.config.name}_adi_cube_comb.fits"
-        #     del cam1_hdr["U_CAMERA"]
-        #     fits.writeto(cube_path, mean_cube, header=cam1_hdr, overwrite=True)
-        #     logger.info(f"Saved combined ADI cube to {cube_path}")
-        #     angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
-        #     angles = np.asarray(cam_groups.get_group(1)["DEROTANG"])
-        #     fits.writeto(angles_path, angles, overwrite=True)
-        #     logger.info(f"Saved combined ADI angles to {angles_path}")
 
     def make_diff_images(self, table, num_proc=None, force=False):
         logger.info("Making difference frames")
@@ -595,3 +610,13 @@ class Pipeline:
         #         outname=self.stokes_collapsed_file,
         #         force=True,
         #     )
+
+
+def recenter_centroids(centroids: dict) -> dict:
+    output = {}
+    for key, value in centroids.items():
+        arr = np.array(value)
+        offs = arr - intersect_point(arr[:, 0], arr[:, 1])
+        sorted_inds = np.argsort(offs[:, 0], axis=0)
+        output[key] = offs[sorted_inds]
+    return output

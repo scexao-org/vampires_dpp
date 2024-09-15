@@ -80,7 +80,9 @@ def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
     }
     default_kwargs.update(**kwargs)
     shape = (data.shape[1], data.shape[0])
-    return cv2.warpAffine(data.astype("f4"), matrix, shape, **default_kwargs)
+    if matrix[0, 0] < 1:
+        data = cv2.GaussianBlur(data.astype("f4"), (3, 3), 1)
+    return cv2.warpAffine(data.astype("f4"), matrix.astype("f4"), shape, **default_kwargs)
 
 
 def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArray:
