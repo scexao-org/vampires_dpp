@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=aec58b01"></script>
+    <script src="_static/documentation_options.js?v=b9b10b67"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -566,9 +566,8 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 <li><p><strong>back_subtract</strong> (<em>bool</em>) – If true will look for background files in <code class="docutils literal notranslate"><span class="pre">calib_directory</span></code> and subtract them if found. If not found, will subtract detector bias value.</p></li>
 <li><p><strong>flat_correct</strong> (<em>bool</em>) – If true will look for flat files in <code class="docutils literal notranslate"><span class="pre">calib_directory</span></code> and perform flat normalization if found.</p></li>
 <li><p><strong>fix_bad_pixels</strong> (<em>bool</em>) – If true, will run adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels. By default false.</p></li>
-<li><p><strong>reproject</strong> (<em>bool</em>) – If true, will use custom astrometry solution to warp frame</p></li>
+<li><p><strong>reproject</strong> – If true, will use custom astrometry solution to warp frame</p></li>
 <li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save intermediate calibrated data to <code class="docutils literal notranslate"><span class="pre">calibrated/</span></code> folder.</p></li>
-<li><p><strong>satspot_reference</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
