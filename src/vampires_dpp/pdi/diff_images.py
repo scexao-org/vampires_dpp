@@ -2,7 +2,6 @@ from pathlib import Path
 
 import numpy as np
 from astropy.io import fits
-from reproject import reproject_interp
 
 from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
@@ -47,26 +46,11 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
             hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
     if len(data) < 2:
         return None
-    # reproject cam2 onto cam1
-    reproject_interp(
-        (np.nan_to_num(data[2]), prim_hdrs[2]),
-        prim_hdrs[1],
-        return_footprint=False,
-        output_array=data[2],
-        order="bicubic",
-    )
-    reproject_interp(
-        (np.nan_to_num(errs[2]), prim_hdrs[2]),
-        prim_hdrs[1],
-        return_footprint=False,
-        output_array=errs[2],
-        order="bicubic",
-    )
-    single_diff = data[1] - data[2]
-    single_sum = data[1] + data[2]
-    single_err = np.hypot(errs[1], errs[2])
+    single_diff = 0.5 * (data[1] - data[2])
+    single_sum = 0.5 * (data[1] + data[2])
+    single_err = 0.5 * np.hypot(errs[1], errs[2])
     comb_hdrs = []
-    for i in range(single_diff.shape[0]):
+    for i in range(single_diff.shape[-3]):
         headers = (hdrs[1][i], hdrs[2][i])
         hdr = combine_frames_headers(headers)
         if "NCOADD" in hdr:
@@ -112,22 +96,6 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
 
     if len(data) < 4:
         return None
-    # reproject cam2 onto cam1
-    for key in ("A", "B"):
-        reproject_interp(
-            (np.nan_to_num(data[2, key]), prim_hdrs[2, key]),
-            prim_hdrs[1, key],
-            return_footprint=False,
-            output_array=data[2, key],
-            order="bicubic",
-        )
-        reproject_interp(
-            (np.nan_to_num(errs[2, key]), prim_hdrs[2, key]),
-            prim_hdrs[1, key],
-            return_footprint=False,
-            output_array=errs[2, key],
-            order="bicubic",
-        )
 
     diff_A = data[1, "A"] - data[2, "A"]
     diff_B = data[1, "B"] - data[2, "B"]
@@ -148,7 +116,7 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
             fits.ImageHDU(double_err, header=prim_hdr, name="ERR"),
         ]
     )
-    for i in range(double_diff.shape[0]):
+    for i in range(double_diff.shape[-3]):
         headers = [hdr[i] for hdr in hdrs.values()]
         hdr = sort_header(combine_frames_headers(headers))
         hdul.append(fits.ImageHDU(header=hdr))
