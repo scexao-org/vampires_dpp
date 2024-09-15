@@ -164,8 +164,11 @@ def register_hdul(
 
             # if reprojecting, scale + rotate images
             if tforms is not None:
-                shifted = warp_frame(shifted, tforms[wlidx].params[:2])
-                shifted_err = warp_frame(shifted_err, tforms[wlidx].params[:2])
+                rotmat = cv2.getRotationMatrix2D(
+                    frame_center(shifted), np.rad2deg(tforms[wlidx].rotation), tforms[wlidx].scale
+                )
+                shifted = warp_frame(shifted, rotmat)
+                shifted_err = warp_frame(shifted_err, rotmat)
 
             # pad output
             aligned_cube[tidx, wlidx] = np.pad(shifted, npad, constant_values=np.nan)
