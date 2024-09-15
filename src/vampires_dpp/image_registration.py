@@ -134,8 +134,7 @@ def register_hdul(
         centroids[:] = center
 
     if reproject_tforms is not None and hdul[0].header["U_CAMERA"] == 2:
-        tforms = list(reproject_tforms[field] for field in fields)
-        print(f"{tforms = }")
+        tforms = [reproject_tforms[field] for field in fields]
     else:
         tforms = None
     # determine maximum padding, with sqrt(2)

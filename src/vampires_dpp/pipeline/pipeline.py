@@ -115,9 +115,9 @@ class Pipeline:
         # if self.config.save_adi_cubes:
         #     self.save_adi_cubes(force=force)
 
-        # ## diff images
-        # if self.config.diff_images.make_diff:
-        #     self.make_diff_images(self.output_table, force=force)
+        ## diff images
+        if self.config.diff_images.make_diff:
+            self.make_diff_images(self.output_table, force=force)
 
         logger.success("Finished processing files")
 
@@ -403,42 +403,35 @@ class Pipeline:
     def make_diff_images(self, table, num_proc=None, force=False):
         logger.info("Making difference frames")
         self.diff_files = []
-        if self.config.diff_images == "singlediff":
-            path_sets = get_singlediff_sets(table)
-            diff_func = partial(singlediff_images, force=force)
-            outdir = self.paths.diff / "single"
-        elif self.config.diff_images == "doublediff":
-            path_sets = get_doublediff_sets(table)
-            diff_func = partial(doublediff_images, force=force)
-            outdir = self.paths.diff / "double"
-        elif self.config.diff_images == "both":
-            # do singlediff first, then deliberate to doublediff
-            path_sets = get_singlediff_sets(table)
-            diff_func = partial(singlediff_images, force=force)
-            outdir = self.paths.diff / "single"
-            outdir.mkdir(exist_ok=True)
-            with mp.Pool(num_proc) as pool:
-                jobs = []
-                for i, paths in enumerate(path_sets):
-                    outpath = outdir / f"{self.config.name}_diff_{i:04d}.fits"
-                    jobs.append(
-                        pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath))
-                    )
-                self.diff_files.extend(
-                    job.get() for job in tqdm(jobs, desc="Making single diff images")
-                )
-            # now set for double-diff
-            path_sets = get_doublediff_sets(table)
-            diff_func = partial(doublediff_images, force=force)
-            outdir = self.paths.diff / "double"
+        # do singlediff first, then deliberate to doublediff
+        path_sets = get_singlediff_sets(table)
+        diff_func = partial(singlediff_images)
+        outdir = self.paths.diff / "single"
         outdir.mkdir(exist_ok=True)
         with mp.Pool(num_proc) as pool:
             jobs = []
             for i, paths in enumerate(path_sets):
-                outpath = outdir / f"{self.config.name}_diff_{i:04d}.fits"
+                outpath = outdir / f"{self.config.name}_single_diff_{i:04d}.fits"
                 jobs.append(pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath)))
+            self.diff_files.extend(
+                job.get() for job in tqdm(jobs, desc="Making single diff images")
+            )
+        if self.config.diff_images.save_double:
+            # now set for double-diff
+            path_sets = get_doublediff_sets(table)
+            diff_func = partial(doublediff_images, force=force)
+            outdir = self.paths.diff / "double"
+            outdir.mkdir(exist_ok=True)
 
-            self.diff_files.extend(job.get() for job in tqdm(jobs, desc="Making diff images"))
+            with mp.Pool(num_proc) as pool:
+                jobs = []
+                for i, paths in enumerate(path_sets):
+                    outpath = outdir / f"{self.config.name}_double_diff_{i:04d}.fits"
+                    jobs.append(
+                        pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath))
+                    )
+
+                self.diff_files.extend(job.get() for job in tqdm(jobs, desc="Making diff images"))
         logger.info("Done making difference frames")
         return self.diff_files
 

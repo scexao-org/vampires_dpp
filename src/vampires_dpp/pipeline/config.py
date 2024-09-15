@@ -309,7 +309,7 @@ class CoaddConfig(BaseModel):
 
     coadd: bool = True
     method: Literal["median", "mean", "varmean", "biweight"] = "median"
-    recenter: bool = False
+    recenter: bool = True
     recenter_method: Literal["dft", "com", "peak", "model"] = "dft"
 
 
@@ -320,8 +320,6 @@ class DiffImageConfig(BaseModel):
     """
 
     make_diff: bool = False
-    method: Literal["singlediff", "doublediff"] = "doublediff"
-    save_single: bool = False
     save_double: bool = False
 
 

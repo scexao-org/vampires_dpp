@@ -248,6 +248,10 @@ def get_alignment_settings(template: PipelineConfig) -> PipelineConfig:
     template.align.crop_width = click.prompt(
         "Enter post-align crop size", default=template.align.crop_width, type=int
     )
+    template.align.reproject = click.confirm(
+        "Would you like to reproject VCAM2 data to fix scale and rotation differences?",
+        default=template.align.reproject,
+    )
     template.align.save_intermediate = click.confirm(
         "Would you like to save the intermediate registered data?",
         default=template.align.save_intermediate,
@@ -291,24 +295,10 @@ def get_diff_image_config(template: PipelineConfig) -> PipelineConfig:
         "Would you like to make difference/sum images?", default=template.diff_images.make_diff
     )
     if template.diff_images.make_diff:
-        choices = ["singlediff", "doublediff"]
-        readline.set_completer(createListCompleter(choices))
-        template.diff_images.method = click.prompt(
-            " - Choose a difference method",
-            type=click.Choice(choices, case_sensitive=False),
-            default=template.diff_images.method,
+        template.diff_images.save_double = click.confirm(
+            "Would you like to save the double diff/sum images (only works if FLC was used)?",
+            default=template.diff_images.save_double,
         )
-        readline.set_completer()
-
-        template.diff_images.save_single = click.confirm(
-            "Would you like to save the single diff/sum images?",
-            default=template.diff_images.save_single,
-        )
-        if template.diff_images.method == "doublediff":
-            template.diff_images.save_double = click.confirm(
-                "Would you like to save the double diff/sum images?",
-                default=template.diff_images.save_double,
-            )
     return template
 
 
