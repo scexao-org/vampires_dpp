@@ -67,10 +67,6 @@ def safe_annulus_sum(frame, Rin, Rout, center=None):
     return flux[0], fluxerr[0]
 
 
-def estimate_strehl(*args, **kwargs):
-    raise NotImplementedError()
-
-
 def analyze_fields(
     cube,
     cube_err,

@@ -176,6 +176,9 @@ class Pipeline:
         return self.centroids
 
     def get_reproject_tforms(self):
+        if not ("cam1" in self.centroids and "cam2" in self.centroids):
+            self.reproject_tforms = None
+            return self.reproject_tforms
         cam1_centroids = self.centroids["cam1"].copy()
         cam2_centroids = self.centroids["cam2"].copy()
         # flip cam1 on y!!

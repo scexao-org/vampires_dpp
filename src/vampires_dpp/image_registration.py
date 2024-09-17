@@ -409,7 +409,9 @@ def autocentroid_hdul(
         # find centroid of image with square scaling to help bias towards PSF
         rough_ctr = centroids.centroid_com(cutout.data**2, mask=np.isnan(cutout.data))
         # take a large crop, large enough to see satellite spots plus misregistration
-        rough_cutout = Cutout2D(cutout.data, rough_ctr, crop_size, mode="partial")
+        rough_cutout = Cutout2D(
+            cutout.data, rough_ctr, min(*cutout.shape[-2:], crop_size), mode="partial"
+        )
         # high-pass filter the data with a large median-- note, this requires the data to have
         # a certain level of S/N or it will wipe out the satellite spots. Therefore it's only suggested
         # to run the autocentroid on a big stack of mean-combined data instead of individual frames
