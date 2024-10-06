@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=b9b10b67"></script>
+    <script src="../_static/documentation_options.js?v=024d897a"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -454,7 +454,7 @@ trims the edges off where everything is NaN.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vampires_dpp.image_processing.warp_frame">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">warp_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.warp_frame" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.image_processing.</span></span><span class="sig-name descname"><span class="pre">warp_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antialias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.image_processing.warp_frame" title="Link to this definition">#</a></dt>
 <dd><p>Geometric frame warping. By default will use bicubic interpolation with <cite>NaN</cite> padding.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -462,6 +462,7 @@ trims the edges off where everything is NaN.</p>
 <li><p><strong>data</strong> (<em>ArrayLike</em>) – 2D image</p></li>
 <li><p><strong>matrix</strong> (<em>ArrayLike</em>) – Geometric transformation matrix</p></li>
 <li><p><strong>**kwargs</strong> – Keyword arguments are passed to opencv. Important keywords like <cite>borderValue</cite>, <cite>borderMode</cite>, and <cite>flags</cite> can customize the padding and interpolation behavior of the transformation.</p></li>
+<li><p><strong>antialias</strong> (<em>bool</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
