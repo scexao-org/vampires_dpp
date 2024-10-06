@@ -58,10 +58,10 @@ class VAMPIRESMuellerMatrix(BaseModel):
         # HWP
         if hwp_adi_sync:
             az_theta = np.deg2rad(az - 180)
-            hwp_adi_offset = mm.hwp_adi_sync_offset(alt=alt_theta, az=az_theta)
+            hwp_adi_offset_rad = mm.hwp_adi_sync_offset(alt=alt_theta, az=az_theta)
         else:
-            hwp_adi_offset = 0
-        hwp_theta = np.deg2rad(hwp + self.hwp_offset) + hwp_adi_offset
+            hwp_adi_offset_rad = 0
+        hwp_theta = np.deg2rad(hwp + self.hwp_offset) + hwp_adi_offset_rad
         hwp_mm = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi)
 
         # Image rotator

@@ -147,9 +147,9 @@ def get_analysis_settings(template: PipelineConfig) -> PipelineConfig:
     template.analysis.window_size = click.prompt(
         "Enter analysis window size (px)", type=int, default=template.analysis.window_size
     )
-    # template.analysis.fit_psf_model = click.prompt(
-    #     "Would you like to fit a PSF model?", default=template.analysis.fit_psf_model
-    # )
+    template.analysis.fit_psf_model = click.confirm(
+        "Would you like to fit a PSF model?", default=template.analysis.fit_psf_model
+    )
     # if template.analysis.fit_psf_model:
     #     template.analysis.psf_model = click.prompt(
     #         " - Choose PSF model",

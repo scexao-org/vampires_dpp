@@ -302,3 +302,14 @@ def combine_frames_files(filenames, output, *, force: bool = False, crop: bool =
     cube, header = combine_frames(frames, headers, **kwargs)
     fits.writeto(path, cube, header=sort_header(header), overwrite=True)
     return path
+
+
+def combine_both_cams_hduls(hdul1: fits.HDUList, hdul2: fits.HDUList) -> fits.HDUList:
+    header = combine_frames_headers((hdul1[0].header, hdul2[0].header), wcs=True)
+    del header["U_CAMERA"]
+    data = 0.5 * (hdul1[0].data + hdul2[0].data)
+    err = np.sqrt(0.5 * (hdul1["ERR"].data ** 2 + hdul2["ERR"].data ** 2))
+    hdul_out = fits.HDUList(
+        [fits.PrimaryHDU(data, header=header), fits.ImageHDU(err, header=header, name="ERR")]
+    )
+    return hdul_out

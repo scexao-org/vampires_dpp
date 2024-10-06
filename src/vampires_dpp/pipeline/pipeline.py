@@ -16,7 +16,7 @@ from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
 from vampires_dpp.coadd import coadd_hdul, collapse_frames
 from vampires_dpp.combine_frames import (
-    combine_frames_files,
+    combine_both_cams_hduls,
     combine_frames_headers,
     combine_hduls,
     generate_frame_combinations,
@@ -111,9 +111,9 @@ class Pipeline:
         self.output_table = header_table(self.output_paths, num_proc=num_proc, quiet=True)
         self.save_output_header()
 
-        # ## products
-        # if self.config.save_adi_cubes:
-        #     self.save_adi_cubes(force=force)
+        ## products
+        if self.config.save_adi_cubes:
+            self.save_adi_cubes(force=force)
 
         ## diff images
         if self.config.diff_images.make_diff:
@@ -382,26 +382,39 @@ class Pipeline:
         return self.output_table_path
 
     def save_adi_cubes(self, force: bool = False):
-        # preset values
-        self.cam1_cube_path = self.cam2_cube_path = None
+        output_path = self.paths.adi / f"{self.config.name}_adi_cube.fits"
+        angles_path = output_path.with_stem(output_path.stem.replace("_cube", "_angles"))
 
-        # save cubes for each camera
-        if "U_FLC" in self.output_table:
-            self.output_table.sort_values(["MJD", "U_FLC"], inplace=True)
-        else:
-            self.output_table.sort_values("MJD", inplace=True)
-
+        group_keys = ["MJD", "U_FLC"]
+        mask = self.output_table["U_FLC"].isna()
+        self.output_table.loc[mask, "U_FLC"] = "NA"
+        time_groups = self.output_table.sort_values(group_keys).groupby(group_keys)
         hduls = []
-        cam_groups = self.output_table.groupby("U_CAMERA")
-        for cam_num, group in cam_groups:
-            cube_path = self.paths.adi / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
-            combine_frames_files(group["path"], output=cube_path, force=force, crop=False)
-            hduls.append(fits.open(cube_path, memmap=False))
-            logger.info(f"Saved cam {cam_num:.0f} ADI cube to {cube_path}")
-            angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
-            angles = np.asarray(group["DEROTANG"], dtype="f4")
-            fits.writeto(angles_path, angles, overwrite=True)
-            logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
+        angs = []
+        logger.info("Stacking output files into ADI cubes")
+        for _key, group in time_groups:
+            with fits.open(group.iloc[0]["path"], memmap=False) as hdul1:
+                if len(group) == 2:
+                    with fits.open(group.iloc[1]["path"], memmap=False) as hdul2:
+                        comb_hdul = combine_both_cams_hduls(hdul1, hdul2)
+                else:
+                    comb_hdul = hdul1
+            angs.append(group["DEROTANG"].mean())
+            hduls.append(comb_hdul)
+        stacked_hdul = combine_hduls(hduls)
+        stacked_hdul.writeto(output_path, overwrite=True)
+        logger.info(f"Saved ADI cube to {output_path}")
+        fits.writeto(angles_path, np.array(angs, dtype="f4"), overwrite=True)
+        # paths = []
+        # for cam_num, group in cam_groups:
+        #     cube_path = self.paths.adi / f"{self.config.name}_adi_cube_cam{cam_num:.0f}.fits"
+        #     paths.append(cube_path)
+        #     combine_frames_files(group["path"], output=cube_path, force=True, crop=False)
+        #     logger.info(f"Saved cam {cam_num:.0f} ADI cube to {cube_path}")
+        #     angles_path = cube_path.with_stem(f"{cube_path.stem}_angles")
+        #     angles = np.asarray(group["DEROTANG"], dtype="f4")
+        #     fits.writeto(angles_path, angles, overwrite=True)
+        #     logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
 
     def make_diff_images(self, table, num_proc=None, force=False):
         logger.info("Making difference frames")

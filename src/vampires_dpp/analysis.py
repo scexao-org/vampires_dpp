@@ -5,6 +5,7 @@ from typing import Final, Literal
 import numpy as np
 import scipy.stats as st
 import sep
+from astropy import modeling
 from astropy.io import fits
 
 from .image_registration import offset_dft, offset_peak_and_com
@@ -77,7 +78,7 @@ def analyze_fields(
     aper_rad=4,
     ann_rad=None,
     psf=None,
-    fit_psf_model: bool = False,
+    do_psf_model: bool = False,
     psf_model="moffat",
 ):
     output = {}
@@ -106,13 +107,11 @@ def analyze_fields(
         create_or_append(output, "peakx", centroids["peak"][1])
         create_or_append(output, "peaky", centroids["peak"][0])
         ctr_est = centroids["com"]
-        if fit_psf_model:
-            msg = "TODO :)"
-            raise NotImplementedError(msg)
-            # psf_info = fit_psf_model(frame, inds, model=psf_model)
-            # create_or_append(output, "gausx", centroids["gauss"][1])
-            # create_or_append(output, "gausy", centroids["gauss"][0])
-            # ctr_est = centroids["gauss"]
+        if do_psf_model:
+            psf_info = fit_psf_model(frame, frame_err, model=psf_model)
+            create_or_append(output, "modelx", psf_info["model_x"])
+            create_or_append(output, "modely", psf_info["model_y"])
+            ctr_est = psf_info["model_y"], psf_info["model_x"]
         if psf is not None:
             dft_ctrs = offset_dft(frame, inds, psf=psf)
             create_or_append(output, "dftx", dft_ctrs[1])
@@ -274,7 +273,7 @@ def analyze_file(
                 do_phot=do_phot,
                 do_strehl=do_strehl,
                 psf=psf,
-                fit_psf_model=fit_psf_model,
+                do_psf_model=fit_psf_model,
                 psf_model=psf_model,
             )
             # append psf result to this field's dictionary
@@ -311,11 +310,11 @@ CENTROID_COMM_FSTRS: Final = {
     "comy": "[pix] COM y{}in window {}",
     "peakx": "[pix] Peak index x{}in window {}",
     "peaky": "[pix] Peak index y{}in window {}",
-    "gausx": "[pix] Gauss. fit x{}in window {}",
-    "gausy": "[pix] Gauss. fit y{}in window {}",
+    "modx": "[pix] Model fit x{}in window {}",
+    "mody": "[pix] Model fit y{}in window {}",
     "dftx": "[pix] Cross-corr. x{}in window {}",
     "dfty": "[pix] Cross-corr. y{}in window {}",
-    "fwhm": "[pix] Gauss. fit fwhm{}in window {}",
+    "fwhm": "[pix] Model fit fwhm{}in window {}",
 }
 
 
@@ -353,3 +352,145 @@ def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Head
             hdr[f"{key_up[:5]}ER{i}"] = np.nan_to_num(sem), err_comment
         hdr[f"{key_up[:5]}"] = np.nan_to_num(mean_val), comment.split(" in window")[0]
     return hdr
+
+
+def moffat_fwhm(gamma, alpha):
+    return 2 * gamma * np.sqrt(2 ** (1 / alpha) - 1)
+
+
+def moffat_fwhm_err(gamma, gamma_err, alpha, alpha_err):
+    d_gamma = 2 * np.sqrt(2 ** (1 / alpha) - 1)
+    d_alpha = -np.log(2) * 2 ** (1 / alpha) * gamma / (alpha**2 * np.sqrt(2 ** (1 / alpha) - 1))
+    fwhm_err = np.hypot(d_gamma * gamma_err, d_alpha * alpha_err)
+    return fwhm_err
+
+
+def moffat_gamma(fwhm, alpha):
+    return fwhm / (2 * np.sqrt(2 ** (1 / alpha) - 1))
+
+
+## moffat
+class Moffat(modeling.Fittable2DModel):
+    x0 = modeling.Parameter()
+    y0 = modeling.Parameter()
+    gammax = modeling.Parameter(default=1, min=0)
+    gammay = modeling.Parameter(default=1, min=0)
+    theta = modeling.Parameter(default=0, min=-np.pi / 4, max=np.pi / 4)
+    alpha = modeling.Parameter(default=1, min=0)
+    amplitude = modeling.Parameter(default=1, min=0)
+    background = modeling.Parameter(default=0)
+
+    @property
+    def fwhmx(self) -> modeling.Parameter:
+        return moffat_fwhm(self.gammax, self.alpha)
+
+    @fwhmx.setter
+    def fwhmx(self, fwhmx: float):
+        self.gammax = moffat_gamma(fwhmx, self.alpha)
+
+    @property
+    def fwhmy(self) -> modeling.Parameter:
+        return moffat_fwhm(self.gammay, self.alpha)
+
+    @fwhmy.setter
+    def fwhmy(self, fwhmy: float):
+        self.gammay = moffat_gamma(fwhmy, self.alpha)
+
+    @staticmethod
+    def evaluate(x, y, x0, y0, gammax, gammay, theta, alpha, amplitude, background):
+        diffx = x - x0
+        diffy = y - y0
+
+        cost = np.cos(theta)
+        sint = np.sin(theta)
+
+        a = (cost / gammax) ** 2 + (sint / gammay) ** 2
+        b = (sint / gammax) ** 2 + (cost / gammay) ** 2
+        c = 2 * sint * cost * (1 / gammax**2 - 1 / gammay**2)
+
+        rad = a * diffx**2 + b * diffy**2 + c * diffx * diffy
+        return amplitude / (1 + rad) ** alpha + background
+
+    @staticmethod
+    def fit_deriv(x, y, x0, y0, gammax, gammay, theta, alpha, amplitude, background):
+        diffx = x - x0
+        diffy = y - y0
+
+        cost = np.cos(theta)
+        sint = np.sin(theta)
+        cos2t = np.cos(2 * theta)
+        sin2t = np.sin(2 * theta)
+
+        a = (cost / gammax) ** 2 + (sint / gammay) ** 2
+        b = (sint / gammax) ** 2 + (cost / gammay) ** 2
+        inv_gamma2 = 1 / gammax**2 - 1 / gammay**2
+        c = 2 * sint * cost * inv_gamma2
+
+        rad = a * diffx**2 + b * diffy**2 + c * diffx * diffy
+
+        d_amp = (1 + rad) ** (-alpha)
+        d_alpha = -amplitude * d_amp * np.log(1 + rad)
+
+        f = -amplitude * alpha * (1 + rad) ** (-alpha - 1)
+        d_x0 = f * (-2 * diffx * a - diffy * c)
+        d_y0 = f * (-2 * diffy * b - diffx * c)
+        d_theta = f * (
+            diffx**2 * sin2t * inv_gamma2
+            + 2 * diffx * diffy * inv_gamma2 * cos2t
+            - diffy**2 * inv_gamma2 * sin2t
+        )
+        d_gammax = f * (
+            -2 / gammax**3 * (cost**2 * diffx**2 + sint**2 * diffy**2 + diffx * diffy * sin2t)
+        )
+        d_gammay = f * (
+            -2 / gammay**3 * (sint**2 * diffx**2 + cost**2 * diffy**2 - diffx * diffy * sin2t)
+        )
+        d_back = np.ones_like(d_x0)
+
+        return [d_x0, d_y0, d_gammax, d_gammay, d_theta, d_alpha, d_amp, d_back]
+
+
+def fit_psf_model(frame, err=None, model: Literal["moffat"] = "moffat") -> dict:
+    assert model == "moffat"
+    weights = 1 / np.abs(err) if err is not None else None
+
+    Ny, Nx = frame.shape
+    ys, xs = np.indices(frame.shape)
+    fitter = modeling.fitting.LevMarLSQFitter(calc_uncertainties=False)
+    inity, initx = np.unravel_index(frame.argmax(), frame.shape)
+    model = Moffat(
+        x0=initx,
+        y0=inity,
+        alpha=2,
+        gammax=10,
+        gammay=10,
+        theta=0,
+        amplitude=frame.max(),
+        background=0,
+    )
+    model.x0.min = 0
+    model.x0.max = Nx
+    model.y0.min = 0
+    model.y0.max = Ny
+    model.alpha.min = 0.5
+    model.alpha.max = 3
+    model.gammax.min = 1
+    model.gammax.max = Nx / 2
+    model.gammay.min = 1
+    model.gammay.max = Ny / 2
+    model.theta.min = -np.pi / 4
+    model.theta.max = np.pi / 4
+    model.amplitude.min = 0
+    model.amplitude.max = 2 * frame.max()
+    model.background.fixed = True
+    fit_model = fitter(model, xs, ys, frame, weights=weights, filter_non_finite=True, maxiter=5000)
+    # re-offset position
+    return {
+        "model_amp": fit_model.amplitude,
+        "model_x": fit_model.x0,
+        "model_y": fit_model.y0,
+        "model_fwhmx": fit_model.fwhmx,
+        "model_fwhmy": fit_model.fwhmy,
+        "model_alpha": fit_model.alpha,
+        "model_bkg": fit_model.background,
+    }

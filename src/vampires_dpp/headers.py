@@ -82,6 +82,11 @@ def parallactic_angle_altaz(alt, az, lat=SUBARU_LOC.lat.deg):
 
 
 def fix_header(header):
+    # quickly check if we're dealing with pre-open-use data, which is unsupported
+    if "ACQNCYCS" in header:
+        msg = "WARNING: Unsupported VAMPIRES data type found, cannot guarantee all operations will be successful"
+        warnings.warn(msg, stacklevel=2)
+        return header
     # check if the millisecond delimiter is a colon
     for key in ("UT-STR", "UT-END", "HST-STR", "HST-END"):
         if key in header and header[key].count(":") == 3:

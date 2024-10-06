@@ -56,7 +56,7 @@ def derotate_frame(
     return warp_frame(data, M, **kwargs)
 
 
-def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
+def warp_frame(data: ArrayLike, matrix, antialias: bool = False, **kwargs) -> NDArray:
     """Geometric frame warping. By default will use bicubic interpolation with `NaN` padding.
 
     Parameters
@@ -80,7 +80,7 @@ def warp_frame(data: ArrayLike, matrix, **kwargs) -> NDArray:
     }
     default_kwargs.update(**kwargs)
     shape = (data.shape[1], data.shape[0])
-    if matrix[0, 0] < 1:
+    if antialias:
         sigma = 0.5 * (1 - 1 / np.min(matrix.diagonal()))
         data = cv2.GaussianBlur(data.astype("f4"), (3, 3), sigma)
     return cv2.warpAffine(data.astype("f4"), matrix.astype("f4"), shape, **default_kwargs)

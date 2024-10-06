@@ -167,8 +167,9 @@ def register_hdul(
                 rotmat = cv2.getRotationMatrix2D(
                     frame_center(shifted), np.rad2deg(tforms[wlidx].rotation), tforms[wlidx].scale
                 )
-                shifted = warp_frame(shifted, rotmat)
-                shifted_err = warp_frame(shifted_err, rotmat)
+                antialias = tforms[wlidx].scale < 1  # anti-alias if shrinking frame
+                shifted = warp_frame(shifted, rotmat, antialias=antialias)
+                shifted_err = warp_frame(shifted_err, rotmat, antialias=antialias)
 
             # pad output
             aligned_cube[tidx, wlidx] = np.pad(shifted, npad, constant_values=np.nan)

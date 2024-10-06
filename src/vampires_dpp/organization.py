@@ -13,7 +13,7 @@ from .headers import fix_header
 from .util import load_fits_header
 
 
-def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
+def dict_from_header_file(filename: PathLike, ext=0, **kwargs) -> OrderedDict:
     """Parse a FITS header from a file and extract the keys and values as an ordered dictionary. Multi-line keys like ``COMMENTS`` and ``HISTORY`` will be combined with commas. The resolved path will be inserted with the ``path`` key.
 
     Parameters
@@ -31,7 +31,7 @@ def dict_from_header_file(filename: PathLike, **kwargs) -> OrderedDict:
     summary = OrderedDict()
     # add path to row before the FITS header keys
     summary["path"] = str(path.resolve().absolute())
-    header = load_fits_header(filename)
+    header = load_fits_header(filename, ext=ext)
     summary.update(dict_from_header(header, **kwargs))
     return summary
 

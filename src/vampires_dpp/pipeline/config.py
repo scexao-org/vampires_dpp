@@ -197,9 +197,9 @@ class AnalysisConfig(BaseModel):
     Parameters
     ----------
     fit_psf_model:
-        NOTE: BROKEN If true, fits a PSF model to each window
+        If true, fits a PSF model to each window
     psf_model:
-        NOTE: BROKEN PSF model to use
+        Only Moffat available right now
     photometry:
         If true, will measure photometric sums in apertures at the centroid (or the DFT centroid if available)
     phot_aper_rad:
@@ -213,7 +213,7 @@ class AnalysisConfig(BaseModel):
     """
 
     fit_psf_model: bool = False
-    psf_model: Literal["moffat", "gaussian"] = "moffat"
+    psf_model: Literal["moffat",] = "moffat"
     photometry: bool = True
     phot_aper_rad: float = 8
     phot_ann_rad: Sequence[float] | Literal[False] = False
@@ -282,7 +282,7 @@ class AlignmentConfig(BaseModel):
     """
 
     align: bool = True
-    method: Literal["dft", "com", "peak"] = "dft"
+    method: Literal["dft", "com", "peak", "model"] = "dft"
     crop_width: int = 536
     reproject: bool = False
     save_intermediate: bool = False
@@ -455,6 +455,9 @@ class PipelineConfig(BaseModel):
             and not self.analysis.strehl
         ):
             msg = "You must set `strehl=true` in the analysis section if you want to use the Strehl ratio as a selection metric"
+            raise ValueError(msg)
+        if self.align.align and self.align.method == "model" and not self.analysis.fit_psf_model:
+            msg = "You must set `fit_psf_model` to true if you want to align using the PSF model centroid"
             raise ValueError(msg)
         return super().model_post_init(__context)
 
