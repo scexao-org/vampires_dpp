@@ -11,11 +11,6 @@ from .util import wrap_angle
 SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155.4760187 * u.deg)
 
 
-SATSPOT_REF_NACT = 46.7
-# SATSPOT_REF_ANGLE = -83.2
-SATSPOT_REF_ANGLE = -88.2
-
-
 class InstrumentInfo(BaseModel):
     @property
     def pa_offset(self):

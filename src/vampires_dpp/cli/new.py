@@ -122,7 +122,7 @@ def get_base_settings(template: PipelineConfig) -> PipelineConfig:
 def get_calib_settings(template: PipelineConfig) -> PipelineConfig:
     click.secho("Frame Calibration", bold=True)
     readline.set_completer(pathCompleter)
-    calib_dir = click.prompt("Enter path to calibration files", default="")
+    calib_dir = click.prompt("Enter path to calibration files (or press enter to skip)", default="")
     readline.set_completer()
     if calib_dir != "":
         template.calibrate.calib_directory = Path(calib_dir)
@@ -305,16 +305,26 @@ def get_diff_image_config(template: PipelineConfig) -> PipelineConfig:
 def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
     click.secho("Spectrophotometric Calibration", bold=True)
     ## Specphot Cal
-    if click.confirm(
-        "Would you like to do flux calibration?", default=template.specphot is not None
-    ):
+    unit_choices = ["e-/s", "contrast", "Jy", "Jy/arcsec^2"]
+    readline.set_completer(createListCompleter(unit_choices))
+    unit = click.prompt(
+        "Choose output units",
+        type=click.Choice(unit_choices, case_sensitive=False),
+        default=template.specphot.unit,
+    )
+    readline.set_completer()
+    # default values
+    source = sptype = mag = mag_band = None
+    metric = "photometry"
+    if "Jy" in unit:
         readline.set_completer(pathCompleter)
         source = click.prompt(
-            ' - Enter source type ("pickles" or path to spectrum)', default="pickles"
+            ' - Enter spectrum source ("pickles" or path to spectrum)', default="pickles"
         )
         readline.set_completer()
         if source == "pickles":
             if template.target is not None:
+                click.echo("...Attempting to look up stellar flux from UCAC4/SIMBAD")
                 simbad_table = get_simbad_table(template.target.name)
                 sptype = re.match(r"\w\d[IV]{0,3}", simbad_table["SP_TYPE"][0]).group()
                 if len(sptype) == 2:
@@ -348,19 +358,15 @@ def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
                 default=mag_band,
                 type=click.Choice(list(FILTERS.keys()), case_sensitive=False),
             )
-        else:
-            sptype = mag = mag_band = None
-
+    if unit != "e-/s":
         metric = click.prompt(
             " - Select which metric to use for flux",
             default="photometry",
             type=click.Choice(["photometry", "sum"]),
         )
-        template.specphot = SpecphotConfig(
-            source=source, sptype=sptype, mag=mag, mag_band=mag_band, flux_metric=metric
-        )
-    else:
-        template.specphot = None
+    template.specphot = SpecphotConfig(
+        unit=unit, source=source, sptype=sptype, mag=mag, mag_band=mag_band, flux_metric=metric
+    )
 
     return template
 

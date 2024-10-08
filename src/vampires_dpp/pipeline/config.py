@@ -128,12 +128,28 @@ class SpecphotConfig(BaseModel):
         Which frame analysis statistic to use for determining flux. "photometry" uses an aperture sum, while "sum" uses the sum in the analysis cutout window.
     """
 
-    source: Literal["pickles"] | Path = "pickles"
+    unit: Literal["e-/s", "contrast", "Jy", "Jy/arcsec^2"] = "e-/s"
+    source: Literal["pickles"] | Path | None = None
     sptype: str | None = None
     mag: float | None = None
-    mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = "V"
-    unit: Literal["e-/s", "Jy", "Jy/arcsec^2"] = "Jy"
+    mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = None
     flux_metric: Literal["photometry", "sum"] = "photometry"
+
+    def model_post_init(self, __context: Any) -> None:
+        if "Jy" in self.unit:
+            if self.source is None:
+                msg = "Must provide a spectrum or specify stellar model if you want to calibrate to Jy"
+                raise ValueError(msg)
+            if (
+                self.source == "pickles"
+                and self.sptype is None
+                or self.mag is None
+                or self.mag_band is None
+            ):
+                msg = "Must specify target magnitude (and filter) as well as spectral type to use 'pickles' stellar model"
+                raise ValueError(msg)
+
+        return super().model_post_init(__context)
 
 
 class CalibrateConfig(BaseModel):
@@ -444,7 +460,7 @@ class PipelineConfig(BaseModel):
     frame_select: FrameSelectConfig = FrameSelectConfig()
     align: AlignmentConfig = AlignmentConfig()
     coadd: CoaddConfig = CoaddConfig()
-    specphot: SpecphotConfig | None = None
+    specphot: SpecphotConfig = SpecphotConfig()
     diff_images: DiffImageConfig = DiffImageConfig()
     polarimetry: PolarimetryConfig | None = None
 
