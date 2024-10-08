@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=024d897a"></script>
+    <script src="_static/documentation_options.js?v=97580bab"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -453,7 +453,7 @@ document.write(`
 <li><p><strong>frame_select</strong> (<em>FrameSelectConfig</em>) – Options for frame selection</p></li>
 <li><p><strong>align</strong> (<em>AlignmentConfig</em>) – Options for frame alignment</p></li>
 <li><p><strong>coadd</strong> (<em>CoaddConfig</em>) – Options for coadding image cubes</p></li>
-<li><p><strong>specphot</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="vampires_dpp.pipeline.config.SpecphotConfig"><em>SpecphotConfig</em></a><em> | </em><em>None</em>) – If set, provides options for spectrophotometric calibration. If not set, will leave data in units of <code class="docutils literal notranslate"><span class="pre">adu</span></code>.</p></li>
+<li><p><strong>specphot</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="vampires_dpp.pipeline.config.SpecphotConfig"><em>SpecphotConfig</em></a>) – If set, provides options for spectrophotometric calibration. If not set, will leave data in units of <code class="docutils literal notranslate"><span class="pre">adu</span></code>.</p></li>
 <li><p><strong>diff_images</strong> (<em>DiffImageConfig</em>) – Diagnostic difference imaging options. Double-differencing requires an FLC.</p></li>
 <li><p><strong>polarimetry</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.PolarimetryConfig" title="vampires_dpp.pipeline.config.PolarimetryConfig"><em>PolarimetryConfig</em></a><em> | </em><em>None</em>) – If set, enables and provides settings for polarimetric differential imaging (PDI).</p></li>
 </ul>
@@ -661,11 +661,11 @@ cameras’ data to maintain accurate spectrophotometric calibration.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>source</strong> (<em>Literal</em><em>[</em><em>'pickles'</em><em>] </em><em>| </em><em>~pathlib.Path</em>) – Spectrum source type. If a path, must be a file that can be loaded by <cite>synphot.SourceSpectrum.from_file</cite>.</p></li>
+<li><p><strong>source</strong> (<em>Literal</em><em>[</em><em>'pickles'</em><em>] </em><em>| </em><em>~pathlib.Path</em><em> | </em><em>None</em>) – Spectrum source type. If a path, must be a file that can be loaded by <cite>synphot.SourceSpectrum.from_file</cite>.</p></li>
 <li><p><strong>sptype</strong> (<em>str</em><em> | </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar spectral type. Note: must be one of the spectral types available in the pickles model atlas. Refer to the STScI documentation for more information on available spectral types.</p></li>
 <li><p><strong>mag</strong> (<em>float</em><em> | </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar reference magnitude</p></li>
 <li><p><strong>mag_band</strong> (<em>Literal</em><em>[</em><em>'U'</em><em>, </em><em>'B'</em><em>, </em><em>'V'</em><em>, </em><em>'r'</em><em>, </em><em>'i'</em><em>, </em><em>'J'</em><em>, </em><em>'H'</em><em>, </em><em>'K'</em><em>] </em><em>| </em><em>None</em>) – Only used if <cite>source</cite> is “pickles”. Stellar reference magnitude band</p></li>
-<li><p><strong>unit</strong> (<em>Literal</em><em>[</em><em>'e-/s'</em><em>, </em><em>'Jy'</em><em>, </em><em>'Jy/arcsec^2'</em><em>]</em>) – Output unit. (Note: e-/s is the default without spectrophotometry, and source calibration will be skipped)</p></li>
+<li><p><strong>unit</strong> (<em>Literal</em><em>[</em><em>'e-/s'</em><em>, </em><em>'contrast'</em><em>, </em><em>'Jy'</em><em>, </em><em>'Jy/arcsec^2'</em><em>]</em>) – Output unit. (Note: e-/s is the default without spectrophotometry, and source calibration will be skipped)</p></li>
 <li><p><strong>flux_metric</strong> (<em>Literal</em><em>[</em><em>'photometry'</em><em>, </em><em>'sum'</em><em>]</em>) – Which frame analysis statistic to use for determining flux. “photometry” uses an aperture sum, while “sum” uses the sum in the analysis cutout window.</p></li>
 </ul>
 </dd>
