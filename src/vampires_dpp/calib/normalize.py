@@ -1,13 +1,15 @@
 # library functions for common calibration tasks like
 # background subtraction, collapsing cubes
 
+import warnings
+
 import numpy as np
 from astropy.io import fits
 from loguru import logger
 
 from vampires_dpp.headers import fix_header, sort_header
 from vampires_dpp.paths import get_paths
-from vampires_dpp.util import load_fits
+from vampires_dpp.util import load_fits, load_fits_header
 
 __all__ = ("deinterleave_cube", "filter_empty_frames", "normalize_file")
 
@@ -66,6 +68,12 @@ def normalize_file(filename: str, deinterleave: bool = False, discard_empty: boo
             return outpath
     logger.debug(f"Loading {path} for normalization")
     data, header = load_fits(path, header=True)
+    # Danger! you've encountered an AncientHeader^TM
+    if "ACQNCYCS" in header:
+        msg = "WARNING: Unsupported VAMPIRES data type found, cannot guarantee all operations will be successful"
+        warnings.warn(msg, stacklevel=2)
+        header2 = load_fits_header(path, ext=1)
+        header.update(header2)
     # determine how many frames to discard
     ndiscard = 0 if "U_FLCSTT" in header else 2
     data_filt = data[ndiscard:]
