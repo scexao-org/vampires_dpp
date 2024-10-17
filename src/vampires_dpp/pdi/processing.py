@@ -688,8 +688,8 @@ def make_stokes_image(
             )
         elif derotate and not hwp_adi_sync:
             # if HWP ADI sync is off but we don't do Mueller correction
-            # we need to manually rotate stokes values by the derotation angle
-            angle = stokes_header["DEROTANG"]
+            # we need to manually rotate stokes values by the derotation angle plus IMRANG
+            angle = 0.5 * stokes_header["PA"] + stokes_header["ALTITUDE"]  # TODO check
             stokes_frame = rotate_stokes(stokes_frame, angle)
             stokes_frame_err = rotate_stokes(stokes_frame_err, angle)
 

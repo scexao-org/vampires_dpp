@@ -475,6 +475,13 @@ class PipelineConfig(BaseModel):
         if self.align.align and self.align.method == "model" and not self.analysis.fit_psf_model:
             msg = "You must set `fit_psf_model` to true if you want to align using the PSF model centroid"
             raise ValueError(msg)
+        if (
+            self.specphot.flux_metric == "photometry"
+            and not self.analysis.photometry
+            and self.specphot.unit != "e-/s"
+        ):
+            msg = "Can't use photometry for specphot.flux_metric if analysis.photometry is False"
+            raise ValueError(msg)
         return super().model_post_init(__context)
 
     @classmethod

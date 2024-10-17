@@ -30,20 +30,25 @@ def specphot_cal_hdul(hdul: fits.HDUList, metrics, config: SpecphotConfig):
     if config.specphot.unit in ("Jy", "Jy/arcsec^2"):
         assert metrics, "Must provide metrics to calculate photometry"
 
-    hdul, inst_flux = measure_inst_flux(
-        hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
-    )
-
     match config.specphot.unit:
         case "e-/s":
             conv_factor = 1
         case "Jy":
+            hdul, inst_flux = measure_inst_flux(
+                hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
+            )
             conv_factor = determine_jy_factor(hdul, inst_flux, config.specphot)
         case "Jy/arcsec^2":
+            hdul, inst_flux = measure_inst_flux(
+                hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
+            )
             conv_factor = (
                 determine_jy_factor(hdul, inst_flux, config.specphot) / hdul[0].header["PXAREA"]
             )
         case "contrast":
+            hdul, inst_flux = measure_inst_flux(
+                hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
+            )
             conv_factor = determine_contrast_factor(hdul, inst_flux)
 
     hdul[0].data *= conv_factor

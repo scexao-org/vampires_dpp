@@ -16,7 +16,6 @@ from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
 from vampires_dpp.coadd import coadd_hdul, collapse_frames
 from vampires_dpp.combine_frames import (
-    combine_both_cams_hduls,
     combine_frames_headers,
     combine_hduls,
     generate_frame_combinations,
@@ -383,24 +382,32 @@ class Pipeline:
     def save_adi_cubes(self, force: bool = False):
         output_path = self.paths.adi / f"{self.config.name}_adi_cube.fits"
         angles_path = output_path.with_stem(output_path.stem.replace("_cube", "_angles"))
-
+        if not force and output_path.exists():
+            if not angles_path.exists():
+                group_keys = ["MJD", "U_FLC"]
+                mask = self.output_table["U_FLC"].isna()
+                self.output_table.loc[mask, "U_FLC"] = "NA"
+                time_groups = self.output_table.sort_values(group_keys).groupby(group_keys)
+                angs = [group["DEROTANG"].mean() for _, group in time_groups]
+                fits.writeto(angles_path, np.array(angs, dtype="f4"), overwrite=True)
+            return
         group_keys = ["MJD", "U_FLC"]
         mask = self.output_table["U_FLC"].isna()
         self.output_table.loc[mask, "U_FLC"] = "NA"
         time_groups = self.output_table.sort_values(group_keys).groupby(group_keys)
-        hduls = []
-        angs = []
+        cubes = []
+        headers = []
         logger.info("Stacking output files into ADI cubes")
-        for _key, group in time_groups:
-            with fits.open(group.iloc[0]["path"], memmap=False) as hdul1:
-                if len(group) == 2:
-                    with fits.open(group.iloc[1]["path"], memmap=False) as hdul2:
-                        comb_hdul = combine_both_cams_hduls(hdul1, hdul2)
-                else:
-                    comb_hdul = hdul1
-            angs.append(group["DEROTANG"].mean())
-            hduls.append(comb_hdul)
-        stacked_hdul = combine_hduls(hduls)
+        for _key, group in tqdm(time_groups, desc="Loading and combining both cams"):
+            hduls = [fits.open(path) for path in group["path"]]
+            cube = np.mean([hdul[0].data for hdul in hduls], axis=0)
+            cubes.append(cube)
+            header = combine_frames_headers([hdul[0].header for hdul in hduls])
+            headers.append(header)
+        angs = np.array([hdr["DEROTANG"] for hdr in headers])
+        # stacked_hdul = combine_hduls(hduls)
+        prim_hdr = combine_frames_headers(headers)
+        stacked_hdul = fits.PrimaryHDU(np.array(cubes), header=prim_hdr)
         stacked_hdul.writeto(output_path, overwrite=True)
         logger.info(f"Saved ADI cube to {output_path}")
         fits.writeto(angles_path, np.array(angs, dtype="f4"), overwrite=True)
