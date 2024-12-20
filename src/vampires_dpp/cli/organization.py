@@ -75,19 +75,12 @@ def sort_raw(filenames, outdir, num_proc=1, ext=0, copy=False, quiet=False, deco
 @click.argument(
     "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
-@click.option(
-    "-t",
-    "--type",
-    "_type",
-    default="csv",
-    type=click.Choice(["sql", "csv"], case_sensitive=False),
-    help="Save as a CSV file or create a headers table in a sqlite database",
-)
+@click.option("-e", "--ext", help="FITS header extension to use for table", default=0)
 @click.option(
     "--output",
     "-o",
     type=click.Path(dir_okay=False, writable=True, path_type=Path),
-    default=(Path.cwd() / "header_table").name,
+    default=Path.cwd() / "header_table.csv",
     help="Output path without file extension.",
 )
 @click.option(
@@ -97,24 +90,18 @@ def sort_raw(filenames, outdir, num_proc=1, ext=0, copy=False, quiet=False, deco
     type=click.IntRange(1, cpu_count()),
     help="Number of processes to use.",
 )
-@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
-def table(filenames, _type, output, num_proc, quiet):
+@click.option("-q", "--quiet", is_flag=True, help="Silence progress bars and extraneous logging.")
+def table(filenames, ext, output, num_proc, quiet):
     # handle name clashes
     outpath = Path(output).resolve()
-    if _type == "csv":
-        outname = outpath.with_name(f"{outpath.name}.csv")
-    elif _type == "sql":
-        outname = outpath.with_name(f"{outpath.name}.db")
+    outname = outpath.with_name(f"{outpath.name}.csv")
 
     if outname.exists():
         click.confirm(
             f"{outname.name} already exists in the output directory. Overwrite?", abort=True
         )
-    df = header_table(filenames, num_proc=num_proc, quiet=quiet)
-    if _type == "csv":
-        df.to_csv(outname)
-    elif _type == "sql":
-        df.to_sql("headers", f"sqlite:///{outname.absolute()}")
+    df = header_table(filenames, num_proc=num_proc, quiet=quiet, ext=ext, fix=False)
+    df.to_csv(outname)
     return outname
 
 

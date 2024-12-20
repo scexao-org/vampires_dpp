@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import shutil
+import subprocess
 from collections import OrderedDict
 from os import PathLike
 from pathlib import Path
@@ -126,12 +127,12 @@ def sort_file(
     foldname.mkdir(parents=True, exist_ok=True)
     if decompress:
         newname = foldname / path.name.replace(".fits.fz", ".fits")
-        if not newname.exists():
-            with fits.open(path) as hdul:
-                if len(hdul) < 2:
-                    msg = f"{path}  did not have expected HDU at index 1"
-                    raise RuntimeError(msg)
-                fits.writeto(newname, hdul[1].data, header=hdul[1].header)
+        # in case we have both compressed file and a partial uncomrpessed, delete partial
+        if newname.exists():
+            newname.unlink()
+        # run funpack to decompress, setting output to newname and deleting input on success
+        newname.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.Popen(["funpack", "-O", newname.absolute(), "-D", path.absolute()])
     elif copy:
         shutil.copy(path, newname)
     else:
@@ -145,24 +146,26 @@ def foldername_new(outdir: Path, header: fits.Header):
     filt_str = f"{filt1}_{filt2}"
     exptime = header["EXPTIME"] * 1e6  # us
     sz = f"{header['NAXIS1']:03d}x{header['NAXIS2']:03d}"
+    fldstop = header["U_FLDSTP"]
+    extra = f"_{fldstop}" if fldstop.lower() != "fieldstop" else ""
     match header["DATA-TYP"]:
         case "OBJECT":
             # subsort based on filter, EM gain, and exposure time
-            subdir = f"{filt_str}_{exptime:09.0f}us_{sz}"
+            subdir = f"{filt_str}_{exptime:09.0f}us{extra}_{sz}"
             foldname = outdir / header["OBJECT"].replace(" ", "_") / subdir
         case "DARK":
-            subdir = f"{exptime:09.0f}us_{sz}"
+            subdir = f"{exptime:09.0f}us{extra}_{sz}"
             foldname = outdir / "darks" / subdir
         # put sky flats separately because they are usually
         # background frames, not flats
         case "SKYFLAT":
-            subdir = f"{exptime:09.0f}us_{sz}"
+            subdir = f"{exptime:09.0f}us{extra}_{sz}"
             foldname = outdir / "skies" / subdir
         case "FLAT" | "DOMEFLAT":
-            subdir = f"{filt_str}_{exptime:09.0f}us_{sz}"
+            subdir = f"{filt_str}_{exptime:09.0f}us{extra}_{sz}"
             foldname = outdir / "flats" / subdir
         case "COMPARISON":
-            subdir = f"{filt_str}_{exptime:09.0f}us_{sz}"
+            subdir = f"{filt_str}_{exptime:09.0f}us{extra}_{sz}"
             foldname = outdir / "pinholes" / subdir
         case _:
             foldname = outdir
