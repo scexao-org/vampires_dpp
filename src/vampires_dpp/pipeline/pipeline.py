@@ -511,6 +511,9 @@ class Pipeline:
             ip_method=config.ip_method,
             ip_radius=config.ip_radius,
             ip_radius2=config.ip_radius2,
+            coronagraphic=self.config.coronagraphic,
+            pol_aper_rad=self.config.analysis.phot_aper_rad,
+            pol_ann_rad=self.config.analysis.phot_ann_rad,
             force=force,
         )
         # TODO this is kind of ugly

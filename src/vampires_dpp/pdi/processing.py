@@ -17,6 +17,7 @@ from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs
 
+from .analysis import add_star_pol_hdul
 from .utils import (
     calculate_pol_efficiency,
     measure_instpol,
@@ -608,6 +609,9 @@ def make_stokes_image(
     ip_radius=8,
     ip_radius2=8,
     ip_method="photometry",
+    coronagraphic: bool = False,
+    pol_aper_rad=8,
+    pol_ann_rad=None,
     force: bool = False,
 ):
     if not force and outpath.exists() and not any_file_newer(path_set, outpath):
@@ -724,6 +728,10 @@ def make_stokes_image(
     err_hdu = fits.ImageHDU(stokes_err, header=prim_hdr, name="ERR")
     hdul = fits.HDUList([prim_hdu, err_hdu])
     hdul.extend([fits.ImageHDU(header=sort_header(hdr), name=hdr["FIELD"]) for hdr in headers])
+    ## measure pol stats if non-coronagraphic
+    if not coronagraphic:
+        hdul = add_star_pol_hdul(hdul, aper_rad=pol_aper_rad, ann_rad=pol_ann_rad)
+
     if mm_correct:
         for hdr, mm in zip(headers, mms, strict=True):
             hdul.append(fits.ImageHDU(mm, header=sort_header(hdr), name=hdr["FIELD"] + "MM"))
