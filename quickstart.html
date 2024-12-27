@@ -16,26 +16,29 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="_static/documentation_options.js?v=97580bab"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
@@ -48,6 +51,7 @@
     <link rel="prev" title="Introduction" href="introduction.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.13.4" />
   </head>
   
   
@@ -63,19 +67,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -83,7 +76,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -91,8 +83,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -108,7 +100,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -138,7 +131,7 @@
     
     
     <img src="_static/scexao_logo.svg" class="logo__image only-light" alt="VAMPIRES DPP - Home"/>
-    <script>document.write(`<img src="_static/scexao_logo.svg" class="logo__image only-dark" alt="VAMPIRES DPP - Home"/>`);</script>
+    <img src="_static/scexao_logo.svg" class="logo__image only-dark pst-js-only" alt="VAMPIRES DPP - Home"/>
   
   
 </a></div>
@@ -159,15 +152,11 @@
 </ul></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -196,9 +185,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -294,24 +288,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -337,8 +323,8 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sorting-raw-data">Sorting raw data</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalizing-data">Normalizing data</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#emccd-formats">EMCCD formats</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cmos-format">CMOS format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#emccd-formats">EMCCD formats</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-look-and-filter">Quick look and filter</a></li>
@@ -386,6 +372,14 @@ document.write(`
 <p class="admonition-title">Multi-processing</p>
 <p>The pipeline uses Python multi-processing to help speed-up reductions. You will likely be limited by your computer’s available memory (RAM)- if you spawn too many processes and load too much data in parallel you can run out of memory. Commands with multi-processing enabled have the <code class="docutils literal notranslate"><span class="pre">-j</span></code> command line flag, which will default to a single process <code class="docutils literal notranslate"><span class="pre">-j1</span></code> by default.</p>
 <p>When possible, we indicate a command that has multi-processing enabled with the “🚀” emoji. We do not multi-process by default (to avoid awkward out-of-memory errors) so you must <em>opt in</em> to all commands using the <code class="docutils literal notranslate"><span class="pre">-j</span></code> flag.</p>
+<p>In general, multiprocessing does seem to help when not limited by file I/O (e.g., slow hard disk drive), so give it a try!</p>
+</div>
+<div class="tip admonition">
+<p class="admonition-title">Tip: multiprocessing and numpy</p>
+<p>Internal numpy routines can cause multiprocessing to become <em>much</em> slower. In this case, make sure to set the <a class="reference external" href="https://numpy.org/doc/stable/reference/global_state.html#number-of-threads-used-for-linear-algebra">appropriate environment variables</a>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>export OMP_NUM_THREADS=1
+</pre></div>
+</div>
 </div>
 <div class="warning admonition">
 <p class="admonition-title">Warning: Large data volume</p>
@@ -431,6 +425,11 @@ document.write(`
 <p class="admonition-title">Which data needs normalized?</p>
 <p>Any EMCCD VAMPIRES format data needs normalized- at minimum it will removed the corrupted detector readout frame and empty frames.</p>
 </div>
+<section id="cmos-format">
+<h3>CMOS format<a class="headerlink" href="#cmos-format" title="Link to this heading">#</a></h3>
+<p>Any data taken after the June 2023 upgrades has the same format regardless if data is downloaded from the archive or from the SCExAO computers directly. It is assumed that any FLC deinterleaving has been done beforehand, which is expected to be done by the support astronomer.</p>
+<p>No further action is required for the CMOS format- <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">norm</span></code> can be skipped.</p>
+</section>
 <section id="emccd-formats">
 <h3>EMCCD formats<a class="headerlink" href="#emccd-formats" title="Link to this heading">#</a></h3>
 <p>These formats are used for VAMPIRES data prior to the June 2023 upgrades. They come in two distinct formats</p>
@@ -463,15 +462,18 @@ document.write(`
 <p>Not all data needs deinterleaved- calibration files (darks, flats, pinholes, skies, etc.) typically do not need deinterleaved. If you do not plan to do polarimetry (e.g., speckle imaging, ADI-only) you can skip deinterleaving entirely, effectively averaging together data between the two FLC states. If you prefer to model each state separately then deinterleave away.</p>
 </div>
 </section>
-<section id="cmos-format">
-<h3>CMOS format<a class="headerlink" href="#cmos-format" title="Link to this heading">#</a></h3>
-<p>Any data taken after the June 2023 upgrades has the same format regardless if data is downloaded from the archive or from the SCExAO computers directly. It is assumed that any FLC deinterleaving has been done before hand, which is expected to be done by the support astronomer.</p>
-<p>No further action is required for the CMOS format- <code class="docutils literal notranslate"><span class="pre">dpp</span> <span class="pre">norm</span></code> can be skipped.</p>
-</section>
 </section>
 <section id="quick-look-and-filter">
 <h2><a class="toc-backref" href="#id3" role="doc-backlink">Quick look and filter</a><a class="headerlink" href="#quick-look-and-filter" title="Link to this heading">#</a></h2>
 <p>Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">select</span> <span class="o">&lt;</span><span class="n">input_files</span><span class="o">&gt;/*.</span><span class="n">fits</span>
+</pre></div>
+</div>
+<img alt="_images/dpp_select.mov" src="_images/dpp_select.mov" />
+<p>After this, you can use the filelist as your input, for example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dpp run my_config.toml $(&lt; filelist_select.txt)
+</pre></div>
+</div>
 </section>
 <section id="create-calibration-files">
 <h2><a class="toc-backref" href="#id4" role="doc-backlink">Create calibration files</a><a class="headerlink" href="#create-calibration-files" title="Link to this heading">#</a></h2>
@@ -512,6 +514,15 @@ document.write(`
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpp</span> <span class="n">centroid</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="mi">1</span><span class="p">]</span> <span class="mi">20230101</span><span class="n">_ABAur</span><span class="o">.</span><span class="n">toml</span> <span class="mi">750</span><span class="o">-</span><span class="mi">50</span><span class="n">_em300_00100ms_512x512</span><span class="o">/*.</span><span class="n">fits</span>
 </pre></div>
 </div>
+<p><strong>Coronagraphic</strong></p>
+<a class="reference internal image-reference" href="_images/dpp_centroid_coro.png"><img alt="_images/dpp_centroid_coro.png" src="_images/dpp_centroid_coro.png" style="width: 80%;" />
+</a>
+<p><strong>Non-coronagraphic/Binaries</strong></p>
+<a class="reference internal image-reference" href="_images/dpp_centroid_binary.png"><img alt="_images/dpp_centroid_binary.png" src="_images/dpp_centroid_binary.png" style="width: 80%;" />
+</a>
+<p><strong>Planets</strong></p>
+<a class="reference internal image-reference" href="_images/dpp_centroid_planet.png"><img alt="_images/dpp_centroid_planet.png" src="_images/dpp_centroid_planet.png" style="width: 80%;" />
+</a>
 </section>
 <section id="manual-mode">
 <h3>Manual mode<a class="headerlink" href="#manual-mode" title="Link to this heading">#</a></h3>
@@ -685,7 +696,8 @@ document.write(`
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -696,8 +708,8 @@ document.write(`
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sorting-raw-data">Sorting raw data</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#normalizing-data">Normalizing data</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#emccd-formats">EMCCD formats</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cmos-format">CMOS format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#emccd-formats">EMCCD formats</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-look-and-filter">Quick look and filter</a></li>
@@ -763,8 +775,8 @@ By Miles Lucas
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
   </footer>

@@ -16,26 +16,29 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="_static/documentation_options.js?v=97580bab"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
@@ -48,6 +51,7 @@
     <link rel="prev" title="Quick-start guide" href="quickstart.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.13.4" />
   </head>
   
   
@@ -63,19 +67,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -83,7 +76,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -91,8 +83,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -108,7 +100,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -138,7 +131,7 @@
     
     
     <img src="_static/scexao_logo.svg" class="logo__image only-light" alt="VAMPIRES DPP - Home"/>
-    <script>document.write(`<img src="_static/scexao_logo.svg" class="logo__image only-dark" alt="VAMPIRES DPP - Home"/>`);</script>
+    <img src="_static/scexao_logo.svg" class="logo__image only-dark pst-js-only" alt="VAMPIRES DPP - Home"/>
   
   
 </a></div>
@@ -159,15 +152,11 @@
 </ul></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -196,9 +185,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -294,24 +288,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 <button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
@@ -346,6 +332,10 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.TargetConfig"><code class="docutils literal notranslate"><span class="pre">TargetConfig</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#file-combination">File combination</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CombineConfig"><code class="docutils literal notranslate"><span class="pre">CombineConfig</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration">Calibration</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CalibrateConfig"><code class="docutils literal notranslate"><span class="pre">CalibrateConfig</span></code></a></li>
 </ul>
@@ -354,7 +344,18 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.AnalysisConfig"><code class="docutils literal notranslate"><span class="pre">AnalysisConfig</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame-collapsing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-selection">Frame selection</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.FrameSelectConfig"><code class="docutils literal notranslate"><span class="pre">FrameSelectConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-alignment">Frame alignment</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.AlignmentConfig"><code class="docutils literal notranslate"><span class="pre">AlignmentConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cube-coadding">Cube coadding</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CoaddConfig"><code class="docutils literal notranslate"><span class="pre">CoaddConfig</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spectrophotometric-calibration">Spectrophotometric Calibration</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.SpecphotConfig"><code class="docutils literal notranslate"><span class="pre">SpecphotConfig</span></code></a></li>
 </ul>
@@ -363,10 +364,6 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PolarimetryConfig"><code class="docutils literal notranslate"><span class="pre">PolarimetryConfig</span></code></a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pdi">PDI</a></li>
 </ul>
 </li>
 </ul>
@@ -382,7 +379,7 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="configuration">
 <span id="id1"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h1>
-<p>The configuration file uses the <a class="reference external" href="https://toml.io">TOML</a> format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., <code class="docutils literal notranslate"><span class="pre">[calibration]</span></code>, <code class="docutils literal notranslate"><span class="pre">[collapsing]</span></code>) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.</p>
+<p>The configuration file uses the <a class="reference external" href="https://toml.io">TOML</a> format. There are many options that have defaults, sometimes even sensible ones. In general, if an entire section is missing, the operation will be excluded. Note that sections for the configuration (e.g., <code class="docutils literal notranslate"><span class="pre">[calibration]</span></code>, <code class="docutils literal notranslate"><span class="pre">[polarimetry]</span></code>) can be in any order, although keeping them in the same order as the pipeline execution may be clearer.</p>
 <p>We use <a class="reference external" href="https://semver.org/">semantic versioning</a>, so there are certain guarantees about the backwards compatibility of the pipeline, which means you don’t have to have the exact same version of <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> as in the configuration- merely a version that is compatible.</p>
 <div class="admonition-file-outputs admonition">
 <p class="admonition-title">File Outputs</p>
@@ -393,16 +390,14 @@ document.write(`
 <li><p><a class="reference internal" href="#pipeline" id="id2">Pipeline</a></p>
 <ul>
 <li><p><a class="reference internal" href="#target-information" id="id3">Target Information</a></p></li>
-<li><p><a class="reference internal" href="#calibration" id="id4">Calibration</a></p></li>
-<li><p><a class="reference internal" href="#analysis" id="id5">Analysis</a></p></li>
-<li><p><a class="reference internal" href="#frame-collapsing" id="id6">Frame-collapsing</a></p></li>
-<li><p><a class="reference internal" href="#spectrophotometric-calibration" id="id7">Spectrophotometric Calibration</a></p></li>
-<li><p><a class="reference internal" href="#polarimetry" id="id8">Polarimetry</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#examples" id="id9">Examples</a></p>
-<ul>
-<li><p><a class="reference internal" href="#pdi" id="id10">PDI</a></p></li>
+<li><p><a class="reference internal" href="#file-combination" id="id4">File combination</a></p></li>
+<li><p><a class="reference internal" href="#calibration" id="id5">Calibration</a></p></li>
+<li><p><a class="reference internal" href="#analysis" id="id6">Analysis</a></p></li>
+<li><p><a class="reference internal" href="#frame-selection" id="id7">Frame selection</a></p></li>
+<li><p><a class="reference internal" href="#frame-alignment" id="id8">Frame alignment</a></p></li>
+<li><p><a class="reference internal" href="#cube-coadding" id="id9">Cube coadding</a></p></li>
+<li><p><a class="reference internal" href="#spectrophotometric-calibration" id="id10">Spectrophotometric Calibration</a></p></li>
+<li><p><a class="reference internal" href="#polarimetry" id="id11">Polarimetry</a></p></li>
 </ul>
 </li>
 </ul>
@@ -447,12 +442,12 @@ document.write(`
 <li><p><strong>planetary</strong> (<em>bool</em>) – If true will use planetary routines for processing.</p></li>
 <li><p><strong>save_adi_cubes</strong> (<em>bool</em>) – If true, will save ADI cubes and derotation angles in product directory.</p></li>
 <li><p><strong>target</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.TargetConfig" title="vampires_dpp.pipeline.config.TargetConfig"><em>TargetConfig</em></a><em> | </em><em>None</em>) – If set, provides options for target object, primarily coordinates. If not set, will use header values.</p></li>
-<li><p><strong>combine</strong> (<em>CombineConfig</em>) – Options for frame combinations</p></li>
+<li><p><strong>combine</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CombineConfig" title="vampires_dpp.pipeline.config.CombineConfig"><em>CombineConfig</em></a>) – Options for frame combinations</p></li>
 <li><p><strong>calibrate</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CalibrateConfig" title="vampires_dpp.pipeline.config.CalibrateConfig"><em>CalibrateConfig</em></a>) – Options for basic image calibration</p></li>
 <li><p><strong>analysis</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.AnalysisConfig" title="vampires_dpp.pipeline.config.AnalysisConfig"><em>AnalysisConfig</em></a>) – Options for PSF/flux analysis in collapsed data</p></li>
-<li><p><strong>frame_select</strong> (<em>FrameSelectConfig</em>) – Options for frame selection</p></li>
-<li><p><strong>align</strong> (<em>AlignmentConfig</em>) – Options for frame alignment</p></li>
-<li><p><strong>coadd</strong> (<em>CoaddConfig</em>) – Options for coadding image cubes</p></li>
+<li><p><strong>frame_select</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.FrameSelectConfig" title="vampires_dpp.pipeline.config.FrameSelectConfig"><em>FrameSelectConfig</em></a>) – Options for frame selection</p></li>
+<li><p><strong>align</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.AlignmentConfig" title="vampires_dpp.pipeline.config.AlignmentConfig"><em>AlignmentConfig</em></a>) – Options for frame alignment</p></li>
+<li><p><strong>coadd</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.CoaddConfig" title="vampires_dpp.pipeline.config.CoaddConfig"><em>CoaddConfig</em></a>) – Options for coadding image cubes</p></li>
 <li><p><strong>specphot</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="vampires_dpp.pipeline.config.SpecphotConfig"><em>SpecphotConfig</em></a>) – If set, provides options for spectrophotometric calibration. If not set, will leave data in units of <code class="docutils literal notranslate"><span class="pre">adu</span></code>.</p></li>
 <li><p><strong>diff_images</strong> (<em>DiffImageConfig</em>) – Diagnostic difference imaging options. Double-differencing requires an FLC.</p></li>
 <li><p><strong>polarimetry</strong> (<a class="reference internal" href="#vampires_dpp.pipeline.config.PolarimetryConfig" title="vampires_dpp.pipeline.config.PolarimetryConfig"><em>PolarimetryConfig</em></a><em> | </em><em>None</em>) – If set, enables and provides settings for polarimetric differential imaging (PDI).</p></li>
@@ -530,8 +525,35 @@ document.write(`
 </dd></dl>
 
 </section>
+<section id="file-combination">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">File combination</a><a class="headerlink" href="#file-combination" title="Link to this heading">#</a></h3>
+<aside class="margin sidebar">
+<p class="sidebar-title">💾 File Output</p>
+<p>‎</p>
+</aside>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CombineConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CombineConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CombineConfig" title="Link to this definition">#</a></dt>
+<dd><p>Frame combination options</p>
+<p>VAMPIRES data comes in many shapes and sizes. We like to think the core data product is every individual frame, and therefore the FITS cubes we started with does not have to define the boundaries of our data analysis. There are two methods for reshuffling data, currently:</p>
+<ol class="arabic simple">
+<li><p>“cube” – this method will effectively do nothing; the data will be combined by their original FITS cubes</p></li>
+<li><p>“pdi” – this method will combine all frames from a single HWP angle, and is required for polarimetry</p></li>
+</ol>
+<p>When data is combined it will become a single FITS file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'cube'</em><em>, </em><em>'pdi'</em><em>]</em>)</p></li>
+<li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save the combined data cubes into the <code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/combined</span></code> folder (WARNING can lead to insane data volume)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="calibration">
-<h3><a class="toc-backref" href="#id4" role="doc-backlink">Calibration</a><a class="headerlink" href="#calibration" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Calibration</a><a class="headerlink" href="#calibration" title="Link to this heading">#</a></h3>
 <aside class="margin sidebar">
 <p class="sidebar-title">💾 File Output</p>
 <p>‎</p>
@@ -575,7 +597,7 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 
 </section>
 <section id="analysis">
-<h3><a class="toc-backref" href="#id5" role="doc-backlink">Analysis</a><a class="headerlink" href="#analysis" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Analysis</a><a class="headerlink" href="#analysis" title="Link to this heading">#</a></h3>
 <aside class="margin sidebar">
 <p class="sidebar-title">💾 File Output</p>
 <p>‎</p>
@@ -613,15 +635,85 @@ match detector gain, filter, and exposure time, in that order. For all files, if
 </dd></dl>
 
 </section>
-<section id="frame-collapsing">
-<h3><a class="toc-backref" href="#id6" role="doc-backlink">Frame-collapsing</a><a class="headerlink" href="#frame-collapsing" title="Link to this heading">#</a></h3>
+<section id="frame-selection">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Frame selection</a><a class="headerlink" href="#frame-selection" title="Link to this heading">#</a></h3>
 <aside class="margin sidebar">
 <p class="sidebar-title">💾 File Output</p>
 <p>‎</p>
 </aside>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.FrameSelectConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">FrameSelectConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.FrameSelectConfig" title="Link to this definition">#</a></dt>
+<dd><p>Frame selection options</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame_select</strong> (<em>bool</em>) – If true, will use the given metric to select frames for inclusions/exclusion from each data cube.</p></li>
+<li><p><strong>metric</strong> (<em>Literal</em><em>[</em><em>'max'</em><em>, </em><em>'l2norm'</em><em>, </em><em>'normvar'</em><em>, </em><em>'strehl'</em><em>]</em>) – Frame selection metric</p></li>
+<li><p><strong>cutoff</strong> (<em>Annotated</em><em>[</em><em>float</em><em>, </em><em>Interval</em><em>(</em><em>gt=None</em><em>, </em><em>ge=0</em><em>, </em><em>lt=None</em><em>, </em><em>le=1</em><em>)</em><em>]</em>) – If <code class="docutils literal notranslate"><span class="pre">frame_select</span></code> is provided, this is the cutoff _quantile_ (from 0 to 1), where 0.2 means 20% of the frames
+from each cube will be discarded according the the selection metric.</p></li>
+<li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save the frame-selected files to the <code class="docutils literal notranslate"><span class="pre">&lt;output&gt;frame_select</span></code> folder (WARNING can lead to insane data volume)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="frame-alignment">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Frame alignment</a><a class="headerlink" href="#frame-alignment" title="Link to this heading">#</a></h3>
+<aside class="margin sidebar">
+<p class="sidebar-title">💾 File Output</p>
+<p>‎</p>
+</aside>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.AlignmentConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">AlignmentConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.AlignmentConfig" title="Link to this definition">#</a></dt>
+<dd><p>Frame alignment options</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>align</strong> (<em>bool</em>) – If true, data will be aligned by the give method</p></li>
+<li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'dft'</em><em>, </em><em>'com'</em><em>, </em><em>'peak'</em><em>, </em><em>'model'</em><em>]</em>) – Alignment method, (if “dft” is not provided, it will not be measured at all)</p></li>
+<li><p><strong>crop_width</strong> (<em>int</em>) – Post-alignment crop width, should be roughly equal to FOV. Cropped data can set this lower for reduced memory footprint.</p></li>
+<li><p><strong>reproject</strong> (<em>bool</em>) – If true, will reproject cam2 astrometry onto cam1 for better image differences</p></li>
+<li><p><strong>save_intermediate</strong> (<em>bool</em>) – If true, will save the registered files to the <code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/registered</span></code> folder (WARNING can lead to insance data volume)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="cube-coadding">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Cube coadding</a><a class="headerlink" href="#cube-coadding" title="Link to this heading">#</a></h3>
+<aside class="margin sidebar">
+<p class="sidebar-title">💾 File Output</p>
+<p>‎</p>
+</aside>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.pipeline.config.CoaddConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">CoaddConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.CoaddConfig" title="Link to this definition">#</a></dt>
+<dd><p>Frame combination options</p>
+<p><strong>File Outputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Each input file is collapsed and saved into the <code class="docutils literal notranslate"><span class="pre">collapsed/</span></code> folder if coadd is true, otherwise will save in the <code class="docutils literal notranslate"><span class="pre">registered/</span></code> folder.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coadd</strong> (<em>bool</em>) – If true, will coadd each cube of data (where the cube is determined from the combination method). If false, the data will be saved as cubes.</p></li>
+<li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'median'</em><em>, </em><em>'mean'</em><em>, </em><em>'varmean'</em><em>, </em><em>'biweight'</em><em>]</em>)</p></li>
+<li><p><strong>recenter</strong> (<em>bool</em>) – If true, will measure the centroid of the PSF in the collapsed frame and realign the data</p></li>
+<li><p><strong>recenter_method</strong> (<em>Literal</em><em>[</em><em>'dft'</em><em>, </em><em>'com'</em><em>, </em><em>'peak'</em><em>, </em><em>'model'</em><em>]</em>) – Only used if recenter is true; method for PSF registration.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="spectrophotometric-calibration">
-<h3><a class="toc-backref" href="#id7" role="doc-backlink">Spectrophotometric Calibration</a><a class="headerlink" href="#spectrophotometric-calibration" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Spectrophotometric Calibration</a><a class="headerlink" href="#spectrophotometric-calibration" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="vampires_dpp.pipeline.config.SpecphotConfig">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.pipeline.config.</span></span><span class="sig-name descname"><span class="pre">SpecphotConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pipeline.config.SpecphotConfig" title="Link to this definition">#</a></dt>
@@ -674,7 +766,7 @@ cameras’ data to maintain accurate spectrophotometric calibration.</p>
 
 </section>
 <section id="polarimetry">
-<h3><a class="toc-backref" href="#id8" role="doc-backlink">Polarimetry</a><a class="headerlink" href="#polarimetry" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Polarimetry</a><a class="headerlink" href="#polarimetry" title="Link to this heading">#</a></h3>
 <aside class="margin sidebar">
 <p class="sidebar-title">💾 File Output</p>
 <p>‎</p>
@@ -725,12 +817,6 @@ Mueller-matrix model.</p></li>
 
 </section>
 </section>
-<section id="examples">
-<h2><a class="toc-backref" href="#id9" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading">#</a></h2>
-<section id="pdi">
-<h3><a class="toc-backref" href="#id10" role="doc-backlink">PDI</a><a class="headerlink" href="#pdi" title="Link to this heading">#</a></h3>
-</section>
-</section>
 </section>
 
 
@@ -769,7 +855,8 @@ Mueller-matrix model.</p></li>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
   <div class="sidebar-secondary-item">
@@ -789,6 +876,10 @@ Mueller-matrix model.</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.TargetConfig"><code class="docutils literal notranslate"><span class="pre">TargetConfig</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#file-combination">File combination</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CombineConfig"><code class="docutils literal notranslate"><span class="pre">CombineConfig</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration">Calibration</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CalibrateConfig"><code class="docutils literal notranslate"><span class="pre">CalibrateConfig</span></code></a></li>
 </ul>
@@ -797,7 +888,18 @@ Mueller-matrix model.</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.AnalysisConfig"><code class="docutils literal notranslate"><span class="pre">AnalysisConfig</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-collapsing">Frame-collapsing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-selection">Frame selection</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.FrameSelectConfig"><code class="docutils literal notranslate"><span class="pre">FrameSelectConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#frame-alignment">Frame alignment</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.AlignmentConfig"><code class="docutils literal notranslate"><span class="pre">AlignmentConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cube-coadding">Cube coadding</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.CoaddConfig"><code class="docutils literal notranslate"><span class="pre">CoaddConfig</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#spectrophotometric-calibration">Spectrophotometric Calibration</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.SpecphotConfig"><code class="docutils literal notranslate"><span class="pre">SpecphotConfig</span></code></a></li>
 </ul>
@@ -806,10 +908,6 @@ Mueller-matrix model.</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pipeline.config.PolarimetryConfig"><code class="docutils literal notranslate"><span class="pre">PolarimetryConfig</span></code></a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples">Examples</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pdi">PDI</a></li>
 </ul>
 </li>
 </ul>
@@ -860,8 +958,8 @@ By Miles Lucas
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
 
   <footer class="bd-footer">
   </footer>

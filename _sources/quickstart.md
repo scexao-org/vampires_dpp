@@ -14,6 +14,16 @@ We strive to make the VAMPIRES DPP as automated as possible- the following setup
 The pipeline uses Python multi-processing to help speed-up reductions. You will likely be limited by your computer's available memory (RAM)- if you spawn too many processes and load too much data in parallel you can run out of memory. Commands with multi-processing enabled have the `-j` command line flag, which will default to a single process `-j1` by default.
 
 When possible, we indicate a command that has multi-processing enabled with the "🚀" emoji. We do not multi-process by default (to avoid awkward out-of-memory errors) so you must *opt in* to all commands using the `-j` flag.
+
+In general, multiprocessing does seem to help when not limited by file I/O (e.g., slow hard disk drive), so give it a try!
+```
+
+```{admonition} Tip: multiprocessing and numpy
+:class: tip
+
+Internal numpy routines can cause multiprocessing to become _much_ slower. In this case, make sure to set the [appropriate environment variables](https://numpy.org/doc/stable/reference/global_state.html#number-of-threads-used-for-linear-algebra).
+
+    export OMP_NUM_THREADS=1
 ```
 
 ```{admonition} Warning: Large data volume
@@ -68,6 +78,13 @@ There are a few recognized data formats the processing pipeline recognizes. Depe
 Any EMCCD VAMPIRES format data needs normalized- at minimum it will removed the corrupted detector readout frame and empty frames.
 ```
 
+### CMOS format
+
+Any data taken after the June 2023 upgrades has the same format regardless if data is downloaded from the archive or from the SCExAO computers directly. It is assumed that any FLC deinterleaving has been done beforehand, which is expected to be done by the support astronomer.
+
+No further action is required for the CMOS format- `dpp norm` can be skipped.
+
+
 ### EMCCD formats
 
 These formats are used for VAMPIRES data prior to the June 2023 upgrades. They come in two distinct formats
@@ -95,15 +112,21 @@ dpp norm [-j 1] [-d] -o normed 750-50_em300_00100ms_512x512/*.fits
 Not all data needs deinterleaved- calibration files (darks, flats, pinholes, skies, etc.) typically do not need deinterleaved. If you do not plan to do polarimetry (e.g., speckle imaging, ADI-only) you can skip deinterleaving entirely, effectively averaging together data between the two FLC states. If you prefer to model each state separately then deinterleave away.
 ```
 
-### CMOS format
-
-Any data taken after the June 2023 upgrades has the same format regardless if data is downloaded from the archive or from the SCExAO computers directly. It is assumed that any FLC deinterleaving has been done before hand, which is expected to be done by the support astronomer.
-
-No further action is required for the CMOS format- `dpp norm` can be skipped.
-
 ## Quick look and filter
 
 Before running files through the pipeline, it is recommended to inspect your raw data and discard errant cubes and cubes with poor seeing. Doing this ahead of time saves on processing time and avoids errors.
+
+```
+dpp select <input_files>/*.fits
+```
+
+```{image} dpp_select.mov
+```
+
+After this, you can use the filelist as your input, for example
+```
+dpp run my_config.toml $(< filelist_select.txt)
+```
 
 ## Create calibration files
 
@@ -140,7 +163,6 @@ To allow efficient data analysis we only measure the PSF centroid and statistics
 We recommend running the centroid step as it greatly reduces the chances for errors in image registration. In addition, for coronagraphic data you *must* run the centroid step to specify which satellite spots to use for analysis. The centroid step is not *strictly* required for non-coronagraphic data, though- if you do not provide it the center of the frame will be used as the starting estimate, and your analysis window size can be made larger to accommadate misalignment. Nonetheless, we highly recommend this step.
 ```
 
-
 ### Automated mode
 
 If the terminal you are connected to has working graphics (i.e., X-forwarding for SSH connections, not inside a tmux sesssion) and you have a copy of matplotlib installed you can run
@@ -151,6 +173,20 @@ If the terminal you are connected to has working graphics (i.e., X-forwarding fo
 dpp centroid [-j 1] 20230101_ABAur.toml 750-50_em300_00100ms_512x512/*.fits
 ```
 
+**Coronagraphic**
+```{image} dpp_centroid_coro.png
+:width: 80%
+```
+
+**Non-coronagraphic/Binaries**
+```{image} dpp_centroid_binary.png
+:width: 80%
+```
+
+**Planets**
+```{image} dpp_centroid_planet.png
+:width: 80%
+```
 ### Manual mode
 
 If you do not have a graphics-ready terminal, or you want to skip the interactive process and use your own methods, we provide a manual method for entering centroids. You will be prompted for the centroid of each PSF- enter the centroid as an `x, y` comma-separated tuple.
