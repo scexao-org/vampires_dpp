@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=97580bab"></script>
+    <script src="../_static/documentation_options.js?v=2ca489b6"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -53,7 +53,7 @@
     <link rel="prev" title="Spectrophotometric Calibration" href="specphot.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.13.4" />
+  <meta name="docsearch:version" content="0.13.5" />
   </head>
   
   
@@ -323,8 +323,7 @@
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.processing">Processing and polarization analysis</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.diff_images">Processing and polarization analysis</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.measure_instpol"><code class="docutils literal notranslate"><span class="pre">measure_instpol()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
 </ul>
@@ -352,38 +351,10 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="polarization">
 <h1>Polarization<a class="headerlink" href="#polarization" title="Link to this heading">#</a></h1>
-<section id="module-vampires_dpp.pdi.processing">
-<span id="processing-and-polarization-analysis"></span><h2>Processing and polarization analysis<a class="headerlink" href="#module-vampires_dpp.pdi.processing" title="Link to this heading">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="vampires_dpp.pdi.processing.polarization_calibration_triplediff">
-<span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.processing.</span></span><span class="sig-name descname"><span class="pre">polarization_calibration_triplediff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derotate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff" title="Link to this definition">#</a></dt>
-<dd><p>Return a Stokes cube using the <em>bona fide</em> triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.</p>
-<div class="tip admonition">
-<p class="admonition-title">Pupil-tracking mode</p>
-<p>For each of these 16 image sets, it is important to consider the apparant sky rotation when in pupil-tracking mode (which is the default for most VAMPIRES observations). With this naive triple-differential subtraction, if there is significant sky motion, the output Stokes frame will be smeared.</p>
-<p>The parallactic angles for each set of 16 frames should be averaged (<code class="docutils literal notranslate"><span class="pre">average_angle</span></code>) and stored to construct the final derotation angle vector</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filenames</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – list of input filenames to construct Stokes frames from</p></li>
-<li><p><strong>derotate</strong> (<em>bool</em>)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError:</strong> – If the input filenames are not a clean multiple of 16. To ensure you have proper 16 frame sets, use <code class="docutils literal notranslate"><span class="pre">pol_inds</span></code> with a sorted observation table.</p>
-</dd>
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(4, t, y, x) Stokes cube from all 16 frame sets.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>NDArray</p>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="module-vampires_dpp.pdi.diff_images">
+<span id="processing-and-polarization-analysis"></span><h2>Processing and polarization analysis<a class="headerlink" href="#module-vampires_dpp.pdi.diff_images" title="Link to this heading">#</a></h2>
 <dl class="py function" id="module-vampires_dpp.pdi.utils">
-<span id="module-vampires_dpp.pdi.diff_images"></span><dt class="sig sig-object py" id="vampires_dpp.pdi.utils.measure_instpol">
+<dt class="sig sig-object py" id="vampires_dpp.pdi.utils.measure_instpol">
 <span class="sig-prename descclassname"><span class="pre">vampires_dpp.pdi.utils.</span></span><span class="sig-name descname"><span class="pre">measure_instpol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.pdi.utils.measure_instpol" title="Link to this definition">#</a></dt>
 <dd><p>Use aperture photometry to estimate the instrument polarization.</p>
 <dl class="field-list simple">
@@ -716,8 +687,7 @@ U_\phi = Q\sin(2\theta) - U\cos(2\theta)\end{split}\]</div>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.processing">Processing and polarization analysis</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.processing.polarization_calibration_triplediff"><code class="docutils literal notranslate"><span class="pre">polarization_calibration_triplediff()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-vampires_dpp.pdi.diff_images">Processing and polarization analysis</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.measure_instpol"><code class="docutils literal notranslate"><span class="pre">measure_instpol()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.pdi.utils.radial_stokes"><code class="docutils literal notranslate"><span class="pre">radial_stokes()</span></code></a></li>
 </ul>
