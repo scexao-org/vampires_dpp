@@ -263,6 +263,8 @@ def analyze_file(
     for ctrs, psf in zip(centroids.values(), psfs, strict=False):
         field_metrics = {}
         for ctr in ctrs:
+            if psf is not None:
+                window_size = psf.shape[-1]
             inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)
             results = analyze_fields(
                 data,

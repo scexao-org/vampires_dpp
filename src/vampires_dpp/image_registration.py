@@ -217,7 +217,7 @@ def recenter_hdul(
         frame = data_cube[wl_idx]
         offsets = []
         for offset in window_offsets[wl_idx]:
-            inds = cutout_inds(frame, center=field_center + offset, window=window_size)
+            inds = Cutout2D(frame, (field_center + offset)[::-1], window_size).slices_original[::-1]
             match method:
                 case "com" | "peak":
                     center = offset_peak_and_com(frame, inds)[method]
