@@ -1,12 +1,15 @@
 import itertools
 from typing import Final, Literal
 
-# import time
+import bottleneck as bn
 import numpy as np
 import scipy.stats as st
 import sep
 from astropy import modeling
 from astropy.io import fits
+
+# import time
+from astropy.nddata import Cutout2D
 
 from .image_registration import offset_dft, offset_peak_and_com
 from .indexing import cutout_inds, frame_center, get_mbi_centers
@@ -78,6 +81,7 @@ def analyze_fields(
     aper_rad=4,
     ann_rad=None,
     psf=None,
+    template=None,
     do_psf_model: bool = False,
     psf_model="moffat",
 ):
@@ -112,8 +116,8 @@ def analyze_fields(
             create_or_append(output, "modelx", psf_info["model_x"])
             create_or_append(output, "modely", psf_info["model_y"])
             ctr_est = psf_info["model_y"], psf_info["model_x"]
-        if psf is not None:
-            dft_ctrs = offset_dft(frame, inds, psf=psf)
+        if template is not None:
+            dft_ctrs = offset_dft(frame, inds, psf=template)
             create_or_append(output, "dftx", dft_ctrs[1])
             create_or_append(output, "dfty", dft_ctrs[0])
             ctr_est = dft_ctrs
@@ -263,9 +267,13 @@ def analyze_file(
     for ctrs, psf in zip(centroids.values(), psfs, strict=False):
         field_metrics = {}
         for ctr in ctrs:
-            if psf is not None:
-                window_size = psf.shape[-1]
             inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)
+            center = get_center(data, ctr, cam_num)
+            cutouts = [
+                Cutout2D(frame, center[::-1], window_size, mode="partial").data for frame in data
+            ]
+            med_image = bn.median(cutouts, axis=0)
+            template = med_image
             results = analyze_fields(
                 data,
                 data_err,
@@ -275,6 +283,7 @@ def analyze_file(
                 do_phot=do_phot,
                 do_strehl=do_strehl,
                 psf=psf,
+                template=template,
                 do_psf_model=fit_psf_model,
                 psf_model=psf_model,
             )
