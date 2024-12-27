@@ -128,11 +128,14 @@ def sort_file(
     if decompress:
         newname = foldname / path.name.replace(".fits.fz", ".fits")
         # in case we have both compressed file and a partial uncomrpessed, delete partial
-        if newname.exists():
+        if not copy and newname.exists():
             newname.unlink()
         # run funpack to decompress, setting output to newname and deleting input on success
         newname.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.Popen(["funpack", "-O", newname.absolute(), "-D", path.absolute()])
+        if copy:
+            subprocess.Popen(["funpack", "-O", newname.absolute(), path.absolute()])
+        else:
+            subprocess.Popen(["funpack", "-O", newname.absolute(), "-D", path.absolute()])
     elif copy:
         shutil.copy(path, newname)
     else:

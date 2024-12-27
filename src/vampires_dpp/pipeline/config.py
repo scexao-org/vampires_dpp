@@ -320,7 +320,7 @@ class CoaddConfig(BaseModel):
     recenter:
         If true, will measure the centroid of the PSF in the collapsed frame and realign the data
     recenter_method:
-        Only used of recenter is true; method for PSF registration.
+        Only used if recenter is true; method for PSF registration.
     """
 
     coadd: bool = True

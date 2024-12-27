@@ -10,6 +10,7 @@ from .centroids import centroid
 from .new import new_config
 from .organization import sort_raw, table, upgrade
 from .run import pdi, run
+from .select import quick_select
 
 
 # https://stackoverflow.com/a/58323807
@@ -33,6 +34,7 @@ main.add_command(sort_raw)
 main.add_command(norm)
 main.add_command(calib)
 main.add_command(new_config)
+main.add_command(quick_select)
 main.add_command(centroid)
 # main.add_command(astro)
 main.add_command(run)
