@@ -49,7 +49,7 @@ def create_raw_input_psfs(table, basename: Path, max_files=5) -> dict[str, Path]
     # group by cameras
     outhduls = {}
     for cam_num, group in table.groupby("U_CAMERA"):
-        paths = group["path"].sample(n=min(len(group), max_files))
+        paths = group["path"].sample(n=int(min(len(group), max_files)))
         outname = basename.with_name(f"{basename.name}_cam{cam_num:.0f}.fits")
         if outname.exists():
             logger.info(f"Loading raw PSF frame from {outname}")
