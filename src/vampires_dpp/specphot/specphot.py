@@ -24,6 +24,90 @@ SATSPOT_CONTRAST_POLY: Final = {  # Lucas et al. 2024 table 9
     31.0: np.polynomial.Polynomial((0, -0.002, 0.561)),
 }
 
+CALIB_FAC: Final = {  # Jy / (e-/s)
+    "625-50": 7.34e-07,
+    "675-50": 4.85e-07,
+    "725-50": 4.08e-07,
+    "750-50": 4.08e-07,
+    "775-50": 1.82e-06,
+    "Open": 1.83e-07,
+    "F610": 1.40e-06,
+    "F670": 6.81e-07,
+    "F720": 4.88e-07,
+    "F760": 1.17e-06,
+    "Halpha": 3.64e-05,
+    "Ha-Cont": 1.57e-05,
+    "SII": 6.35e-06,
+    "SII-Cont": 7.89e-06,
+}
+
+AIRMASS_K: Final = {  # mag / airmass
+    "625-50": 0.08117646,
+    "675-50": 0.053832494,
+    "725-50": 0.038406607,
+    "750-50": 0.033860277,
+    "775-50": 0.03136249,
+    "Open": 0.06148405,
+    "F610": 0.09034138,
+    "F670": 0.056374893,
+    "F720": 0.039893303,
+    "F760": 0.031851713,
+    "Halpha": 0.066533156,
+    "Ha-Cont": 0.062191844,
+    "SII": 0.0544875513,
+    "SII-Cont": 0.05106129286,
+}
+
+
+def specphot_cal_hdul_zeropoints(hdul: fits.HDUList, config: SpecphotConfig):
+    assert config.specphot.source == "zeropoints"
+
+    match config.specphot.unit:
+        case "e-/s":
+            conv_factor = 1
+        case "Jy":
+            hdul, conv_factor = determine_jy_factor_from_zp(hdul)
+        case "Jy/arcsec^2":
+            hdul, conv_factor = determine_jy_factor_from_zp(hdul)
+            conv_factor /= hdul[0].header["PXAREA"]
+        case _:
+            msg = f"Invalid spectrophotometric unit: {config.specphot.unit}"
+            raise ValueError(msg)
+
+    hdul[0].data *= conv_factor
+    hdul["ERR"].data *= conv_factor
+
+    info = fits.Header()
+    info["BUNIT"] = config.specphot.unit
+
+    for hdu in hdul:
+        hdu.header.update(info)
+
+    return hdul
+
+
+def determine_jy_factor_from_zp(hdul):
+    info = fits.Header()
+    # determine whether MBI or not
+    conv_factors = []
+    for hdu in hdul[2:]:
+        field = hdu.header["FIELD"]
+        sky_atten_mag = AIRMASS_K[field] * hdu.header["AIRMASS"]
+        c_fd = CALIB_FAC[field]  # Jy / (e-/s)
+        c_fd *= 10 ** (0.4 * sky_atten_mag)
+        conv_factors.append(c_fd)
+        info[f"hierarch DPP FLUX C_FD {field}"] = (
+            _format(c_fd),
+            "[Jy/(e-/s)] Absolute flux conversion factor",
+        )
+
+    conv_factors = np.array(conv_factors)[None, :, None, None]
+
+    for hdu in hdul:
+        hdu.header.update(info)
+
+    return hdul, conv_factors
+
 
 def specphot_cal_hdul(hdul: fits.HDUList, metrics, config: SpecphotConfig):
     # determine any conversion factors
@@ -81,14 +165,14 @@ def measure_inst_flux(hdul, metrics, flux_metric: FluxMetric, satspots: bool = F
     for flux, hdu in zip(inst_flux, hdul[2:], strict=True):
         _, obs_filt = update_header_with_filt_info(hdu.header)
         field = hdu.header["FIELD"]
-        info[f"hierarch DPP SPECPHOT INSTFLUX {field}"] = _format(flux), "[e-/s] Instrumental flux"
-        info[f"hierarch DPP SPECPHOT INSTMAG {field}"] = (
+        info[f"hierarch DPP FLUX INSTFLUX {field}"] = _format(flux), "[e-/s] Instrumental flux"
+        info[f"hierarch DPP FLUX INSTMAG {field}"] = (
             np.round(-2.5 * np.log10(flux), 3),
             "[mag] Instrumental magnitude",
         )
         # add contrast
         contrast = satellite_spot_contrast(hdu.header) if satspots else 1
-        info[f"hierarch DPP SPECPHOT CONTRAST {field}"] = (
+        info[f"hierarch DPP FLUX CONTRAST {field}"] = (
             contrast,
             "Stellar flux to satspot flux ratio",
         )
@@ -100,11 +184,8 @@ def measure_inst_flux(hdul, metrics, flux_metric: FluxMetric, satspots: bool = F
 def determine_jy_factor(hdul, fluxes, config: SpecphotConfig):
     info = fits.Header()
     # config inputs
-    info["hierarch DPP SPECPHOT REFMAG"] = (
-        np.round(config.mag, 3),
-        "[mag] Reference source magnitude",
-    )
-    info["hierarch DPP SPECPHOT REFFILT"] = config.mag_band, "Reference source filter"
+    info["hierarch DPP FLUX REFMAG"] = (np.round(config.mag, 3), "[mag] Reference source magnitude")
+    info["hierarch DPP FLUX REFFILT"] = config.mag_band, "Reference source filter"
 
     # determine whether MBI or not
     conv_factors = []
@@ -116,32 +197,32 @@ def determine_jy_factor(hdul, fluxes, config: SpecphotConfig):
         obs = get_observation(config, obs_filt)
         obs_mag = obs.effstim(VEGAMAG, vegaspec=VEGASPEC)
         obs_jy = obs.effstim(u.Jy)
-        info[f"hierarch DPP SPECPHOT MAG {field}"] = (
+        info[f"hierarch DPP FLUX MAG {field}"] = (
             np.round(obs_mag.value, 3),
             "[mag] Source magnitude after color correction",
         )
-        info[f"hierarch DPP SPECPHOT REFFLUX {field}"] = (
+        info[f"hierarch DPP FLUX REFFLUX {field}"] = (
             _format(obs_jy.value),
             "[Jy] Source flux after color correction",
         )
         # calculate surface density conversion factory
         inst_mag = -2.5 * np.log10(flux)
         c_fd = obs_jy.value / flux
-        info[f"hierarch DPP SPECPHOT CALIBFAC {field}"] = (
+        info[f"hierarch DPP FLUX C_FD {field}"] = (
             _format(c_fd),
             "[Jy/(e-/s)] Absolute flux conversion factor",
         )
         # calculate Vega zero point
         zp = obs_mag.value - inst_mag
         zp_jy = c_fd * 10 ** (0.4 * zp)
-        info[f"hierarch DPP SPECPHOT ZP {field}"] = (
+        info[f"hierarch DPP FLUX ZP {field}"] = (
             np.round(zp, 3),
             "[mag] Zero point in the Vega magnitude system",
         )
-        info[f"hierarch DPP SPECPHOT ZPJY {field}"] = (zp_jy, "[Jy] Vega zero point in Jy")
+        info[f"hierarch DPP FLUX ZPJY {field}"] = (zp_jy, "[Jy] Vega zero point in Jy")
         # calculate total throughput (atmosphere + instrument + QE)
         throughput = flux / obs.countrate(area=SCEXAO_AREA).value
-        info[f"hierarch DPP SPECPHOT THROUGH {field}"] = (
+        info[f"hierarch DPP FLUX THROUGH {field}"] = (
             _format(throughput),
             "[e-/ct] Est. total throughput (Atm+Inst+QE)",
         )
@@ -225,8 +306,8 @@ def determine_contrast_factor(hdul: fits.HDUList, inst_flux):
     factors = []
     for hdu in hdul[2:]:
         field = hdu.header["FIELD"]
-        contrast = header[f"hierarch DPP SPECPHOT CONTRAST {field}"]
-        spotflux = header[f"hierarch DPP SPECPHOT INSTFLUX {field}"]
+        contrast = header[f"hierarch DPP FLUX CONTRAST {field}"]
+        spotflux = header[f"hierarch DPP FLUX INSTFLUX {field}"]
 
         starflux = spotflux / contrast
         factors.append(1 / starflux)

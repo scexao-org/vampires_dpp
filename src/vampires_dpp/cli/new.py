@@ -319,7 +319,8 @@ def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
     if "Jy" in unit:
         readline.set_completer(pathCompleter)
         source = click.prompt(
-            ' - Enter spectrum source ("pickles" or path to spectrum)', default="pickles"
+            ' - Enter spectrum source ("pickles", "zeropoints", or path to spectrum)',
+            default="pickles",
         )
         readline.set_completer()
         if source == "pickles":
@@ -358,7 +359,7 @@ def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
                 default=mag_band,
                 type=click.Choice(list(FILTERS.keys()), case_sensitive=False),
             )
-    if unit != "e-/s":
+    if unit != "e-/s" and source != "zeropoints":
         metric = click.prompt(
             " - Select which metric to use for flux",
             default="photometry",

@@ -35,7 +35,7 @@ from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, 
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.specphot.filters import determine_filterset_from_header
-from vampires_dpp.specphot.specphot import specphot_cal_hdul
+from vampires_dpp.specphot.specphot import specphot_cal_hdul, specphot_cal_hdul_zeropoints
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.util import get_center
 from vampires_dpp.wcs import apply_wcs
@@ -272,7 +272,10 @@ class Pipeline:
         logger.debug(f"Finished frame alignment for group {group_key}")
         ## Step 5: Spectrophotometric calibration
         logger.debug(f"Starting specphot cal for group {group_key}")
-        hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config)
+        if self.config.specphot.source == "zeropoints":
+            hdul = specphot_cal_hdul_zeropoints(hdul, config=self.config)
+        else:
+            hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config)
         logger.debug(f"Finished specphot cal for group {group_key}")
         # Awkward: save registered data AFTER specphot calibration
         if self.config.align.save_intermediate and self.config.coadd.coadd:

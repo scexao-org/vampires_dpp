@@ -115,7 +115,7 @@ class SpecphotConfig(BaseModel):
     Parameters
     ----------
     source:
-        Spectrum source type. If a path, must be a file that can be loaded by `synphot.SourceSpectrum.from_file`.
+        Spectrum source type. If a path, must be a file that can be loaded by `synphot.SourceSpectrum.from_file`. If "pickles", uses the pickles atlast. If "zeropoints", uses coefficients from Lucas+2024.
     sptype:
         Only used if `source` is "pickles". Stellar spectral type. Note: must be one of the spectral types available in the pickles model atlas. Refer to the STScI documentation for more information on available spectral types.
     mag:
@@ -129,7 +129,7 @@ class SpecphotConfig(BaseModel):
     """
 
     unit: Literal["e-/s", "contrast", "Jy", "Jy/arcsec^2"] = "e-/s"
-    source: Literal["pickles"] | Path | None = None
+    source: Literal["pickles", "zeropoints"] | Path | None = "zeropoints"
     sptype: str | None = None
     mag: float | None = None
     mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = None
@@ -138,7 +138,7 @@ class SpecphotConfig(BaseModel):
     def model_post_init(self, __context: Any) -> None:
         if "Jy" in self.unit:
             if self.source is None:
-                msg = "Must provide a spectrum or specify stellar model if you want to calibrate to Jy"
+                msg = "Must provide a spectrum, specify stellar model, or use zero points if you want to calibrate to Jy"
                 raise ValueError(msg)
             if (
                 self.source == "pickles"

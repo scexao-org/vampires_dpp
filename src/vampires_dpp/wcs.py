@@ -13,9 +13,11 @@ from .constants import SUBARU_LOC
 def apply_wcs(image: NDArray, header: fits.Header, angle: float = 0):
     ny, nx = image.shape[-2:]
     # delete any CD keys from header
-    for key in ("CD1_1*", "CD2_*"):
-        if key in header:
-            del header[key]
+    for key in ("CD1_1", "CD1_2", "CD2_1", "CD2_2"):
+        for subkey in ("", "B", "C", "D"):
+            full_key = key + subkey
+            if full_key in header:
+                del header[full_key]
 
     w = wcs.WCS(naxis=2)
     w.wcs.crpix = [nx / 2 + 0.5, ny / 2 + 0.5]
