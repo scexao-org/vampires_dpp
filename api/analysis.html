@@ -30,7 +30,7 @@
   <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
     <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=2ca489b6"></script>
+    <script src="../_static/documentation_options.js?v=3bd009d0"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -51,7 +51,7 @@
     <link rel="prev" title="Calibration" href="calibration.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.13.5" />
+  <meta name="docsearch:version" content="0.13.6" />
   </head>
   
   
@@ -298,7 +298,9 @@
 <button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
 </button>
-
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
 </div></div>
       
     </div>
@@ -314,6 +316,20 @@
     <div id="print-main-content">
         <div id="jb-print-toc">
             
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.Moffat"><code class="docutils literal notranslate"><span class="pre">Moffat</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.Moffat.evaluate"><code class="docutils literal notranslate"><span class="pre">Moffat.evaluate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.Moffat.fit_deriv"><code class="docutils literal notranslate"><span class="pre">Moffat.fit_deriv()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.Moffat.param_names"><code class="docutils literal notranslate"><span class="pre">Moffat.param_names</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.find_norm_peak"><code class="docutils literal notranslate"><span class="pre">find_norm_peak()</span></code></a></li>
+</ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -323,8 +339,57 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="analysis">
-<h1>Analysis<a class="headerlink" href="#analysis" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="module-vampires_dpp.analysis">
+<span id="analysis"></span><h1>Analysis<a class="headerlink" href="#module-vampires_dpp.analysis" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="vampires_dpp.analysis.Moffat">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vampires_dpp.analysis.</span></span><span class="sig-name descname"><span class="pre">Moffat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gammax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gammay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.analysis.Moffat" title="Link to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.analysis.Moffat.evaluate">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gammax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gammay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.analysis.Moffat.evaluate" title="Link to this definition">#</a></dt>
+<dd><p>Evaluate the model on some input variables.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vampires_dpp.analysis.Moffat.fit_deriv">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_deriv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gammax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gammay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.analysis.Moffat.fit_deriv" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vampires_dpp.analysis.Moffat.param_names">
+<span class="sig-name descname"><span class="pre">param_names</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('x0',</span> <span class="pre">'y0',</span> <span class="pre">'gammax',</span> <span class="pre">'gammay',</span> <span class="pre">'theta',</span> <span class="pre">'alpha',</span> <span class="pre">'amplitude',</span> <span class="pre">'background')</span></em><a class="headerlink" href="#vampires_dpp.analysis.Moffat.param_names" title="Link to this definition">#</a></dt>
+<dd><p>Names of the parameters that describe models of this type.</p>
+<p>The parameters in this tuple are in the same order they should be passed in
+when initializing a model of a specific type.  Some types of models, such
+as polynomial models, have a different number of parameters depending on
+some other property of the model, such as the degree.</p>
+<p>When defining a custom model class the value of this attribute is
+automatically set by the <cite>~astropy.modeling.Parameter</cite> attributes defined
+in the class body.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vampires_dpp.analysis.find_norm_peak">
+<span class="sig-prename descclassname"><span class="pre">vampires_dpp.analysis.</span></span><span class="sig-name descname"><span class="pre">find_norm_peak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phot_rad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oversamp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vampires_dpp.analysis.find_norm_peak" title="Link to this definition">#</a></dt>
+<dd><p>usage: peak = find_peak(image, xc, yc, boxsize)
+finds the subpixel peak of an image</p>
+<p>image: an image of a point source for which we would like to find the peak
+xc, yc: approximate coordinate of the point source
+boxsize: region in which most of the flux is contained (typically 20)
+oversamp: how many times to oversample the image in the FFT interpolation in order to find the peak</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>peak of the oversampled image</p>
+</dd>
+</dl>
+<p>Marcos van Dam, October 2022, translated from IDL code of the same name</p>
+</dd></dl>
+
 </section>
 
 
@@ -363,6 +428,28 @@
             
             
               
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.Moffat"><code class="docutils literal notranslate"><span class="pre">Moffat</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.Moffat.evaluate"><code class="docutils literal notranslate"><span class="pre">Moffat.evaluate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.Moffat.fit_deriv"><code class="docutils literal notranslate"><span class="pre">Moffat.fit_deriv()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.Moffat.param_names"><code class="docutils literal notranslate"><span class="pre">Moffat.param_names</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vampires_dpp.analysis.find_norm_peak"><code class="docutils literal notranslate"><span class="pre">find_norm_peak()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
             
           </div>
           <footer class="bd-footer-content">
@@ -382,7 +469,7 @@ By Miles Lucas
 
   <p class="copyright">
     
-      © Copyright 2022, 2023, 2024, Miles Lucas.
+      © Copyright 2022, 2023, 2024, 2025, Miles Lucas.
       <br/>
     
   </p>
