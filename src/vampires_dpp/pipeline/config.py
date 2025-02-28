@@ -140,11 +140,8 @@ class SpecphotConfig(BaseModel):
             if self.source is None:
                 msg = "Must provide a spectrum, specify stellar model, or use zero points if you want to calibrate to Jy"
                 raise ValueError(msg)
-            if (
-                self.source == "pickles"
-                and self.sptype is None
-                or self.mag is None
-                or self.mag_band is None
+            elif self.source != "zeropoints" and (
+                self.sptype is None or self.mag is None or self.mag_band is None
             ):
                 msg = "Must specify target magnitude (and filter) as well as spectral type to use 'pickles' stellar model"
                 raise ValueError(msg)
@@ -476,9 +473,10 @@ class PipelineConfig(BaseModel):
             msg = "You must set `fit_psf_model` to true if you want to align using the PSF model centroid"
             raise ValueError(msg)
         if (
-            self.specphot.flux_metric == "photometry"
+            self.specphot.unit != "e-/s"
+            and self.specphot.source != "zeropoints"
+            and self.specphot.flux_metric == "photometry"
             and not self.analysis.photometry
-            and self.specphot.unit != "e-/s"
         ):
             msg = "Can't use photometry for specphot.flux_metric if analysis.photometry is False"
             raise ValueError(msg)
