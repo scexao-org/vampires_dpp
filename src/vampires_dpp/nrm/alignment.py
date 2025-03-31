@@ -1,10 +1,8 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import amical
 from astropy.io import fits
-
-from vampires_dpp.specphot.filters import determine_primary_filter
 
 
 def get_amical_parameters(header: fits.Header) -> dict[str, Any]:
@@ -17,14 +15,22 @@ def get_amical_parameters(header: fits.Header) -> dict[str, Any]:
             params["cutoff"] = 8e-2
             params["n_wl"] = 3
 
-    params["filtname"] = determine_primary_filter(header)
-    params["fliplr"] = True
+    # filter is always 750-50 because uv scaling is done manually
+    params["filtname"] = "750-50"
+    # data is already flipped in calibration
+    params["fliplr"] = False
     params["instrum"] = "VAMPIRES"
-    params["peakmethod"] = "square"
     return params
 
 
-def check_mask_align(cube, params: dict[str, Any], save_path: str, theta: float, uv: float) -> None:
+def check_mask_align(
+    cube,
+    params: dict[str, Any],
+    save_path: str,
+    method: Literal["square", "gauss"] = "square",
+    theta: float = 0,
+    uv: float = 1,
+) -> None:
     """
     inputs are:
     cube - data, cropped, pre-processed
@@ -33,12 +39,11 @@ def check_mask_align(cube, params: dict[str, Any], save_path: str, theta: float,
     theta - adjustable parameter
     uv - adjustable parameter
     """
-    params["filtname"] = "750-50"
     infos = amical.mf_pipeline.bispect._check_input_infos(
         {}, targetname=None, filtname=params["filtname"], instrum=params["instrum"], verbose=False
     )
 
-    infos["instrument"] = "VAMPIRES"
+    infos["instrument"] = params["instrum"]
     ft_arr, _, npix = amical.mf_pipeline.bispect._construct_ft_arr(cube)
 
     try:
@@ -56,7 +61,7 @@ def check_mask_align(cube, params: dict[str, Any], save_path: str, theta: float,
         infos.instrument,
         infos.filtname,
         npix,
-        peakmethod=params["peakmethod"],
+        peakmethod=method,
         fw_splodge=params["fw_splodge"],
         n_wl=params["n_wl"],
         cutoff=params["cutoff"],
@@ -80,7 +85,7 @@ def check_mask_align(cube, params: dict[str, Any], save_path: str, theta: float,
         n_baselines,
         mf,
         params["maskname"],
-        params["peakmethod"],
+        method,
         0,
         aver=False,
         centred=True,
@@ -92,6 +97,10 @@ def check_mask_align(cube, params: dict[str, Any], save_path: str, theta: float,
         log_stretch=True,
         savepath=save_path,
     )
+
+
+def remove_padding(cube):
+    ...
 
 
 if __name__ == "__main__":
@@ -111,9 +120,8 @@ if __name__ == "__main__":
     for idx in range(len(hdul) - 2):
         cube = data_cube[idx]
         header = hdul[idx + 2].header
-        data = np.nan_to_num(cube)
         params = get_amical_parameters(header)
-        save_name = str(save_path / params["filtname"]) + "_"
+        save_name = str(save_path / header["FIELD"]) + "_"
         theta = 97
         uv = 1.06
-        check_mask_align(data, params, save_path=save_name, uv=uv, theta=theta)
+        check_mask_align(cube, params, save_path=save_name, uv=uv, theta=theta)
