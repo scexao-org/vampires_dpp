@@ -11,6 +11,7 @@ authors = [{name = "Miles Lucas", email = "mdlucas@hawaii.edu"}]
 requires-python = ">=3.10"
 dynamic = ["version"]
 dependencies = [
+    "amical@git+https://github.com/SAIL-Labs/AMICAL@vampires_dev",
     "annotated_types",
     "astropy",
     "astroquery",
@@ -18,7 +19,6 @@ dependencies = [
     "bottleneck",
     "click",
     "hcipy",
-
     "image-registration",
     "loguru",
     "matplotlib",
