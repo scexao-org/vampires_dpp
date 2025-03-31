@@ -284,6 +284,8 @@ class AlignmentConfig(BaseModel):
     ----------
     align:
         If true, data will be aligned by the give method
+    pad:
+        If true, data will be padded so full FOV is retained after rotation
     method:
         Alignment method, (if "dft" is not provided, it will not be measured at all)
     crop_width:
@@ -295,6 +297,7 @@ class AlignmentConfig(BaseModel):
     """
 
     align: bool = True
+    pad: bool = True
     method: Literal["dft", "com", "peak", "model"] = "dft"
     crop_width: int = 536
     reproject: bool = False

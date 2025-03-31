@@ -265,6 +265,7 @@ class Pipeline:
             metrics,
             init_centroids=self.centroids.get(f"cam{hdul[0].header['U_CAMERA']:.0f}", None),
             align=self.config.align.align,
+            pad=self.config.align.pad,
             method=self.config.align.method,
             crop_width=self.config.align.crop_width,
             reproject_tforms=reproject_tforms,

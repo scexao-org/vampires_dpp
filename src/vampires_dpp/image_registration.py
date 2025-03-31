@@ -15,7 +15,7 @@ from skimage import filters, transform
 
 from vampires_dpp.headers import fix_header
 from vampires_dpp.image_processing import shift_frame, warp_frame
-from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii, get_mbi_centers
+from vampires_dpp.indexing import frame_center, frame_radii, get_mbi_centers
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.util import get_center
@@ -101,6 +101,7 @@ def register_hdul(
     align: bool = True,
     method: RegisterMethod = "dft",
     crop_width: int = 536,
+    pad: bool = True,
     reproject_tforms: None | dict[str, transform.SimilarityTransform],
 ) -> fits.HDUList:
     # load centroids
@@ -172,8 +173,12 @@ def register_hdul(
                 shifted_err = warp_frame(shifted_err, rotmat, antialias=antialias)
 
             # pad output
-            aligned_cube[tidx, wlidx] = np.pad(shifted, npad, constant_values=np.nan)
-            aligned_err_cube[tidx, wlidx] = np.pad(shifted_err, npad, constant_values=np.nan)
+            if pad:
+                aligned_cube[tidx, wlidx] = np.pad(shifted, npad, constant_values=np.nan)
+                aligned_err_cube[tidx, wlidx] = np.pad(shifted_err, npad, constant_values=np.nan)
+            else:
+                aligned_cube[tidx, wlidx] = shifted
+                aligned_err_cube[tidx, wlidx] = shifted_err
 
     # generate output HDUList
     output_hdul = fits.HDUList(

@@ -187,6 +187,10 @@ def get_analysis_settings(template: PipelineConfig) -> PipelineConfig:
                 click.echo(f" ! Reducing annulus inner radius to ({ann_rad[0]:.0f} px)")
             template.analysis.phot_ann_rad = ann_rad
 
+    template.analysis.strehl = click.confirm(
+        "Would you like to measure the Strehl ratio?", default=template.analysis.strehl
+    )
+
     return template
 
 
@@ -245,6 +249,9 @@ def get_alignment_settings(template: PipelineConfig) -> PipelineConfig:
             default=template.align.method,
         )
         readline.set_completer()
+    template.align.pad = click.confirm(
+        "Would you like to pad each frame?", default=template.align.pad
+    )
     template.align.crop_width = click.prompt(
         "Enter post-align crop size", default=template.align.crop_width, type=int
     )
