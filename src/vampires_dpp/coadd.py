@@ -10,7 +10,6 @@ from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import NDArray
 
-from vampires_dpp.combine_frames import combine_hduls
 from vampires_dpp.headers import fix_header, sort_header
 from vampires_dpp.util import load_fits
 
@@ -172,16 +171,17 @@ def collapse_frames_files(filenames, output, force=False, quiet=True, fix=False,
 
 
 def collapse_cubes_filelist(filenames, fix=False, **kwargs) -> fits.HDUList:
-    hduls = []
+    cubes = []
     headers = []
     for filename in filenames:
         hdul = fits.open(filename, memmap=False)
+        hidx = 1 if ".fits.fz" in filename else 0
+
         if fix:
-            hdul[0].header = fix_header(hdul[0].header)
-        hduls.append(hdul)
-        headers.append(hdul[0].header)  # TODO should be unnecesary
+            hdul[hidx].header = fix_header(hdul[hidx].header)
+        cubes.append(hdul[hidx].data)
+        headers.append(hdul[hidx].header)  # TODO should be unnecesary
 
-    comb_hdul = combine_hduls(hduls)
-
-    frame, header = collapse_frames(comb_hdul[0].data, headers=headers, **kwargs)
+    big_stack = np.vstack(cubes)
+    frame, header = collapse_frames(big_stack, headers=headers, **kwargs)
     return fits.HDUList([fits.PrimaryHDU(frame, header=header)])
