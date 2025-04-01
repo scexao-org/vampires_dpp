@@ -285,9 +285,11 @@ def find_right_triangles(vertices: list[tuple[int, int]], radius=3):
         distances = np.sort((dist_12, dist_23, dist_31))
 
         if (
-            np.isclose(distances[0], distances[1], atol=2 * radius)
-            and np.isclose(distances[2] / np.mean(distances[:2]), np.sqrt(2), atol=5e-2)
-            and np.all(distances > 38)
+            np.isclose(distances[0], distances[1], atol=2 * radius)  # two equal sides
+            and np.isclose(
+                distances[2] / np.mean(distances[:2]), np.sqrt(2), atol=5e-2
+            )  # last side in sqrt(2) times longer
+            and np.all(distances > 38)  # and the distances are at least 38 pixels apart (213 mas)
         ):
             right_triangles.append(triplet)
 
@@ -349,7 +351,113 @@ def find_square_peaks(frame, radius=3, max_counter=50):
         max_ind = np.nanargmax(frame)
         counter += 1
 
-    msg = "Could not fit satelliate spots!"
+    msg = "Could not fit satellite spots!"
+    print(msg)
+    # raise RuntimeError(msg)
+    return None
+
+
+def find_equilateral_triangles(vertices: list[tuple[int, int]], radius=3):
+    """Find all sets of vertices that form an equilateral triangle."""
+    equilateral_triangles = []
+
+    # Check all combinations of three vertices
+    for triplet in itertools.combinations(vertices, 3):
+        p1, p2, p3 = triplet
+        # Calculate squared distances
+        dist_12 = euclidean_distance(p1, p2)
+        dist_23 = euclidean_distance(p2, p3)
+        dist_31 = euclidean_distance(p3, p1)
+
+        # Sort distances to identify the longest one
+        distances = np.sort((dist_12, dist_23, dist_31))
+
+        if (
+            np.isclose(distances[0], distances[1], atol=2 * radius)
+            and np.isclose(distances[0], distances[2], atol=2 * radius)
+            and np.isclose(distances[1], distances[2], atol=2 * radius)
+            and np.all(distances > 80)  # and the distances are at least 50 pixels apart
+        ):
+            equilateral_triangles.append(triplet)
+
+    return equilateral_triangles
+
+
+def test_two_triangles_are_hexagon(
+    triangle1: list[tuple[int, int]], triangle2: list[tuple[int, int]], radius: float = 3
+):
+    """Given two sets of vertices that form equilateral triangles, see if they combine to form a hexagon"""
+    if triangle1 == triangle2:
+        return False
+    center1 = np.mean(triangle1, axis=0)
+    center2 = np.mean(triangle2, axis=0)
+    diff = center1 - center2
+
+    if not np.all(np.isclose(diff, 0, atol=2 * radius)):
+        return False
+
+    vertices = np.array([*triangle1, *triangle2])
+    # find center
+    center = np.mean(vertices, axis=0)
+    # find distance from center
+    distances = vertices - center
+    radii = np.sort(np.hypot(distances[:, 1], distances[:, 0]))
+    if not (np.all(np.isclose(np.diff(radii), 0, atol=2 * radius)) and np.all(radii > 40)):
+        return False
+        # return False
+    mean_radii = np.mean(radii)
+    # find angles
+    thetas = np.sort(np.arctan2(distances[:, 0], distances[:, 1]))
+    theta_diffs = np.diff(thetas)
+    max_error = np.arctan2(2 * radius, mean_radii)
+    expected = np.deg2rad(60)
+    return np.all(np.isclose(theta_diffs, expected, atol=max_error))
+
+
+def find_hexagon_peaks(frame, radius=3, max_counter=100):
+    # initialize
+    frame = frame.copy().astype("f4")  # because we're writing NaN's in place
+    max_ind = np.nanargmax(frame)
+
+    counter = 0
+    locs = []  # locs is a list of cartesian indices
+    # tricombs is a ??
+    tricombs = []
+
+    # import matplotlib.pyplot as plt
+    # plt.ion()
+    # fig, ax = plt.subplots()
+    # data structures for memoization
+    while counter < max_counter:
+        # grab newest spot candidate and add to list of locations
+        inds = np.unravel_index(max_ind, frame.shape)
+        locs.append(inds)
+        frame = mask_circle(frame, inds, radius)
+        # if we have at least six locations and some triangle candidates we can start to evaluate sets
+        if len(locs) >= 6 and len(tricombs) >= 2:
+            # generate all combos with newest triangle
+            for tricomb1 in tricombs[:-1]:
+                tricomb2 = tricombs[-1]
+                # ax.clear()
+                # ax.imshow(frame, origin="lower", cmap="magma")
+                # ax.scatter([p[1] for p in tricomb1], [p[0] for p in tricomb1], c="cyan")
+                # ax.scatter([p[1] for p in tricomb2], [p[0] for p in tricomb2], c="green")
+                # plt.show()
+                # plt.pause(1)
+
+                if test_two_triangles_are_hexagon(tricomb1, tricomb2):
+                    return [*tricomb1, *tricomb2]
+
+        # as soon as we have 3 spots, start the list of triangle candidates
+        if len(locs) >= 3:
+            # generate all combinations of pairs of two coordinates, without repetition
+            triangle_sets = find_equilateral_triangles(locs)
+            tricombs = triangle_sets
+        # setup next iteration
+        max_ind = np.nanargmax(frame)
+        counter += 1
+
+    msg = "Could not fit hexagon spots!"
     print(msg)
     # raise RuntimeError(msg)
     return None
@@ -399,6 +507,7 @@ def autocentroid_hdul(
     hdul: fits.HDUList,
     coronagraphic: bool = False,
     planetary: bool = False,
+    nrm: bool = False,
     psfs=None,
     crop_size=256,
     window_size=21,
@@ -438,8 +547,21 @@ def autocentroid_hdul(
         filtered_cutout = rough_cutout.data - filters.median(rough_cutout.data, np.ones((9, 9)))
         # convolve high-pass filtered data with the PSF for better S/N (unsharp-mask-ish)
         filtered_cutout = convolve_fft(filtered_cutout, psfs[idx])
+
+        # when nrm, find six peaks wich form a hexagon
+        if nrm:
+            points = find_hexagon_peaks(filtered_cutout)
+            estimated_center = np.mean(points, axis=0)
+            # refine with DFT
+            inds = Cutout2D(
+                filtered_cutout, estimated_center[::-1], psfs[idx].shape
+            ).slices_original
+            offsets = offset_dft(filtered_cutout, inds, psfs[idx])
+            # make sure to offset for indices
+            rough_points = rough_cutout.to_original_position(offsets[::-1])
+            orig_points = [cutout.to_original_position(rough_points[::-1])]
         # when using the coronagraph, find four maxima which form a square
-        if coronagraphic:
+        elif coronagraphic:
             points = find_square_peaks(filtered_cutout)
             # refine with DFT
             for point_idx in range(len(points)):
@@ -491,6 +613,15 @@ def autocentroid_hdul(
                     axs[1].plot([xs[0], xs[3]], [ys[0], ys[3]], c="cyan")
                     axs[1].plot([xs[1], xs[2]], [ys[1], ys[2]], c="cyan")
                     px, py = intersect_point(xs, ys)
+                    axs[1].scatter(px, py, marker="x", s=100, c="cyan")
+                elif len(xs) == 6:
+                    # plot lines
+                    idxs = np.argsort(xs)
+                    xs = xs[idxs]
+                    ys = ys[idxs]
+                    axs[1].scatter(xs, ys, c="cyan")
+                    px = np.mean(xs)
+                    py = np.mean(ys)
                     axs[1].scatter(px, py, marker="x", s=100, c="cyan")
                 else:
                     axs[1].scatter(xs[0], ys[0], marker="x", s=100, c="cyan")
