@@ -4,6 +4,8 @@ from typing import Any, Literal
 import amical
 from astropy.io import fits
 
+from vampires_dpp.nrm.windowing import window_cube
+
 
 def get_amical_parameters(header: fits.Header) -> dict[str, Any]:
     params = {}
@@ -99,10 +101,6 @@ def check_mask_align(
     )
 
 
-def remove_padding(cube):
-    ...
-
-
 if __name__ == "__main__":
     import argparse
 
@@ -118,10 +116,11 @@ if __name__ == "__main__":
     hdul = fits.open(args.filename)
     data_cube = hdul[0].data
     for idx in range(len(hdul) - 2):
-        cube = data_cube[idx]
         header = hdul[idx + 2].header
+        cube, header = window_cube(np.nan_to_num(data_cube[:, idx]), size=80, header=header)
         params = get_amical_parameters(header)
         save_name = str(save_path / header["FIELD"]) + "_"
         theta = 97
         uv = 1.06
         check_mask_align(cube, params, save_path=save_name, uv=uv, theta=theta)
+    fits.writeto("windowed_cube.fits", cube, header=header, overwrite=True)
