@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=3bd009d0"></script>
+    <script src="_static/documentation_options.js?v=802c8bcd"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -687,6 +687,7 @@ from each cube will be discarded according the the selection metric.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>align</strong> (<em>bool</em>) – If true, data will be aligned by the give method</p></li>
+<li><p><strong>pad</strong> (<em>bool</em>) – If true, data will be padded so full FOV is retained after rotation</p></li>
 <li><p><strong>method</strong> (<em>Literal</em><em>[</em><em>'dft'</em><em>, </em><em>'com'</em><em>, </em><em>'peak'</em><em>, </em><em>'model'</em><em>]</em>) – Alignment method, (if “dft” is not provided, it will not be measured at all)</p></li>
 <li><p><strong>crop_width</strong> (<em>int</em>) – Post-alignment crop width, should be roughly equal to FOV. Cropped data can set this lower for reduced memory footprint.</p></li>
 <li><p><strong>reproject</strong> (<em>bool</em>) – If true, will reproject cam2 astrometry onto cam1 for better image differences</p></li>
