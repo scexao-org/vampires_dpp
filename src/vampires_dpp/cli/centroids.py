@@ -140,6 +140,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
                     planetary=pipeline_config.planetary,
                     window_size=pipeline_config.analysis.window_size,
                     plot=plot,
+                    save_path=paths.aux,
                 )
                 + 1
             )

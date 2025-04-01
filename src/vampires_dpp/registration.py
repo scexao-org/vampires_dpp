@@ -1,5 +1,6 @@
 import itertools
 import logging
+from pathlib import Path
 from typing import Literal, TypeAlias
 
 import cv2
@@ -512,6 +513,7 @@ def autocentroid_hdul(
     crop_size=256,
     window_size=21,
     plot: bool = False,
+    save_path: Path | None = None,
 ):
     # collapse cubes, if need
     data = np.nanmedian(hdul[0].data, axis=0) if hdul[0].data.ndim == 3 else hdul[0].data
@@ -616,13 +618,22 @@ def autocentroid_hdul(
                     axs[1].scatter(px, py, marker="x", s=100, c="cyan")
                 elif len(xs) == 6:
                     # plot lines
-                    idxs = np.argsort(xs)
-                    xs = xs[idxs]
-                    ys = ys[idxs]
-                    axs[1].scatter(xs, ys, c="cyan")
                     px = np.mean(xs)
                     py = np.mean(ys)
-                    axs[1].scatter(px, py, marker="x", s=100, c="cyan")
+                    thetas = np.arctan2(ys - py, xs - px)
+                    idxs = np.argsort(thetas)
+                    xs_sorted = xs[idxs]
+                    ys_sorted = ys[idxs]
+                    axs[1].plot(
+                        [xs_sorted[0], xs_sorted[3]], [ys_sorted[0], ys_sorted[3]], c="cyan"
+                    )
+                    axs[1].plot(
+                        [xs_sorted[1], xs_sorted[4]], [ys_sorted[1], ys_sorted[4]], c="cyan"
+                    )
+                    axs[1].plot(
+                        [xs_sorted[2], xs_sorted[5]], [ys_sorted[2], ys_sorted[5]], c="cyan"
+                    )
+                    axs[1].scatter(px, py, marker="o", s=100, c="cyan")
                 else:
                     axs[1].scatter(xs[0], ys[0], marker="x", s=100, c="cyan")
 
@@ -630,6 +641,7 @@ def autocentroid_hdul(
             axs[1].set_title("Centroided cutout")
             fig.suptitle(f"Field: {fields[idx]}")
             fig.tight_layout()
+            fig.savefig(save_path / f"{fields[idx]}_cam{header['U_CAMERA']}_centroid.pdf")
 
         output.append(orig_points)
     if plot:
