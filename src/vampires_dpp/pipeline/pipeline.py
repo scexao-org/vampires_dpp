@@ -357,10 +357,7 @@ class Pipeline:
             return np.load(metric_file)
         config = self.config.analysis
         hdr = hdul[0].header
-        if self.config.align.align and self.config.align.method == "dft":
-            psfs = [self.synth_psfs[filt] for filt in determine_filterset_from_header(hdr)]
-        else:
-            psfs = None
+        psfs = [self.synth_psfs[filt] for filt in determine_filterset_from_header(hdr)]
         key = f"cam{hdr['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdul,

@@ -142,7 +142,7 @@ def register_hdul(
     # for radial coverage
     rad_factor = (crop_width / 2) * (np.sqrt(2) - 1)
     # round to nearest even number
-    npad = int((rad_factor // 2) * 2)
+    npad = int((rad_factor // 2) * 2) if pad else 0
     npix = crop_width + 2 * npad
     aligned_cube = np.empty((*centroids.shape[:2], npix, npix), dtype="f4")
     aligned_err_cube = np.empty((*centroids.shape[:2], npix, npix), dtype="f4")
@@ -160,8 +160,8 @@ def register_hdul(
             offset = field_ctr - cutout.position_original[::-1]
 
             # shift arrays, since it's subpixel don't worry about losing edges
-            shifted = shift_frame(cutout.data, offset)
-            shifted_err = shift_frame(cutout_err.data, offset)
+            shifted = shift_frame(cutout.data, offset, borderMode=cv2.BORDER_REFLECT)
+            shifted_err = shift_frame(cutout_err.data, offset, borderMode=cv2.BORDER_REFLECT)
 
             # if reprojecting, scale + rotate images
             if tforms is not None:
@@ -169,8 +169,12 @@ def register_hdul(
                     frame_center(shifted), np.rad2deg(tforms[wlidx].rotation), tforms[wlidx].scale
                 )
                 antialias = tforms[wlidx].scale < 1  # anti-alias if shrinking frame
-                shifted = warp_frame(shifted, rotmat, antialias=antialias)
-                shifted_err = warp_frame(shifted_err, rotmat, antialias=antialias)
+                shifted = warp_frame(
+                    shifted, rotmat, antialias=antialias, borderMode=cv2.BORDER_REFLECT
+                )
+                shifted_err = warp_frame(
+                    shifted_err, rotmat, antialias=antialias, borderMode=cv2.BORDER_REFLECT
+                )
 
             # pad output
             if pad:
