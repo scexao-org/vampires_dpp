@@ -4,11 +4,10 @@ from pathlib import Path
 import click
 
 import vampires_dpp as dpp
+from vampires_dpp.logging import add_logfile, configure_logging
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.util import check_version
-
-from . import logger
 
 __all__ = ("run", "pdi")
 
@@ -29,19 +28,22 @@ __all__ = ("run", "pdi")
     help="Number of processes to use.",
     show_default=True,
 )
-def run(config: Path, filenames, num_proc, outdir):
-    # make sure versions match within SemVar
-    logfile = outdir / "debug.log"
-    logfile.unlink(missing_ok=True)
-    logger.add(logfile, level="DEBUG", enqueue=True, colorize=False)
-    pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
+@click.option("--verbose", "-v", is_flag=True, help="Print debug statements.")
+def run(config: Path, filenames, num_proc, outdir, verbose):
+    logger = configure_logging()
+    logger = add_logfile(outdir, logger)
 
+    logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
+    logger.info(f"Using {num_proc} processes")
+
+    pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir, verbose=verbose)
+
+    # make sure versions match within SemVar
     if not check_version(pipeline.config.dpp_version, dpp.__version__):
         msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with \
         installed version of `vampires_dpp` ({dpp.__version__}). Try running \
         `dpp upgrade {config}`."
         raise ValueError(msg)
-    logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
     pipeline.run(filenames, num_proc=num_proc)
     # only run PDI if specified
     if pipeline.config.polarimetry is not None:
@@ -65,16 +67,21 @@ def run(config: Path, filenames, num_proc, outdir):
     help="Number of processes to use.",
     show_default=True,
 )
-@click.option("--quiet", "-q", is_flag=True, help="Silence progress bars and extraneous logging.")
-def pdi(config, filenames, num_proc, quiet, outdir):
+@click.option("--verbose", "-v", is_flag=True, help="Print debug statements.")
+def pdi(config, filenames, num_proc, verbose, outdir):
+    logger = configure_logging()
+    logger = add_logfile(outdir, logger)
+
+    logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
+    logger.info(f"Using {num_proc} processes")
+
+    pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir, verbose=verbose)
+
     # make sure versions match within SemVar
-    logger.add(outdir / "debug.log", level="DEBUG", enqueue=True, colorize=False)
-    pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir)
     if not check_version(pipeline.config.dpp_version, dpp.__version__):
         msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with \
                 installed version of `vampires_dpp` ({dpp.__version__}). Try running \
                 `dpp upgrade {config}`."
         raise ValueError(msg)
-    logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
 
     pipeline.run_polarimetry(num_proc=num_proc)

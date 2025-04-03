@@ -22,6 +22,7 @@ from vampires_dpp.combine_frames import (
 )
 from vampires_dpp.frame_select import frame_select_hdul
 from vampires_dpp.image_registration import intersect_point, recenter_hdul, register_hdul
+from vampires_dpp.logging import add_logfile, configure_logging
 from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
@@ -42,7 +43,7 @@ from vampires_dpp.wcs import apply_wcs
 
 
 class Pipeline:
-    def __init__(self, config: PipelineConfig, workdir: Path | None = None):
+    def __init__(self, config: PipelineConfig, workdir: Path | None = None, verbose: bool = False):
         self.master_backgrounds = {1: None, 2: None}
         self.master_flats = {1: None, 2: None}
         self.diff_files = None
@@ -53,8 +54,11 @@ class Pipeline:
         self.workdir = workdir if workdir is not None else Path.cwd()
         self.paths = Paths(workdir=self.workdir)
         self.output_table_path = self.paths.aux / f"{self.config.name}_table.csv"
+        self.verbose = verbose
+        if self.verbose:
+            logger.add(lambda msg: print(msg, end=""), level="DEBUG")
 
-    def run(self, filenames, num_proc: int | None = None, force=False):
+    def run(self, filenames, num_proc: int | None = None, force: bool = False):
         """Run the pipeline
 
         Parameters
@@ -104,6 +108,7 @@ class Pipeline:
 
             for job in tqdm(jobs, desc="Processing files"):
                 self.output_paths.append(job.get())
+
         self.output_paths.sort()
 
         logger.info("Creating table from output headers")
@@ -120,7 +125,7 @@ class Pipeline:
 
         logger.success("Finished processing files")
 
-    def run_polarimetry(self, num_proc, force=False):
+    def run_polarimetry(self, num_proc, force: bool = False):
         make_dirs(self.paths, self.config)
         conf_copy_path = self.paths.aux / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
@@ -150,7 +155,10 @@ class Pipeline:
         logger.success("Finished PDI")
 
     def create_input_table(self, filenames, num_proc) -> pd.DataFrame:
-        input_table = header_table(filenames, quiet=True, num_proc=num_proc).sort_values("MJD")
+        logger.debug("Creating input header table")
+        input_table = header_table(
+            filenames, quiet=not self.verbose, num_proc=num_proc
+        ).sort_values("MJD")
         table_path = self.paths.aux / f"{self.config.name}_input_headers.csv"
         input_table.to_csv(table_path)
         logger.info(f"Saved input header table to: {table_path}")
@@ -221,6 +229,9 @@ class Pipeline:
             self.synth_psfs[filt] = psf
 
     def process_group(self, group, group_key: str, output_path: Path):
+        # have to reset loggers because inside child-process
+        logger = configure_logging()
+        logger = add_logfile(self.workdir, logger)
         # fix headers and calibrate
         hdul_list = []
         for _, row in group.iterrows():

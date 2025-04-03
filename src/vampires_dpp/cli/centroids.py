@@ -11,12 +11,13 @@ from numpy.typing import NDArray
 
 from vampires_dpp.coadd import collapse_cubes_filelist
 from vampires_dpp.image_registration import autocentroid_hdul
+from vampires_dpp.logging import configure_logging
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 
-from . import logger
+logger = configure_logging()
 
 __all__ = "centroid"
 
