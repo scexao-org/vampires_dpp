@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from skimage.measure import centroid
-from vampires_dpp.image_registration import offset_centroids
+from vampires_dpp.registration import offset_centroids
 
 rng = np.random.default_rng(4796)
 

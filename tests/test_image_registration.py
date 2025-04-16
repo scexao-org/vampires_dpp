@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from vampires_dpp.image_registration import intersect_point
+from vampires_dpp.registration import intersect_point
 
 rng = np.random.default_rng()
 

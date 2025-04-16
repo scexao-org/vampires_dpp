@@ -4,7 +4,7 @@ from pathlib import Path
 import click
 
 import vampires_dpp as dpp
-from vampires_dpp.logging import add_logfile, configure_logging
+from vampires_dpp._logging import add_logfile, configure_logging
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.pipeline.pipeline import Pipeline
 from vampires_dpp.util import check_version

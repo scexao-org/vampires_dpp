@@ -11,6 +11,7 @@ from loguru import logger
 from skimage import transform
 from tqdm.auto import tqdm
 
+from vampires_dpp._logging import add_logfile, configure_logging
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
@@ -21,8 +22,6 @@ from vampires_dpp.combine_frames import (
     generate_frame_combinations,
 )
 from vampires_dpp.frame_select import frame_select_hdul
-from vampires_dpp.image_registration import intersect_point, recenter_hdul, register_hdul
-from vampires_dpp.logging import add_logfile, configure_logging
 from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
@@ -35,6 +34,7 @@ from vampires_dpp.pdi.models import mueller_matrix_from_file
 from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
 from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
+from vampires_dpp.registration import intersect_point, recenter_hdul, register_hdul
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.specphot.specphot import specphot_cal_hdul, specphot_cal_hdul_zeropoints
 from vampires_dpp.synthpsf import create_synth_psf

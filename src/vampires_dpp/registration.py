@@ -37,7 +37,7 @@ def offset_dft(frame, inds, psf):
     ctr[-1] += inds[-1].start
     # plt.imshow(frame, origin="lower", cmap="magma")
     # # plt.imshow(psf, origin="lower", cmap="magma")
-    # plt.scatter(ctr[-1], ctr[-2], marker='+', s=100, c="green")
+    # plt.scatter(ctr[-1], ctr[-2], marker='+', s=100, c="cyan")
     # plt.show(block=True)
     return ctr
 
@@ -54,6 +54,12 @@ def offset_peak_and_com(frame, inds):
         "peak": np.array((peak_yx[0] + offy, peak_yx[1] + offx)),
         "com": np.array((com_xy[1] + offy, com_xy[0] + offx)),
     }
+
+    # import matplotlib.pyplot as plt
+    # plt.imshow(cutout, cmap="magma", origin="lower")
+    # plt.scatter(peak_yx[1], peak_yx[0], c="cyan", marker="+")
+    # plt.scatter(com_xy[0], com_xy[1], c="cyan", marker="x")
+    # plt.show(block=True)
     return ctrs
 
 
@@ -222,11 +228,14 @@ def recenter_hdul(
     window_offsets = window_array - np.mean(window_array, axis=1, keepdims=True)
     field_center = frame_center(data_cube)
     ## Measure centroid
-    for wl_idx in range(data_cube.shape[0]):
+    for wl_idx in range(window_array.shape[0]):
         frame = data_cube[wl_idx]
+
         offsets = []
-        for offset in window_offsets[wl_idx]:
-            inds = Cutout2D(frame, (field_center + offset)[::-1], window_size).slices_original[::-1]
+        for psf_idx in range(window_array.shape[1]):
+            window_pos = field_center + window_offsets[wl_idx, psf_idx]
+            # oy, ox = field_center + offset
+            inds = Cutout2D(frame, window_pos[::-1], window_size).slices_original
             match method:
                 case "com" | "peak":
                     center = offset_peak_and_com(frame, inds)[method]
@@ -241,6 +250,7 @@ def recenter_hdul(
             offset = np.array((oy, ox))
         else:
             offset = offsets[0]
+
         data_cube[wl_idx] = shift_frame(frame, offset)
         err_cube[wl_idx] = shift_frame(err_cube[wl_idx], offset)
 
@@ -390,7 +400,7 @@ def autocentroid_hdul(
     coronagraphic: bool = False,
     planetary: bool = False,
     psfs=None,
-    crop_size=200,
+    crop_size=256,
     window_size=21,
     plot: bool = False,
 ):
@@ -428,7 +438,6 @@ def autocentroid_hdul(
         filtered_cutout = rough_cutout.data - filters.median(rough_cutout.data, np.ones((9, 9)))
         # convolve high-pass filtered data with the PSF for better S/N (unsharp-mask-ish)
         filtered_cutout = convolve_fft(filtered_cutout, psfs[idx])
-
         # when using the coronagraph, find four maxima which form a square
         if coronagraphic:
             points = find_square_peaks(filtered_cutout)

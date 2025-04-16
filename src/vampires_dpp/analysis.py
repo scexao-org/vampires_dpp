@@ -1,7 +1,6 @@
 import itertools
 from typing import Final, Literal
 
-import bottleneck as bn
 import numpy as np
 import scipy.stats as st
 import sep
@@ -9,10 +8,8 @@ from astropy import modeling
 from astropy.io import fits
 
 # import time
-from astropy.nddata import Cutout2D
-
-from .image_registration import offset_dft, offset_peak_and_com
 from .indexing import cutout_inds, frame_center, get_mbi_centers
+from .registration import offset_dft, offset_peak_and_com
 from .util import create_or_append, get_center
 
 
@@ -268,12 +265,11 @@ def analyze_file(
         field_metrics = {}
         for ctr in ctrs:
             inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)
-            center = get_center(data, ctr, cam_num)
-            cutouts = [
-                Cutout2D(frame, center[::-1], window_size, mode="partial").data for frame in data
-            ]
-            med_image = bn.median(cutouts, axis=0)
-            template = med_image
+            # center = get_center(data, ctr, cam_num)
+            # cutouts = [
+            #     Cutout2D(frame, center[::-1], window_size, mode="partial").data for frame in data
+            # ]
+            template = psf  # bn.median(cutouts, axis=0)
             results = analyze_fields(
                 data,
                 data_err,

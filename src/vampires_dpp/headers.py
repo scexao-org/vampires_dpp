@@ -207,8 +207,11 @@ def get_instrument_from(header: fits.Header) -> InstrumentInfo:
     cam_num = int(header["U_CAMERA"])
     if "U_EMGAIN" in header:
         inst = EMCCDVAMPIRES(cam_num=cam_num, emgain=header["U_EMGAIN"])
-    else:
+    elif "U_DETMOD" in header:
         inst = CMOSVAMPIRES(cam_num=cam_num, readmode=header["U_DETMOD"].lower())
+    else:
+        msg = "Could not determine VAMPIRES instrument (EMCCD vs. CMOS) from headers. Check if 'U_CAMERA' and 'U_EMGAIN' or 'U_DETMOD' keywords are present."
+        raise ValueError(msg)
 
     return inst
 

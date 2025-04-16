@@ -5,7 +5,7 @@ import numpy as np
 from astropy.io import fits
 from tqdm.auto import tqdm
 
-from vampires_dpp.image_registration import get_mbi_cutout
+from vampires_dpp.registration import get_mbi_cutout
 
 
 def setup_ds9(cmap="viridis", scale="sqrt"):
