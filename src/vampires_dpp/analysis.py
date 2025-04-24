@@ -6,9 +6,10 @@ import scipy.stats as st
 import sep
 from astropy import modeling
 from astropy.io import fits
+from astropy.nddata import Cutout2D
 
 # import time
-from .indexing import cutout_inds, frame_center, get_mbi_centers
+from .indexing import frame_center, get_mbi_centers
 from .registration import offset_dft, offset_peak_and_com
 from .util import create_or_append, get_center
 
@@ -134,7 +135,7 @@ def analyze_fields(
         # t4 = time.perf_counter()
         # print(f"Time to radial profile for one frame: {t4 - t3} [s]")
         if do_strehl and psf is not None:
-            strehl = measure_strehl(frame, psf, pos=ctr_est)
+            strehl = measure_strehl(frame, psf, pos=ctr_est, phot_rad=aper_rad)
             create_or_append(output, "strehl", strehl)
 
     # t2 = time.perf_counter()
@@ -155,7 +156,7 @@ def measure_strehl(image, psf_model, pos=None, phot_rad=8):
     strehl = image_norm_peak / model_norm_peak
     # bad strehls become -1
     if strehl < 0 or strehl > 1:
-        return -1
+        return np.nan
 
     return strehl
 
@@ -200,8 +201,8 @@ def find_norm_peak(image, center, window_size=20, phot_rad=8, oversamp=4) -> flo
     bly = int(np.floor(center[0] - boxhalf))
 
     # make sure that the box is contained by the image
-    blx = np.clip(blx, 0, image.shape[0] - window_size)
-    bly = np.clip(bly, 0, image.shape[1] - window_size)
+    blx = np.clip(blx, 0, image.shape[1] - window_size)
+    bly = np.clip(bly, 0, image.shape[0] - window_size)
 
     # extract the star
     subim = image[bly : bly + window_size, blx : blx + window_size]
@@ -264,8 +265,10 @@ def analyze_file(
     for ctrs, psf in zip(centroids.values(), psfs, strict=False):
         field_metrics = {}
         for ctr in ctrs:
-            inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)
-            # center = get_center(data, ctr, cam_num)
+            center = get_center(data, ctr, cam_num)
+            _inds = Cutout2D(data[0], center[::-1], window_size, mode="partial").slices_original
+            inds = np.s_[..., _inds[0], _inds[1]]
+            # inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)
             # cutouts = [
             #     Cutout2D(frame, center[::-1], window_size, mode="partial").data for frame in data
             # ]
