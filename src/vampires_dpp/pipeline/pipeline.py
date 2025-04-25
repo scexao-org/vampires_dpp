@@ -283,12 +283,12 @@ class Pipeline:
         )
         logger.debug(f"Finished frame alignment for group {group_key}")
         ## Step 5: Spectrophotometric calibration
-        logger.debug(f"Starting specphot cal for group {group_key}")
+        logger.debug(f"Starting specphot calibration for group {group_key}")
         if self.config.specphot.source == "zeropoints":
             hdul = specphot_cal_hdul_zeropoints(hdul, config=self.config)
         else:
             hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config)
-        logger.debug(f"Finished specphot cal for group {group_key}")
+        logger.debug(f"Finished specphot calibration for group {group_key}")
         # Awkward: save registered data AFTER specphot calibration
         if self.config.align.save_intermediate and self.config.coadd.coadd:
             _, outpath = get_paths(output_path, output_directory=self.paths.aligned)

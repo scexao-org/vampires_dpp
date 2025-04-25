@@ -1,3 +1,4 @@
+import os
 from multiprocessing import cpu_count
 from pathlib import Path
 
@@ -11,7 +12,28 @@ from vampires_dpp.util import check_version
 
 __all__ = ("run", "pdi")
 
+
 ########## run ##########
+def log_intro(logger, num_proc, outdir):
+    logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
+
+    logger.info(f"Using {num_proc} processes")
+    omp_num_threads = os.getenv("OMP_NUM_THREADS", None)
+    if num_proc > 1:
+        if omp_num_threads is None:
+            msg = "WARNING: environment variable OMP_NUM_THREADS is not set while trying to multiprocess"
+            logger.warning(msg)
+            logger.warning("consider setting it to 1 with `OMP_NUM_THREADS=1 dpp`")
+        else:
+            int_omp_num_threads = int(omp_num_threads)
+            if num_proc > 1 and int_omp_num_threads > 1:
+                msg = f"WARNING: environment variable OMP_NUM_THREADS is {int_omp_num_threads} while trying to multiprocess"
+                logger.warning(msg)
+                logger.warning("consider setting it to 1 with `OMP_NUM_THREADS=1 dpp`")
+
+    logfile = outdir / "debug.log"
+    logger.info(f"Note: a detailed log can be found in {logfile}")
+    logger.info(f"Tip: watch it live with `tail -f {logfile}`")
 
 
 @click.command(name="run", help="Run the data processing pipeline (including PDI)")
@@ -33,8 +55,7 @@ def run(config: Path, filenames, num_proc, outdir, verbose):
     logger = configure_logging()
     logger = add_logfile(outdir, logger)
 
-    logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
-    logger.info(f"Using {num_proc} processes")
+    log_intro(logger, num_proc, outdir)
 
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir, verbose=verbose)
 
@@ -72,8 +93,7 @@ def pdi(config, filenames, num_proc, verbose, outdir):
     logger = configure_logging()
     logger = add_logfile(outdir, logger)
 
-    logger.info(f"VAMPIRES DPP: v{dpp.__version__}")
-    logger.info(f"Using {num_proc} processes")
+    log_intro(logger, num_proc, outdir)
 
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir, verbose=verbose)
 
