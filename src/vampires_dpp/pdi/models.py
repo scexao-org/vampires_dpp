@@ -1,6 +1,5 @@
 import warnings
 from pathlib import Path
-from typing import Final
 
 import numpy as np
 import pandas as pd
@@ -14,18 +13,28 @@ from vampires_dpp.headers import sort_header
 from . import mueller_matrices as mm
 
 MM_KEY = "1i8TjHzQFMmxaUWrrqm1eYziyUanC6pweGGFzJPdfbiE"
-MM_URL = f"https://docs.google.com/spreadsheets/d/{MM_KEY}/gviz/tq?tqx=out:csv&sheet=downloadable"
+MM_URL = f"https://docs.google.com/spreadsheets/d/{MM_KEY}/gviz/tq?tqx=out:csv&sheet=downloadable2"
 
-MBI_MM_DICT: Final[dict[str, str]] = {"F610": "625", "F670": "675", "F720": "725", "F760": "750"}
+
+def _clear_file():
+    filename = download_file(MM_URL, cache=True)
+    path = Path(filename)
+    if path.exists():
+        path.unlink()
+
+
+# MBI_MM_DICT: Final[dict[str, str]] = {"F610": "625", "F670": "675", "F720": "725", "F760": "750"}
 
 
 def load_calibration_file(header):
+    # _clear_file()
     table = pd.read_csv(
         download_file(MM_URL, cache=True), header=0, index_col=0, dtype={"filter": str}
     )
     filt = header["FILTER01"]
     if "MBI" in header["OBS-MOD"]:
-        table_key = MBI_MM_DICT[header["FIELD"]] if "FIELD" in header else "675"
+        # table_key = MBI_MM_DICT[header["FIELD"]] if "FIELD" in header else "675"
+        table_key = header["FIELD"]
     else:
         # closest match to Open is 675
         table_key = "675" if filt == "Open" else filt.replace("-50", "")
@@ -127,6 +136,9 @@ class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
 
 class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
     flc_theta: dict[str, float] = {"A": 0, "B": 43}  # deg
+    dichroic_diat: float = 0
+    dichroic_theta: float = 0  # deg
+    dichroic_phi: float = 0  # wave
 
     def __call__(self, use_flc: bool, flc_state: str, camera: int, *args, **kwargs) -> NDArray:
         ## build up mueller matrix component by component
@@ -139,11 +151,17 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         else:
             flc_mm = np.eye(4)
 
+        dichroic_mm = mm.generic(
+            np.deg2rad(self.dichroic_theta),
+            self.dichroic_diat,
+            np.deg2rad(self.dichroic_phi) * 2 * np.pi,
+        )
+
         # beamsplitter
         is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
 
-        M = pbs_mm @ flc_mm @ cp_mm
+        M = pbs_mm @ dichroic_mm @ flc_mm @ cp_mm
         return M.astype("f4")
 
     def from_header(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
@@ -179,6 +197,9 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
             optics_diat=table["optics_diat"],
             optics_theta=table["optics_theta"],
             optics_phi=table["optics_phi"],
+            dichroic_diat=table["dichroic_diat"],
+            dichroic_theta=table["dichroic_theta"],
+            dichroic_phi=table["dichroic_phi"],
         )
 
 
