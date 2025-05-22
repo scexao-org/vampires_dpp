@@ -11,11 +11,12 @@ def super_gaussian(r, sigma, m, amp=1):
 def window_cube(cube, size, m=3, header=None):
     radii = frame_radii(cube)
     sigma = size * 2
+    # not flux preserving
     window = super_gaussian(radii, sigma=sigma, m=m)
-
     output = cube * window[None, ...]
 
     if header is not None:
+        header["hieararch DPP NRM WINDOW"] = True, "Data has been windowed with super Gaussian"
         header["hieararch DPP NRM WINDOW SIZE"] = size, "[px] Gaussian window size"
         header["hieararch DPP NRM WINDOW M"] = size, "Gaussian window scale"
 

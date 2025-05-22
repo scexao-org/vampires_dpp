@@ -6,6 +6,7 @@ import astropy.units as u
 import click
 
 from vampires_dpp.pipeline.config import (
+    NRMConfig,
     PipelineConfig,
     PolarimetryConfig,
     SpecphotConfig,
@@ -432,6 +433,23 @@ def get_pdi_settings(template: PipelineConfig) -> PipelineConfig:
     else:
         template.polarimetry = None
 
+    return template
+
+
+def get_nrm_settings(template: PipelineConfig) -> PipelineConfig:
+    ## Collapsing
+    click.secho("NRM", bold=True)
+    do_nrm = click.confirm("Would you like to do NRM analysis?", default=template.nrm is not None)
+    if do_nrm:
+        template.nrm = NRMConfig()
+        template.nrm.uv = click.prompt(
+            " - Enter mask multiplicative uv scaling", type=float, default=template.nrm.uv
+        )
+        template.nrm.theta = click.prompt(
+            " - Enter mask rotation angle in degrees", type=float, default=template.nrm.theta
+        )
+    else:
+        template.nrm = None
     return template
 
 

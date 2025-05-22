@@ -151,6 +151,9 @@ def fix_header(header):
     ):
         header["FULLWELL"] /= 2
 
+    # required for amical
+    header["INSTRUME"] = "VAMPIRES"
+
     return header
 
 
