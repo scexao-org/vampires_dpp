@@ -35,6 +35,10 @@ class Paths:
         return self.workdir / "coadded"
 
     @property
+    def nrm(self) -> Path:
+        return self.workdir / "nrm"
+
+    @property
     def diff(self) -> Path:
         return self.workdir / "diff"
 
@@ -78,11 +82,13 @@ def make_dirs(paths, config):
         paths.diff.mkdir(parents=True, exist_ok=True)
     if config.save_adi_cubes:
         paths.adi.mkdir(parents=True, exist_ok=True)
-    if config.polarimetry:
+    if config.polarimetry is not None:
         paths.pdi.mkdir(parents=True, exist_ok=True)
         if config.polarimetry.mm_correct:
             paths.mm.mkdir(parents=True, exist_ok=True)
         paths.stokes.mkdir(parents=True, exist_ok=True)
+    if config.nrm is not None:
+        paths.nrm.mkdir(parents=True, exist_ok=True)
 
 
 def get_paths(

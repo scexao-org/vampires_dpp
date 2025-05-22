@@ -4,25 +4,8 @@ from typing import Any, Literal
 import amical
 from astropy.io import fits
 
+from vampires_dpp.nrm.params import get_amical_parameters
 from vampires_dpp.nrm.windowing import window_cube
-
-
-def get_amical_parameters(header: fits.Header) -> dict[str, Any]:
-    params = {}
-    match header["U_MASK"]:
-        case "SAM-18" | "SAM-18-Nudged":
-            params["maskname"] = "g18"
-            params["fw_splodge"] = 0.7
-            params["hole_diam"] = 0.162
-            params["cutoff"] = 8e-2
-            params["n_wl"] = 3
-
-    # filter is always 750-50 because uv scaling is done manually
-    params["filtname"] = "750-50"
-    # data is already flipped in calibration
-    params["fliplr"] = False
-    params["instrum"] = "VAMPIRES"
-    return params
 
 
 def check_mask_align(

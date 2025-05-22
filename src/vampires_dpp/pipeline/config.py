@@ -6,7 +6,7 @@ from typing import Annotated, Any, Literal
 import astropy.units as u
 import tomli
 import tomli_w
-from annotated_types import Interval
+from annotated_types import Gt, Interval
 from astropy.coordinates import Angle, SkyCoord
 from pydantic import BaseModel
 
@@ -14,13 +14,14 @@ import vampires_dpp as dpp
 from vampires_dpp.util import check_version
 
 __all__ = (
-    "TargetConfig",
-    "SpecphotConfig",
+    "AnalysisConfig",
     "CalibrateConfig",
     "CombineConfig",
-    "AnalysisConfig",
-    "PolarimetryConfig",
+    "NRMConfig",
     "PipelineConfig",
+    "PolarimetryConfig",
+    "SpecphotConfig",
+    "TargetConfig",
 )
 
 
@@ -401,6 +402,26 @@ class PolarimetryConfig(BaseModel):
         return super().model_post_init(__context)
 
 
+class NRMConfig(BaseModel):
+    """NRM processing options
+
+        **File Outputs**
+
+        - For each file an `H5 <https://support.hdfgroup.org/documentation/hdf5/latest/index.html>_` file is created in ``nrm/`` containing the extracted Fourier observables
+
+
+    Parameters
+    ----------
+    uv: float
+        Multiplicative scaling factor of UV scaling
+    theta: float
+        Rotation angle of UV coverage in degrees
+    """
+
+    uv: Annotated[float, Gt(0)] | Literal["auto"] = 1
+    theta: float | Literal["auto"] = 97  # deg
+
+
 class PipelineConfig(BaseModel):
     """Data Processing Pipeline options
 
@@ -462,6 +483,7 @@ class PipelineConfig(BaseModel):
     coadd: CoaddConfig = CoaddConfig()
     specphot: SpecphotConfig = SpecphotConfig()
     diff_images: DiffImageConfig = DiffImageConfig()
+    nrm: NRMConfig | None = None
     polarimetry: PolarimetryConfig | None = None
 
     def model_post_init(self, __context: Any) -> None:
