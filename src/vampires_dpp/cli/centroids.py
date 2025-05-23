@@ -131,12 +131,11 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
         input_hduls_dict = create_raw_input_psfs(table, basename=name, max_files=number_files)
         centroids = {}
         for key, input_hdul in input_hduls_dict.items():
-            nrm = "18" in input_hdul[0].header.get("U_MASK", "")
             centroids[key] = (
                 autocentroid_hdul(
                     input_hdul,
                     coronagraphic=pipeline_config.coronagraphic,
-                    nrm=nrm,
+                    nrm=pipeline_config.nrm is not None,
                     planetary=pipeline_config.planetary,
                     window_size=pipeline_config.analysis.window_size,
                     plot=plot,
