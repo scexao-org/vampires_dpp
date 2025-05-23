@@ -1,7 +1,9 @@
+import argparse
 from pathlib import Path
 from typing import Any, Literal
 
 import amical
+import numpy as np
 from astropy.io import fits
 
 from vampires_dpp.nrm.params import get_amical_parameters
@@ -85,10 +87,6 @@ def check_mask_align(
 
 
 if __name__ == "__main__":
-    import argparse
-
-    import numpy as np
-
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")
     args = parser.parse_args()

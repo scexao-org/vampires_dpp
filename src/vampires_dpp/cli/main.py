@@ -8,6 +8,7 @@ import vampires_dpp as dpp
 from .calib import calib, norm
 from .centroids import centroid
 from .new import new_config
+from .nrm import nrm
 from .organization import sort_raw, table, upgrade
 from .run import pdi, run
 from .select import quick_select
@@ -41,6 +42,7 @@ main.add_command(run)
 main.add_command(pdi)
 main.add_command(table)
 main.add_command(upgrade)
+main.add_command(nrm)
 
 if __name__ == "__main__":
     main()
