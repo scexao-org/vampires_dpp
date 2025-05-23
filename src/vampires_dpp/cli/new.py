@@ -380,10 +380,33 @@ def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
     return template
 
 
+def _get_pdi_settings_nrm(template: PipelineConfig) -> PipelineConfig:
+    calib_choices = ["doublediff", "triplediff"]
+    readline.set_completer(createListCompleter(calib_choices))
+    pol_method = click.prompt(
+        " - Choose a polarimetric calibration method",
+        type=click.Choice(calib_choices, case_sensitive=False),
+        default="triplediff",
+    )
+    readline.set_completer()
+
+    template.polarimetry = PolarimetryConfig(method=pol_method)
+    template.polarimetry.mm_correct = True
+    template.polarimetry.use_ideal_mm = click.confirm(
+        " - Would you like to use an idealized Muller matrix?",
+        default=template.polarimetry.use_ideal_mm,
+    )
+    template.polarimetry.ip_correct = False
+    return template
+
+
 def get_pdi_settings(template: PipelineConfig) -> PipelineConfig:
     click.secho("Polarimetry", bold=True)
     ## Polarization
     if click.confirm("Would you like to do polarimetry?", default=template.polarimetry is not None):
+        # NRM needs special case, give its own function
+        if template.nrm is not None:
+            return _get_pdi_settings_nrm(template)
         calib_choices = ["doublediff", "triplediff", "leastsq"]
         readline.set_completer(createListCompleter(calib_choices))
         pol_method = click.prompt(
@@ -436,6 +459,34 @@ def get_pdi_settings(template: PipelineConfig) -> PipelineConfig:
     return template
 
 
+def _set_nrm_defaults(template: PipelineConfig) -> PipelineConfig:
+    """Set defaults for other configs when NRM is running"""
+    # analysis--avoid PSF fitting/modeling, these aren't PSFs
+    template.analysis.fit_psf_model = False
+    template.analysis.photometry = False
+    template.analysis.strehl = False
+
+    # frame select -- use normvar or peak, not strehl
+    template.frame_select.metric = "normvar"
+
+    # alignement -- peak index works well, don't pad, and crop to 512
+    template.align.align = True
+    template.align.method = "peak"
+    template.align.pad = False
+    template.align.crop_width = 512
+    template.align.reproject = False
+
+    # coadd -- don't
+    template.coadd.coadd = False
+    template.coadd.recenter = False
+    template.coadd.recenter_method = "peak"
+
+    # specphot
+    template.specphot.unit = "e-/s"
+
+    return template
+
+
 def get_nrm_settings(template: PipelineConfig) -> PipelineConfig:
     ## Collapsing
     click.secho("NRM", bold=True)
@@ -448,6 +499,7 @@ def get_nrm_settings(template: PipelineConfig) -> PipelineConfig:
         template.nrm.theta = click.prompt(
             " - Enter mask rotation angle in degrees", type=float, default=template.nrm.theta
         )
+        template = _set_nrm_defaults(template)
     else:
         template.nrm = None
     return template
@@ -482,6 +534,8 @@ def new_config(ctx, config, edit):
     tpl = get_target_settings(tpl)
     tpl = get_combine_settings(tpl)
     tpl = get_calib_settings(tpl)
+    # run NRM early to set a bunch of defaults
+    tpl = get_nrm_settings(tpl)
     tpl = get_analysis_settings(tpl)
     tpl = get_frame_select_settings(tpl)
     tpl = get_alignment_settings(tpl)
