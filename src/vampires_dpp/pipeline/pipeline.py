@@ -22,6 +22,7 @@ from vampires_dpp.combine_frames import (
     generate_frame_combinations,
 )
 from vampires_dpp.frame_select import frame_select_hdul
+from vampires_dpp.nrm.extraction import extract_observables
 from vampires_dpp.organization import dict_from_header, header_table
 from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
@@ -325,21 +326,17 @@ class Pipeline:
 
         ## Step 7: NRM analysis
         if self.config.nrm is not None:
-            logger.debug(f"Staring NRM analysis for group {group_key}")
+            logger.debug(f"Staring NRM extraction for group {group_key}")
             # get output filename: nrm/<name>_<group>_vis.hdf5
-            h5_path = self.paths.nrm / f"{self.config.name}_{group_key}_vis.h5"
-            from vampires_dpp.nrm.extraction import extract_observables
-
+            subfolder = self.paths.nrm / "visibilities"
+            subfolder.mkdir(parents=True, exist_ok=True)
+            h5_path = subfolder / f"{self.config.name}_{group_key}_vis.h5"
             extract_observables(
-                config=self.config,
-                input_filename=output_path,
-                uv=self.config.nrm.uv,
-                theta=self.config.nrm.theta,
-                output_path=h5_path,
-                force=False,
+                config=self.config, input_filename=output_path, output_path=h5_path, force=False
             )
             logger.debug(f"Saved H5 file to {h5_path.absolute()}")
-            logger.debug(f"Finished NRM analysis for group {group_key}")
+            logger.debug(f"Finished NRM extraction for group {group_key}")
+
         return output_path
 
     def get_coordinate(self):

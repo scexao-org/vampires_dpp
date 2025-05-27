@@ -8,6 +8,7 @@ from vampires_dpp._logging import configure_logging
 from vampires_dpp.cli.centroids import create_raw_input_psfs
 from vampires_dpp.nrm.alignment import check_mask_align
 from vampires_dpp.nrm.params import get_amical_parameters
+from vampires_dpp.nrm.windowing import window_cube
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths
 from vampires_dpp.pipeline.config import PipelineConfig
@@ -64,9 +65,11 @@ def check_align(ctx, config: Path, filenames):
     figdir = paths.nrm / "figures"
     figdir.mkdir(parents=True, exist_ok=True)
     for key, input_hdul in input_hduls_dict.items():
+        cube, header = window_cube(
+            np.nan_to_num(input_hdul[0].data[None, :, :]), size=80, header=input_hdul[0].header
+        )
+
         save_basename = figdir / f"{key}_"
         check_mask_align(
-            np.array([input_hdul[0].data]),
-            params=get_amical_parameters(input_hdul[0].header),
-            save_path=str(save_basename),
+            cube, params=get_amical_parameters(input_hdul[0].header), save_path=str(save_basename)
         )
