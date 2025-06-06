@@ -27,7 +27,6 @@ def _clear_file():
 
 
 def load_calibration_file(header):
-    # _clear_file()
     table = pd.read_csv(
         download_file(MM_URL, cache=True), header=0, index_col=0, dtype={"filter": str}
     )
