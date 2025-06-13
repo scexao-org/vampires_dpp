@@ -99,7 +99,7 @@ class Pipeline:
             jobs = []
             for group_key, group in input_table.groupby("GROUP_KEY"):
                 output_path = get_reduced_path(self.paths, self.config, group_key)
-                if not force and output_path.exists():
+                if not force and output_path.exists() and self.config.nrm is None:
                     logger.debug(f"Skipping processing for group {output_path}")
                     self.output_paths.append(output_path)
                 else:
@@ -331,10 +331,10 @@ class Pipeline:
             subfolder = self.paths.nrm / "visibilities"
             subfolder.mkdir(parents=True, exist_ok=True)
             h5_path = subfolder / f"{self.config.name}_{group_key}_vis.h5"
-            extract_observables(
+            h5_output_path = extract_observables(
                 config=self.config, input_filename=output_path, output_path=h5_path, force=False
             )
-            logger.debug(f"Saved H5 file to {h5_path.absolute()}")
+            logger.debug(f"Saved H5 file to {h5_output_path.absolute()}")
             logger.debug(f"Finished NRM extraction for group {group_key}")
 
         return output_path

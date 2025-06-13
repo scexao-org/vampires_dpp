@@ -18,12 +18,13 @@ def extract_observables(config, input_filename, output_path: Path, force: bool =
         header = hdul[0].header
     params = get_amical_parameters(header)
     fields = determine_filterset_from_header(header)
+    paths = []
     for wl_idx in range(cube.shape[1]):
         data, header = window_cube(np.nan_to_num(cube[:, wl_idx]), size=80, header=header)
 
         observables = amical.extract_bs(
             data,
-            input_filename,
+            str(input_filename),
             targetname=config.target.name,
             display=False,
             compute_cp_cov=False,
@@ -36,4 +37,5 @@ def extract_observables(config, input_filename, output_path: Path, force: bool =
             output_path.name.replace("vis", f"{fields[wl_idx]}_vis")
         )
         amical.save_bs_hdf5(observables, str(real_output_path))
-    return output_path
+        paths.append(real_output_path)
+    return paths
