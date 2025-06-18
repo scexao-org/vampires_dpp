@@ -113,7 +113,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
     table = header_table(filenames, num_proc=num_proc)
     obsmodes = table["OBS-MOD"].unique()
     if len(obsmodes) > 1:
-        msg = f"Found {len(obsmodes)} unique OBS-MOD, make sure you're only processing one type of VAMPIRES data. Will proceed with first mode: {obsmodes.iloc[0]}"
+        msg = f"Found {len(obsmodes)} unique OBS-MOD, make sure you're only processing one type of VAMPIRES data. Will proceed with first mode: {obsmodes[0]}"
         click.echo(msg)
     # default for standard obs, overwritten by MBI
     fields = determine_filterset_from_header(table.iloc[0])

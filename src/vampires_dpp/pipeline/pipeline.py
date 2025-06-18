@@ -368,7 +368,10 @@ class Pipeline:
             return np.load(metric_file)
         config = self.config.analysis
         hdr = hdul[0].header
-        psfs = [self.synth_psfs[filt] for filt in determine_filterset_from_header(hdr)]
+        if not self.config.planetary:
+            psfs = [self.synth_psfs[filt] for filt in determine_filterset_from_header(hdr)]
+        else:
+            psfs = None
         key = f"cam{hdr['U_CAMERA']:.0f}"
         outpath = analyze_file(
             hdul,
@@ -613,8 +616,8 @@ class Pipeline:
             wave_coll_hdr["TINT"] /= len(coll_hdrs)
             wave_coll_hdr["FIELD"] = "COMB"
             # TODO some fits keywords here are screwed up
-            prim_hdu = fits.PrimaryHDU(wave_coll_frame, header=wave_coll_hdr)
-            err_hdu = fits.ImageHDU(wave_err_frame, header=wave_coll_hdr, name="ERR")
+            prim_hdu = fits.PrimaryHDU(wave_coll_frame[:4], header=wave_coll_hdr)
+            err_hdu = fits.ImageHDU(wave_err_frame[:4], header=wave_coll_hdr, name="ERR")
             dummy_hdu = fits.ImageHDU(header=wave_coll_hdr, name="COMB")
             hdul = fits.HDUList([prim_hdu, err_hdu, dummy_hdu])
         # save single-wavelength (or wavelength-collapsed) Stokes cube
