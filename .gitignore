@@ -169,3 +169,4 @@ docs/jupyter_execute
 .DS_store
 
 tests/data
+tmp
