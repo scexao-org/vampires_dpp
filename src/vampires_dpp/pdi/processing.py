@@ -455,45 +455,45 @@ def get_triplediff_set(table) -> dict | None:
             work_table.drop(work_table.index[:16], axis=0, inplace=True)
 
     # address bad matches with second search using queries instead of structured indices
-    if len(bad_matches) > 0:
-        bad_table = pd.concat(bad_matches)
-        work_table = table[columns].copy()
-        while len(bad_table) > 0:
-            row = bad_table.iloc[0]
-            row_key = (row["RET-ANG1"], row["U_FLC"], int(row["U_CAMERA"]))
-            work_table["DELTA_PA"] = np.abs(work_table["PA"] - row["PA"])
-            work_table["DELTA_TIME"] = np.abs(work_table["MJD"] - row["MJD"])
+    # if len(bad_matches) > 0:
+    #     bad_table = pd.concat(bad_matches)
+    #     work_table = table[columns].copy()
+    #     while len(bad_table) > 0:
+    #         row = bad_table.iloc[0]
+    #         row_key = (row["RET-ANG1"], row["U_FLC"], int(row["U_CAMERA"]))
+    #         work_table["DELTA_PA"] = np.abs(work_table["PA"] - row["PA"])
+    #         work_table["DELTA_TIME"] = np.abs(work_table["MJD"] - row["MJD"])
 
-            output_set = [row]
-            remaining_keys = TRIPLEDIFF_SETS - set((row_key,))
-            for key in remaining_keys:
-                subset = work_table.query(
-                    f"`RET-ANG1` == {key[0]} and U_FLC == '{key[1]}' and U_CAMERA == {key[2]} and DELTA_PA < 4"
-                )
+    #         output_set = [row]
+    #         remaining_keys = TRIPLEDIFF_SETS - set((row_key,))
+    #         for key in remaining_keys:
+    #             subset = work_table.query(
+    #                 f"`RET-ANG1` == {key[0]} and U_FLC == '{key[1]}' and U_CAMERA == {key[2]} and DELTA_PA < 4"
+    #             )
 
-                if len(subset) > 0:
-                    idx = subset["DELTA_TIME"].argmin()
-                    output_set.append(subset.iloc[idx])
-                else:
-                    output_set = None
-                    break
+    #             if len(subset) > 0:
+    #                 idx = subset["DELTA_TIME"].argmin()
+    #                 output_set.append(subset.iloc[idx])
+    #             else:
+    #                 output_set = None
+    #                 break
 
-            if output_set is None:
-                # pop this row from working table, and any temporal matches
-                indices_to_drop = bad_table["UT"] == row["UT"]
-                current_table = bad_table.loc[indices_to_drop].copy()
-                current_table["STOKES_IDX"] = -1
-                bad_table = bad_table.loc[~indices_to_drop]
-            else:
-                current_table = pd.DataFrame(output_set).drop(["DELTA_PA", "DELTA_TIME"], axis=1)
-                current_table["STOKES_IDX"] = stokes_idx
-                stokes_idx += 1
-                # pop full output set
-                for row in current_table.itertuples():
-                    indices_to_drop = bad_table["path"] == row.path
-                    bad_table = bad_table.loc[~indices_to_drop]
+    #         if output_set is None:
+    #             # pop this row from working table, and any temporal matches
+    #             indices_to_drop = bad_table["UT"] == row["UT"]
+    #             current_table = bad_table.loc[indices_to_drop].copy()
+    #             current_table["STOKES_IDX"] = -1
+    #             bad_table = bad_table.loc[~indices_to_drop]
+    #         else:
+    #             current_table = pd.DataFrame(output_set).drop(["DELTA_PA", "DELTA_TIME"], axis=1)
+    #             current_table["STOKES_IDX"] = stokes_idx
+    #             stokes_idx += 1
+    #             # pop full output set
+    #             for row in current_table.itertuples():
+    #                 indices_to_drop = bad_table["path"] == row.path
+    #                 bad_table = bad_table.loc[~indices_to_drop]
 
-            output_tables.append(current_table)
+    #         output_tables.append(current_table)
     if len(output_tables) > 0:
         final_table = pd.concat(output_tables)
     else:
@@ -534,45 +534,45 @@ def get_doublediff_set(table) -> dict | None:
             work_table.drop(work_table.index[:8], axis=0, inplace=True)
 
     # address bad matches with second search using queries instead of structured indices
-    if len(bad_matches) > 0:
-        bad_table = pd.concat(bad_matches)
-        work_table = table[columns].copy()
-        while len(bad_table) > 0:
-            row = bad_table.iloc[0]
-            row_key = (row["RET-ANG1"], int(row["U_CAMERA"]))
-            work_table["DELTA_PA"] = np.abs(work_table["PA"] - row["PA"])
-            work_table["DELTA_TIME"] = np.abs(work_table["MJD"] - row["MJD"])
+    # if len(bad_matches) > 0:
+    #     bad_table = pd.concat(bad_matches)
+    #     work_table = table[columns].copy()
+    #     while len(bad_table) > 0:
+    #         row = bad_table.iloc[0]
+    #         row_key = (row["RET-ANG1"], int(row["U_CAMERA"]))
+    #         work_table["DELTA_PA"] = np.abs(work_table["PA"] - row["PA"])
+    #         work_table["DELTA_TIME"] = np.abs(work_table["MJD"] - row["MJD"])
 
-            output_set = [row]
-            remaining_keys = DOUBLEDIFF_SETS - set((row_key,))
-            for key in remaining_keys:
-                subset = work_table.query(
-                    f"`RET-ANG1` == {key[0]} and U_CAMERA == {key[1]} and DELTA_PA < 4"
-                )
+    #         output_set = [row]
+    #         remaining_keys = DOUBLEDIFF_SETS - set((row_key,))
+    #         for key in remaining_keys:
+    #             subset = work_table.query(
+    #                 f"`RET-ANG1` == {key[0]} and U_CAMERA == {key[1]} and DELTA_PA < 4"
+    #             )
 
-                if len(subset) > 0:
-                    idx = subset["DELTA_TIME"].argmin()
-                    output_set.append(subset.iloc[idx])
-                else:
-                    output_set = None
-                    break
+    #             if len(subset) > 0:
+    #                 idx = subset["DELTA_TIME"].argmin()
+    #                 output_set.append(subset.iloc[idx])
+    #             else:
+    #                 output_set = None
+    #                 break
 
-            if output_set is None:
-                # pop this row from working table, and any temporal matches
-                indices_to_drop = bad_table["UT"] == row["UT"]
-                current_table = bad_table.loc[indices_to_drop].copy()
-                current_table["STOKES_IDX"] = -1
-                bad_table = bad_table.loc[~indices_to_drop]
-            else:
-                current_table = pd.DataFrame(output_set).drop(["DELTA_PA", "DELTA_TIME"], axis=1)
-                current_table["STOKES_IDX"] = stokes_idx
-                stokes_idx += 1
-                # pop full output set
-                for row in current_table.itertuples():
-                    indices_to_drop = bad_table["path"] == row.path
-                    bad_table = bad_table.loc[~indices_to_drop]
+    #         if output_set is None:
+    #             # pop this row from working table, and any temporal matches
+    #             indices_to_drop = bad_table["UT"] == row["UT"]
+    #             current_table = bad_table.loc[indices_to_drop].copy()
+    #             current_table["STOKES_IDX"] = -1
+    #             bad_table = bad_table.loc[~indices_to_drop]
+    #         else:
+    #             current_table = pd.DataFrame(output_set).drop(["DELTA_PA", "DELTA_TIME"], axis=1)
+    #             current_table["STOKES_IDX"] = stokes_idx
+    #             stokes_idx += 1
+    #             # pop full output set
+    #             for row in current_table.itertuples():
+    #                 indices_to_drop = bad_table["path"] == row.path
+    #                 bad_table = bad_table.loc[~indices_to_drop]
 
-            output_tables.append(current_table)
+    #         output_tables.append(current_table)
 
     final_table = pd.concat(output_tables)
 
