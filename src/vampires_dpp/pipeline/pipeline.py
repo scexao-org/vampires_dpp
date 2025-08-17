@@ -78,6 +78,8 @@ class Pipeline:
 
         input_table = self.create_input_table(filenames=filenames, num_proc=num_proc)
         self.get_centroids()
+        if self.config.nrm is not None:
+            self.get_uv_thetas()
         if self.config.align.reproject:
             self.get_reproject_tforms()
         self.get_coordinate()
@@ -187,6 +189,20 @@ class Pipeline:
 
             logger.debug(f"{key} frame center is {self.centroids[key]} (y, x)")
         return self.centroids
+
+    def get_uv_thetas(self):
+        self.uv_thetas = {}
+        for key in ("cam1", "cam2"):
+            path = self.paths.aux / f"{self.config.name}_uv_theta_{key}.toml"
+            if not path.exists():
+                logger.warning(
+                    f"Could not locate uv_theta file for {key}, expected it to be at {path}."
+                )
+                continue
+            with path.open("rb") as fh:
+                uv_thetas = tomli.load(fh)
+            self.uv_thetas[key] = uv_thetas
+        return self.uv_thetas
 
     def get_reproject_tforms(self):
         if not ("cam1" in self.centroids and "cam2" in self.centroids):
@@ -336,8 +352,15 @@ class Pipeline:
             subfolder = self.paths.nrm / "observables"
             subfolder.mkdir(parents=True, exist_ok=True)
             h5_path = subfolder / f"{self.config.name}_{group_key}_vis.h5"
+            cam_num = int(hdul[0].header["U_CAMERA"])
+            cam_key = f"cam{cam_num}"
+            uv_thetas = self.uv_thetas[cam_key]
             h5_output_paths = extract_observables(
-                config=self.config, input_filename=output_path, output_path=h5_path, force=False
+                config=self.config,
+                input_filename=output_path,
+                output_path=h5_path,
+                uv_thetas=uv_thetas,
+                force=False,
             )
             for path in h5_output_paths:
                 logger.debug(f"Saved observables to {path.absolute()}")

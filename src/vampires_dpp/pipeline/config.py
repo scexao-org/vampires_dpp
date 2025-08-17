@@ -6,7 +6,7 @@ from typing import Annotated, Any, Literal
 import astropy.units as u
 import tomli
 import tomli_w
-from annotated_types import Gt, Interval
+from annotated_types import Interval
 from astropy.coordinates import Angle, SkyCoord
 from pydantic import BaseModel
 
@@ -412,16 +412,10 @@ class NRMConfig(BaseModel):
 
     Parameters
     ----------
-    uv: float
-        Multiplicative scaling factor of UV scaling
-    theta: float
-        Rotation angle of UV coverage in degrees
     nbootstrap: int
         Number of bootstrap samples for PDI calibration
     """
 
-    uv: Annotated[float, Gt(0)] | Literal["auto"] = 1
-    theta: float | Literal["auto"] = 97  # deg
     nbootstrap: int = 1000
 
 

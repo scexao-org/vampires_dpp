@@ -9,7 +9,9 @@ from vampires_dpp.nrm.windowing import window_cube
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 
 
-def extract_observables(config, input_filename, output_path: Path, force: bool = False):
+def extract_observables(
+    config, input_filename, output_path: Path, uv_thetas: dict, force: bool = False
+):
     """Runs AMICAL and extracts observables to HDF5 file. Will skip if file already exists and force is False"""
     if not force and output_path.exists():
         return output_path
@@ -29,14 +31,15 @@ def extract_observables(config, input_filename, output_path: Path, force: bool =
 
         data, header = window_cube(np.nan_to_num(cube[:, wl_idx]), size=80, header=header)
 
+        field = fields[wl_idx]
         observables = amical.extract_bs(
             data,
             str(input_filename),
             targetname=config.target.name,
             display=False,
             compute_cp_cov=False,
-            theta_detector=config.nrm.theta,
-            scaling_uv=config.nrm.uv,
+            theta_detector=uv_thetas[field]["theta"],
+            scaling_uv=uv_thetas[field]["uv"],
             savepath=False,
             **params,
         )

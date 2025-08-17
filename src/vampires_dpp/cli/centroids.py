@@ -22,18 +22,7 @@ logger = configure_logging()
 __all__ = "centroid"
 
 
-def get_psf_centroids_manual(cams: Sequence[int], npsfs: int) -> dict[str, NDArray]:
-    centroids = {f"cam{cam:.0f}": np.empty((1, npsfs, 2), dtype="f4") for cam in cams}
-    for key, cent_arr in centroids.items():
-        click.echo(f"Enter comma-separated x, y centroids for {click.style(key, bold=True)}:")
-        for i in range(npsfs):
-            response = click.prompt(f" - PSF: {i} (x, y)")
-            cent_arr[0, i] = [float(r) for r in response.split(",")]
-    # output is (nspfs, (x, y)) with +1 in x and y, following FITS/DS9 standard
-    return centroids
-
-
-def get_mbi_centroids_manual(
+def get_psf_centroids_manual(
     cams: Sequence[int], fields: Sequence[str], npsfs: int
 ) -> dict[str, NDArray]:
     centroids = {f"cam{cam:.0f}": np.empty((len(fields), npsfs, 2), dtype="f4") for cam in cams}
@@ -119,15 +108,11 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
     fields = determine_filterset_from_header(table.iloc[0])
     if manual:
         cams = table["U_CAMERA"].unique()
-        if "MBI" in obsmodes[0]:
-            centroids = get_mbi_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
-        else:
-            centroids = get_psf_centroids_manual(cams=cams, npsfs=npsfs)
-
+        centroids = get_psf_centroids_manual(cams=cams, fields=fields, npsfs=npsfs)
     else:
         name = paths.aux / f"{pipeline_config.name}_mean_image"
         # choose 4 to 20 files, depending on file size (avoid loading more than 500 frames, ~2GB of MBI)
-        number_files = int(max(2, min(10, 500 // table["NAXIS3"].median())))
+        number_files = int(max(4, min(10, 500 // table["NAXIS3"].median())))
         input_hduls_dict = create_raw_input_psfs(table, basename=name, max_files=number_files)
         centroids = {}
         for key, input_hdul in input_hduls_dict.items():

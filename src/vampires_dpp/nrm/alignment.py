@@ -1,13 +1,8 @@
-import argparse
-from pathlib import Path
 from typing import Any, Literal
 
 import amical
 import numpy as np
-from astropy.io import fits
-
-from vampires_dpp.nrm.params import get_amical_parameters
-from vampires_dpp.nrm.windowing import window_cube
+import tomli
 
 
 def check_mask_align(
@@ -86,22 +81,19 @@ def check_mask_align(
     )
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("filename")
-    args = parser.parse_args()
+def get_uv_theta(basepath, name, logger):
+    uv_thetas = {}
+    for key in ("cam1", "cam2"):
+        path = basepath / f"{name}_uv_theta_{key}.toml"
+        if not path.exists():
+            logger.warning(
+                f"Could not locate mask parameter file for {key}, expected it to be at {path}. Using center of image as default."
+            )
+            continue
+        with path.open("rb") as fh:
+            payload = tomli.load(fh)
+        uv_thetas[key] = payload
 
-    save_path = Path("nrm_output")
-    save_path.mkdir(exist_ok=True)
-
-    hdul = fits.open(args.filename)
-    data_cube = hdul[0].data
-    for idx in range(len(hdul) - 2):
-        header = hdul[idx + 2].header
-        cube, header = window_cube(np.nan_to_num(data_cube[:, idx]), size=80, header=header)
-        params = get_amical_parameters(header)
-        save_name = str(save_path / header["FIELD"]) + "_"
-        theta = 97
-        uv = 1.06
-        check_mask_align(cube, params, save_path=save_name, uv=uv, theta=theta)
-    fits.writeto("windowed_cube.fits", cube, header=header, overwrite=True)
+        logger.debug(f"{key} uv = {uv_thetas[key]['uv']}")
+        logger.debug(f"{key} theta = {uv_thetas[key]['theta']}")
+    return uv_thetas

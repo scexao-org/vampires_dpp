@@ -27,22 +27,21 @@ def _make_azimuth_v2_plots(nrm_results, name: str):
     fig.set_size_inches(width, height)
 
     bl_length = np.hypot(nrm_results["u"], nrm_results["v"])
-    bl_azimuth_rad = np.arctan(nrm_results["v"] / nrm_results["u"])
     bl_norm = (bl_length - bl_length.min()) / np.ptp(bl_length)
     colors = plt.get_cmap("jet")(bl_norm)
     norm = mpl.colors.Normalize(vmin=bl_length.min(), vmax=bl_length.max())
     sm = mpl.cm.ScalarMappable(norm=norm, cmap="jet")
     for wl_idx in range(nrm_results["visibilities"].shape[1]):
-        for idx in range(len(bl_azimuth_rad)):
+        for idx in range(nrm_results["visibilities"].shape[-1]):
             axes[wl_idx, 0].errorbar(
-                bl_azimuth_rad[idx],
+                nrm_results["azimuth"][idx],
                 nrm_results["visibilities"][2, wl_idx, idx],
                 yerr=nrm_results["visibilities_err"][2, wl_idx, idx],
                 c=colors[idx],
                 marker="o",
             )
             axes[wl_idx, 1].errorbar(
-                bl_azimuth_rad[idx],
+                nrm_results["azimuth"][idx],
                 nrm_results["visibilities"][3, wl_idx, idx],
                 yerr=nrm_results["visibilities_err"][3, wl_idx, idx],
                 c=colors[idx],
@@ -75,22 +74,21 @@ def _make_azimuth_cp_plots(nrm_results, name: str):
     fig.set_size_inches(width, height)
 
     bl_length = np.hypot(nrm_results["u"], nrm_results["v"])
-    bl_azimuth_rad = np.arctan(nrm_results["v"] / nrm_results["u"])
     bl_norm = (bl_length - bl_length.min()) / np.ptp(bl_length)
     colors = plt.get_cmap("jet")(bl_norm)
     norm = mpl.colors.Normalize(vmin=bl_length.min(), vmax=bl_length.max())
     sm = mpl.cm.ScalarMappable(norm=norm, cmap="jet")
     for wl_idx in range(nrm_results["closure_phases"].shape[1]):
-        for idx in range(len(bl_azimuth_rad)):
+        for idx in range(nrm_results["visibilities"].shape[-1]):
             axes[wl_idx, 0].errorbar(
-                bl_azimuth_rad[idx],
+                nrm_results["azimuth"][idx],
                 nrm_results["closure_phases"][2, wl_idx, idx],
                 yerr=nrm_results["closure_phases_err"][2, wl_idx, idx],
                 c=colors[idx],
                 marker="o",
             )
             axes[wl_idx, 1].errorbar(
-                bl_azimuth_rad[idx],
+                nrm_results["azimuth"][idx],
                 nrm_results["closure_phases"][3, wl_idx, idx],
                 yerr=nrm_results["closure_phases_err"][3, wl_idx, idx],
                 c=colors[idx],

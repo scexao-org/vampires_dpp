@@ -115,9 +115,11 @@ def process_nrm_polarimetry(table: pd.DataFrame, nbootstrap: int = 1000):
         "u": us,
         "v": vs,
         "baselines": np.hypot(us, vs),
-        "azimuth": np.arctan2(vs, us),
+        "azimuth": np.arctan(vs / us),
+        "visibilities_samples": np.array(_vis_results),
         "visibilities": visibilities_mean,
         "visibilities_err": visibilities_std,
+        "closure_phases_samples": np.array(_cp_results),
         "closure_phases": closure_phases_mean,
         "closure_phases_err": closure_phases_std,
     }
