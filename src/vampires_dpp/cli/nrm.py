@@ -41,12 +41,13 @@ def nrm(ctx, num_proc):
 @click.argument(
     "filenames", nargs=-1, type=click.Path(dir_okay=False, readable=True, path_type=Path)
 )
+@click.option("-o", "--outdir", default=Path.cwd(), type=Path, help="Output file directory")
 @click.pass_context
-def check_align(ctx, config: Path, filenames):
+def check_align(ctx, config: Path, filenames, outdir):
     # make sure versions match within SemVar
     pipeline_config = PipelineConfig.from_file(config)
     # figure out outpath
-    paths = Paths(Path.cwd())
+    paths = Paths(outdir)
     paths.aux.mkdir(parents=True, exist_ok=True)
     # npsfs = 4 if pipeline_config.coronagraphic else 1
     # choose 5 random files
@@ -60,16 +61,22 @@ def check_align(ctx, config: Path, filenames):
 
     name = paths.aux / f"{pipeline_config.name}_mean_image"
     # choose 4 to 20 files, depending on file size (avoid loading more than 500 frames, ~2GB of MBI)
-    number_files = int(max(2, min(10, 500 // table["NAXIS3"].median())))
+    number_files = int(max(4, min(10, 500 // table["NAXIS3"].median())))
     input_hduls_dict = create_raw_input_psfs(table, basename=name, max_files=number_files)
     figdir = paths.nrm / "figures"
     figdir.mkdir(parents=True, exist_ok=True)
     for key, input_hdul in input_hduls_dict.items():
-        cube, header = window_cube(
-            np.nan_to_num(input_hdul[0].data[None, :, :]), size=80, header=input_hdul[0].header
-        )
+        _cube = np.nan_to_num(input_hdul[0].data[None, :, :])
+        _header = input_hdul[0].header
+        if _header["U_CAMERA"] == 1:
+            _cube = np.flip(_cube, axis=-2)
+        cube, header = window_cube(_cube, size=80, header=_header)
 
         save_basename = figdir / f"{key}_"
         check_mask_align(
-            cube, params=get_amical_parameters(input_hdul[0].header), save_path=str(save_basename)
+            cube,
+            params=get_amical_parameters(header),
+            save_path=str(save_basename),
+            uv=pipeline_config.nrm.uv,
+            theta=pipeline_config.nrm.theta,
         )

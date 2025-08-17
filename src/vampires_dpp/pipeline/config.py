@@ -416,10 +416,13 @@ class NRMConfig(BaseModel):
         Multiplicative scaling factor of UV scaling
     theta: float
         Rotation angle of UV coverage in degrees
+    nbootstrap: int
+        Number of bootstrap samples for PDI calibration
     """
 
     uv: Annotated[float, Gt(0)] | Literal["auto"] = 1
     theta: float | Literal["auto"] = 97  # deg
+    nbootstrap: int = 1000
 
 
 class PipelineConfig(BaseModel):

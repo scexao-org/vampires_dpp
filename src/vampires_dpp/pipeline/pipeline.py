@@ -23,8 +23,10 @@ from vampires_dpp.combine_frames import (
 )
 from vampires_dpp.frame_select import frame_select_hdul
 from vampires_dpp.nrm.extraction import extract_observables
+from vampires_dpp.nrm.pdi import process_nrm_polarimetry
+from vampires_dpp.nrm.plotting import make_nrm_plots
 from vampires_dpp.organization import dict_from_header, header_table
-from vampires_dpp.paths import Paths, get_paths, get_reduced_path, make_dirs
+from vampires_dpp.paths import Paths, get_nrm_paths, get_paths, get_reduced_path, make_dirs
 from vampires_dpp.pdi.diff_images import (
     doublediff_images,
     get_doublediff_sets,
@@ -99,7 +101,7 @@ class Pipeline:
             jobs = []
             for group_key, group in input_table.groupby("GROUP_KEY"):
                 output_path = get_reduced_path(self.paths, self.config, group_key)
-                if not force and output_path.exists() and self.config.nrm is None:
+                if not force and output_path.exists():  # and self.config.nrm is None:
                     logger.debug(f"Skipping processing for group {output_path}")
                     self.output_paths.append(output_path)
                 else:
@@ -145,12 +147,15 @@ class Pipeline:
         logger.debug(f"Saving Stokes data to {self.paths.pdi.absolute()}")
         match self.config.polarimetry.method:
             case "doublediff" | "triplediff":
-                self.polarimetry_difference(
-                    working_table,
-                    method=self.config.polarimetry.method,
-                    force=force,
-                    num_proc=num_proc,
-                )
+                if self.config.nrm is None:
+                    self.polarimetry_difference(
+                        working_table,
+                        method=self.config.polarimetry.method,
+                        force=force,
+                        num_proc=num_proc,
+                    )
+                else:
+                    self.polarimetry_nrm(working_table, force=force, num_proc=num_proc)
             case "leastsq":
                 self.polarimetry_leastsq(working_table, force=force, num_proc=num_proc)
         logger.success("Finished PDI")
@@ -328,13 +333,14 @@ class Pipeline:
         if self.config.nrm is not None:
             logger.debug(f"Staring NRM extraction for group {group_key}")
             # get output filename: nrm/<name>_<group>_vis.hdf5
-            subfolder = self.paths.nrm / "visibilities"
+            subfolder = self.paths.nrm / "observables"
             subfolder.mkdir(parents=True, exist_ok=True)
             h5_path = subfolder / f"{self.config.name}_{group_key}_vis.h5"
-            h5_output_path = extract_observables(
+            h5_output_paths = extract_observables(
                 config=self.config, input_filename=output_path, output_path=h5_path, force=False
             )
-            logger.debug(f"Saved H5 file to {h5_output_path.absolute()}")
+            for path in h5_output_paths:
+                logger.debug(f"Saved observables to {path.absolute()}")
             logger.debug(f"Finished NRM extraction for group {group_key}")
 
         return output_path
@@ -658,6 +664,23 @@ class Pipeline:
         #         outname=self.stokes_collapsed_file,
         #         force=True,
         #     )
+
+    def polarimetry_nrm(self, table, force: bool = False, num_proc=None):
+        subfolder = self.paths.nrm / "observables"
+        subfolder.mkdir(parents=True, exist_ok=True)
+        path_list = []
+        for idx, row in table.iterrows():
+            _output_path = self.output_paths[idx].name.replace("_reg.fits", "_vis.h5")
+            h5_path = subfolder / _output_path
+            h5_real_paths = get_nrm_paths(h5_path, row)
+            path_list.append(h5_real_paths)
+        table["nrm_paths"] = path_list
+
+        result_dict = process_nrm_polarimetry(table, nbootstrap=self.config.nrm.nbootstrap)
+        outpath = self.paths.nrm / f"{self.config.name}_nrm_results.npz"
+        np.savez(outpath, **result_dict)
+        logger.info(f"Saved final NRM observables to {outpath.absolute()}")
+        make_nrm_plots(result_dict, self.paths.nrm, self.config.name)
 
 
 def recenter_centroids(centroids: dict) -> dict:

@@ -1,6 +1,8 @@
 import re
 from pathlib import Path
 
+from vampires_dpp.specphot.filters import determine_filterset_from_header
+
 
 class Paths:
     def __init__(self, workdir=None):
@@ -130,3 +132,12 @@ def get_reduced_path(paths: Paths, config, group_key: str) -> Path:
         base = paths.combined
         suffix = "comb"
     return base / f"{config.name}_{group_key}_{suffix}.fits"
+
+
+def get_nrm_paths(output_path, header):
+    fields = determine_filterset_from_header(header)
+    paths = []
+    for field in fields:
+        real_output_path = output_path.with_name(output_path.name.replace("vis", f"{field}_vis"))
+        paths.append(real_output_path)
+    return paths

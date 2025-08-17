@@ -20,6 +20,13 @@ def extract_observables(config, input_filename, output_path: Path, force: bool =
     fields = determine_filterset_from_header(header)
     paths = []
     for wl_idx in range(cube.shape[1]):
+        real_output_path = output_path.with_name(
+            output_path.name.replace("vis", f"{fields[wl_idx]}_vis")
+        )
+        paths.append(real_output_path)
+        if not force and real_output_path.exists():
+            continue
+
         data, header = window_cube(np.nan_to_num(cube[:, wl_idx]), size=80, header=header)
 
         observables = amical.extract_bs(
@@ -33,9 +40,5 @@ def extract_observables(config, input_filename, output_path: Path, force: bool =
             savepath=False,
             **params,
         )
-        real_output_path = output_path.with_name(
-            output_path.name.replace("vis", f"{fields[wl_idx]}_vis")
-        )
         amical.save_bs_hdf5(observables, str(real_output_path))
-        paths.append(real_output_path)
     return paths

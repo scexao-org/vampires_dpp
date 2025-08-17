@@ -15,7 +15,7 @@ def get_amical_parameters(header: fits.Header) -> dict[str, Any]:
 
     # filter is always 750-50 because uv scaling is done manually
     params["filtname"] = "750-50"
-    # data is already flipped in calibration
-    params["fliplr"] = False
+    # data is already flipped in calibration, but still leave True
+    params["fliplr"] = True
     params["instrum"] = "VAMPIRES"
     return params
