@@ -321,7 +321,7 @@ class Pipeline:
         ## Step 6: Coadd
         if self.config.coadd.coadd:
             logger.debug(f"Starting coadding for group {group_key}")
-            hdul = coadd_hdul(hdul, method=self.config.coadd.method)
+            _hdul = coadd_hdul(hdul, method=self.config.coadd.method)
             logger.debug(f"Finished coadding for group {group_key}")
             if self.config.coadd.recenter:
                 logger.debug(f"Starting recentering for group {group_key}")
@@ -337,13 +337,13 @@ class Pipeline:
                         window_centers[key][idx] = get_center(
                             hdul[0].data, window_centers[key][idx], cam_num
                         )
-                hdul = recenter_hdul(
-                    hdul, window_centers, method=self.config.coadd.recenter_method, psfs=psfs
+                _hdul = recenter_hdul(
+                    _hdul, window_centers, method=self.config.coadd.recenter_method, psfs=psfs
                 )
                 logger.debug(f"Finished recentering for group {group_key}")
 
-        logger.debug(f"Saving reduced cube to {output_path.absolute()}")
-        hdul.writeto(output_path, overwrite=True)
+            logger.debug(f"Saving coadded cube to {output_path.absolute()}")
+            _hdul.writeto(output_path, overwrite=True)
 
         ## Step 7: NRM analysis
         if self.config.nrm is not None:
@@ -357,7 +357,7 @@ class Pipeline:
             uv_thetas = self.uv_thetas[cam_key]
             h5_output_paths = extract_observables(
                 config=self.config,
-                input_filename=output_path,
+                input_hdul=hdul,
                 output_path=h5_path,
                 uv_thetas=uv_thetas,
                 force=False,
@@ -693,16 +693,25 @@ class Pipeline:
         subfolder.mkdir(parents=True, exist_ok=True)
         path_list = []
         for idx, row in table.iterrows():
-            _output_path = self.output_paths[idx].name.replace("_reg.fits", "_vis.h5")
+            _output_name = self.output_paths[idx].name
+            if "reg.fits" in _output_name:
+                _output_path = _output_name.replace("_reg.fits", "_vis.h5")
+            else:
+                _output_path = _output_name.replace("_coll.fits", "_vis.h5")
+
             h5_path = subfolder / _output_path
             h5_real_paths = get_nrm_paths(h5_path, row)
             path_list.append(h5_real_paths)
         table["nrm_paths"] = path_list
 
-        result_dict = process_nrm_polarimetry(table, nbootstrap=self.config.nrm.nbootstrap)
         outpath = self.paths.nrm / f"{self.config.name}_nrm_results.npz"
-        np.savez(outpath, **result_dict)
-        logger.info(f"Saved final NRM observables to {outpath.absolute()}")
+        if not force and outpath.exists():
+            logger.info(f"Loading final NRM observables from {outpath.absolute()}")
+            result_dict = np.load(outpath)
+        else:
+            result_dict = process_nrm_polarimetry(table, nbootstrap=self.config.nrm.nbootstrap)
+            np.savez(outpath, **result_dict)
+            logger.info(f"Saved final NRM observables to {outpath.absolute()}")
         make_nrm_plots(result_dict, self.paths.nrm, self.config.name)
 
 

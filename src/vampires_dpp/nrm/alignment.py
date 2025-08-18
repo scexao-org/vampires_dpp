@@ -69,7 +69,7 @@ def check_mask_align(
         params["maskname"],
         method,
         0,
-        aver=False,
+        aver=True,
         centred=True,
         size=20,
         norm=None,

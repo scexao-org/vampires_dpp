@@ -493,12 +493,6 @@ def get_nrm_settings(template: PipelineConfig) -> PipelineConfig:
     do_nrm = click.confirm("Would you like to do NRM analysis?", default=template.nrm is not None)
     if do_nrm:
         template.nrm = NRMConfig()
-        template.nrm.uv = click.prompt(
-            " - Enter mask multiplicative uv scaling", type=float, default=template.nrm.uv
-        )
-        template.nrm.theta = click.prompt(
-            " - Enter mask rotation angle in degrees", type=float, default=template.nrm.theta
-        )
         template = _set_nrm_defaults(template)
     else:
         template.nrm = None

@@ -1,8 +1,8 @@
+import tempfile
 from pathlib import Path
 
 import amical
 import numpy as np
-from astropy.io import fits
 
 from vampires_dpp.nrm.params import get_amical_parameters
 from vampires_dpp.nrm.windowing import window_cube
@@ -10,14 +10,14 @@ from vampires_dpp.specphot.filters import determine_filterset_from_header
 
 
 def extract_observables(
-    config, input_filename, output_path: Path, uv_thetas: dict, force: bool = False
+    config, input_hdul, output_path: Path, uv_thetas: dict, force: bool = False
 ):
     """Runs AMICAL and extracts observables to HDF5 file. Will skip if file already exists and force is False"""
     if not force and output_path.exists():
         return output_path
-    with fits.open(input_filename) as hdul:
-        cube = hdul[0].data
-        header = hdul[0].header
+
+    cube = input_hdul[0].data
+    header = input_hdul[0].header
     params = get_amical_parameters(header)
     fields = determine_filterset_from_header(header)
     paths = []
@@ -30,18 +30,28 @@ def extract_observables(
             continue
 
         data, header = window_cube(np.nan_to_num(cube[:, wl_idx]), size=80, header=header)
-
         field = fields[wl_idx]
-        observables = amical.extract_bs(
-            data,
-            str(input_filename),
-            targetname=config.target.name,
-            display=False,
-            compute_cp_cov=False,
-            theta_detector=uv_thetas[field]["theta"],
-            scaling_uv=uv_thetas[field]["uv"],
-            savepath=False,
-            **params,
-        )
-        amical.save_bs_hdf5(observables, str(real_output_path))
+        with tempfile.NamedTemporaryFile(delete=True) as tmpfile:
+            tmp_path = Path(tmpfile.name)
+            input_hdul.writeto(tmp_path)
+            observables = amical.extract_bs(
+                data,
+                str(tmp_path),
+                targetname=config.name,
+                display=False,
+                compute_cp_cov=False,
+                theta_detector=uv_thetas[field]["theta"],
+                scaling_uv=uv_thetas[field]["uv"],
+                savepath=False,
+                **params,
+            )
+            amical.save_bs_hdf5(observables, str(real_output_path))
     return paths
+
+    print(f"Temporary file: {tmp_path}")
+
+    # Use tmp_path as a Path object
+    tmp_path.write_text("Hello from a temp file!")
+
+
+# The file will persist after context exit if delete=False

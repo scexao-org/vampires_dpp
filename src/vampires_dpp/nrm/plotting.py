@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -21,16 +20,16 @@ def _make_azimuth_v2_plots(nrm_results, name: str):
     )
 
     width = 6
-    aspect_ratio = 1 / 1.616
-    height = width * aspect_ratio
+    aspect_ratio = 0.5 / 1.616
+    height = width * aspect_ratio * len(axes)
 
     fig.set_size_inches(width, height)
 
     bl_length = np.hypot(nrm_results["u"], nrm_results["v"])
     bl_norm = (bl_length - bl_length.min()) / np.ptp(bl_length)
     colors = plt.get_cmap("jet")(bl_norm)
-    norm = mpl.colors.Normalize(vmin=bl_length.min(), vmax=bl_length.max())
-    sm = mpl.cm.ScalarMappable(norm=norm, cmap="jet")
+    # norm = mpl.colors.Normalize(vmin=bl_length.min(), vmax=bl_length.max())
+    # sm = mpl.cm.ScalarMappable(norm=norm, cmap="jet")
     for wl_idx in range(nrm_results["visibilities"].shape[1]):
         for idx in range(nrm_results["visibilities"].shape[-1]):
             axes[wl_idx, 0].errorbar(
@@ -38,16 +37,16 @@ def _make_azimuth_v2_plots(nrm_results, name: str):
                 nrm_results["visibilities"][2, wl_idx, idx],
                 yerr=nrm_results["visibilities_err"][2, wl_idx, idx],
                 c=colors[idx],
-                marker="o",
+                marker=".",
             )
             axes[wl_idx, 1].errorbar(
                 nrm_results["azimuth"][idx],
                 nrm_results["visibilities"][3, wl_idx, idx],
                 yerr=nrm_results["visibilities_err"][3, wl_idx, idx],
                 c=colors[idx],
-                marker="o",
+                marker=".",
             )
-    fig.colorbar(sm, label="baseline length (m)")  # , ax=axes, use_gridspec=True)
+    # fig.colorbar(sm, label="baseline length (m)")  # , ax=axes, use_gridspec=True)
     axes[0, 0].set(title="Stokes Q")
     axes[0, 1].set(title="Stokes U")
     for ax in axes[-1]:
@@ -68,16 +67,16 @@ def _make_azimuth_cp_plots(nrm_results, name: str):
     )
 
     width = 6
-    aspect_ratio = 1 / 1.616
-    height = width * aspect_ratio
+    aspect_ratio = 0.5 / 1.616
+    height = width * aspect_ratio * len(axes)
 
     fig.set_size_inches(width, height)
 
     bl_length = np.hypot(nrm_results["u"], nrm_results["v"])
     bl_norm = (bl_length - bl_length.min()) / np.ptp(bl_length)
     colors = plt.get_cmap("jet")(bl_norm)
-    norm = mpl.colors.Normalize(vmin=bl_length.min(), vmax=bl_length.max())
-    sm = mpl.cm.ScalarMappable(norm=norm, cmap="jet")
+    # norm = mpl.colors.Normalize(vmin=bl_length.min(), vmax=bl_length.max())
+    # sm = mpl.cm.ScalarMappable(norm=norm, cmap="jet")
     for wl_idx in range(nrm_results["closure_phases"].shape[1]):
         for idx in range(nrm_results["visibilities"].shape[-1]):
             axes[wl_idx, 0].errorbar(
@@ -85,16 +84,18 @@ def _make_azimuth_cp_plots(nrm_results, name: str):
                 nrm_results["closure_phases"][2, wl_idx, idx],
                 yerr=nrm_results["closure_phases_err"][2, wl_idx, idx],
                 c=colors[idx],
-                marker="o",
+                ecolor="0.2",
+                marker=".",
             )
             axes[wl_idx, 1].errorbar(
                 nrm_results["azimuth"][idx],
                 nrm_results["closure_phases"][3, wl_idx, idx],
                 yerr=nrm_results["closure_phases_err"][3, wl_idx, idx],
                 c=colors[idx],
-                marker="o",
+                ecolor="0.2",
+                marker=".",
             )
-    fig.colorbar(sm, label="baseline length (m)")  # , ax=axes, use_gridspec=True)
+    # fig.colorbar(sm, label="baseline length (m)")  # , ax=axes, use_gridspec=True)
     axes[0, 0].set(title="Stokes Q")
     axes[0, 1].set(title="Stokes U")
     for ax in axes[-1]:
