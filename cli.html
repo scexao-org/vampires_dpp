@@ -37,7 +37,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=ca8a0a33"></script>
+    <script src="_static/documentation_options.js?v=8eac8a5b"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
@@ -344,6 +344,10 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-centroid">centroid</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-new">new</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-norm">norm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-nrm">nrm</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-nrm-align">align</a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-pdi">pdi</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-run">run</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-select">select</a></li>
@@ -606,6 +610,52 @@ document.write(`
 </dd></dl>
 
 </section>
+<section id="dpp-nrm">
+<h3>nrm<a class="headerlink" href="#dpp-nrm" title="Link to this heading">#</a></h3>
+<p>NRM mask alignment, analysis</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>nrm<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-nrm-j">
+<span id="cmdoption-dpp-nrm-num-proc"></span><span class="sig-name descname"><span class="pre">-j</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--num-proc</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;num_proc&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-nrm-j" title="Link to this definition">#</a></dt>
+<dd><p>Number of processes to use.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Default<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="dpp-nrm-align">
+<h4>align<a class="headerlink" href="#dpp-nrm-align" title="Link to this heading">#</a></h4>
+<p>Check uv scale/theta alignment from mean combined data in <cite>aux</cite> directory. Plots are saved to <cite>nrm/figures</cite>. Adjust <cite>nrm.uv</cite> and <cite>nrm.theta</cite> in the TOML file to test different values.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>nrm<span class="w"> </span>align<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-nrm-align-o">
+<span id="cmdoption-dpp-nrm-align-outdir"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--outdir</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;outdir&gt;</span></span><a class="headerlink" href="#cmdoption-dpp-nrm-align-o" title="Link to this definition">#</a></dt>
+<dd><p>Output file directory</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-nrm-align-arg-CONFIG">
+<span class="sig-name descname"><span class="pre">CONFIG</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-nrm-align-arg-CONFIG" title="Link to this definition">#</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dpp-nrm-align-arg-FILENAMES">
+<span class="sig-name descname"><span class="pre">FILENAMES</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dpp-nrm-align-arg-FILENAMES" title="Link to this definition">#</a></dt>
+<dd><p>Optional argument(s)</p>
+</dd></dl>
+
+</section>
+</section>
 <section id="dpp-pdi">
 <h3>pdi<a class="headerlink" href="#dpp-pdi" title="Link to this heading">#</a></h3>
 <p>Run the PDI pipeline only</p>
@@ -805,7 +855,7 @@ document.write(`
 </section>
 <section id="dpp-upgrade">
 <h3>upgrade<a class="headerlink" href="#dpp-upgrade" title="Link to this heading">#</a></h3>
-<p>Tries to automatically upgrade a configuration file to the current version (0.13.8), prompting where necessary.</p>
+<p>Tries to automatically upgrade a configuration file to the current version (0.14.0), prompting where necessary.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>upgrade<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG
 </pre></div>
 </div>
@@ -887,6 +937,10 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-centroid">centroid</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-new">new</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-norm">norm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-nrm">nrm</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-nrm-align">align</a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-pdi">pdi</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-run">run</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dpp-select">select</a></li>
