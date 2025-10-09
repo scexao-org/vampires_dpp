@@ -130,7 +130,7 @@ def fix_header(header):
     if "BUNIT" not in header:
         header["BUNIT"] = "ADU", "Unit of original values"
 
-    # add in detector charracteristics
+    # add in detector characteristics
     inst = get_instrument_from(header)
     header["BIAS"] = inst.bias, "[adu] Bias offset"
     header["GAIN"] = inst.gain, "[e-/adu] Detector gain"
