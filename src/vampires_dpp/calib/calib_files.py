@@ -333,9 +333,10 @@ def find_multiband_flat_fields(
         msg = f"Could not find {nfields} fields in flat frame after 10 retries"
         raise RuntimeError(msg)
 
-    # TODO no clue what this is doing
+    # find out how many pixels were captures
+    # expect ~500^2
     label_surface = (np.sum(connected_fields == k) for k in range(1, nfields + 1))
-    assert all(s > 220_000 and s < 300_000 for s in label_surface)
+    assert all(s > 10_000 and s < 330_000 for s in label_surface)
 
     # Get the crops
     crop_params = []

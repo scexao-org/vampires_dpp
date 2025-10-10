@@ -11,9 +11,11 @@ from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.visualization import simple_norm
 from image_registration import chi2_shift
+from matplotlib import patches
 from photutils import centroids
 from skimage import filters, transform
 
+from vampires_dpp.calib.calib_files import find_multiband_flat_fields
 from vampires_dpp.headers import fix_header
 from vampires_dpp.image_processing import shift_frame, warp_frame
 from vampires_dpp.indexing import frame_center, frame_radii, get_mbi_centers
@@ -519,8 +521,36 @@ def autocentroid_hdul(
     data = np.nanmedian(hdul[0].data, axis=0) if hdul[0].data.ndim == 3 else hdul[0].data
     # fix header
     header = fix_header(hdul[0].header)
-    output = []
     fields = determine_filterset_from_header(header)
+    is_flat = header["DATA-TYP"] == "FLAT"
+    if is_flat:
+        logger.info("Fitting flat fields to find centroid")
+        flat_fields = find_multiband_flat_fields(data, nfields=len(fields))
+        output = np.array([(field.x, field.y) for field in flat_fields])
+
+        if plot:
+            fig, axs = plt.subplots()
+            norm = simple_norm(data, stretch="sqrt")
+            axs.imshow(data, origin="lower", cmap="magma", norm=norm)
+            for field in flat_fields:
+                axs.scatter([field.x], [field.y], marker="+", s=100, c="green")
+                patch = patches.Rectangle(
+                    (field.x - field.width / 2, field.y - field.height / 2),
+                    field.width,
+                    field.height,
+                    field.theta,
+                    color="green",
+                    fill=False,
+                    lw=3,
+                )
+                axs.add_patch(patch)
+            fig.suptitle("Centroided fields")
+            fig.tight_layout()
+            fig.savefig(save_path / f"cam{header['U_CAMERA']}_centroid.pdf")
+            plt.show(block=True)
+        return output
+    
+    output = []
     if psfs is None:
         psfs = [create_synth_psf(header, filt, npix=window_size) for filt in fields]
     # for MBI data, divide input image into octants and account for
