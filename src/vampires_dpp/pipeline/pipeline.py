@@ -21,6 +21,7 @@ from vampires_dpp.combine_frames import (
     combine_hduls,
     generate_frame_combinations,
 )
+from vampires_dpp.constants import NBS_INSTALL_MJD
 from vampires_dpp.frame_select import frame_select_hdul
 from vampires_dpp.nrm.extraction import extract_observables
 from vampires_dpp.nrm.pdi import process_nrm_polarimetry
@@ -332,10 +333,11 @@ class Pipeline:
                 cam_num = int(hdul[0].header["U_CAMERA"])
                 cam_key = f"cam{cam_num}"
                 window_centers = self.centroids[cam_key]
+                nbs_flag = hdul[0].header["MJD"] < NBS_INSTALL_MJD
                 for key in window_centers:
                     for idx in range(window_centers[key].shape[0]):
                         window_centers[key][idx] = get_center(
-                            hdul[0].data, window_centers[key][idx], cam_num
+                            hdul[0].data, window_centers[key][idx], cam_num, nbs_flag=nbs_flag
                         )
                 _hdul = recenter_hdul(
                     _hdul, window_centers, method=self.config.coadd.recenter_method, psfs=psfs

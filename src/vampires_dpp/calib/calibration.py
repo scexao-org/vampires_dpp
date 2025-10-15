@@ -9,7 +9,7 @@ from astropy.io import fits
 from astropy.time import Time
 from numpy.typing import NDArray
 
-from vampires_dpp.constants import SUBARU_LOC
+from vampires_dpp.constants import SUBARU_LOC, NBS_INSTALL_MJD
 from vampires_dpp.headers import fix_header, parallactic_angle, sort_header
 from vampires_dpp.image_processing import adaptive_sigma_clip_mask
 from vampires_dpp.paths import get_paths
@@ -109,7 +109,7 @@ def calibrate_file(
     # flip cam 1 data on y-axis
     # t_obs > 2025/10/01
     # flip cam 2 data on y-axis
-    flip_idx = 1 if header["MJD"] < 60949 else 2
+    flip_idx = 1 if header["MJD"] < NBS_INSTALL_MJD else 2
     if header["U_CAMERA"] == flip_idx:
         cube = np.flip(cube, axis=-2)
         cube_err = np.flip(cube_err, axis=-2)

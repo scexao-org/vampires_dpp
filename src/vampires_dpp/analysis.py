@@ -12,6 +12,7 @@ from astropy.nddata import Cutout2D
 from .indexing import frame_center, get_mbi_centers
 from .registration import offset_dft, offset_peak_and_com
 from .util import create_or_append, get_center
+from .constants import NBS_INSTALL_MJD
 
 
 def add_frame_statistics(frame, frame_err, header):
@@ -252,6 +253,7 @@ def analyze_file(
     data_err = hdul["ERR"].data
 
     cam_num = hdr["U_CAMERA"]
+    nbs_flag = hdr["MJD"] < NBS_INSTALL_MJD
     metrics: dict[str, list[list[list]]] = {}
     if centroids is None:
         if "MBIR" in hdr["OBS-MOD"]:
@@ -265,7 +267,7 @@ def analyze_file(
     for ctrs, psf in zip(centroids.values(), psfs, strict=False):
         field_metrics = {}
         for ctr in ctrs:
-            center = get_center(data, ctr, cam_num)
+            center = get_center(data, ctr, cam_num, nbs_flag=nbs_flag)
             _inds = Cutout2D(data[0], center[::-1], window_size, mode="partial").slices_original
             inds = np.s_[..., _inds[0], _inds[1]]
             # inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)

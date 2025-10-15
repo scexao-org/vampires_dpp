@@ -16,6 +16,7 @@ from photutils import centroids
 from skimage import filters, transform
 
 from vampires_dpp.calib.calib_files import find_multiband_flat_fields
+from vampires_dpp.constants import NBS_INSTALL_MJD
 from vampires_dpp.headers import fix_header
 from vampires_dpp.image_processing import shift_frame, warp_frame
 from vampires_dpp.indexing import frame_center, frame_radii, get_mbi_centers
@@ -120,6 +121,7 @@ def register_hdul(
     center = frame_center(hdul[0].data)
     header = hdul[0].header
     fields = determine_filterset_from_header(header)
+    nbs_flag = hdul[0].header["MJD"] < NBS_INSTALL_MJD
     if align:
         centroids = get_centroids_from(metrics, method)
     elif init_centroids is not None:
@@ -127,7 +129,7 @@ def register_hdul(
         centroids = np.zeros((nframes, len(init_centroids), 2))
         for j in range(centroids.shape[1]):
             centroids[:, j] = get_center(
-                hdul[0].data, init_centroids[j], hdul[0].header["U_CAMERA"]
+                hdul[0].data, init_centroids[j], hdul[0].header["U_CAMERA"], nbs_flag=nbs_flag 
             )
     elif "MBIR" in header["OBS-MOD"]:
         ctr_dict = get_mbi_centers(hdul[0].data, reduced=True)
