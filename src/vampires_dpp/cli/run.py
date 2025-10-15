@@ -65,6 +65,9 @@ def run(config: Path, filenames, num_proc, outdir, verbose):
         installed version of `vampires_dpp` ({dpp.__version__}). Try running \
         `dpp upgrade {config}`."
         raise ValueError(msg)
+    if len(filenames) == 0:
+        msg = "No files input to pipeline! Double check command-line input for typos"
+        raise ValueError(msg)
     pipeline.run(filenames, num_proc=num_proc)
     # only run PDI if specified
     if pipeline.config.polarimetry is not None:
@@ -102,6 +105,10 @@ def pdi(config, filenames, num_proc, verbose, outdir):
         msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with \
                 installed version of `vampires_dpp` ({dpp.__version__}). Try running \
                 `dpp upgrade {config}`."
+        raise ValueError(msg)
+
+    if len(filenames) == 0:
+        msg = "No files input to pipeline! Double check command-line input for typos"
         raise ValueError(msg)
 
     pipeline.run_polarimetry(num_proc=num_proc)

@@ -9,7 +9,7 @@ from .util import wrap_angle
 
 # Subaru location
 SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155.4760187 * u.deg)
-NBS_INTSALL_MJD: Final[int] = 60949
+NBS_INSTALL_MJD: Final[int] = 60949
 
 
 class InstrumentInfo(BaseModel):
