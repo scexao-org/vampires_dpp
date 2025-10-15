@@ -105,8 +105,12 @@ def calibrate_file(
         cube[mask] = np.nan
         cube_err[mask] = np.nan
 
+    # t_obs < 2025/10/01
     # flip cam 1 data on y-axis
-    if header["U_CAMERA"] == 1:
+    # t_obs > 2025/10/01
+    # flip cam 2 data on y-axis
+    flip_idx = 1 if header["MJD"] < 60949 else 2
+    if header["U_CAMERA"] == flip_idx:
         cube = np.flip(cube, axis=-2)
         cube_err = np.flip(cube_err, axis=-2)
 
