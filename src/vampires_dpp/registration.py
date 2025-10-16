@@ -121,7 +121,7 @@ def register_hdul(
     center = frame_center(hdul[0].data)
     header = hdul[0].header
     fields = determine_filterset_from_header(header)
-    nbs_flag = hdul[0].header["MJD"] < NBS_INSTALL_MJD
+    nbs_flag = hdul[0].header["MJD"] > NBS_INSTALL_MJD
     if align:
         centroids = get_centroids_from(metrics, method)
     elif init_centroids is not None:

@@ -253,7 +253,8 @@ def analyze_file(
     data_err = hdul["ERR"].data
 
     cam_num = hdr["U_CAMERA"]
-    nbs_flag = hdr["MJD"] < NBS_INSTALL_MJD
+    nbs_flag = hdr["MJD"] > NBS_INSTALL_MJD
+    print(f"{nbs_flag=}")
     metrics: dict[str, list[list[list]]] = {}
     if centroids is None:
         if "MBIR" in hdr["OBS-MOD"]:
@@ -268,6 +269,7 @@ def analyze_file(
         field_metrics = {}
         for ctr in ctrs:
             center = get_center(data, ctr, cam_num, nbs_flag=nbs_flag)
+            print(f"{cam_num=} {ctr=} {center=}")
             _inds = Cutout2D(data[0], center[::-1], window_size, mode="partial").slices_original
             inds = np.s_[..., _inds[0], _inds[1]]
             # inds = cutout_inds(data, center=get_center(data, ctr, cam_num), window=window_size)

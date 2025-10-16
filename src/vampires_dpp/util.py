@@ -116,7 +116,7 @@ def get_center(frame, centroid, cam_num: int, nbs_flag: bool=False):
     # Edit: after NBS install now cam1 remains and cam2 is flipped, so reverse
     
 
-    if (nbs_flat and cam_num == 1) or (not nbs_flat and cam_num == 2):
+    if (nbs_flag and cam_num == 1) or (not nbs_flag and cam_num == 2):
         return centroid
     # for cam 1 data, need to flip coordinate about x-axis
     Ny = frame.shape[-2]

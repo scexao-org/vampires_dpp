@@ -333,7 +333,7 @@ class Pipeline:
                 cam_num = int(hdul[0].header["U_CAMERA"])
                 cam_key = f"cam{cam_num}"
                 window_centers = self.centroids[cam_key]
-                nbs_flag = hdul[0].header["MJD"] < NBS_INSTALL_MJD
+                nbs_flag = hdul[0].header["MJD"] > NBS_INSTALL_MJD
                 for key in window_centers:
                     for idx in range(window_centers[key].shape[0]):
                         window_centers[key][idx] = get_center(
