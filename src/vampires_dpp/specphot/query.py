@@ -8,9 +8,9 @@ from astroquery.vizier import Vizier
 
 def get_simbad_table(obj: str) -> QTable:
     sim = Simbad()
-    sim.remove_votable_fields("coordinates")
     sim.add_votable_fields("sptype", "flux(V)", "flux(R)", "flux(I)", "flux(r)", "flux(i)")
-    return sim.query_object(obj)
+    result = sim.query_object(obj)
+    return result
 
 
 def get_simbad_flux(

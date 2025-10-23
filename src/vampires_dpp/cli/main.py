@@ -7,7 +7,7 @@ import vampires_dpp as dpp
 # from .astro import astro
 from .calib import calib, norm
 from .centroids import centroid
-from .new import new_config
+from .new import new_config, update_target_info
 from .nrm import nrm
 from .organization import sort_raw, table, upgrade
 from .run import pdi, run
@@ -37,7 +37,7 @@ main.add_command(calib)
 main.add_command(new_config)
 main.add_command(quick_select)
 main.add_command(centroid)
-# main.add_command(astro)
+main.add_command(update_target_info)
 main.add_command(run)
 main.add_command(pdi)
 main.add_command(table)

@@ -63,6 +63,7 @@ def createListCompleter(items):
 
 def get_target_settings(template: PipelineConfig) -> PipelineConfig:
     ## get target
+    click.secho("Target Info", bold=True)
     name = click.prompt("SIMBAD-friendly object name (optional)", default="")
     coord = None
     if name != "":
@@ -103,6 +104,15 @@ def get_target_settings(template: PipelineConfig) -> PipelineConfig:
                 frame=coord.frame.name,
                 obstime=str(coord.obstime),
             )
+            click.echo(f" * Found GAIA {cat.upper()} info:")
+            click.echo(f"  * RA={template.target.ra}")
+            click.echo(f"  * DEC={template.target.dec}")
+            click.echo(f"  * parallax={template.target.parallax} mas")
+            click.echo(
+                f"  * proper motion=[{template.target.pm_ra} {template.target.pm_dec}] mas/yr"
+            )
+            click.echo(f"  * frame={template.target.frame}")
+            click.echo(f"  * obstime={template.target.obstime}")
     if coord is None:
         click.echo(" - No coordinate information set; will only use header values.")
 
@@ -335,7 +345,7 @@ def get_specphot_settings(template: PipelineConfig) -> PipelineConfig:
             if template.target is not None:
                 click.echo("...Attempting to look up stellar flux from UCAC4/SIMBAD")
                 simbad_table = get_simbad_table(template.target.name)
-                sptype = re.match(r"\w\d[IV]{0,3}", simbad_table["SP_TYPE"][0]).group()
+                sptype = re.match(r"\w\d[IV]{0,3}", simbad_table["sp_type"][0]).group()
                 if len(sptype) == 2:
                     sptype += "V"
 
@@ -541,8 +551,30 @@ def new_config(ctx, config, edit):
     tpl.save(config)
     click.echo(f"File saved to {config.name}")
 
-    if not edit:
-        edit |= click.confirm("Would you like to edit this config file now?")
+    edit = edit or click.confirm("Would you like to edit this config file now?")
 
+    if edit:
+        click.edit(filename=config)
+
+
+@click.command(name="target", help="Query SIMBAD+Vizier to update target info")
+@click.argument("config", type=click.Path(dir_okay=False, readable=True, path_type=Path))
+@click.option(
+    "--edit", "-e", is_flag=True, help="Launch configuration file in editor after updating."
+)
+def update_target_info(config, edit):
+    ## get name
+    tpl = PipelineConfig.from_file(config)
+
+    tpl = get_target_settings(tpl)
+    tpl = get_specphot_settings(tpl)
+
+    if click.confirm(
+        "Would you like to update your configuration file with these parameters?", default=True
+    ):
+        tpl.save(config)
+        click.echo(f"File saved to {config.name}")
+
+    edit = edit or click.confirm("Would you like to edit this config file now?")
     if edit:
         click.edit(filename=config)
