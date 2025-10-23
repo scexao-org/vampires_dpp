@@ -5,7 +5,14 @@ from astropy.io import fits
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
 
-from vampires_dpp.constants import CMOSVAMPIRES, EMCCDVAMPIRES, SUBARU_LOC, InstrumentInfo
+from vampires_dpp.constants import (
+    CMOSVAMPIRES,
+    EMCCDVAMPIRES,
+    NBS_INSTALL_MJD,
+    SUBARU_LOC,
+    CMOSVAMPIRESPostNBS,
+    InstrumentInfo,
+)
 from vampires_dpp.util import hst_from_ut_time, iso_time_stats, mjd_time_stats, wrap_angle
 
 
@@ -211,7 +218,10 @@ def get_instrument_from(header: fits.Header) -> InstrumentInfo:
     if "U_EMGAIN" in header:
         inst = EMCCDVAMPIRES(cam_num=cam_num, emgain=header["U_EMGAIN"])
     elif "U_DETMOD" in header:
-        inst = CMOSVAMPIRES(cam_num=cam_num, readmode=header["U_DETMOD"].lower())
+        if header["MJD"] < NBS_INSTALL_MJD:
+            inst = CMOSVAMPIRES(cam_num=cam_num, readmode=header["U_DETMOD"].lower())
+        else:
+            inst = CMOSVAMPIRESPostNBS(cam_num=cam_num, readmode=header["U_DETMOD"].lower())
     else:
         msg = "Could not determine VAMPIRES instrument (EMCCD vs. CMOS) from headers. Check if 'U_CAMERA' and 'U_EMGAIN' or 'U_DETMOD' keywords are present."
         raise ValueError(msg)

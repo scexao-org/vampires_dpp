@@ -9,6 +9,12 @@ from .util import wrap_angle
 
 # Subaru location
 SUBARU_LOC: Final[EarthLocation] = EarthLocation(lat=19.825504 * u.deg, lon=-155.4760187 * u.deg)
+
+## Critical date: 20251003 NBS install
+## - QWP 1 offset switched
+## - QWP 2 offset switched
+## - QWP 1 and 2 re-optimized so H -> H (instead of H -> V)
+## - Pupil offset changed
 NBS_INSTALL_MJD: Final[int] = 60949
 
 
@@ -139,3 +145,8 @@ class CMOSVAMPIRES(InstrumentInfo):
             raise ValueError(msg)
         ## TODO
         raise NotImplementedError()
+
+
+class CMOSVAMPIRESPostNBS(CMOSVAMPIRES):
+    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 5.91, 2: 5.895}  # mas / px
+    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: -38.40, 2: -38.58}  # deg
