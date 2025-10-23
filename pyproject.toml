@@ -22,7 +22,7 @@ dependencies = [
     "image-registration",
     "loguru",
     "matplotlib",
-    "numpy",
+    "numpy>=2",
     "opencv_python",
     "pandas",
     "photutils",
@@ -79,7 +79,7 @@ source = ["vampires_dpp"]
 
 [tool.ruff.lint]
 # pycodestyle, pydocstyle, isort, pyupgrade, pylint, tidyimports, use-pathlib, numpy, errmsg
-select = ["E", "F", "B", "SIM", "I", "UP", "TID", "PTH", "NPY", "EM"]
+select = ["E", "F", "B", "SIM", "I", "UP", "TID", "PTH", "NPY", "EM", "NPY201"]
 ignore = [
     "E501", # line too long
 ]

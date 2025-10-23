@@ -59,7 +59,10 @@ def calibrate_file(
     header = fix_header(header)
     # mask values above saturation
     satlevel = header["FULLWELL"] / header["GAIN"]
-    cube = np.where(raw_cube >= satlevel, np.nan, raw_cube.astype("f4")).byteswap().newbyteorder()
+    # since we're going to do floating point operations in the future (e.g. flat correction, frame collapsing)
+    # let's make our input data Float32 right now and get the byte order to the native-endianness
+    _raw_data = raw_cube.view(raw_cube.dtype.newbyteorder("=")).astype("f4")
+    cube = np.where(raw_cube >= satlevel, np.nan, _raw_data)
     # apply proper motion correction to coordinate
     header = apply_coordinate(cube, header, coord)
     cube_err = np.zeros_like(cube)

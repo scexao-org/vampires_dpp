@@ -43,12 +43,13 @@ def add_frame_statistics(frame, frame_err, header):
 def safe_aperture_sum(frame, r, err=None, center=None, ann_rad=None):
     if center is None:
         center = frame_center(frame)
-    _frame = frame.astype("=f4")
-    _err = err.astype("=f4") if err is not None else None
+    _frame = frame.view(frame.dtype.newbyteorder("=")).astype("f4")
+    # _frame = frame.astype("=f4")
+    _err = err.view(err.dtype.newbyteorder("=")).astype("=f4") if err is not None else None
     mask = ~np.isfinite(_frame)
     if not ann_rad:
         ann_rad = None
-    flux, fluxerr, flag = sep.sum_circle(
+    flux, fluxerr, _ = sep.sum_circle(
         _frame, (center[1],), (center[0],), r, err=_err, mask=mask, bkgann=ann_rad
     )
     return flux[0], fluxerr[0]
@@ -58,14 +59,11 @@ def safe_annulus_sum(frame, Rin, Rout, center=None):
     if center is None:
         center = frame_center(frame)
     mask = ~np.isfinite(frame)
-    flux, fluxerr, flag = sep.sum_circann(
-        np.ascontiguousarray(frame.byteswap().newbyteorder()).astype("f4"),
-        (center[1],),
-        (center[0],),
-        Rin,
-        Rout,
-        mask=mask,
-    )
+    # sep is picky about its input types, requires a native-endian
+    # float32 input, so we need to coerce the input data
+    _frame = frame.view(frame.dtype.newbyteorder("=")).astype("f4")
+    # _frame = np.ascontiguousarray(frame.byteswap().newbyteorder()).astype("f4")
+    flux, fluxerr, _ = sep.sum_circann(_frame, (center[1],), (center[0],), Rin, Rout, mask=mask)
 
     return flux[0], fluxerr[0]
 
