@@ -117,6 +117,9 @@ def specphot_cal_hdul(hdul: fits.HDUList, metrics, config: SpecphotConfig):
     match config.specphot.unit:
         case "e-/s":
             conv_factor = 1
+            # don't forget to add filter info, though
+            for hdu in hdul[2:]:
+                update_header_with_filt_info(hdu.header)
         case "Jy":
             hdul, inst_flux = measure_inst_flux(
                 hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
