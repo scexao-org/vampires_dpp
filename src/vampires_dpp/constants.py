@@ -19,10 +19,8 @@ NBS_INSTALL_MJD: Final[int] = 60949
 
 
 class InstrumentInfo(BaseModel):
-    @property
-    def pa_offset(self):
-        pap_offset = -39
-        return wrap_angle(self.pupil_offset - 180 + pap_offset)  # deg
+    def get_pa_offset(self, pap=-39):
+        return wrap_angle(self.pupil_offset - 180 + pap)  # deg
 
 
 class EMCCDVAMPIRES(InstrumentInfo):
@@ -149,4 +147,4 @@ class CMOSVAMPIRES(InstrumentInfo):
 
 class CMOSVAMPIRESPostNBS(CMOSVAMPIRES):
     PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 5.91, 2: 5.895}  # mas / px
-    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: -38.40, 2: -38.58}  # deg
+    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: -163.8, 2: -163.8}  # deg

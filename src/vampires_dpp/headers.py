@@ -147,7 +147,7 @@ def fix_header(header):
     header["RN"] = inst.readnoise, "[e-] RMS read noise"
     header["PXSCALE"] = inst.pixel_scale, "[mas/pix] Pixel scale"
     header["PXAREA"] = (header["PXSCALE"] / 1e3) ** 2, "[arcsec^2/pix] Solid angle of each pixel"
-    header["PAOFFSET"] = inst.pa_offset, "[deg] Parallactic angle offset"
+    header["PAOFFSET"] = inst.get_pa_offset(header["D_IMRPAP"]), "[deg] Parallactic angle offset"
     header["INST-PA"] = inst.pupil_offset, "[deg] Instrument angle offset"
     header["FULLWELL"] = inst.fullwell, "[e-] Full well of detector register"
     # during this time period the orcas had 2^15 full well from milk savefits bug
