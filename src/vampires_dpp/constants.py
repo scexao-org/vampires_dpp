@@ -146,5 +146,9 @@ class CMOSVAMPIRES(InstrumentInfo):
 
 
 class CMOSVAMPIRESPostNBS(CMOSVAMPIRES):
-    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 5.91, 2: 5.895}  # mas / px
-    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: -163.8, 2: -163.8}  # deg
+    PIXEL_SCALE: ClassVar[dict[int, float]] = {1: 5.952, 2: 5.938}  # mas / px
+    PUPIL_OFFSET: ClassVar[dict[int, float]] = {1: 129.44, 2: 129.99}  # deg
+
+    # override this method just so the default pap is -37
+    def get_pa_offset(self, pap=-37):
+        return super().get_pa_offset(pap)
