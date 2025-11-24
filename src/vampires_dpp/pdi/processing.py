@@ -311,25 +311,25 @@ T = TypeVar("T")
 def triple_diff_dict(input_dict: dict[tuple[float, str, int], T]) -> tuple[T, T, T, T]:
     ## make difference images
     # single diff (cams)
-    pQ0 = 0.5 * (input_dict[(0.0, "A", 1)] - input_dict[(0.0, "A", 2)])
-    pIQ0 = 0.5 * (input_dict[(0.0, "A", 1)] + input_dict[(0.0, "A", 2)])
-    pQ1 = 0.5 * (input_dict[(0.0, "B", 1)] - input_dict[(0.0, "B", 2)])
-    pIQ1 = 0.5 * (input_dict[(0.0, "B", 1)] + input_dict[(0.0, "B", 2)])
+    pQ0 = 0.5 * (input_dict[(0.0, "A", 2)] - input_dict[(0.0, "A", 1)])
+    pIQ0 = 0.5 * (input_dict[(0.0, "A", 2)] + input_dict[(0.0, "A", 1)])
+    pQ1 = 0.5 * (input_dict[(0.0, "B", 2)] - input_dict[(0.0, "B", 1)])
+    pIQ1 = 0.5 * (input_dict[(0.0, "B", 2)] + input_dict[(0.0, "B", 1)])
 
-    mQ0 = 0.5 * (input_dict[(45.0, "A", 1)] - input_dict[(45.0, "A", 2)])
-    mIQ0 = 0.5 * (input_dict[(45.0, "A", 1)] + input_dict[(45.0, "A", 2)])
-    mQ1 = 0.5 * (input_dict[(45.0, "B", 1)] - input_dict[(45.0, "B", 2)])
-    mIQ1 = 0.5 * (input_dict[(45.0, "B", 1)] + input_dict[(45.0, "B", 2)])
+    mQ0 = 0.5 * (input_dict[(45.0, "A", 2)] - input_dict[(45.0, "A", 1)])
+    mIQ0 = 0.5 * (input_dict[(45.0, "A", 2)] + input_dict[(45.0, "A", 1)])
+    mQ1 = 0.5 * (input_dict[(45.0, "B", 2)] - input_dict[(45.0, "B", 1)])
+    mIQ1 = 0.5 * (input_dict[(45.0, "B", 2)] + input_dict[(45.0, "B", 1)])
 
-    pU0 = 0.5 * (input_dict[(22.5, "A", 1)] - input_dict[(22.5, "A", 2)])
-    pIU0 = 0.5 * (input_dict[(22.5, "A", 1)] + input_dict[(22.5, "A", 2)])
-    pU1 = 0.5 * (input_dict[(22.5, "B", 1)] - input_dict[(22.5, "B", 2)])
-    pIU1 = 0.5 * (input_dict[(22.5, "B", 1)] + input_dict[(22.5, "B", 2)])
+    pU0 = 0.5 * (input_dict[(22.5, "A", 2)] - input_dict[(22.5, "A", 1)])
+    pIU0 = 0.5 * (input_dict[(22.5, "A", 2)] + input_dict[(22.5, "A", 1)])
+    pU1 = 0.5 * (input_dict[(22.5, "B", 2)] - input_dict[(22.5, "B", 1)])
+    pIU1 = 0.5 * (input_dict[(22.5, "B", 2)] + input_dict[(22.5, "B", 1)])
 
-    mU0 = 0.5 * (input_dict[(67.5, "A", 1)] - input_dict[(67.5, "A", 2)])
-    mIU0 = 0.5 * (input_dict[(67.5, "A", 1)] + input_dict[(67.5, "A", 2)])
-    mU1 = 0.5 * (input_dict[(67.5, "B", 1)] - input_dict[(67.5, "B", 2)])
-    mIU1 = 0.5 * (input_dict[(67.5, "B", 1)] + input_dict[(67.5, "B", 2)])
+    mU0 = 0.5 * (input_dict[(67.5, "A", 2)] - input_dict[(67.5, "A", 1)])
+    mIU0 = 0.5 * (input_dict[(67.5, "A", 2)] + input_dict[(67.5, "A", 1)])
+    mU1 = 0.5 * (input_dict[(67.5, "B", 2)] - input_dict[(67.5, "B", 1)])
+    mIU1 = 0.5 * (input_dict[(67.5, "B", 2)] + input_dict[(67.5, "B", 1)])
 
     # double difference (FLC1 - FLC2)
     pQ = 0.5 * (pQ0 - pQ1)
@@ -356,17 +356,17 @@ def triple_diff_dict(input_dict: dict[tuple[float, str, int], T]) -> tuple[T, T,
 def double_diff_dict(input_dict: dict[tuple[float, str, int], T]) -> tuple[T, T, T, T]:
     ## make difference images
     # single diff (cams)
-    pQ = 0.5 * (input_dict[(0.0, 1)] - input_dict[(0.0, 2)])
-    pIQ = 0.5 * (input_dict[(0.0, 1)] + input_dict[(0.0, 2)])
+    pQ = 0.5 * (input_dict[(0.0, 2)] - input_dict[(0.0, 1)])
+    pIQ = 0.5 * (input_dict[(0.0, 2)] + input_dict[(0.0, 1)])
 
-    mQ = 0.5 * (input_dict[(45.0, 1)] - input_dict[(45.0, 2)])
-    mIQ = 0.5 * (input_dict[(45.0, 1)] + input_dict[(45.0, 2)])
+    mQ = 0.5 * (input_dict[(45.0, 2)] - input_dict[(45.0, 1)])
+    mIQ = 0.5 * (input_dict[(45.0, 2)] + input_dict[(45.0, 1)])
 
-    pU = 0.5 * (input_dict[(22.5, 1)] - input_dict[(22.5, 2)])
-    pIU = 0.5 * (input_dict[(22.5, 1)] + input_dict[(22.5, 2)])
+    pU = 0.5 * (input_dict[(22.5, 2)] - input_dict[(22.5, 1)])
+    pIU = 0.5 * (input_dict[(22.5, 2)] + input_dict[(22.5, 1)])
 
-    mU = 0.5 * (input_dict[(67.5, 1)] - input_dict[(67.5, 2)])
-    mIU = 0.5 * (input_dict[(67.5, 1)] + input_dict[(67.5, 2)])
+    mU = 0.5 * (input_dict[(67.5, 2)] - input_dict[(67.5, 1)])
+    mIU = 0.5 * (input_dict[(67.5, 2)] + input_dict[(67.5, 1)])
 
     # double difference (HWP1 - HWP2)
     Q = 0.5 * (pQ - mQ)
