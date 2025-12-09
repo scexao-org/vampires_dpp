@@ -34,6 +34,8 @@ def load_calibration_file(header):
     if "MBI" in header["OBS-MOD"]:
         # table_key = MBI_MM_DICT[header["FIELD"]] if "FIELD" in header else "675"
         table_key = header["FIELD"]
+        if table_key == "F610":
+            table_key = "625"
     else:
         # closest match to Open is 675
         table_key = "675" if filt == "Open" else filt.replace("-50", "")
@@ -93,7 +95,7 @@ class VAMPIRESMuellerMatrix(BaseModel):
         flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
 
         # beamsplitter - horizontal/ordinary to camera 1
-        is_ordinary = camera == 1
+        is_ordinary = camera == 2
         pbs_mm = mm.wollaston(is_ordinary)
 
         M = pbs_mm @ flc_mm @ cp_mm
@@ -157,7 +159,7 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         )
 
         # beamsplitter
-        is_ordinary = camera == 1
+        is_ordinary = camera == 2
         pbs_mm = mm.wollaston(is_ordinary)
 
         M = pbs_mm @ dichroic_mm @ flc_mm @ cp_mm
