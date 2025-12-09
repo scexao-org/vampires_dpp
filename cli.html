@@ -373,6 +373,7 @@ document.write(`
 <p>The command-line interface (CLI) uses the <code class="docutils literal notranslate"><span class="pre">dpp</span></code> command that is available after pip-installing <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> (<a class="reference internal" href="installation.html#installation"><span class="std std-ref">Installation</span></a>).</p>
 <section id="dpp">
 <h2>dpp<a class="headerlink" href="#dpp" title="Link to this heading">#</a></h2>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
@@ -386,6 +387,7 @@ document.write(`
 <section id="dpp-calib">
 <h3>calib<a class="headerlink" href="#dpp-calib" title="Link to this heading">#</a></h3>
 <p>Create calibration files from background files (darks or sky frames) and flats.</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>calib<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
@@ -416,6 +418,7 @@ document.write(`
 <section id="dpp-calib-back">
 <h4>back<a class="headerlink" href="#dpp-calib-back" title="Link to this heading">#</a></h4>
 <p>Create background files from darks/skies. Each input file will be collapsed. Groups of files with the same exposure time, EM gain, and frame size will be median-combined together to create a super-background file.</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>calib<span class="w"> </span>back<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -451,6 +454,7 @@ document.write(`
 <section id="dpp-calib-flat">
 <h4>flat<a class="headerlink" href="#dpp-calib-flat" title="Link to this heading">#</a></h4>
 <p>Create flat-field files. Each input file will be collapsed with background-subtraction if files are provided. Groups of files with the same exposure time, EM gain, frame size, and filter will be median-combined together to create a super-flat file.</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>calib<span class="w"> </span>flat<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -493,6 +497,7 @@ document.write(`
 <section id="dpp-centroid">
 <h3>centroid<a class="headerlink" href="#dpp-centroid" title="Link to this heading">#</a></h3>
 <p>Get image centroid estimates</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>centroid<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -543,6 +548,7 @@ document.write(`
 <section id="dpp-new">
 <h3>new<a class="headerlink" href="#dpp-new" title="Link to this heading">#</a></h3>
 <p>Generate configuration files</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>new<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG
 </pre></div>
 </div>
@@ -564,6 +570,7 @@ document.write(`
 <section id="dpp-norm">
 <h3>norm<a class="headerlink" href="#dpp-norm" title="Link to this heading">#</a></h3>
 <p>Normalize VAMPIRES data files</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>norm<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -614,6 +621,7 @@ document.write(`
 <section id="dpp-nrm">
 <h3>nrm<a class="headerlink" href="#dpp-nrm" title="Link to this heading">#</a></h3>
 <p>NRM mask alignment, analysis</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>nrm<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
@@ -632,6 +640,7 @@ document.write(`
 <section id="dpp-nrm-align">
 <h4>align<a class="headerlink" href="#dpp-nrm-align" title="Link to this heading">#</a></h4>
 <p>Check uv scale/theta alignment from mean combined data in <cite>aux</cite> directory. Plots are saved to <cite>nrm/figures</cite>. Adjust <cite>nrm.uv</cite> and <cite>nrm.theta</cite> in the TOML file to test different values.</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>nrm<span class="w"> </span>align<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -660,6 +669,7 @@ document.write(`
 <section id="dpp-pdi">
 <h3>pdi<a class="headerlink" href="#dpp-pdi" title="Link to this heading">#</a></h3>
 <p>Run the PDI pipeline only</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>pdi<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -704,6 +714,7 @@ document.write(`
 <section id="dpp-run">
 <h3>run<a class="headerlink" href="#dpp-run" title="Link to this heading">#</a></h3>
 <p>Run the data processing pipeline (including PDI)</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>run<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG<span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -748,6 +759,7 @@ document.write(`
 <section id="dpp-select">
 <h3>select<a class="headerlink" href="#dpp-select" title="Link to this heading">#</a></h3>
 <p>View files in DS9 and sort out bad files</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span><span class="k">select</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -762,6 +774,7 @@ document.write(`
 <section id="dpp-sort">
 <h3>sort<a class="headerlink" href="#dpp-sort" title="Link to this heading">#</a></h3>
 <p>Sorts raw data based on the data type. This will either use the <cite>DATA-TYP</cite> header value or the <cite>U_OGFNAM</cite> header, depending on when your data was taken.</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>sort<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -818,6 +831,7 @@ document.write(`
 <section id="dpp-table">
 <h3>table<a class="headerlink" href="#dpp-table" title="Link to this heading">#</a></h3>
 <p>Go through each file and combine the header information into a single CSV.</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>table<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>FILENAMES<span class="o">]</span>...
 </pre></div>
 </div>
@@ -857,6 +871,7 @@ document.write(`
 <section id="dpp-target">
 <h3>target<a class="headerlink" href="#dpp-target" title="Link to this heading">#</a></h3>
 <p>Query SIMBAD+Vizier to update target info</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>target<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG
 </pre></div>
 </div>
@@ -878,6 +893,7 @@ document.write(`
 <section id="dpp-upgrade">
 <h3>upgrade<a class="headerlink" href="#dpp-upgrade" title="Link to this heading">#</a></h3>
 <p>Tries to automatically upgrade a configuration file to the current version (0.14.4), prompting where necessary.</p>
+<p class="rubric">Usage</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>upgrade<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>CONFIG
 </pre></div>
 </div>
