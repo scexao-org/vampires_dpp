@@ -143,12 +143,12 @@ def get_calib_settings(template: PipelineConfig) -> PipelineConfig:
         template.calibrate.flat_correct = click.confirm(
             " - Flat correct (if available)?", default=template.calibrate.flat_correct
         )
+        template.calibrate.save_intermediate = click.confirm(
+            "Would you like to save intermediate calibrated files?",
+            default=template.calibrate.save_intermediate,
+        )
     else:
         template.calibrate.calib_directory = None
-    template.calibrate.save_intermediate = click.confirm(
-        "Would you like to save intermediate calibrated files?",
-        default=template.calibrate.save_intermediate,
-    )
     return template
 
 
