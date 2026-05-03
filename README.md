@@ -10,7 +10,7 @@
 
 **Primary maintainer:** [Miles Lucas](https://github.com/scexao-org)
 
-(Experimental) Tools for processing VAMPIRES data
+(Experimental) Tools for processing VAMPIRES data. Full documentation at **https://scexao-org.github.io/vampires_dpp**.
 
 WARNING: version 0.13.0 has breaking changes that have not been fully documented! Contact Miles for more details.
 
