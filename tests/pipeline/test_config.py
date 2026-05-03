@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 import tomli
+
 from vampires_dpp.pipeline.config import (
     CalibrateOptions,
     CamFileInput,
