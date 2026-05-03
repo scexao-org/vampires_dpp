@@ -1,34 +1,42 @@
 import numpy as np
 import pytest
-from skimage.measure import centroid
-from vampires_dpp.registration import offset_centroids
+
+from vampires_dpp.registration import intersect_point
 
 rng = np.random.default_rng(4796)
 
 
-@pytest.fixture
-def random_array(shape):
-    return rng.normal(size=shape)
-
-
-def test_centroid_skimage():
-    data = np.arange(1, 101).reshape(10, 10)
-    dpp_centroid = offset_centroids(data, np.s_[0 : data.shape[-2], 0 : data.shape[-1]])
-    skimage_centroid = centroid(data)
-    np.testing.assert_allclose(dpp_centroid, skimage_centroid)
-
-
-def test_centroid_nan():
-    data = np.arange(1, 101).reshape(10, 10)
-    data[3, 5] = np.nan
-    dpp_centroid = offset_centroids(data, np.s_[0 : data.shape[-2], 0 : data.shape[-1]])
-    skimage_centroid = centroid(data)
-    np.testing.assert_allclose(dpp_centroid, skimage_centroid)
-
-
-def test_centroid_skimage_rand(random_array):
-    dpp_centroid = offset_centroids(
-        random_array, np.s_[0 : random_array.shape[-2], 0 : random_array.shape[-1]]
+class TestIntersectPoint:
+    @pytest.mark.parametrize(
+        ["points", "center"],
+        [
+            ([(-1, 0), (1, 0), (0, -1), (0, 1)], [0, 0]),
+            ([(-1, 0), (1, 0), (0.5, -1), (0.5, 1)], [0.5, 0]),
+            ([(-1, 0.5), (1, 0.5), (0, -1), (0, 1)], [0, 0.5]),
+            ([(-1, 0.5), (1, 0.5), (-0.5, -1), (-0.5, 1)], [-0.5, 0.5]),
+        ],
     )
-    skimage_centroid = centroid(random_array)
-    np.testing.assert_allclose(dpp_centroid, skimage_centroid)
+    def test_intersect_point(self, points, center):
+        point_arr = np.array(points)
+        output = intersect_point(point_arr[:, 0], point_arr[:, 1])
+        np.testing.assert_allclose(output, center)
+
+    def test_intersect_point_arr(self):
+        point_arr = rng.random((100, 4, 2))
+        output = intersect_point(point_arr[..., 0], point_arr[..., 1])
+        assert output.shape == (100, 2)
+
+    @pytest.mark.xfail(
+        reason="If unable to properly order points, will not form line pairs correctly"
+    )
+    @pytest.mark.parametrize(
+        ("points", "center"),
+        [
+            ([(-1, -1), (1, 1), (-1, 1), (1, -1)], [0, 0]),
+            ([(-1, 0), (-1, 1), (1, 0), (1, 1)], (0, 0)),
+        ],
+    )
+    def test_intersect_x(self, points, center):
+        point_arr = np.array(points)
+        output = intersect_point(point_arr[:, 0], point_arr[:, 1])
+        np.testing.assert_allclose(output, center)
