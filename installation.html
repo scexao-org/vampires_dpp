@@ -30,7 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
-    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -336,7 +336,7 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-versions">Python Versions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-pip">Using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-github">From GitHub</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-source">From Source</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">Testing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing">Contributing</a></li>
@@ -358,21 +358,25 @@ document.write(`
 <h2>Python Versions<a class="headerlink" href="#python-versions" title="Link to this heading">#</a></h2>
 <div class="tip admonition">
 <p class="admonition-title">Managing python versions</p>
-<p>Subaru’s archive interface depends on python 2, while this package requires at least python 3.10. You will inevitably need to manage different python versions. I recommend using <a class="reference external" href="https://github.com/pyenv/pyenv">pyenv</a> or <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-python.html#installing-a-different-version-of-python">conda</a></p>
+<p>Subaru’s archive interface depends on python 2, while this package requires at least python 3.10. You will inevitably need to manage different python versions. We recommend using <a class="reference external" href="https://docs.astral.sh/uv/">uv</a> to manage Python installations and virtual environments.</p>
 </div>
 </section>
-<section id="using-pip">
-<h2>Using <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#using-pip" title="Link to this heading">#</a></h2>
-<p>For now, install directly from GitHub</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>git+https://github.com/scexao-org/vampires_dpp.git
+<section id="from-github">
+<h2>From GitHub<a class="headerlink" href="#from-github" title="Link to this heading">#</a></h2>
+<p>Install directly from GitHub using <code class="docutils literal notranslate"><span class="pre">uv</span></code> (recommended) or <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>add<span class="w"> </span>git+https://github.com/scexao-org/vampires_dpp
+<span class="c1"># or</span>
+pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/scexao-org/vampires_dpp
 </pre></div>
 </div>
 </section>
 <section id="from-source">
 <h2>From Source<a class="headerlink" href="#from-source" title="Link to this heading">#</a></h2>
-<p>The source code for <code class="docutils literal notranslate"><span class="pre">vampires_dpp</span></code> can be downloaded and installed <a class="reference external" href="https://github.com/scexao-org/vampires_dpp">from GitHub</a> by running</p>
+<p>Clone the repository and install in editable mode:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/scexao-org/vampires_dpp
 <span class="nb">cd</span><span class="w"> </span>vampires_dpp
+uv<span class="w"> </span>sync
+<span class="c1"># or</span>
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
@@ -383,34 +387,36 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dpp<span class="w"> </span>--version
 </pre></div>
 </div>
-<p>To run the unit tests, install the development dependencies using pip:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[test]&quot;</span>
-</pre></div>
-</div>
-<p>and then execute:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
+<p>To run the unit tests:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>--extra<span class="w"> </span><span class="nb">test</span><span class="w"> </span>pytest
+<span class="c1"># or</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[test]&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pytest
 </pre></div>
 </div>
 <p>This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don’t pass and if you can’t sort out why, <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/issues">open an issue on GitHub</a>.</p>
 </section>
 <section id="contributing">
 <h2>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">#</a></h2>
-<p>If you would like to contribute, first off, thank you! To get started, you should install our git <a class="reference external" href="https://pre-commit.com/">pre-commit hooks</a> which autoformat the repository. After you have <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> installed, run</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>vampires_dpp
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+<p>If you would like to contribute, first off, thank you! To get started, clone the repo, sync the environment, and install the <a class="reference external" href="https://pre-commit.com/">pre-commit</a> hooks:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/scexao-org/vampires_dpp
+<span class="nb">cd</span><span class="w"> </span>vampires_dpp
+uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev
 pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
-<p>and you’re all set! Now whenever you <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code> the source files will be linted and formatted using <a class="reference external" href="https://docs.astral.sh/ruff/"><code class="docutils literal notranslate"><span class="pre">ruff</span></code></a>. Any linting errors that cannot be auto-fixed will disallow <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code> unless overridden (<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">-n</span></code>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span> <span class="pre">--extra</span> <span class="pre">dev</span></code> installs all development tools (ruff, ty) into the project venv. <code class="docutils literal notranslate"><span class="pre">pre-commit</span> <span class="pre">install</span></code> wires up the git hooks, which call those tools via <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code> — so there is no separate tool version to manage.</p>
+<p>Now whenever you <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code>, source files will be linted and formatted using <a class="reference external" href="https://docs.astral.sh/ruff/"><code class="docutils literal notranslate"><span class="pre">ruff</span></code></a> and the <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code> file will be kept in sync. Any linting errors that cannot be auto-fixed will block <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code> unless overridden with <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">-n</span></code>.</p>
 <p>Any contributions should be submitted as <a class="reference external" href="https://github.com/scexao-org/vampires_dpp/pulls">pull requests</a>. Feel free to reach out ahead of time about questions or ambitions about contributing.</p>
 </section>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">#</a></h2>
-<p>To build these docs locally, first install the documentation dependencies</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
+<p>To build these docs locally, install the documentation dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>docs
+<span class="c1"># or</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[docs]&quot;</span>
 </pre></div>
 </div>
-<p>Then, run the <a class="reference external" href="https://www.sphinx-doc.org/en/master/">sphinx</a> make script</p>
+<p>Then run the <a class="reference external" href="https://www.sphinx-doc.org/en/master/">sphinx</a> build:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sphinx-build<span class="w"> </span>docs<span class="w"> </span>docs/_build
 </pre></div>
 </div>
@@ -471,7 +477,7 @@ pre-commit<span class="w"> </span>install
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-versions">Python Versions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-pip">Using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-github">From GitHub</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-source">From Source</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">Testing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing">Contributing</a></li>
@@ -500,7 +506,7 @@ By Miles Lucas
 
   <p class="copyright">
     
-      © Copyright 2022, 2023, 2024, 2025, Miles Lucas.
+      © Copyright 2022, 2023, 2024, 2025, 2026, Miles Lucas.
       <br/>
     
   </p>
