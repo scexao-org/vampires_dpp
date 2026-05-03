@@ -615,7 +615,8 @@ def make_stokes_image(
     mask_satspots: bool = False,
     force: bool = False,
 ):
-    if not force and outpath.exists() and not any_file_newer(path_set, outpath):
+    all_inputs = list(path_set) + (list(mm_paths) if mm_paths is not None else [])
+    if not force and outpath.exists() and not any_file_newer(all_inputs, outpath):
         return outpath
 
     if mm_correct and not derotate:

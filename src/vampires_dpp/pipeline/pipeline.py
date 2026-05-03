@@ -27,7 +27,14 @@ from vampires_dpp.nrm.extraction import extract_observables
 from vampires_dpp.nrm.pdi import process_nrm_polarimetry
 from vampires_dpp.nrm.plotting import make_nrm_plots
 from vampires_dpp.organization import dict_from_header, header_table
-from vampires_dpp.paths import Paths, get_nrm_paths, get_paths, get_reduced_path, make_dirs
+from vampires_dpp.paths import (
+    Paths,
+    any_file_newer,
+    get_nrm_paths,
+    get_paths,
+    get_reduced_path,
+    make_dirs,
+)
 from vampires_dpp.pdi.diff_images import (
     doublediff_images,
     get_doublediff_sets,
@@ -44,6 +51,18 @@ from vampires_dpp.specphot.specphot import specphot_cal_hdul, specphot_cal_hdul_
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.util import get_center
 from vampires_dpp.wcs import apply_wcs
+
+PIPELINE_STAGES = (
+    "calibrate",
+    "combine",
+    "metrics",
+    "select",
+    "align",
+    "coadd",
+    "adi",
+    "diff",
+    "pdi",
+)
 
 
 class Pipeline:
@@ -62,7 +81,7 @@ class Pipeline:
         if self.verbose:
             logger.add(lambda msg: print(msg, end=""), level="DEBUG")
 
-    def run(self, filenames, num_proc: int | None = None, force: bool = False):
+    def run(self, filenames, num_proc: int | None = None, redo: str | None = None):
         """Run the pipeline
 
         Parameters
@@ -71,7 +90,15 @@ class Pipeline:
             Input filenames to process
         num_proc : Optional[int]
             Number of processes to use for multi-processing, by default None.
+        redo : str, optional
+            Force a specific stage to rerun. Downstream stages cascade via the dirty flag.
+            One of: "calibrate", "combine", "metrics", "select", "align", "coadd", "adi", "diff", "pdi".
         """
+        # any sub-stage of process_group forces the group to re-run
+        force_process = redo in ("calibrate", "combine", "metrics", "select", "align", "coadd")
+        force_adi = redo == "adi"
+        force_diff = redo == "diff"
+
         make_dirs(self.paths, self.config)
         conf_copy_path = self.paths.aux / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
@@ -104,12 +131,21 @@ class Pipeline:
             jobs = []
             for group_key, group in input_table.groupby("GROUP_KEY"):
                 output_path = get_reduced_path(self.paths, self.config, group_key)
-                if not force and output_path.exists():  # and self.config.nrm is None:
+                needs_run = (
+                    force_process
+                    or not output_path.exists()
+                    or any_file_newer(group["path"], output_path)
+                )
+                if not needs_run:
                     logger.debug(f"Skipping processing for group {output_path}")
                     self.output_paths.append(output_path)
                 else:
                     jobs.append(
-                        pool.apply_async(self.process_group, args=(group, group_key, output_path))
+                        pool.apply_async(
+                            self.process_group,
+                            args=(group, group_key, output_path),
+                            kwds={"redo_stage": redo if force_process else None},
+                        )
                     )
 
             for job in tqdm(jobs, desc="Processing files"):
@@ -123,15 +159,19 @@ class Pipeline:
 
         ## products
         if self.config.save_adi_cubes:
-            self.save_adi_cubes(force=force)
+            self.save_adi_cubes(force=force_adi)
 
         ## diff images
         if self.config.diff_images.make_diff:
-            self.make_diff_images(self.output_table, force=force)
+            self.make_diff_images(self.output_table, force=force_diff)
 
         logger.success("Finished processing files")
 
-    def run_polarimetry(self, num_proc, force: bool = False):
+    def run_polarimetry(self, num_proc, redo: str | None = None):
+        # pdi covers both MM computation and Stokes reduction;
+        # MM→Stokes cascade is handled via file mtimes in make_stokes_image
+        force_pdi = redo == "pdi"
+
         make_dirs(self.paths, self.config)
         conf_copy_path = self.paths.aux / f"{self.config.name}.bak.toml"
         self.config.save(conf_copy_path)
@@ -144,7 +184,9 @@ class Pipeline:
         working_table = pd.read_csv(self.output_table_path, index_col=0).sort_values("MJD")
 
         if self.config.polarimetry.mm_correct or self.config.polarimetry.method == "leastsq":
-            working_table["mm_file"] = self.make_mueller_mats(working_table, num_proc=num_proc)
+            working_table["mm_file"] = self.make_mueller_mats(
+                working_table, num_proc=num_proc, force=force_pdi
+            )
 
         logger.info("Performing polarimetric calibration")
         logger.debug(f"Saving Stokes data to {self.paths.pdi.absolute()}")
@@ -154,13 +196,13 @@ class Pipeline:
                     self.polarimetry_difference(
                         working_table,
                         method=self.config.polarimetry.method,
-                        force=force,
+                        force=force_pdi,
                         num_proc=num_proc,
                     )
                 else:
-                    self.polarimetry_nrm(working_table, force=force, num_proc=num_proc)
+                    self.polarimetry_nrm(working_table, force=force_pdi, num_proc=num_proc)
             case "leastsq":
-                self.polarimetry_leastsq(working_table, force=force, num_proc=num_proc)
+                self.polarimetry_leastsq(working_table, force=force_pdi, num_proc=num_proc)
         logger.success("Finished PDI")
 
     def create_input_table(self, filenames, num_proc) -> pd.DataFrame:
@@ -251,81 +293,162 @@ class Pipeline:
             )
             self.synth_psfs[filt] = psf
 
-    def process_group(self, group, group_key: str, output_path: Path):
+    def process_group(
+        self, group, group_key: str, output_path: Path, redo_stage: str | None = None
+    ):
         # have to reset loggers because inside child-process
         logger = configure_logging()
         logger = add_logfile(self.workdir, logger)
-        # fix headers and calibrate
-        hdul_list = []
-        for _, row in group.iterrows():
-            logger.debug(f"Calibrating {row['path']}")
-            cur_hdul = self.calibrate_one(row["path"], row)
-            hdul_list.append(cur_hdul)
-        logger.debug(f"Finished calibrating {len(group)} files")
-        logger.debug("Combining data into single HDU list")
-        hdul = combine_hduls(hdul_list)
-        if self.config.combine.save_intermediate:
-            _, outpath = get_paths(output_path, suffix="comb", output_directory=self.paths.combined)
-            hdul.writeto(outpath, overwrite=True)
-            logger.debug(f"Saved combined HDU list to {outpath.absolute()}")
 
-        ## Step 2: Frame analysis
+        force_calibrate = redo_stage == "calibrate"
+        force_combine = redo_stage == "combine"
+        force_metrics = redo_stage == "metrics"
+        force_select = redo_stage == "select"
+        force_align = redo_stage == "align"
+        # force_coadd: coadd always runs when process_group is called; the top-level skip
+        # in run() is the only coadd checkpoint, so no per-stage force needed here.
+        # dirty: once any stage reruns, all downstream stages must also rerun regardless
+        # of whether intermediate files were saved (avoids stale-mtime false cache hits).
+        dirty = False
+
+        # ── Resolve intermediate checkpoint paths ──
+        combined_path = (
+            get_paths(output_path, suffix="comb", output_directory=self.paths.combined)[1]
+            if self.config.combine.save_intermediate
+            else None
+        )
         metric_file = self.paths.metrics / f"{self.config.name}_{group_key}_metrics.npz"
-        metrics = self.analyze_one(hdul, metric_file)
-        ## Step 3: Frame selection
+        selected_path = (
+            get_paths(output_path, output_directory=self.paths.selected)[1]
+            if self.config.frame_select.save_intermediate
+            else None
+        )
+        selected_metrics_path = (
+            selected_path.with_suffix(".npz") if selected_path is not None else None
+        )
+        # aligned intermediate is only distinct from output_path when coadd is enabled
+        aligned_path = None
+        if self.config.align.save_intermediate and self.config.coadd.coadd:
+            _, _ap = get_paths(output_path, output_directory=self.paths.aligned)
+            aligned_path = _ap.with_name(_ap.name.replace("_coll", "_reg"))
+
+        # ── Stages 1+2: Calibrate + Combine ──
+        if (
+            not force_calibrate
+            and not force_combine
+            and combined_path is not None
+            and combined_path.exists()
+            and not any_file_newer(group["path"], combined_path)
+        ):
+            logger.debug(f"[{group_key}] loading combined data from cache")
+            hdul = fits.open(combined_path)
+        else:
+            hdul_list = []
+            for _, row in group.iterrows():
+                logger.debug(f"Calibrating {row['path']}")
+                cur_hdul = self.calibrate_one(row["path"], row, force=force_calibrate)
+                hdul_list.append(cur_hdul)
+            logger.debug(f"Combining {len(group)} calibrated files")
+            hdul = combine_hduls(hdul_list)
+            if combined_path is not None:
+                hdul.writeto(combined_path, overwrite=True)
+                logger.debug(f"Saved combined HDU list to {combined_path.absolute()}")
+            dirty = True
+
+        # ── Stage 3: Metrics ──
+        metrics_ref = (
+            combined_path
+            if (combined_path is not None and combined_path.exists())
+            else group["path"].tolist()
+        )
+        if (
+            not force_metrics
+            and not dirty
+            and metric_file.exists()
+            and not any_file_newer(metrics_ref, metric_file)
+        ):
+            logger.debug(f"[{group_key}] loading metrics from cache")
+            metrics = np.load(metric_file)
+        else:
+            metrics = self.analyze_one(
+                hdul, metric_file, source_paths=group["path"].tolist(), force=True
+            )
+            dirty = True
+
+        # ── Stage 4: Frame Select ──
         if self.config.frame_select.frame_select:
-            logger.debug(f"Starting frame selection for group {group_key}")
-            hdul, metrics = frame_select_hdul(
+            if (
+                not force_select
+                and not dirty
+                and selected_path is not None
+                and selected_path.exists()
+                and selected_metrics_path.exists()
+                and not any_file_newer(metric_file, selected_path)
+            ):
+                logger.debug(f"[{group_key}] loading selected data from cache")
+                hdul = fits.open(selected_path)
+                metrics = np.load(selected_metrics_path)
+            else:
+                logger.debug(f"Frame selecting group {group_key}")
+                hdul, metrics = frame_select_hdul(
+                    hdul,
+                    metrics,
+                    metric=self.config.frame_select.metric,
+                    quantile=self.config.frame_select.cutoff,
+                )
+                if selected_path is not None:
+                    hdul.writeto(selected_path, overwrite=True)
+                    logger.debug(f"Saved selected HDU list to {selected_path.absolute()}")
+                    np.savez_compressed(selected_metrics_path, metrics)
+                    logger.debug(f"Saved selected metrics to {selected_metrics_path.absolute()}")
+                dirty = True
+
+        # ── Stage 5: Align + Specphot ──
+        # Aligned intermediate (when it exists) includes specphot, so both are skipped together.
+        align_input_refs = [
+            p
+            for p in (selected_path, metric_file, combined_path)
+            if p is not None and Path(p).exists()
+        ]
+        if (
+            not force_align
+            and not dirty
+            and aligned_path is not None
+            and aligned_path.exists()
+            and (not align_input_refs or not any_file_newer(align_input_refs, aligned_path))
+        ):
+            logger.debug(f"[{group_key}] loading aligned data from cache")
+            hdul = fits.open(aligned_path)
+        else:
+            # note: register_hdul also handles MBI frame cropping even when align=False
+            logger.debug(f"Aligning group {group_key}")
+            reproject_tforms = self.reproject_tforms if self.config.align.reproject else None
+            hdul = register_hdul(
                 hdul,
                 metrics,
-                metric=self.config.frame_select.metric,
-                quantile=self.config.frame_select.cutoff,
+                init_centroids=self.centroids.get(f"cam{hdul[0].header['U_CAMERA']:.0f}", None),
+                align=self.config.align.align,
+                pad=self.config.align.pad,
+                method=self.config.align.method,
+                crop_width=self.config.align.crop_width,
+                reproject_tforms=reproject_tforms,
             )
-            if self.config.frame_select.save_intermediate:
-                _, outpath = get_paths(output_path, output_directory=self.paths.selected)
-                hdul.writeto(outpath, overwrite=True)
-                logger.debug(f"Saved selected HDU list to {outpath.absolute()}")
-                outpath_np = outpath.with_suffix(".npz")
-                np.savez_compressed(outpath_np, metrics)
-                logger.debug(f"Saved selected metrics to {outpath_np.absolute()}")
-            logger.debug(f"Finished frame selection for group {group_key}")
-        ## Step 4: Registration
-        # note: if we're not aligning, this still takes care
-        # of cutting out MBI frames, so it's necessary
-        logger.debug(f"Starting frame alignment for group {group_key}")
-        reproject_tforms = self.reproject_tforms if self.config.align.reproject else None
-        hdul = register_hdul(
-            hdul,
-            metrics,
-            init_centroids=self.centroids.get(f"cam{hdul[0].header['U_CAMERA']:.0f}", None),
-            align=self.config.align.align,
-            pad=self.config.align.pad,
-            method=self.config.align.method,
-            crop_width=self.config.align.crop_width,
-            reproject_tforms=reproject_tforms,
-        )
-        logger.debug(f"Finished frame alignment for group {group_key}")
-        ## Step 5: Spectrophotometric calibration
-        # note: no-op when data is in e-/s, but sets headers
-        logger.debug(f"Starting specphot calibration for group {group_key}")
-        if self.config.specphot.source == "zeropoints":
-            hdul = specphot_cal_hdul_zeropoints(hdul, config=self.config)
-        else:
-            hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config)
-        logger.debug(f"Finished specphot calibration for group {group_key}")
-        # Awkward: save registered data AFTER specphot calibration
-        if self.config.align.save_intermediate and self.config.coadd.coadd:
-            _, outpath = get_paths(output_path, output_directory=self.paths.aligned)
-            outpath = outpath.with_name(outpath.name.replace("_coll", "_reg"))
-            hdul.writeto(outpath, overwrite=True)
-            logger.debug(f"Saved aligned HDU list to {outpath.absolute()}")
-        ## Step 6: Coadd
+            logger.debug(f"Running specphot calibration for group {group_key}")
+            if self.config.specphot.source == "zeropoints":
+                hdul = specphot_cal_hdul_zeropoints(hdul, config=self.config)
+            else:
+                hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config)
+            if aligned_path is not None:
+                hdul.writeto(aligned_path, overwrite=True)
+                logger.debug(f"Saved aligned HDU list to {aligned_path.absolute()}")
+            dirty = True  # noqa: F841
+
+        # ── Stage 6: Coadd ──
         if self.config.coadd.coadd:
-            logger.debug(f"Starting coadding for group {group_key}")
+            logger.debug(f"Coadding group {group_key}")
             _hdul = coadd_hdul(hdul, method=self.config.coadd.method)
-            logger.debug(f"Finished coadding for group {group_key}")
             if self.config.coadd.recenter:
-                logger.debug(f"Starting recentering for group {group_key}")
+                logger.debug(f"Recentering group {group_key}")
                 psfs = [
                     self.synth_psfs[filt]
                     for filt in determine_filterset_from_header(hdul[0].header)
@@ -342,15 +465,12 @@ class Pipeline:
                 _hdul = recenter_hdul(
                     _hdul, window_centers, method=self.config.coadd.recenter_method, psfs=psfs
                 )
-                logger.debug(f"Finished recentering for group {group_key}")
-
-            logger.debug(f"Saving coadded cube to {output_path.absolute()}")
+            logger.debug(f"Saving coadded output to {output_path.absolute()}")
             _hdul.writeto(output_path, overwrite=True)
 
-        ## Step 7: NRM analysis
+        ## NRM analysis
         if self.config.nrm is not None:
-            logger.debug(f"Staring NRM extraction for group {group_key}")
-            # get output filename: nrm/<name>_<group>_vis.hdf5
+            logger.debug(f"Starting NRM extraction for group {group_key}")
             subfolder = self.paths.nrm / "observables"
             subfolder.mkdir(parents=True, exist_ok=True)
             h5_path = subfolder / f"{self.config.name}_{group_key}_vis.h5"
@@ -383,7 +503,7 @@ class Pipeline:
             outpath = get_paths(
                 path, suffix="calib", filetype=".fits", output_directory=self.paths.calibrated
             )[1]
-            if not force and outpath.exists():
+            if not force and outpath.exists() and not any_file_newer(path, outpath):
                 return fits.open(outpath)
 
         back_filename = None
@@ -408,9 +528,13 @@ class Pipeline:
         logger.debug("Data calibration completed")
         return calib_hdul
 
-    def analyze_one(self, hdul: fits.HDUList, metric_file, force=False):
+    def analyze_one(self, hdul: fits.HDUList, metric_file, source_paths=None, force=False):
         logger.debug("Starting frame analysis")
-        if not force and metric_file.exists():
+        if (
+            not force
+            and metric_file.exists()
+            and (source_paths is None or not any_file_newer(source_paths, metric_file))
+        ):
             return np.load(metric_file)
         config = self.config.analysis
         hdr = hdul[0].header
@@ -443,7 +567,11 @@ class Pipeline:
     def save_adi_cubes(self, force: bool = False):
         output_path = self.paths.adi / f"{self.config.name}_adi_cube.fits"
         angles_path = output_path.with_stem(output_path.stem.replace("_cube", "_angles"))
-        if not force and output_path.exists():
+        if (
+            not force
+            and output_path.exists()
+            and not any_file_newer(self.output_paths, output_path)
+        ):
             if not angles_path.exists():
                 group_keys = ["MJD", "U_FLC"]
                 mask = self.output_table["U_FLC"].isna()
@@ -488,7 +616,7 @@ class Pipeline:
         self.diff_files = []
         # do singlediff first, then deliberate to doublediff
         path_sets = get_singlediff_sets(table)
-        diff_func = partial(singlediff_images)
+        diff_func = partial(singlediff_images, force=force)
         outdir = self.paths.diff / "single"
         outdir.mkdir(exist_ok=True)
         with mp.Pool(num_proc) as pool:

@@ -7,7 +7,7 @@ import click
 import vampires_dpp as dpp
 from vampires_dpp._logging import add_logfile, configure_logging
 from vampires_dpp.pipeline.config import PipelineConfig
-from vampires_dpp.pipeline.pipeline import Pipeline
+from vampires_dpp.pipeline.pipeline import PIPELINE_STAGES, Pipeline
 from vampires_dpp.util import check_version
 
 __all__ = ("run", "pdi")
@@ -51,7 +51,13 @@ def log_intro(logger, num_proc, outdir):
     show_default=True,
 )
 @click.option("--verbose", "-v", is_flag=True, help="Print debug statements.")
-def run(config: Path, filenames, num_proc, outdir, verbose):
+@click.option(
+    "--redo",
+    default=None,
+    type=click.Choice(PIPELINE_STAGES),
+    help="Force redo a pipeline stage; updated outputs cascade to downstream stages automatically.",
+)
+def run(config: Path, filenames, num_proc, outdir, verbose, redo):
     logger = configure_logging()
     logger = add_logfile(outdir, logger)
 
@@ -68,10 +74,10 @@ def run(config: Path, filenames, num_proc, outdir, verbose):
     if len(filenames) == 0:
         msg = "No files input to pipeline! Double check command-line input for typos"
         raise ValueError(msg)
-    pipeline.run(filenames, num_proc=num_proc)
+    pipeline.run(filenames, num_proc=num_proc, redo=redo)
     # only run PDI if specified
     if pipeline.config.polarimetry is not None:
-        pipeline.run_polarimetry(num_proc=num_proc)
+        pipeline.run_polarimetry(num_proc=num_proc, redo=redo)
 
 
 ########## pimport warnings ##########
@@ -92,7 +98,13 @@ def run(config: Path, filenames, num_proc, outdir, verbose):
     show_default=True,
 )
 @click.option("--verbose", "-v", is_flag=True, help="Print debug statements.")
-def pdi(config, filenames, num_proc, verbose, outdir):
+@click.option(
+    "--redo",
+    default=None,
+    type=click.Choice(PIPELINE_STAGES),
+    help="Force redo a pipeline stage; updated outputs cascade to downstream stages automatically.",
+)
+def pdi(config, filenames, num_proc, verbose, outdir, redo):
     logger = configure_logging()
     logger = add_logfile(outdir, logger)
 
@@ -111,4 +123,4 @@ def pdi(config, filenames, num_proc, verbose, outdir):
         msg = "No files input to pipeline! Double check command-line input for typos"
         raise ValueError(msg)
 
-    pipeline.run_polarimetry(num_proc=num_proc)
+    pipeline.run_polarimetry(num_proc=num_proc, redo=redo)
