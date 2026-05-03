@@ -23,22 +23,19 @@ uv add git+https://github.com/scexao-org/vampires_dpp
 pip install git+https://github.com/scexao-org/vampires_dpp
 ```
 
-For local development, clone the repository and install in editable mode:
+For local development, clone the repository and sync the environment:
 
 ```sh
 git clone https://github.com/scexao-org/vampires_dpp
 cd vampires_dpp
 uv sync --extra dev
-# or
-pip install -e ".[dev]"
+pre-commit install
 ```
 
 Run the test suite with:
 
 ```sh
 uv run --extra test pytest
-# or
-pip install -e ".[test]" && pytest
 ```
 
 ## Citing
