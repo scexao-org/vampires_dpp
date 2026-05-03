@@ -1,12 +1,11 @@
 import os
 from datetime import date
-
-from pkg_resources import DistributionNotFound, get_distribution
+from importlib.metadata import PackageNotFoundError, version
 
 # -- Project information -----------------------------------------------------
 try:
-    __version__ = get_distribution("vampires_dpp").version
-except DistributionNotFound:
+    __version__ = version("vampires_dpp")
+except PackageNotFoundError:
     __version__ = "unknown version"
 
 # The full version, including alpha/beta/rc tags
