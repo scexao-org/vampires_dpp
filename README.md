@@ -15,14 +15,23 @@ WARNING: version 0.13.0 has breaking changes that have not been fully documented
 
 ## Installation
 
-For now, install directly from GitHub
+Install directly from GitHub using `uv` (recommended) or `pip`:
 
-    pip install git+https://github.com/scexao-org/vampires_dpp#egg=vampires_dpp
+```sh
+uv add git+https://github.com/scexao-org/vampires_dpp
+# or
+pip install git+https://github.com/scexao-org/vampires_dpp
+```
 
-otherwise clone this repository and install locally
+For local development, clone the repository and install in editable mode:
 
-    git clone https://github.com/scexao-org/vampires_dpp
-    pip install vampires_dpp
+```sh
+git clone https://github.com/scexao-org/vampires_dpp
+cd vampires_dpp
+uv sync --extra dev --extra test
+# or
+pip install -e ".[dev,test]"
+```
 
 ## Citing
 
