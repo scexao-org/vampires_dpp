@@ -50,6 +50,26 @@ def test_shift_frame_output_dtype():
     assert result.dtype == np.float64
 
 
+def test_shift_frame_nan_edges_no_propagation():
+    # NaN at the edges (e.g. from registration padding) must not contaminate the interior
+    frame = np.zeros((32, 32))
+    frame[14:18, 14:18] = 1.0
+    frame[:3, :] = np.nan
+    frame[-3:, :] = np.nan
+    result = shift_frame(frame, (1.0, 1.0))
+    assert np.isfinite(result[15:19, 15:19]).all()
+
+
+def test_shift_frame_nan_boundary_restored():
+    # NaN boundary should move with the shift (periodic boundaries)
+    frame = np.ones((32, 32))
+    frame[:4, :] = np.nan
+    result = shift_frame(frame, (2.0, 0.0))
+    # rows 0-3 shift to rows 2-5; rows 0-1 are filled by the (finite) bottom wrap
+    assert np.all(np.isnan(result[2:6, :]))
+    assert np.all(np.isfinite(result[7:, :]))
+
+
 # ---------------------------------------------------------------------------
 # shift_cube
 # ---------------------------------------------------------------------------
@@ -78,6 +98,15 @@ def test_shift_cube_shape():
     cube = np.ones((7, 24, 24))
     shifts = np.zeros((7, 2))
     assert shift_cube(cube, shifts).shape == cube.shape
+
+
+def test_shift_cube_nan_edges_no_propagation():
+    cube = np.zeros((5, 32, 32))
+    cube[:, 14:18, 14:18] = 1.0
+    cube[:, :3, :] = np.nan
+    shifts = np.ones((5, 2))
+    result = shift_cube(cube, shifts)
+    assert np.isfinite(result[:, 15:19, 15:19]).all()
 
 
 # ---------------------------------------------------------------------------

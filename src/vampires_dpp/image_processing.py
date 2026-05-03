@@ -10,6 +10,8 @@ def shift_frame(data: ArrayLike, shift: tuple[float, float]) -> NDArray:
     """Shift a single frame by the given offset using Fourier-domain shifting.
 
     Supports sub-pixel shifts. Uses periodic boundary conditions.
+    NaN values are filled before the FFT and the NaN boundary is restored
+    by shifting the NaN mask through the same transform.
 
     Parameters
     ----------
@@ -24,10 +26,18 @@ def shift_frame(data: ArrayLike, shift: tuple[float, float]) -> NDArray:
         Shifted frame
     """
     data = np.asarray(data, dtype="f8")
+    nan_mask = ~np.isfinite(data)
+    if nan_mask.any():
+        fill = np.nanmean(data)
+        data = np.where(nan_mask, fill if np.isfinite(fill) else 0.0, data)
     fy = np.fft.fftfreq(data.shape[-2])
     fx = np.fft.fftfreq(data.shape[-1])
     phase = np.exp(-2j * np.pi * (shift[0] * fy[:, None] + shift[1] * fx[None, :]))
-    return np.real(np.fft.ifft2(np.fft.fft2(data) * phase))
+    result = np.real(np.fft.ifft2(np.fft.fft2(data) * phase))
+    if nan_mask.any():
+        shifted_nan = np.real(np.fft.ifft2(np.fft.fft2(nan_mask.astype("f8")) * phase))
+        result[shifted_nan > 0.5] = np.nan
+    return result
 
 
 def derotate_frame(
@@ -117,6 +127,8 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike) -> NDArray:
     """Translate each frame in a cube using vectorized Fourier-domain shifting.
 
     Processes the entire cube in a single FFT call with no Python loop.
+    NaN values are filled per-frame before the FFT and the NaN boundary is
+    restored by shifting the NaN mask through the same transform.
 
     Parameters
     ----------
@@ -132,6 +144,12 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike) -> NDArray:
     """
     cube = np.asarray(cube, dtype="f8")
     shifts = np.asarray(shifts)
+    nan_mask = ~np.isfinite(cube)
+    has_nan = nan_mask.any()
+    if has_nan:
+        fill = np.nanmean(cube, axis=(-2, -1), keepdims=True)
+        fill = np.where(np.isfinite(fill), fill, 0.0)
+        cube = np.where(nan_mask, fill, cube)
     fy = np.fft.fftfreq(cube.shape[-2])
     fx = np.fft.fftfreq(cube.shape[-1])
     phase = np.exp(
@@ -142,7 +160,11 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike) -> NDArray:
             + shifts[:, 1, None, None] * fx[None, None, :]
         )
     )
-    return np.real(np.fft.ifft2(np.fft.fft2(cube) * phase))
+    result = np.real(np.fft.ifft2(np.fft.fft2(cube) * phase))
+    if has_nan:
+        shifted_nan = np.real(np.fft.ifft2(np.fft.fft2(nan_mask.astype("f8")) * phase))
+        result[shifted_nan > 0.5] = np.nan
+    return result
 
 
 def radial_profile_image(frame: NDArray, fwhm: float = 3) -> NDArray:
