@@ -44,7 +44,7 @@ repository = "https://github.com/scexao-org/vampires_dpp"
 documentation = "https://scexao-org.github.io/vampires_dpp/"
 
 [project.optional-dependencies]
-dev = ["ty"]
+dev = ["ty", "ruff"]
 test = [
     "pytest",
     "pytest_cov",

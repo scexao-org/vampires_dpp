@@ -51,16 +51,16 @@ This will automatically run the tests with plugins enabled. All of the tests sho
 
 ## Contributing
 
-If you would like to contribute, first off, thank you! To get started, install the development dependencies and set up the [pre-commit](https://pre-commit.com/) hooks:
+If you would like to contribute, first off, thank you! To get started, clone the repo, sync the environment, and install the [pre-commit](https://pre-commit.com/) hooks:
 
 ```bash
 git clone https://github.com/scexao-org/vampires_dpp
 cd vampires_dpp
 uv sync --extra dev
-# or
-pip install -e ".[dev]"
 pre-commit install
 ```
+
+`uv sync --extra dev` installs all development tools (ruff, ty) into the project venv. `pre-commit install` wires up the git hooks, which call those tools via `uv run` — so there is no separate tool version to manage.
 
 Now whenever you `git commit`, source files will be linted and formatted using [`ruff`](https://docs.astral.sh/ruff/) and the `uv.lock` file will be kept in sync. Any linting errors that cannot be auto-fixed will block `git commit` unless overridden with `git commit -n`.
 
