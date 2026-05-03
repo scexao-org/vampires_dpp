@@ -331,3 +331,32 @@ def hwp_adi_sync_offset(alt, az, lat=SUBARU_LOC.lat.rad):
     alpha = np.sin(az)
     beta = np.sin(alt) * np.cos(az) + np.cos(alt) * np.tan(lat)
     return 0.5 * np.arctan2(alpha, beta) + alt
+
+
+def diatt_ret_from_coeff(aoi, n, k):
+    n_complex = n + k * 1j
+
+    # Snell's law
+    sin_t = np.sin(aoi) / n_complex
+    cos_t = np.sqrt(1 - sin_t**2)
+
+    cos_i = np.cos(aoi)
+
+    # Fresnel reflection coefficients
+    rs = (cos_i - n_complex * cos_t) / (cos_i + n_complex * cos_t)
+    rp = (n_complex * cos_i - cos_t) / (n_complex * cos_i + cos_t)
+
+    # Reflectances
+    Rs = np.abs(rs) ** 2
+    Rp = np.abs(rp) ** 2
+
+    # Diattenuation
+    D = (Rs - Rp) / (Rs + Rp)
+
+    # Retardance (phase difference)
+    delta = np.angle(rs / rp)
+
+    # convert retardance to waves for consistency
+    delta /= 2 * np.pi
+
+    return D, delta

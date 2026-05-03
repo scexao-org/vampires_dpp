@@ -35,7 +35,7 @@ def load_calibration_file(header):
         # table_key = MBI_MM_DICT[header["FIELD"]] if "FIELD" in header else "675"
         table_key = header["FIELD"]
         if table_key == "F610":
-            table_key = "625"
+            table_key = "675"
     else:
         # closest match to Open is 675
         table_key = "675" if filt == "Open" else filt.replace("-50", "")
@@ -43,10 +43,27 @@ def load_calibration_file(header):
     return table.loc[table_key]
 
 
+def wave2rad(wave):
+    return wave * 2 * np.pi
+
+
+def get_m3_values(header):
+    wave = header["WAVEAVE"]
+    vals_waves = np.array([0.610, 0.625, 0.670, 0.675, 0.720, 0.725, 0.750, 0.760, 0.775])
+    vals_n = np.array(
+        [0.14674, 0.14970, 0.15823, 0.15914, 0.16689, 0.16770, 0.17162, 0.17312, 0.17528]
+    )
+    vals_k = np.array([3.9514, 4.0652, 4.4024, 4.4396, 4.7733, 4.8102, 4.9947, 5.0684, 5.1789])
+    n = np.interp(wave, vals_waves, vals_n)
+    k = np.interp(wave, vals_waves, vals_k)
+    return mm.diatt_ret_from_coeff(np.deg2rad(45), n, k)
+
+
 class VAMPIRESMuellerMatrix(BaseModel):
     name: str = "ideal"
     m3_diat: float = 0
     m3_offset: float = 0  # deg
+    m3_phi: float = 0.5  # wave
     hwp_offset: float = 0  # deg
     hwp_phi: float = 0.5  # wave
     imr_offset: float = 0  # deg
@@ -61,7 +78,7 @@ class VAMPIRESMuellerMatrix(BaseModel):
         # telescope
         pa_theta = np.deg2rad(pa)
         m3_theta = np.deg2rad(self.m3_offset)
-        m3 = mm.generic(epsilon=self.m3_diat, theta=m3_theta, delta=np.pi)
+        m3 = mm.generic(epsilon=self.m3_diat, theta=m3_theta, delta=wave2rad(self.m3_phi))
         alt_theta = np.deg2rad(alt)
         tel_mm = mm.rotator(-alt_theta) @ m3 @ mm.rotator(pa_theta)
 
@@ -72,17 +89,17 @@ class VAMPIRESMuellerMatrix(BaseModel):
         else:
             hwp_adi_offset_rad = 0
         hwp_theta = np.deg2rad(hwp + self.hwp_offset) + hwp_adi_offset_rad
-        hwp_mm = mm.waveplate(hwp_theta, self.hwp_phi * 2 * np.pi)
+        hwp_mm = mm.waveplate(hwp_theta, delta=wave2rad(self.hwp_phi))
 
         # Image rotator
         imr_theta = np.deg2rad(imr + self.imr_offset)
-        imr_mm = mm.waveplate(imr_theta, self.imr_phi * 2 * np.pi)
+        imr_mm = mm.waveplate(imr_theta, delta=wave2rad(self.imr_phi))
 
         # SCExAO optics
         optics_mm = mm.generic(
             epsilon=self.optics_diat,
             theta=np.deg2rad(self.optics_theta),
-            delta=self.optics_phi * 2 * np.pi,
+            delta=wave2rad(self.optics_phi),
         )
         return optics_mm @ imr_mm @ hwp_mm @ tel_mm
 
@@ -92,16 +109,18 @@ class VAMPIRESMuellerMatrix(BaseModel):
 
         # FLC
         flc_theta = np.deg2rad(self.flc_theta[flc_state])
-        flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
+        flc_mm = mm.waveplate(flc_theta, delta=wave2rad(self.flc_phi))
 
-        # beamsplitter - horizontal/ordinary to camera 1
-        is_ordinary = camera == 2
+        # beamsplitter - vertical/ordinary to camera 2
+        is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
 
         M = pbs_mm @ flc_mm @ cp_mm
         return M.astype("f4")
 
     def from_header(self, header: fits.Header, **kwargs) -> NDArray:
+        m3_diat, m3_phi = get_m3_values(header)
+        self.m3_phi = m3_phi
         return self(
             pa=header["PA"],
             alt=header["ALTITUDE"],
@@ -137,32 +156,24 @@ class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
 
 class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
     flc_theta: dict[str, float] = {"A": 0, "B": 43}  # deg
-    dichroic_diat: float = 0
-    dichroic_theta: float = 0  # deg
-    dichroic_phi: float = 0  # wave
 
     def __call__(self, use_flc: bool, flc_state: str, camera: int, *args, **kwargs) -> NDArray:
+
         ## build up mueller matrix component by component
         cp_mm = self.common_path_mm(*args, **kwargs)
 
         # FLC
         if use_flc:
             flc_theta = np.deg2rad(self.flc_theta[flc_state])
-            flc_mm = mm.waveplate(flc_theta, self.flc_phi * 2 * np.pi)
+            flc_mm = mm.waveplate(flc_theta, delta=wave2rad(self.flc_phi))
         else:
             flc_mm = np.eye(4)
 
-        dichroic_mm = mm.generic(
-            np.deg2rad(self.dichroic_theta),
-            self.dichroic_diat,
-            np.deg2rad(self.dichroic_phi) * 2 * np.pi,
-        )
-
-        # beamsplitter
-        is_ordinary = camera == 2
+        # beamsplitter - vertical/ordinary to camera 2
+        is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
 
-        M = pbs_mm @ dichroic_mm @ flc_mm @ cp_mm
+        M = pbs_mm @ flc_mm @ cp_mm
         return M.astype("f4")
 
     def from_header(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
@@ -171,6 +182,10 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         if hwp_adi_sync != actual_hwp_adi_sync:
             msg = f"You set HWP ADI sync to {hwp_adi_sync!r} but RET-MOD1 was {header['RET-MOD1'].strip()!r}"
             warnings.warn(msg, stacklevel=2)
+
+        m3_diat, m3_phi = get_m3_values(header)
+        self.m3_diat = m3_diat
+        self.m3_phi = m3_phi
 
         return self(
             pa=header["PA"],

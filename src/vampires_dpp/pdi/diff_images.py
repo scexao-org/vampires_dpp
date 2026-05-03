@@ -46,9 +46,9 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
             hdrs[key] = [hdul[i].header for i in range(2, len(hdul))]
     if len(data) < 2:
         return None
-    single_diff = 0.5 * (data[1] - data[2])
-    single_sum = 0.5 * (data[1] + data[2])
-    single_err = 0.5 * np.hypot(errs[1], errs[2])
+    single_diff = 0.5 * (data[2] - data[1])
+    single_sum = 0.5 * (data[2] + data[1])
+    single_err = 0.5 * np.hypot(errs[2], errs[1])
     comb_hdrs = []
     for i in range(single_diff.shape[-3]):
         headers = (hdrs[1][i], hdrs[2][i])
@@ -97,8 +97,8 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
     if len(data) < 4:
         return None
 
-    diff_A = data[1, "A"] - data[2, "A"]
-    diff_B = data[1, "B"] - data[2, "B"]
+    diff_A = data[2, "A"] - data[1, "A"]
+    diff_B = data[2, "B"] - data[1, "B"]
     double_diff = 0.5 * (diff_A - diff_B)
     double_sum = 2 * np.mean(list(data.values()), axis=0)
     double_err = 0.5 * np.sqrt(np.sum(np.power(list(errs.values()), 2), axis=0))
