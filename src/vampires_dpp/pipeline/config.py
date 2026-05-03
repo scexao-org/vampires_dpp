@@ -394,6 +394,7 @@ class PolarimetryConfig(BaseModel):
     ip_radius: float = 15
     ip_radius2: float | None = None
     cyl_stokes: Literal["azimuthal", "radial"] = "azimuthal"
+    mask_satspots: bool = False
 
     def model_post_init(self, __context: Any) -> None:
         if self.mm_correct and not self.derotate:

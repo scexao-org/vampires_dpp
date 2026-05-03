@@ -12,7 +12,7 @@ from numpy.typing import NDArray
 
 from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
-from vampires_dpp.image_processing import derotate_cube, derotate_frame
+from vampires_dpp.image_processing import create_satspot_footprint, derotate_cube, derotate_frame
 from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs
@@ -612,6 +612,7 @@ def make_stokes_image(
     coronagraphic: bool = False,
     pol_aper_rad=8,
     pol_ann_rad=None,
+    mask_satspots: bool = False,
     force: bool = False,
 ):
     if not force and outpath.exists() and not any_file_newer(path_set, outpath):
@@ -711,6 +712,13 @@ def make_stokes_image(
             )
             stokes_frame_err[2] = np.hypot(stokes_frame_err[2], pQ * stokes_frame_err[0])
             stokes_frame_err[3] = np.hypot(stokes_frame_err[3], pU * stokes_frame_err[1])
+
+        if mask_satspots:
+            mask = create_satspot_footprint(
+                stokes_frame.shape[-2:], stokes_header, derotate=derotate
+            )
+            stokes_frame[..., mask] = np.nan
+            stokes_frame_err[..., mask] = np.nan
 
         stokes_header["CTYPE3"] = "STOKES"
         stokes_header["STOKES"] = "I_Q,I_U,Q,U", "Stokes axis data type"

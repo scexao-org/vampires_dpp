@@ -222,6 +222,21 @@ def register_hdul(
     return output_hdul
 
 
+def sort_offsets(offsets):
+    if len(offsets) > 1:
+        # satspot1 is up
+        idx1 = np.argmax(offsets[:, 0])
+        # satpot2 is left
+        idx2 = np.argmin(offsets[:, 1])
+        # satspot3 is down
+        idx3 = np.argmin(offsets[:, 0])
+        # satspot4 is right
+        idx4 = np.argmax(offsets[:, 1])
+        return offsets[[idx1, idx2, idx3, idx4]]
+    else:
+        return offsets
+
+
 def recenter_hdul(
     hdul: fits.HDUList,
     window_centers,
@@ -238,8 +253,10 @@ def recenter_hdul(
     window_offsets = window_array - np.mean(window_array, axis=1, keepdims=True)
     field_center = frame_center(data_cube)
     ## Measure centroid
+    rows = []
     for wl_idx in range(window_array.shape[0]):
         frame = data_cube[wl_idx]
+        field_name = hdul[2 + wl_idx].header["FIELD"]
 
         offsets = []
         for psf_idx in range(window_array.shape[1]):
@@ -255,11 +272,32 @@ def recenter_hdul(
 
             offsets.append(field_center - center)
         offsets = np.array(offsets)
+        offsets = sort_offsets(offsets)
         if len(offsets) == 4:
             ox, oy = intersect_point(offsets[:, 1], offsets[:, 0])
             offset = np.array((oy, ox))
+            _centroids = field_center + offsets + 1
+            rows.append(
+                {
+                    f"hierarch DPP PSF {field_name} 1 X": (_centroids[0, 1], "[pix]"),
+                    f"hierarch DPP PSF {field_name} 1 Y": (_centroids[0, 0], "[pix]"),
+                    f"hierarch DPP PSF {field_name} 2 X": (_centroids[1, 1], "[pix]"),
+                    f"hierarch DPP PSF {field_name} 2 Y": (_centroids[1, 0], "[pix]"),
+                    f"hierarch DPP PSF {field_name} 3 X": (_centroids[2, 1], "[pix]"),
+                    f"hierarch DPP PSF {field_name} 3 Y": (_centroids[2, 0], "[pix]"),
+                    f"hierarch DPP PSF {field_name} 4 X": (_centroids[3, 1], "[pix]"),
+                    f"hierarch DPP PSF {field_name} 4 Y": (_centroids[3, 0], "[pix]"),
+                }
+            )
+
         else:
             offset = offsets[0]
+            rows.append(
+                {
+                    f"hierarch DPP PSF {field_name} 1 X": (field_center[1], "[pix]"),
+                    f"hierarch DPP PSF {field_name} 1 Y": (field_center[0], "[pix]"),
+                }
+            )
 
         data_cube[wl_idx] = shift_frame(frame, offset)
         err_cube[wl_idx] = shift_frame(err_cube[wl_idx], offset)
@@ -267,6 +305,8 @@ def recenter_hdul(
     info = fits.Header()
     info["hierarch DPP RECENTER"] = True, "Data was registered after coadding"
     info["hierarch DPP RECENTER METH"] = method, "DPP recentering registration method"
+    for d in rows:
+        info.update(d)
 
     for hdu in hdul:
         hdu.header.update(info)

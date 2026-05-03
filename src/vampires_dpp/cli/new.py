@@ -457,6 +457,11 @@ def get_pdi_settings(template: PipelineConfig) -> PipelineConfig:
                 ann_rad = list(map(float, resp.replace(" ", "").split(",")))
                 template.polarimetry.ip_radius = ann_rad[0]
                 template.polarimetry.ip_radius2 = ann_rad[1]
+        if template.coronagraphic:
+            template.polarimetry.mask_satspots = click.confirm(
+                "- Would you like to mask the satellite spots in the Stokes images?",
+                default=template.polarimetry.mask_satspots,
+            )
 
         template.polarimetry.cyl_stokes = click.prompt(
             " - Choose cylindrical Stokes system",

@@ -242,3 +242,75 @@ def create_footprint(cube, angles):
     mask = np.isfinite(cube)
     derot = derotate_cube(mask.astype(float), angles)
     return bn.nanmean(derot, axis=0)
+
+
+def create_satspot_footprint(shape, header, /, nfwhm=3, derotate=False):
+    locations = get_satspot_locations(header)
+
+    fwhm = header["RESELEM"] / header["PXSCALE"]
+    box_size = int(np.ceil(nfwhm * fwhm))
+    stamp = np.ones((box_size, box_size), dtype="f4")
+
+    frame_mask = np.zeros(shape, dtype="f4")
+    for location in locations:
+        insert_psf(frame_mask, stamp, *location)
+
+    if derotate:
+        frame_mask = derotate_frame(frame_mask, header["DEROTANG"])
+
+    cutoff = 0.5
+    return frame_mask >= cutoff
+
+
+def get_satspot_locations(header):
+    field_name = header["FIELD"]
+    locations = []
+    for psf_idx in range(1, 5):
+        # subtract 1 to go from FITS -> numpy coordinates
+        cx = header[f"hierarch DPP PSF {field_name} {psf_idx} X"] - 1
+        cy = header[f"hierarch DPP PSF {field_name} {psf_idx} Y"] - 1
+        locations.append((cx, cy))
+
+    return np.array(locations)
+
+
+def insert_psf(frame, psf, cx, cy):
+    h, w = psf.shape[:2]
+    H, W = frame.shape[:2]
+
+    # Compute top-left (float)
+    x = cx - w / 2
+    y = cy - h / 2
+
+    # Integer anchor
+    xi = int(np.floor(x))
+    yi = int(np.floor(y))
+
+    # Fractional shift
+    dx = x - xi
+    dy = y - yi
+
+    # Shift source by fractional amount
+    M = np.array([[1, 0, dx], [0, 1, dy]], dtype="f4")
+
+    shifted = cv2.warpAffine(
+        psf, M, (w, h), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT, borderValue=0
+    )
+
+    # Now paste like integer version
+    x1 = max(xi, 0)
+    y1 = max(yi, 0)
+    x2 = min(xi + w, W)
+    y2 = min(yi + h, H)
+
+    if x1 >= x2 or y1 >= y2:
+        return psf
+
+    sx1 = x1 - xi
+    sy1 = y1 - yi
+    sx2 = sx1 + (x2 - x1)
+    sy2 = sy1 + (y2 - y1)
+
+    frame[y1:y2, x1:x2] = shifted[sy1:sy2, sx1:sx2]
+
+    return frame

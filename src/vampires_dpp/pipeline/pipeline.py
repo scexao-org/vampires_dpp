@@ -226,9 +226,9 @@ class Pipeline:
             # fit similarity transform (scale + rotation + translation) from cam2 centroids to cam1 centroids
             tform = transform.SimilarityTransform()
             success = tform.estimate(cam2_offsets[key], cam1_offsets[key])
-            assert (
-                success
-            ), "Determining scale+rot transformation between cameras failed, check input centroids!"
+            assert success, (
+                "Determining scale+rot transformation between cameras failed, check input centroids!"
+            )
             # only save the rotation and scaling portions-- the translation will be handled during image registration
             self.reproject_tforms[key] = transform.SimilarityTransform(
                 scale=tform.scale, rotation=tform.rotation
@@ -575,6 +575,7 @@ class Pipeline:
             coronagraphic=self.config.coronagraphic,
             pol_aper_rad=self.config.analysis.phot_aper_rad,
             pol_ann_rad=self.config.analysis.phot_ann_rad,
+            mask_satspots=config.mask_satspots,
             force=force,
         )
         # TODO this is kind of ugly
