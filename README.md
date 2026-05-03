@@ -4,6 +4,7 @@
 [![Docs](https://github.com/scexao-org/vampires_dpp/actions/workflows/docs.yml/badge.svg?branch=main)](https://scexao-org.github.io/vampires_dpp)
 [![Coverage](https://codecov.io/gh/scexao-org/vampires_dpp/branch/main/graph/badge.svg)](https://codecov.io/gh/scexao-org/vampires_dpp)
 [![License](https://img.shields.io/github/license/scexao-org/vampires_dpp?color=yellow)](LICENSE)
+[![Python versions](https://img.shields.io/badge/python-%3E%3D3.10-3776AB?logo=python&logoColor=white)](https://github.com/scexao-org/vampires_dpp/actions/workflows/CI.yml)
 
  `vampires_dpp` is still under development, and the API can change without notice. Use with your own caution (and please report any bugs you find).
 

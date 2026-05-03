@@ -3,6 +3,8 @@
 
 ## Python Versions
 
+`vampires_dpp` requires **Python 3.10 or newer**. CI tests run against 3.10 (minimum), 3.14 (latest stable), and 3.15 (pre-release) on Linux, macOS, and Windows.
+
 ```{admonition} Managing python versions
 :class: tip
 
