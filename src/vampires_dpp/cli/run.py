@@ -75,8 +75,8 @@ def run(config: Path, filenames, num_proc, outdir, verbose, redo):
         msg = "No files input to pipeline! Double check command-line input for typos"
         raise ValueError(msg)
     pipeline.run(filenames, num_proc=num_proc, redo=redo)
-    # only run PDI if specified
-    if pipeline.config.polarimetry is not None:
+    # adi and diff are independent of pdi — skip polarimetry when targeting either
+    if pipeline.config.polarimetry is not None and redo not in ("adi", "diff"):
         pipeline.run_polarimetry(num_proc=num_proc, redo=redo)
 
 

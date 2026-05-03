@@ -157,12 +157,11 @@ class Pipeline:
         self.output_table = header_table(self.output_paths, num_proc=num_proc, quiet=True)
         self.save_output_header()
 
-        ## products
-        if self.config.save_adi_cubes:
+        ## products — adi, diff, and pdi are independent leaves; skip when targeting another
+        if self.config.save_adi_cubes and redo not in ("diff", "pdi"):
             self.save_adi_cubes(force=force_adi)
 
-        ## diff images
-        if self.config.diff_images.make_diff:
+        if self.config.diff_images.make_diff and redo not in ("adi", "pdi"):
             self.make_diff_images(self.output_table, force=force_diff)
 
         logger.success("Finished processing files")
