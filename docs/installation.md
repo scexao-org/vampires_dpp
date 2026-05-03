@@ -42,15 +42,9 @@ dpp --version
 To run the unit tests:
 
 ```bash
-uv sync --extra test
+uv run --extra test pytest
 # or
-pip install -e ".[test]"
-```
-
-then execute:
-
-```bash
-pytest
+pip install -e ".[test]" && pytest
 ```
 
 This will automatically run the tests with plugins enabled. All of the tests should (of course) pass. If any of the tests don't pass and if you can't sort out why, [open an issue on GitHub](https://github.com/scexao-org/vampires_dpp/issues).

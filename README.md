@@ -28,9 +28,17 @@ For local development, clone the repository and install in editable mode:
 ```sh
 git clone https://github.com/scexao-org/vampires_dpp
 cd vampires_dpp
-uv sync --extra dev --extra test
+uv sync --extra dev
 # or
-pip install -e ".[dev,test]"
+pip install -e ".[dev]"
+```
+
+Run the test suite with:
+
+```sh
+uv run --extra test pytest
+# or
+pip install -e ".[test]" && pytest
 ```
 
 ## Citing
