@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "vampires_dpp"
@@ -44,7 +44,7 @@ repository = "https://github.com/scexao-org/vampires_dpp"
 documentation = "https://scexao-org.github.io/vampires_dpp/"
 
 [project.optional-dependencies]
-dev = ["ruff"]
+dev = ["ty"]
 test = [
     "pytest",
     "pytest_cov",
@@ -64,8 +64,11 @@ docs = [
 [project.scripts]
 dpp = "vampires_dpp.cli.main:main"
 
-[tool.setuptools.dynamic]
-version = {attr = "vampires_dpp.__version__"}
+[tool.hatch.version]
+path = "src/vampires_dpp/__init__.py"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.pytest.ini_options]
 log_cli = false
@@ -76,6 +79,11 @@ addopts = "--randomly-seed=4796"
 [tool.coverage.run]
 source = ["vampires_dpp"]
 
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
 
 [tool.ruff.lint]
 # pycodestyle, pydocstyle, isort, pyupgrade, pylint, tidyimports, use-pathlib, numpy, errmsg
@@ -83,12 +91,6 @@ select = ["E", "F", "B", "SIM", "I", "UP", "TID", "PTH", "NPY", "EM", "NPY201"]
 ignore = [
     "E501", # line too long
 ]
-
-[tool.ruff]
-line-length = 100
-
-[tool.ruff.format]
-skip-magic-trailing-comma = true
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "parents"
@@ -98,3 +100,6 @@ split-on-trailing-comma = false
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ty.environment]
+python-version = "3.10"
