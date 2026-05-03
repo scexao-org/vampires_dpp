@@ -39,6 +39,9 @@ def offset_dft(frame, inds, psf):
     # offset based on indices
     ctr[-2] += inds[-2].start
     ctr[-1] += inds[-1].start
+    if np.any(ctr < 0) or np.any(ctr > frame.shape):
+        msg = f"DFT centroid ({ctr}) is not contained within image bounds ([0, {frame.shape[-2]}], [0, {frame.shape[-1]}])"
+        raise ValueError(msg)
     # plt.imshow(frame, origin="lower", cmap="magma")
     # # plt.imshow(psf, origin="lower", cmap="magma")
     # plt.scatter(ctr[-1], ctr[-2], marker='+', s=100, c="cyan")
@@ -129,7 +132,7 @@ def register_hdul(
         centroids = np.zeros((nframes, len(init_centroids), 2))
         for j in range(centroids.shape[1]):
             centroids[:, j] = get_center(
-                hdul[0].data, init_centroids[j], hdul[0].header["U_CAMERA"], nbs_flag=nbs_flag 
+                hdul[0].data, init_centroids[j], hdul[0].header["U_CAMERA"], nbs_flag=nbs_flag
             )
     elif "MBIR" in header["OBS-MOD"]:
         ctr_dict = get_mbi_centers(hdul[0].data, reduced=True)
@@ -165,6 +168,7 @@ def register_hdul(
             # determine offset for each field
             field_ctr = centroids[tidx, wlidx]
             # generate cutouts with crop width
+            # print(f"{frame.shape=} {field_ctr=}")
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
             cutout_err = Cutout2D(frame_err, field_ctr[::-1], size=crop_width, mode="partial")
 
@@ -551,7 +555,7 @@ def autocentroid_hdul(
             fig.savefig(save_path / f"cam{header['U_CAMERA']}_centroid.pdf")
             plt.show(block=True)
         return output
-    
+
     output = []
     if psfs is None:
         psfs = [create_synth_psf(header, filt, npix=window_size) for filt in fields]
