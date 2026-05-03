@@ -1,5 +1,3 @@
-import warnings
-
 import bottleneck as bn
 import cv2
 import numpy as np
@@ -8,31 +6,34 @@ from numpy.typing import ArrayLike, NDArray
 from vampires_dpp.indexing import cutout_inds, frame_center, frame_radii
 
 
-def shift_frame(data: ArrayLike, shift: list | tuple, **kwargs) -> NDArray:
-    """Shifts a single frame by the given offset
+def shift_frame(data: ArrayLike, shift: tuple[float, float]) -> NDArray:
+    """Shift a single frame by the given offset using Fourier-domain shifting.
+
+    Supports sub-pixel shifts. Uses periodic boundary conditions.
 
     Parameters
     ----------
     data : ArrayLike
         2D frame to shift
-    shift : list | Tuple
+    shift : tuple[float, float]
         Shift (dy, dx) in pixels
-    **kwargs
-        Keyword arguments are passed to `warp_frame`
 
     Returns
     -------
     NDArray
         Shifted frame
     """
-    M = np.float32(((1, 0, shift[1]), (0, 1, shift[0])))
-    return warp_frame(data, M, **kwargs)
+    data = np.asarray(data, dtype="f8")
+    fy = np.fft.fftfreq(data.shape[-2])
+    fx = np.fft.fftfreq(data.shape[-1])
+    phase = np.exp(-2j * np.pi * (shift[0] * fy[:, None] + shift[1] * fx[None, :]))
+    return np.real(np.fft.ifft2(np.fft.fft2(data) * phase))
 
 
 def derotate_frame(
     data: ArrayLike, angle: float, center: list | tuple | None = None, **kwargs
 ) -> NDArray:
-    """Rotates a single frame clockwise by the given angle in degrees.
+    """Rotate a single frame clockwise by the given angle in degrees.
 
     Parameters
     ----------
@@ -40,7 +41,7 @@ def derotate_frame(
         2D frame to derotate
     angle : float
         Angle, in degrees
-    center : Optional[list | Tuple]
+    center : Optional[list | tuple]
         Point defining the axis of rotation. If `None`, will use the frame center. Default is `None`.
     **kwargs
         Keyword arguments are passed to `warp_frame`
@@ -57,7 +58,7 @@ def derotate_frame(
 
 
 def warp_frame(data: ArrayLike, matrix, antialias: bool = False, **kwargs) -> NDArray:
-    """Geometric frame warping. By default will use bicubic interpolation with `NaN` padding.
+    """Geometric frame warping using Lanczos4 interpolation with NaN padding by default.
 
     Parameters
     ----------
@@ -65,8 +66,10 @@ def warp_frame(data: ArrayLike, matrix, antialias: bool = False, **kwargs) -> ND
         2D image
     matrix : ArrayLike
         Geometric transformation matrix
+    antialias : bool
+        Apply Gaussian blur before warping to reduce aliasing when downsampling.
     **kwargs
-        Keyword arguments are passed to opencv. Important keywords like `borderValue`, `borderMode`, and `flags` can customize the padding and interpolation behavior of the transformation.
+        Keyword arguments passed to opencv (e.g. `borderValue`, `borderMode`).
 
     Returns
     -------
@@ -87,7 +90,7 @@ def warp_frame(data: ArrayLike, matrix, antialias: bool = False, **kwargs) -> ND
 
 
 def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArray:
-    """Derotates a cube clockwise frame-by-frame with the corresponding derotation angle vector.
+    """Derotate a cube clockwise frame-by-frame with the corresponding angle vector.
 
     Parameters
     ----------
@@ -101,11 +104,8 @@ def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArr
     NDArray
         Derotated cube
     """
-    # reverse user-given center because scikit-image
-    # uses swapped axes for this parameter only
     angles = np.asarray(angles)
     rotated = np.empty_like(data)
-    # if angles is a scalar, broadcoast along frame index
     if angles.size == 1:
         angles = np.full(rotated.shape[0], angles)
     for idx in range(rotated.shape[0]):
@@ -113,13 +113,15 @@ def derotate_cube(data: ArrayLike, angles: ArrayLike | float, **kwargs) -> NDArr
     return rotated
 
 
-def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs) -> NDArray:
-    """Translate each frame in a cube.
+def shift_cube(cube: ArrayLike, shifts: ArrayLike) -> NDArray:
+    """Translate each frame in a cube using vectorized Fourier-domain shifting.
+
+    Processes the entire cube in a single FFT call with no Python loop.
 
     Parameters
     ----------
     cube : ArrayLike
-        3D cube
+        3D cube (nframes, ny, nx)
     shifts : ArrayLike
         Array of (dy, dx) pairs, one for each frame in the input cube
 
@@ -128,23 +130,29 @@ def shift_cube(cube: ArrayLike, shifts: ArrayLike, **kwargs) -> NDArray:
     NDArray
         Shifted cube
     """
-    out = np.empty_like(cube)
-    for i in range(cube.shape[0]):
-        out[i] = shift_frame(cube[i], shifts[i], **kwargs)
-    return out
+    cube = np.asarray(cube, dtype="f8")
+    shifts = np.asarray(shifts)
+    fy = np.fft.fftfreq(cube.shape[-2])
+    fx = np.fft.fftfreq(cube.shape[-1])
+    phase = np.exp(
+        -2j
+        * np.pi
+        * (
+            shifts[:, 0, None, None] * fy[None, :, None]
+            + shifts[:, 1, None, None] * fx[None, None, :]
+        )
+    )
+    return np.real(np.fft.ifft2(np.fft.fft2(cube) * phase))
 
 
-def radial_profile_image(frame, fwhm=3):
+def radial_profile_image(frame: NDArray, fwhm: float = 3) -> NDArray:
     rs = frame_radii(frame)
-    bins = np.arange(rs.min(), rs.max())
-    output = np.zeros_like(frame)
-    for r in bins:
-        mask = (rs >= r - fwhm / 2) & (rs < r + fwhm / 2)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            output[mask] = np.nanmedian(frame[mask])
-
-    return output
+    r_bins = np.arange(int(rs.min()), int(rs.max()) + 1)
+    profile = np.array(
+        [np.nanmedian(frame[(rs >= r - fwhm / 2) & (rs < r + fwhm / 2)]) for r in r_bins]
+    )
+    r_idx = np.clip(np.round(rs).astype(int) - int(rs.min()), 0, len(profile) - 1)
+    return profile[r_idx]
 
 
 def pad_cube(cube, pad_width: int, header=None, **pad_kwargs):
@@ -161,10 +169,8 @@ def crop_to_nans_inds(data: NDArray) -> NDArray:
     Crop numpy array to min/max indices that have finite values. In other words,
     trims the edges off where everything is NaN.
     """
-    # determine first index that contains finite value
     is_finite = np.isfinite(data)
     ndim_range = range(data.ndim)
-    # reduce over every axis except the image axes
     axes = tuple(set(ndim_range) - set(ndim_range[-2:]))
     finite_x = np.where(np.any(is_finite, axis=axes))[0]
     finite_y = np.where(np.any(is_finite, axis=axes))[0]
@@ -172,25 +178,42 @@ def crop_to_nans_inds(data: NDArray) -> NDArray:
     min_x, max_x = finite_x[0], finite_x[-1]
     min_y, max_y = finite_y[0], finite_y[-1]
     cy, cx = frame_center(data)
-    # don't just take min to max indices, calculate the radius
-    # of each extreme to the center and keep everything centered
     radius = max(max_x - cx, cx - min_x, max_y - cy, cy - min_y)
     return cutout_inds(data, center=(cy, cx), window=int(radius * 2))
 
 
-def adaptive_sigma_clip_mask(data, sigma=10, boxsize=8):
-    grid = np.arange(boxsize // 2, data.shape[0], step=boxsize)
-    output_mask = np.zeros_like(data, dtype=bool)
-    boxsize / 2
-    for yi in grid:
-        for xi in grid:
-            inds = cutout_inds(data, center=(yi, xi), window=boxsize)
-            cutout = data[inds]
-            med = np.nanmedian(cutout, keepdims=True)
-            std = np.nanstd(cutout, keepdims=True)
-            output_mask[inds] = np.abs(cutout - med) > sigma * std
+def adaptive_sigma_clip_mask(data: NDArray, sigma: float = 10, boxsize: int = 8) -> NDArray:
+    """Compute a sigma-clip bad pixel mask using non-overlapping local blocks.
 
-    return output_mask
+    Parameters
+    ----------
+    data : NDArray
+        2D image
+    sigma : float
+        Sigma threshold for clipping
+    boxsize : int
+        Size of the local block for computing statistics
+
+    Returns
+    -------
+    NDArray
+        Boolean mask, True where pixels are clipped
+    """
+    ny, nx = data.shape
+    pad_y = (-ny) % boxsize
+    pad_x = (-nx) % boxsize
+    padded = np.pad(data, ((0, pad_y), (0, pad_x)), constant_values=np.nan)
+    ny_p, nx_p = padded.shape
+
+    # reshape into (nblocks_y, nblocks_x, boxsize, boxsize)
+    blocks = padded.reshape(ny_p // boxsize, boxsize, nx_p // boxsize, boxsize).transpose(
+        0, 2, 1, 3
+    )
+    with np.errstate(all="ignore"):
+        med = np.nanmedian(blocks, axis=(-2, -1), keepdims=True)
+        std = np.nanstd(blocks, axis=(-2, -1), keepdims=True)
+    mask = np.abs(blocks - med) > sigma * std
+    return mask.transpose(0, 2, 1, 3).reshape(ny_p, nx_p)[:ny, :nx]
 
 
 def create_footprint(cube, angles):

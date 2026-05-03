@@ -175,8 +175,9 @@ def register_hdul(
             offset = field_ctr - cutout.position_original[::-1]
 
             # shift arrays, since it's subpixel don't worry about losing edges
-            shifted = shift_frame(cutout.data, offset, borderMode=cv2.BORDER_REFLECT)
-            shifted_err = shift_frame(cutout_err.data, offset, borderMode=cv2.BORDER_REFLECT)
+            shift_matrix = np.float32(((1, 0, offset[1]), (0, 1, offset[0])))
+            shifted = warp_frame(cutout.data, shift_matrix, borderMode=cv2.BORDER_REFLECT)
+            shifted_err = warp_frame(cutout_err.data, shift_matrix, borderMode=cv2.BORDER_REFLECT)
 
             # if reprojecting, scale + rotate images
             if tforms is not None:
