@@ -170,3 +170,7 @@ docs/jupyter_execute
 
 tests/data
 tmp
+.ruff_cache
+.showyourwork
+.snakemake
+.claude
