@@ -94,8 +94,14 @@ class Pipeline:
             Force a specific stage to rerun. Downstream stages cascade via the dirty flag.
             One of: "calibrate", "combine", "metrics", "select", "align", "coadd", "adi", "diff", "pdi".
         """
-        # any sub-stage of process_group forces the group to re-run
-        force_process = redo in ("calibrate", "combine", "metrics", "select", "align", "coadd")
+        # calibrate/combine/metrics/align are always active; select and coadd are optional.
+        # Only force process stages that are actually enabled in the config.
+        _enabled_process_stages = {"calibrate", "combine", "metrics", "align"}
+        if self.config.frame_select.frame_select:
+            _enabled_process_stages.add("select")
+        if self.config.coadd.coadd:
+            _enabled_process_stages.add("coadd")
+        force_process = redo in _enabled_process_stages
         force_adi = redo == "adi"
         force_diff = redo == "diff"
 
