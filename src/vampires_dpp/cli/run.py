@@ -101,7 +101,7 @@ def run(config: Path, filenames, num_proc, outdir, verbose, redo):
 @click.option(
     "--redo",
     default=None,
-    type=click.Choice(PIPELINE_STAGES),
+    type=click.Choice(["pdi"]),
     help="Force redo a pipeline stage; updated outputs cascade to downstream stages automatically.",
 )
 def pdi(config, filenames, num_proc, verbose, outdir, redo):
