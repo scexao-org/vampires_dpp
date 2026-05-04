@@ -8,7 +8,9 @@ from rich.progress import (
     MofNCompleteColumn,
     Progress,
     SpinnerColumn,
+    TaskProgressColumn,
     TextColumn,
+    TimeElapsedColumn,
     TimeRemainingColumn,
 )
 
@@ -47,8 +49,11 @@ def make_progress(**kwargs) -> Progress:
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
         MofNCompleteColumn(),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
         TimeRemainingColumn(),
         console=console,
+        transient=True,
         **kwargs,
     )
 

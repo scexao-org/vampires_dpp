@@ -155,7 +155,11 @@ def collapse_frames_files(filenames, output, force=False, quiet=True, fix=False,
 
     frames = []
     headers = []
-    _iter = progress.track(filenames, description="Collecting files") if not quiet else filenames
+    _iter = (
+        progress.track(filenames, description="Collecting files", transient=True)
+        if not quiet
+        else filenames
+    )
     for filename in _iter:
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>

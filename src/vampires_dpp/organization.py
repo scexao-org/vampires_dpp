@@ -79,7 +79,11 @@ def header_table(
         num_proc = min(8, mp.cpu_count())
     with mp.Pool(num_proc) as pool:
         jobs = [pool.apply_async(dict_from_header_file, args=(f,), kwds=kwargs) for f in filenames]
-        iter = jobs if quiet else progress.track(jobs, description="Parsing FITS headers")
+        iter = (
+            jobs
+            if quiet
+            else progress.track(jobs, description="Parsing FITS headers", transient=True)
+        )
         rows = [job.get() for job in iter]
 
     return pd.DataFrame(rows)
@@ -102,7 +106,7 @@ def sort_files(
             kwds = dict(outdir=outdir, copy=copy, decompress=decompress, **kwargs)
             jobs.append(pool.apply_async(sort_file, args=(filename,), kwds=kwds))
 
-        iter = jobs if quiet else progress.track(jobs, description="Sorting files")
+        iter = jobs if quiet else progress.track(jobs, description="Sorting files", transient=True)
         results = [job.get() for job in iter]
 
     return results
@@ -262,7 +266,7 @@ def check_files(
         for filename in filenames:
             jobs.append(pool.apply_async(check_file, args=(filename,)))
 
-        iter = jobs if quiet else progress.track(jobs, description="Checking files")
+        iter = jobs if quiet else progress.track(jobs, description="Checking files", transient=True)
         results = [job.get() for job in iter]
 
     return results

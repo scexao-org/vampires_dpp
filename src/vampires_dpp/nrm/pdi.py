@@ -99,7 +99,7 @@ def process_nrm_polarimetry(table: pd.DataFrame, nbootstrap: int = 1000):
     # use for loops to be able to nest the means, avoiding n^2 storage complexity
     _vis_results = []
     _cp_results = []
-    for _ in progress.track(range(nbootstrap), description="Boostrapping PDI"):
+    for _ in progress.track(range(nbootstrap), description="Boostrapping PDI", transient=True):
         _vis_dict = {k: generate_bootstrap_samples(v) for k, v in visibilities_dict.items()}
         _cp_dict = {k: generate_bootstrap_samples(v) for k, v in closure_phases_dict.items()}
         _vis_res = triple_quotient_dict(_vis_dict)

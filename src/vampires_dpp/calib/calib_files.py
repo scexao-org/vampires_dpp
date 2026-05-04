@@ -219,7 +219,9 @@ def process_background_files(
             )
             jobs.append(pool.apply_async(func))
         job_iter = (
-            jobs if quiet else progress.track(jobs, description="Collapsing background frames")
+            jobs
+            if quiet
+            else progress.track(jobs, description="Collapsing background frames", transient=True)
         )
         frames = [job.get() for job in job_iter]
 
@@ -258,7 +260,11 @@ def process_flat_files(
                 force=force,
             )
             jobs.append(pool.apply_async(func))
-        job_iter = jobs if quiet else progress.track(jobs, description="Collapsing flat frames")
+        job_iter = (
+            jobs
+            if quiet
+            else progress.track(jobs, description="Collapsing flat frames", transient=True)
+        )
         frames = [job.get() for job in job_iter]
 
     return frames

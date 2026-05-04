@@ -142,7 +142,9 @@ def norm(filenames, deint: bool, no_filter_empty: bool, num_proc: int, quiet: bo
         for filename in filenames:
             jobs.append(pool.apply_async(normalize_file, args=(filename,), kwds=kwargs))
 
-        iter = jobs if quiet else progress.track(jobs, description="Normalizing files")
+        iter = (
+            jobs if quiet else progress.track(jobs, description="Normalizing files", transient=True)
+        )
         results = [job.get() for job in iter]
 
     return results

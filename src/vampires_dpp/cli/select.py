@@ -69,7 +69,7 @@ def quick_select(filenames):
 
     select_path.parent.mkdir(parents=True, exist_ok=True)
 
-    for filename in progress.track(filenames, description="Selecting files"):
+    for filename in progress.track(filenames, description="Selecting files", transient=True):
         path = Path(filename)
         quick_view(path, scale="sqrt")
         if click.confirm("Would you like to keep this file?", default=True):
