@@ -18,14 +18,6 @@ When possible, we indicate a command that has multi-processing enabled with the 
 In general, multiprocessing does seem to help when not limited by file I/O (e.g., slow hard disk drive), so give it a try!
 ```
 
-```{admonition} Tip: multiprocessing and numpy
-:class: tip
-
-Internal numpy routines can cause multiprocessing to become _much_ slower. In this case, make sure to set the [appropriate environment variables](https://numpy.org/doc/stable/reference/global_state.html#number-of-threads-used-for-linear-algebra).
-
-    export OMP_NUM_THREADS=1
-```
-
 ```{admonition} Warning: Large data volume
 :class: warning
 This pipeline tries to minimize the number of FITS files saved to disk due to the massive volume of VAMPIRES data. To accomplish this, we skip saving intermediate files when possible. Still, you should expect your data volume to increase by a factor of \~2.5. If saving intermediate products, this factor increases to \~6.5 times the raw data size. It is strongly recommended to work with a large attached storage.

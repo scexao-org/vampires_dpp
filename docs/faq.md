@@ -33,13 +33,6 @@ The time it takes to open a file, write to disk, and close it will add a lot to 
 
 Using more processes should improve some parts of the pipeline, but don't expect multiplicative increases in speed since most operations are limited by the storage IO speed. 
 
-```{admonition} Tip: multiprocessing with numpy
-:class: tip
-Make sure when you're multiprocessing to set the correct environment variables in numpy
-
-    OMP_NUM_THREADS=1 dpp run -j <num_proc> <config> <input_filenames>
-    OMP_NUM_THREADS=1 dpp run -j 4 20230101_ABAur_vampires.toml norm/*.fits
-```
 
 ## Semaphore Warnings
 

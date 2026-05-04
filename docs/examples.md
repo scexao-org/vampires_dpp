@@ -13,7 +13,7 @@ TODO get config file!
     dpp calib -o master_cals back dark/**/*.fits skies/**/*.fits
     cd <data folder>
     dpp centroid <config> Open*/*.fits
-    OMP_NUM_THREADS=1 dpp run -j4 <config> Open*/*.fits
+    dpp run -j4 <config> Open*/*.fits
 
 ## 2. (Old) VAMPIRES PDI
 
