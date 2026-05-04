@@ -40,3 +40,14 @@ Make sure when you're multiprocessing to set the correct environment variables i
     OMP_NUM_THREADS=1 dpp run -j <num_proc> <config> <input_filenames>
     OMP_NUM_THREADS=1 dpp run -j 4 20230101_ABAur_vampires.toml norm/*.fits
 ```
+
+## Semaphore Warnings
+
+If you run the pipeline and you see errors like this:
+
+```bash
+UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+```
+
+that is okay. This can happen during multiprocessing and will clear up after your computer restarts. The pipeline and the rest of your computer will run fine even if you see this.
