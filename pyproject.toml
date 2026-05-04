@@ -46,19 +46,19 @@ documentation = "https://scexao-org.github.io/vampires_dpp/"
 [project.optional-dependencies]
 dev = ["ty", "ruff"]
 test = [
-    "pytest",
     "pytest_cov",
     "pytest_randomly",
+    "pytest",
 ]
 docs = [
-    "proplot",
-    "sphinx",
     "myst_nb",
-    "sphinx_book_theme",
-    "sphinxcontrib-eval",
+    "proplot",
     "sphinx_autodoc_typehints",
-    "zenodo_get",
+    "sphinx_book_theme",
     "sphinx_click",
+    "sphinx",
+    "sphinxcontrib-eval",
+    "zenodo_get",
 ]
 
 [project.scripts]
