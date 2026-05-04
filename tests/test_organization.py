@@ -109,7 +109,7 @@ def test_dict_from_header():
     assert summary["D_IMRPAD"] == -118.507
     assert summary["D_IMRPAP"] == -39.0
     assert summary["D_IMRRA"] == "04:55:45.850"
-    assert summary["D_IMR"] == "TRACK"
+    assert summary["D_IMR"] == "progress.track"
     assert summary["D_ADFG"] == 0.0
     assert summary["D_DMCMTX"] == "ao188cmtx.oct"
     assert summary["D_DMGAIN"] == 10.0
@@ -233,7 +233,7 @@ def test_header_table():
     assert summary["D_IMRPAD"] == -118.507
     assert summary["D_IMRPAP"] == -39.0
     assert summary["D_IMRRA"] == "04:55:45.850"
-    assert summary["D_IMR"] == "TRACK"
+    assert summary["D_IMR"] == "progress.track"
     assert summary["D_ADFG"] == 0.0
     assert summary["D_DMCMTX"] == "ao188cmtx.oct"
     assert summary["D_DMGAIN"] == 10.0

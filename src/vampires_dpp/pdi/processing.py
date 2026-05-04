@@ -6,9 +6,9 @@ from typing import TypeVar
 import bottleneck as bn
 import numpy as np
 import pandas as pd
-import tqdm.auto as tqdm
 from astropy.io import fits
 from numpy.typing import NDArray
+from rich import progress
 
 from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
@@ -30,10 +30,10 @@ from .utils import (
 def polarization_calibration_triplediff(filenames: Sequence[str], derotate: bool = True):
     """Return a Stokes cube using the *bona fide* triple differential method. This method will split the input data into sets of 16 frames- 2 for each camera, 2 for each FLC state, and 4 for each HWP angle.
 
-    .. admonition:: Pupil-tracking mode
+    .. admonition:: Pupil-progress.tracking mode
         :class: tip
 
-        For each of these 16 image sets, it is important to consider the apparant sky rotation when in pupil-tracking mode (which is the default for most VAMPIRES observations). With this naive triple-differential subtraction, if there is significant sky motion, the output Stokes frame will be smeared.
+        For each of these 16 image sets, it is important to consider the apparant sky rotation when in pupil-progress.tracking mode (which is the default for most VAMPIRES observations). With this naive triple-differential subtraction, if there is significant sky motion, the output Stokes frame will be smeared.
 
         The parallactic angles for each set of 16 frames should be averaged (``average_angle``) and stored to construct the final derotation angle vector
 
@@ -395,10 +395,10 @@ def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=Fal
     cubes = []
     headers = []
     mueller_mats = []
-    for file, mm_file in tqdm.tqdm(
+    for file, mm_file in progress.progress.track(
         zip(filenames, mm_filenames, strict=True),
         total=len(filenames),
-        desc="Least-squares calibration",
+        description="Least-squares calibration",
     ):
         cube, hdr = load_fits(file, header=True, memmap=False)
         # rotate to N up E left

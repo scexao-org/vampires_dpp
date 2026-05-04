@@ -5,10 +5,10 @@ from typing import Literal, TypeAlias
 
 import bottleneck as bn
 import numpy as np
-import tqdm.auto as tqdm
 from astropy.io import fits
 from astropy.stats import biweight_location
 from numpy.typing import NDArray
+from rich import progress
 
 from vampires_dpp.headers import fix_header, sort_header
 from vampires_dpp.util import load_fits
@@ -155,7 +155,7 @@ def collapse_frames_files(filenames, output, force=False, quiet=True, fix=False,
 
     frames = []
     headers = []
-    _iter = tqdm.tqdm(filenames, "Collecting files") if not quiet else filenames
+    _iter = progress.track(filenames, description="Collecting files") if not quiet else filenames
     for filename in _iter:
         # use memmap=False to avoid "too many files open" effects
         # another way would be to set ulimit -n <MAX_FILES>

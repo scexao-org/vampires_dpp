@@ -3,7 +3,7 @@ from multiprocessing import cpu_count
 from pathlib import Path
 
 import click
-import tqdm.auto as tqdm
+from rich import progress
 
 from vampires_dpp.calib.calib_files import process_background_files, process_flat_files
 from vampires_dpp.calib.normalize import normalize_file
@@ -142,7 +142,7 @@ def norm(filenames, deint: bool, no_filter_empty: bool, num_proc: int, quiet: bo
         for filename in filenames:
             jobs.append(pool.apply_async(normalize_file, args=(filename,), kwds=kwargs))
 
-        iter = jobs if quiet else tqdm.tqdm(jobs, desc="Normalizing files")
+        iter = jobs if quiet else progress.track(jobs, description="Normalizing files")
         results = [job.get() for job in iter]
 
     return results

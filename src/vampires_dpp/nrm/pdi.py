@@ -3,9 +3,9 @@ import warnings
 import h5py
 import numpy as np
 import pandas as pd
-import tqdm.auto as tqdm
 from munch import munchify as dict2class
 from numpy.typing import NDArray
+from rich import progress
 
 from vampires_dpp.pdi.processing import TRIPLEDIFF_SETS, triple_diff_dict
 
@@ -20,7 +20,7 @@ def generate_bootstrap_samples(data: NDArray) -> NDArray:
 
 
 def triple_quotient_dict(
-    input_dict: dict[tuple[float, str, int], NDArray]
+    input_dict: dict[tuple[float, str, int], NDArray],
 ) -> tuple[NDArray, NDArray, NDArray, NDArray]:
     ## make difference images
     # single diff (cams)
@@ -99,7 +99,7 @@ def process_nrm_polarimetry(table: pd.DataFrame, nbootstrap: int = 1000):
     # use for loops to be able to nest the means, avoiding n^2 storage complexity
     _vis_results = []
     _cp_results = []
-    for _ in tqdm.trange(nbootstrap, desc="Boostrapping PDI"):
+    for _ in progress.track(range(nbootstrap), description="Boostrapping PDI"):
         _vis_dict = {k: generate_bootstrap_samples(v) for k, v in visibilities_dict.items()}
         _cp_dict = {k: generate_bootstrap_samples(v) for k, v in closure_phases_dict.items()}
         _vis_res = triple_quotient_dict(_vis_dict)

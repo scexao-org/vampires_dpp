@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 import numpy as np
 from astropy.io import fits
-from tqdm.auto import tqdm
+from rich import progress
 
 from vampires_dpp.registration import get_mbi_cutout
 
@@ -69,7 +69,7 @@ def quick_select(filenames):
 
     select_path.parent.mkdir(parents=True, exist_ok=True)
 
-    for filename in tqdm(filenames, desc="Progress"):
+    for filename in progress.track(filenames, description="Selecting files"):
         path = Path(filename)
         quick_view(path, scale="sqrt")
         if click.confirm("Would you like to keep this file?", default=True):

@@ -368,7 +368,7 @@ class PolarimetryConfig(BaseModel):
     mm_correct:
         Apply Mueller-matrix correction (only applicable to data reduced using the `"difference"` method). By default, True.
     hwp_adi_sync:
-        If true, will assume the HWP is in pupil-tracking mode. By default, True.
+        If true, will assume the HWP is in pupil-progress.tracking mode. By default, True.
     use_ideal_mm:
         If true and doing Mueller-matrix correction (``mm_correct=True``) will use only idealized versions for the components in the
         Mueller-matrix model.

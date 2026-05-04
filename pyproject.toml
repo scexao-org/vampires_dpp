@@ -29,13 +29,13 @@ dependencies = [
     "pydantic",
     "reproject",
     "result",
+    "rich",
     "scikit_image",
     "scipy",
     "sep",
     "synphot",
     "tomli_w",
     "tomli",
-    "tqdm",
 ]
 
 [project.urls]

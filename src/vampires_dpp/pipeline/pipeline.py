@@ -9,9 +9,8 @@ import tomli
 from astropy.io import fits
 from loguru import logger
 from skimage import transform
-from tqdm.auto import tqdm
 
-from vampires_dpp._logging import configure_subprocess_logging
+from vampires_dpp._logging import configure_subprocess_logging, make_progress
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
@@ -152,8 +151,11 @@ class Pipeline:
                         )
                     )
 
-            for job in tqdm(jobs, desc="Processing files"):
-                self.output_paths.append(job.get())
+            with make_progress() as progress:
+                task = progress.add_task("Processing files", total=len(jobs))
+                for job in jobs:
+                    self.output_paths.append(job.get())
+                    progress.advance(task)
 
         self.output_paths.sort()
 
@@ -299,7 +301,7 @@ class Pipeline:
     def process_group(
         self, group, group_key: str, output_path: Path, redo_stage: str | None = None
     ):
-        # Child process: file-only logging; main process owns stderr and the tqdm bars
+        # Child process: file-only logging; main process owns stderr
         logger = configure_subprocess_logging(self.workdir)
 
         force_calibrate = redo_stage == "calibrate"
@@ -589,12 +591,16 @@ class Pipeline:
         cubes = []
         headers = []
         logger.info("Stacking output files into ADI cubes")
-        for _key, group in tqdm(time_groups, desc="Loading and combining both cams"):
-            hduls = [fits.open(path) for path in group["path"]]
-            cube = np.mean([hdul[0].data for hdul in hduls], axis=0)
-            cubes.append(cube)
-            header = combine_frames_headers([hdul[0].header for hdul in hduls])
-            headers.append(header)
+        time_groups = list(time_groups)
+        with make_progress() as progress:
+            task = progress.add_task("Stacking ADI frames", total=len(time_groups))
+            for _key, group in time_groups:
+                hduls = [fits.open(path) for path in group["path"]]
+                cube = np.mean([hdul[0].data for hdul in hduls], axis=0)
+                cubes.append(cube)
+                header = combine_frames_headers([hdul[0].header for hdul in hduls])
+                headers.append(header)
+                progress.advance(task)
         angs = np.array([hdr["DEROTANG"] for hdr in headers])
         # stacked_hdul = combine_hduls(hduls)
         prim_hdr = combine_frames_headers(headers)
@@ -626,9 +632,11 @@ class Pipeline:
             for i, paths in enumerate(path_sets):
                 outpath = outdir / f"{self.config.name}_single_diff_{i:04d}.fits"
                 jobs.append(pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath)))
-            self.diff_files.extend(
-                job.get() for job in tqdm(jobs, desc="Making single diff images")
-            )
+            with make_progress() as progress:
+                task = progress.add_task("Making single-diff images", total=len(jobs))
+                for job in jobs:
+                    self.diff_files.append(job.get())
+                    progress.advance(task)
         if self.config.diff_images.save_double:
             # now set for double-diff
             path_sets = get_doublediff_sets(table)
@@ -643,8 +651,11 @@ class Pipeline:
                     jobs.append(
                         pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath))
                     )
-
-                self.diff_files.extend(job.get() for job in tqdm(jobs, desc="Making diff images"))
+                with make_progress() as progress:
+                    task = progress.add_task("Making double-diff images", total=len(jobs))
+                    for job in jobs:
+                        self.diff_files.append(job.get())
+                        progress.advance(task)
         logger.info("Done making difference frames")
         return self.diff_files
 
@@ -664,8 +675,11 @@ class Pipeline:
                     pool.apply_async(mueller_matrix_from_file, args=(row.path, outpath), kwds=kwds)
                 )
 
-            for job in tqdm(jobs, desc="Making Mueller matrices"):
-                mm_paths.append(job.get())
+            with make_progress() as progress:
+                task = progress.add_task("Making Mueller matrices", total=len(jobs))
+                for job in jobs:
+                    mm_paths.append(job.get())
+                    progress.advance(task)
 
         return mm_paths
 
@@ -724,16 +738,19 @@ class Pipeline:
                     continue
                 jobs.append(pool.apply_async(stokes_func, args=(paths, outpath, mm_paths)))
 
-            for job in tqdm(jobs, desc="Creating Stokes images"):
-                outpath = job.get()
-                # use memmap=False to avoid "too many files open" effects
-                # another way would be to set ulimit -n <MAX_FILES>
-                with fits.open(outpath, memmap=False) as hdul:
-                    stokes_data.append(hdul[0].data)
-                    stokes_err.append(hdul["ERR"].data)
-                    prim_hdrs.append(hdul[0].header)
-                    hdrs = [hdul[i].header for i in range(2, len(hdul))]
-                    stokes_hdrs.append(hdrs)
+            with make_progress() as progress:
+                task = progress.add_task("Creating Stokes images", total=len(jobs))
+                for job in jobs:
+                    outpath = job.get()
+                    # use memmap=False to avoid "too many files open" effects
+                    # another way would be to set ulimit -n <MAX_FILES>
+                    with fits.open(outpath, memmap=False) as hdul:
+                        stokes_data.append(hdul[0].data)
+                        stokes_err.append(hdul["ERR"].data)
+                        prim_hdrs.append(hdul[0].header)
+                        hdrs = [hdul[i].header for i in range(2, len(hdul))]
+                        stokes_hdrs.append(hdrs)
+                    progress.advance(task)
 
         ## Save CSV of Stokes values
         stokes_tbl = pd.DataFrame(
