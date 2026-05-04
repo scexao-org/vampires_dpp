@@ -11,7 +11,7 @@ from loguru import logger
 from skimage import transform
 from tqdm.auto import tqdm
 
-from vampires_dpp._logging import add_logfile, configure_logging
+from vampires_dpp._logging import configure_subprocess_logging
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
@@ -78,8 +78,6 @@ class Pipeline:
         self.paths = Paths(workdir=self.workdir)
         self.output_table_path = self.paths.aux / f"{self.config.name}_table.csv"
         self.verbose = verbose
-        if self.verbose:
-            logger.add(lambda msg: print(msg, end=""), level="DEBUG")
 
     def run(self, filenames, num_proc: int | None = None, redo: str | None = None):
         """Run the pipeline
@@ -301,9 +299,8 @@ class Pipeline:
     def process_group(
         self, group, group_key: str, output_path: Path, redo_stage: str | None = None
     ):
-        # have to reset loggers because inside child-process
-        logger = configure_logging()
-        logger = add_logfile(self.workdir, logger)
+        # Child process: file-only logging; main process owns stderr and the tqdm bars
+        logger = configure_subprocess_logging(self.workdir)
 
         force_calibrate = redo_stage == "calibrate"
         force_combine = redo_stage == "combine"

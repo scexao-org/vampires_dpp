@@ -58,7 +58,7 @@ def log_intro(logger, num_proc, outdir):
     help="Force redo a pipeline stage; updated outputs cascade to downstream stages automatically.",
 )
 def run(config: Path, filenames, num_proc, outdir, verbose, redo):
-    logger = configure_logging()
+    logger = configure_logging(level="DEBUG" if verbose else "INFO")
     logger = add_logfile(outdir, logger)
 
     log_intro(logger, num_proc, outdir)
@@ -105,7 +105,7 @@ def run(config: Path, filenames, num_proc, outdir, verbose, redo):
     help="Force redo a pipeline stage; updated outputs cascade to downstream stages automatically.",
 )
 def pdi(config, filenames, num_proc, verbose, outdir, redo):
-    logger = configure_logging()
+    logger = configure_logging(level="DEBUG" if verbose else "INFO")
     logger = add_logfile(outdir, logger)
 
     log_intro(logger, num_proc, outdir)

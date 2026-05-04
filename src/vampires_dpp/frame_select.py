@@ -1,14 +1,12 @@
-import logging
 from typing import Annotated, Final, Literal, TypeAlias
 
 import numpy as np
 from annotated_types import Interval
 from astropy.io import fits
+from loguru import logger
 from numpy.typing import NDArray
 
 __all__ = ("frame_select_hdul", "FrameSelectMetric")
-
-logger = logging.getLogger(__file__)
 
 FrameSelectMetric: TypeAlias = Literal["max", "l2norm", "normvar", "strehl"]
 

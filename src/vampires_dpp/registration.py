@@ -1,5 +1,4 @@
 import itertools
-import logging
 from pathlib import Path
 from typing import Literal, TypeAlias
 
@@ -11,6 +10,7 @@ from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.visualization import simple_norm
 from image_registration import chi2_shift
+from loguru import logger
 from matplotlib import patches
 from photutils import centroids
 from skimage import filters, transform
@@ -25,8 +25,6 @@ from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.util import get_center
 
 __all__ = ("register_hdul",)
-
-logger = logging.getLogger(__file__)
 
 RegisterMethod: TypeAlias = Literal["peak", "com", "dft"]
 
