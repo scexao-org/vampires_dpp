@@ -5,14 +5,14 @@ from rich.console import Console
 from rich.markup import escape
 from rich.progress import (
     BarColumn,
-    MofNCompleteColumn,
     Progress,
+    ProgressColumn,
     SpinnerColumn,
-    TaskProgressColumn,
     TextColumn,
     TimeElapsedColumn,
     TimeRemainingColumn,
 )
+from rich.text import Text
 
 _FILE_FMT = "{time:HH:mm:ss.SSS} | {level:<8} | {name}:{line} - {message}"
 
@@ -42,18 +42,25 @@ def _rich_sink(message):
     )
 
 
+class _MofNColumn(ProgressColumn):
+    """Shows M/N counts for determinate tasks; blank for indeterminate worker spinners."""
+
+    def render(self, task) -> Text:
+        if task.total is None:
+            return Text("")
+        return Text(f"{int(task.completed)}/{int(task.total)}", style="progress.download")
+
+
 def make_progress(**kwargs) -> Progress:
     """Return a pre-configured Progress bar that uses the shared console."""
     return Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
-        MofNCompleteColumn(),
-        TaskProgressColumn(),
+        _MofNColumn(),
         TimeElapsedColumn(),
         TimeRemainingColumn(),
         console=console,
-        transient=True,
         **kwargs,
     )
 

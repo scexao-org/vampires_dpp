@@ -1,4 +1,7 @@
+import contextlib
 import multiprocessing as mp
+import os
+import threading
 import warnings
 from functools import partial
 from pathlib import Path
@@ -8,6 +11,7 @@ import pandas as pd
 import tomli
 from astropy.io import fits
 from loguru import logger
+from rich.markup import escape
 from skimage import transform
 
 from vampires_dpp._logging import configure_subprocess_logging, make_progress
@@ -130,6 +134,7 @@ class Pipeline:
                 raise ValueError(msg)
 
         self.output_paths = []
+        status_queue: mp.Queue = mp.Queue()
         with mp.Pool(num_proc) as pool:
             jobs = []
             for group_key, group in input_table.groupby("GROUP_KEY"):
@@ -147,15 +152,38 @@ class Pipeline:
                         pool.apply_async(
                             self.process_group,
                             args=(group, group_key, output_path),
-                            kwds={"redo_stage": redo if force_process else None},
+                            kwds={
+                                "redo_stage": redo if force_process else None,
+                                "status_queue": status_queue,
+                            },
                         )
                     )
 
             with make_progress() as progress:
-                task = progress.add_task("Processing files", total=len(jobs))
+                overall = progress.add_task("Processing files", total=len(jobs))
+                worker_tasks: dict[int, int] = {}
+                stop_event = threading.Event()
+
+                def _drain_status():
+                    while not stop_event.is_set() or not status_queue.empty():
+                        try:
+                            pid, description = status_queue.get(timeout=0.05)
+                            if pid not in worker_tasks:
+                                worker_tasks[pid] = progress.add_task(description, total=None)
+                            else:
+                                progress.update(worker_tasks[pid], description=description)
+                        except Exception:
+                            pass
+
+                drain_thread = threading.Thread(target=_drain_status, daemon=True)
+                drain_thread.start()
                 for job in jobs:
                     self.output_paths.append(job.get())
-                    progress.advance(task)
+                    progress.advance(overall)
+                stop_event.set()
+                drain_thread.join(timeout=0.5)
+                for task_id in worker_tasks.values():
+                    progress.remove_task(task_id)
 
         self.output_paths.sort()
 
@@ -299,10 +327,22 @@ class Pipeline:
             self.synth_psfs[filt] = psf
 
     def process_group(
-        self, group, group_key: str, output_path: Path, redo_stage: str | None = None
+        self,
+        group,
+        group_key: str,
+        output_path: Path,
+        redo_stage: str | None = None,
+        status_queue=None,
     ):
         # Child process: file-only logging; main process owns stderr
         logger = configure_subprocess_logging(self.workdir)
+
+        def _status(stage: str):
+            if status_queue is not None:
+                with contextlib.suppress(Exception):
+                    status_queue.put_nowait(
+                        (os.getpid(), f"[bold]{stage}[/bold] [dim]{escape(str(group_key))}[/dim]")
+                    )
 
         force_calibrate = redo_stage == "calibrate"
         force_combine = redo_stage == "combine"
@@ -337,6 +377,7 @@ class Pipeline:
             aligned_path = _ap.with_name(_ap.name.replace("_coll", "_reg"))
 
         # ── Stages 1+2: Calibrate + Combine ──
+        _status("calibrating")
         if (
             not force_calibrate
             and not force_combine
@@ -360,6 +401,7 @@ class Pipeline:
             dirty = True
 
         # ── Stage 3: Metrics ──
+        _status("analyzing")
         metrics_ref = (
             combined_path
             if (combined_path is not None and combined_path.exists())
@@ -381,6 +423,7 @@ class Pipeline:
 
         # ── Stage 4: Frame Select ──
         if self.config.frame_select.frame_select:
+            _status("selecting")
             if (
                 not force_select
                 and not dirty
@@ -408,6 +451,7 @@ class Pipeline:
                 dirty = True
 
         # ── Stage 5: Align + Specphot ──
+        _status("aligning")
         # Aligned intermediate (when it exists) includes specphot, so both are skipped together.
         align_input_refs = [
             p
@@ -449,6 +493,7 @@ class Pipeline:
 
         # ── Stage 6: Coadd ──
         if self.config.coadd.coadd:
+            _status("coadding")
             logger.debug(f"Coadding group {group_key}")
             _hdul = coadd_hdul(hdul, method=self.config.coadd.method)
             if self.config.coadd.recenter:
