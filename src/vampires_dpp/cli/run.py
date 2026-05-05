@@ -7,7 +7,6 @@ import vampires_dpp as dpp
 from vampires_dpp._logging import add_logfile, configure_logging
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.pipeline.pipeline import PIPELINE_STAGES, Pipeline
-from vampires_dpp.util import check_version
 
 __all__ = ("run", "pdi")
 
@@ -51,12 +50,6 @@ def run(config: Path, filenames, num_proc, outdir, verbose, redo):
 
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir, verbose=verbose)
 
-    # make sure versions match within SemVar
-    if not check_version(pipeline.config.dpp_version, dpp.__version__):
-        msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with \
-        installed version of `vampires_dpp` ({dpp.__version__}). Try running \
-        `dpp upgrade {config}`."
-        raise ValueError(msg)
     if len(filenames) == 0:
         msg = "No files input to pipeline! Double check command-line input for typos"
         raise ValueError(msg)
@@ -97,13 +90,6 @@ def pdi(config, filenames, num_proc, verbose, outdir, redo):
     log_intro(logger, num_proc, outdir)
 
     pipeline = Pipeline(PipelineConfig.from_file(config), workdir=outdir, verbose=verbose)
-
-    # make sure versions match within SemVar
-    if not check_version(pipeline.config.dpp_version, dpp.__version__):
-        msg = f"Input pipeline version ({pipeline.config.dpp_version}) is not compatible with \
-                installed version of `vampires_dpp` ({dpp.__version__}). Try running \
-                `dpp upgrade {config}`."
-        raise ValueError(msg)
 
     if len(filenames) == 0:
         msg = "No files input to pipeline! Double check command-line input for typos"

@@ -5,6 +5,7 @@ from pathlib import Path
 import astropy.units as u
 import click
 
+import vampires_dpp as dpp
 from vampires_dpp.pipeline.config import (
     NRMConfig,
     PipelineConfig,
@@ -537,7 +538,7 @@ def new_config(ctx, config, edit):
     name_guess = config.stem
     name = click.prompt("Path-friendly name for this reduction", default=name_guess)
 
-    tpl = PipelineConfig()
+    tpl = PipelineConfig(dpp_version=dpp.__version__)
     tpl = get_base_settings(tpl)
     tpl.name = name_guess if name == "" else name.replace(" ", "_").replace("/", "")
     tpl = get_target_settings(tpl)

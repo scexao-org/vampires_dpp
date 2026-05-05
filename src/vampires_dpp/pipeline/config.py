@@ -1,14 +1,14 @@
 from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal
 
 import astropy.units as u
 import tomli
 import tomli_w
 from annotated_types import Interval
 from astropy.coordinates import Angle, SkyCoord
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 import vampires_dpp as dpp
 from vampires_dpp.util import check_version
@@ -32,50 +32,30 @@ class TargetConfig(BaseModel):
        :class: Tip
 
         This can be auto-generated wtih GAIA coordinate information through the command line ``dpp new`` interface.
-
-    Parameters
-    ----------
-    name: str
-        SIMBAD-friendly target name
-    ra: str
-        Right ascension in sexagesimal hour angles
-    dec: str
-        Declination in sexagesimal degrees
-    parallax: float
-        parallax of system in mas
-    pm_ra: float
-        Proper motion of RA axis in mas/yr, by default 0.
-    pm_dec: float
-        Proper motion of DEC axis in mas/yr, by default 0.
-    frame: str
-        Coordinate reference frame, by default "icrs".
-    obstime: str
-        Observation time as a string, by default "J2016" (to coincide with GAIA coordinates)
     """
 
-    name: str
-    ra: str
-    dec: str
-    parallax: float
-    pm_ra: float = 0
-    pm_dec: float = 0
-    frame: str = "icrs"
-    obstime: str = "J2016"
+    name: str = Field(description="SIMBAD-friendly target name")
+    ra: str = Field(description="Right ascension in sexagesimal hour angles")
+    dec: str = Field(description="Declination in sexagesimal degrees")
+    parallax: float = Field(description="Parallax of system in mas")
+    pm_ra: float = Field(default=0, description="Proper motion of RA axis in mas/yr")
+    pm_dec: float = Field(default=0, description="Proper motion of DEC axis in mas/yr")
+    frame: str = Field(default="icrs", description="Coordinate reference frame")
+    obstime: str = Field(
+        default="J2016",
+        description="Observation time as a string (default J2016 to coincide with GAIA coordinates)",
+    )
 
     @property
     def ra_ang(self):
-        ra_ang = Angle(self.ra, "hour")
-        return ra_ang
+        return Angle(self.ra, "hour")
 
     @property
     def dec_ang(self):
-        dec_ang = Angle(self.dec, "deg")
-        return dec_ang
+        return Angle(self.dec, "deg")
 
     def get_coord(self) -> SkyCoord:
-        """
-        Return SkyCoord from the current parameters
-        """
+        """Return SkyCoord from the current parameters."""
         return SkyCoord(
             ra=self.ra_ang,
             dec=self.dec_ang,
@@ -112,42 +92,51 @@ class SpecphotConfig(BaseModel):
 
         Because each camera's data is calibrated independently, when you combine cam1 and cam2  data (such as PDI, ADI post-processing) you should *average* the two
         cameras' data to maintain accurate spectrophotometric calibration.
-
-    Parameters
-    ----------
-    source:
-        Spectrum source type. If a path, must be a file that can be loaded by `synphot.SourceSpectrum.from_file`. If "pickles", uses the pickles atlast. If "zeropoints", uses coefficients from Lucas+2024.
-    sptype:
-        Only used if `source` is "pickles". Stellar spectral type. Note: must be one of the spectral types available in the pickles model atlas. Refer to the STScI documentation for more information on available spectral types.
-    mag:
-        Only used if `source` is "pickles". Stellar reference magnitude
-    mag_band:
-        Only used if `source` is "pickles". Stellar reference magnitude band
-    unit:
-        Output unit. (Note: e-/s is the default without spectrophotometry, and source calibration will be skipped)
-    flux_metric:
-        Which frame analysis statistic to use for determining flux. "photometry" uses an aperture sum, while "sum" uses the sum in the analysis cutout window.
     """
 
-    unit: Literal["e-/s", "contrast", "Jy", "Jy/arcsec^2"] = "e-/s"
-    source: Literal["pickles", "zeropoints"] | Path | None = "zeropoints"
-    sptype: str | None = None
-    mag: float | None = None
-    mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = None
-    flux_metric: Literal["photometry", "sum"] = "photometry"
+    unit: Literal["e-/s", "contrast", "Jy", "Jy/arcsec^2"] = Field(
+        default="e-/s",
+        description="Output unit. (e-/s is the default without spectrophotometry, and source calibration will be skipped)",
+    )
+    source: Literal["pickles", "zeropoints"] | Path | None = Field(
+        default="zeropoints",
+        description=(
+            "Spectrum source type. If a path, must be a file loadable by "
+            "`synphot.SourceSpectrum.from_file`. If 'pickles', uses the pickles atlas. "
+            "If 'zeropoints', uses coefficients from Lucas+2024."
+        ),
+    )
+    sptype: str | None = Field(
+        default=None,
+        description="Only used if `source` is 'pickles'. Stellar spectral type (must be one of the spectral types in the pickles model atlas).",
+    )
+    mag: float | None = Field(
+        default=None, description="Only used if `source` is 'pickles'. Stellar reference magnitude."
+    )
+    mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = Field(
+        default=None,
+        description="Only used if `source` is 'pickles'. Stellar reference magnitude band.",
+    )
+    flux_metric: Literal["photometry", "sum"] = Field(
+        default="photometry",
+        description=(
+            "Which frame analysis statistic to use for determining flux. "
+            "'photometry' uses an aperture sum, while 'sum' uses the sum in the analysis cutout window."
+        ),
+    )
 
-    def model_post_init(self, __context: Any) -> None:
+    @model_validator(mode="after")
+    def _check_specphot(self) -> "SpecphotConfig":
         if "Jy" in self.unit:
             if self.source is None:
                 msg = "Must provide a spectrum, specify stellar model, or use zero points if you want to calibrate to Jy"
                 raise ValueError(msg)
-            elif self.source != "zeropoints" and (
+            if self.source != "zeropoints" and (
                 self.sptype is None or self.mag is None or self.mag_band is None
             ):
                 msg = "Must specify target magnitude (and filter) as well as spectral type to use 'pickles' stellar model"
                 raise ValueError(msg)
-
-        return super().model_post_init(__context)
+        return self
 
 
 class CalibrateConfig(BaseModel):
@@ -167,72 +156,72 @@ class CalibrateConfig(BaseModel):
     read mode. For background files, we'll try and find files with the same exposure time and detector gain, but will accept others. Flat files will try and
     match detector gain, filter, and exposure time, in that order. For all files, if there are multiple matches we will select the single file closest in time.
 
+    **File Outputs**
 
-
-        **File Outputs**
-
-        - If ``save_intermediate`` is true, will save calibrated data to ``calibrated/``
-
-
-    Parameters
-    ----------
-    calib_directory:
-        Path to calibration file directory, if not provided no calibration will be done, regardless of other settings.
-    back_subtract:
-        If true will look for background files in ``calib_directory`` and subtract them if found. If not found, will subtract detector bias value.
-    flat_correct:
-        If true will look for flat files in ``calib_directory`` and perform flat normalization if found.
-    fix_bad_pixels:
-        If true, will run adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels. By default false.
-    reproject:
-        If true, will use custom astrometry solution to warp frame
-    save_intermediate:
-        If true, will save intermediate calibrated data to ``calibrated/`` folder.
+    - If ``save_intermediate`` is true, will save calibrated data to ``calibrated/``
     """
 
-    calib_directory: Path | None = None
-    back_subtract: bool = True
-    flat_correct: bool = False
-    fix_bad_pixels: bool = False
-    save_intermediate: bool = False
+    calib_directory: Path | None = Field(
+        default=None,
+        description="Path to calibration file directory; if not provided, no calibration will be done regardless of other settings.",
+    )
+    back_subtract: bool = Field(
+        default=True,
+        description=(
+            "If true will look for background files in `calib_directory` and subtract them if found. "
+            "If not found, will subtract detector bias value."
+        ),
+    )
+    flat_correct: bool = Field(
+        default=False,
+        description="If true will look for flat files in `calib_directory` and perform flat normalization if found.",
+    )
+    fix_bad_pixels: bool = Field(
+        default=False,
+        description="If true, run an adaptive sigma-clipping algorithm for one iteration on each frame and correct bad pixels.",
+    )
+    save_intermediate: bool = Field(
+        default=False,
+        description="If true, save intermediate calibrated data to the `calibrated/` folder.",
+    )
 
 
 class AnalysisConfig(BaseModel):
     """PSF modeling and analysis options.
 
+    **File Outputs**
 
-        **File Outputs**
-
-        - For each file an `NPZ <https://numpy.org/doc/stable/reference/generated/numpy.savez_compressed.html>_` file is created in ``metrics/``
-            - Keys are metrics/centroids/statistics
-            - Values are arrays with dimensions ``(nfields, npsfs, nframes)``
-
-
-    Parameters
-    ----------
-    fit_psf_model:
-        If true, fits a PSF model to each window
-    psf_model:
-        Only Moffat available right now
-    photometry:
-        If true, will measure photometric sums in apertures at the centroid (or the DFT centroid if available)
-    phot_aper_rad:
-        Aperture radius in pixels for circular aperture photometry. If "auto", will use the FWHM from the file header.
-    phot_ann_rad:
-        If provided, will do local background-subtracted photometry with an annulus with the given inner and outer radius, in pixels.
-    strehl:
-        If true, will measure the Strehl ratio by comparing the PSF peak to the synthetic PSF peak, normalized by the flux in an aperture 16 pixels wide.
-    window_size:
-        The cutout side length when getting cutouts for each PSF. Cutouts are centered around the file centroid estimate. A size of 21 is a decent size to avoid including too much of the PSF halo around any coronagraph masks.
+    - For each file an `NPZ <https://numpy.org/doc/stable/reference/generated/numpy.savez_compressed.html>_` file is created in ``metrics/``
+        - Keys are metrics/centroids/statistics
+        - Values are arrays with dimensions ``(nfields, npsfs, nframes)``
     """
 
-    fit_psf_model: bool = False
-    psf_model: Literal["moffat",] = "moffat"
-    photometry: bool = True
-    phot_aper_rad: float = 8
-    phot_ann_rad: Sequence[float] | Literal[False] = False
-    strehl: bool = True
-    window_size: int = 21
+    fit_psf_model: bool = Field(
+        default=False, description="If true, fits a PSF model to each window."
+    )
+    psf_model: Literal["moffat",] = Field(
+        default="moffat", description="PSF model type (only Moffat available right now)."
+    )
+    photometry: bool = Field(
+        default=True,
+        description="If true, measure photometric sums in apertures at the centroid (or DFT centroid if available).",
+    )
+    phot_aper_rad: float = Field(
+        default=8,
+        description="Aperture radius in pixels for circular aperture photometry. If 'auto', uses the FWHM from the file header.",
+    )
+    phot_ann_rad: Sequence[float] | Literal[False] = Field(
+        default=False,
+        description="If provided, do local background-subtracted photometry with an annulus given as (inner, outer) radius in pixels.",
+    )
+    strehl: bool = Field(
+        default=True,
+        description="If true, measure the Strehl ratio by comparing the PSF peak to the synthetic PSF peak (normalized by the flux in a 16-pixel aperture).",
+    )
+    window_size: int = Field(
+        default=21,
+        description="Cutout side length when getting cutouts for each PSF; centered on the file centroid estimate. ~21 avoids including too much halo around any coronagraph masks.",
+    )
 
 
 class CombineConfig(BaseModel):
@@ -243,105 +232,105 @@ class CombineConfig(BaseModel):
     1. "cube" -- this method will effectively do nothing; the data will be combined by their original FITS cubes
     2. "pdi" -- this method will combine all frames from a single HWP angle, and is required for polarimetry
 
-    When data is combined it will become a single FITS file
-
-    Parameters
-    ----------
-    method:
-    save_intermediate:
-        If true, will save the combined data cubes into the ``<output>/combined`` folder (WARNING can lead to insane data volume)
+    When data is combined it will become a single FITS file.
     """
 
-    method: Literal["cube", "pdi"] = "cube"
-    save_intermediate: bool = False
+    method: Literal["cube", "pdi"] = Field(
+        default="cube",
+        description="Frame combination method. 'cube' keeps the original FITS cube boundaries; 'pdi' combines all frames from a single HWP angle.",
+    )
+    save_intermediate: bool = Field(
+        default=False,
+        description="If true, save the combined data cubes into the `combined/` folder (WARNING: can lead to large data volume).",
+    )
 
 
 class FrameSelectConfig(BaseModel):
-    """Frame selection options
+    """Frame selection options."""
 
-    Parameters
-    ----------
-    frame_select:
-        If true, will use the given metric to select frames for inclusions/exclusion from each data cube.
-    metric:
-        Frame selection metric
-    cutoff:
-        If ``frame_select`` is provided, this is the cutoff _quantile_ (from 0 to 1), where 0.2 means 20% of the frames
-        from each cube will be discarded according the the selection metric.
-    save_intermediate:
-        If true, will save the frame-selected files to the ``<output>frame_select`` folder (WARNING can lead to insane data volume)
-    """
-
-    frame_select: bool = False
-    metric: Literal["max", "l2norm", "normvar", "strehl"] = "strehl"
-    cutoff: Annotated[float, Interval(ge=0, le=1)] = 0
-    save_intermediate: bool = False
+    frame_select: bool = Field(
+        default=False,
+        description="If true, use the given metric to select frames for inclusion/exclusion from each data cube.",
+    )
+    metric: Literal["max", "l2norm", "normvar", "strehl"] = Field(
+        default="strehl", description="Frame selection metric."
+    )
+    cutoff: Annotated[float, Interval(ge=0, le=1)] = Field(
+        default=0,
+        description="If `frame_select` is true, this is the cutoff quantile (0 to 1); 0.2 means 20% of frames in each cube are discarded.",
+    )
+    save_intermediate: bool = Field(
+        default=False,
+        description="If true, save the frame-selected files to the `frame_select/` folder (WARNING: can lead to large data volume).",
+    )
 
 
 class AlignmentConfig(BaseModel):
-    """Frame alignment options
+    """Frame alignment options."""
 
-    Parameters
-    ----------
-    align:
-        If true, data will be aligned by the give method
-    pad:
-        If true, data will be padded so full FOV is retained after rotation
-    method:
-        Alignment method, (if "dft" is not provided, it will not be measured at all)
-    crop_width:
-        Post-alignment crop width, should be roughly equal to FOV. Cropped data can set this lower for reduced memory footprint.
-    reproject:
-        If true, will reproject cam2 astrometry onto cam1 for better image differences
-    save_intermediate:
-        If true, will save the registered files to the ``<output>/registered`` folder (WARNING can lead to insance data volume)
-    """
-
-    align: bool = True
-    pad: bool = True
-    method: Literal["dft", "com", "peak", "model"] = "dft"
-    crop_width: int = 536
-    reproject: bool = False
-    save_intermediate: bool = False
+    align: bool = Field(
+        default=True, description="If true, data will be aligned by the given method."
+    )
+    pad: bool = Field(
+        default=True,
+        description="If true, data will be padded so the full FOV is retained after rotation.",
+    )
+    method: Literal["dft", "com", "peak", "model"] = Field(
+        default="dft",
+        description="Alignment method (if 'dft' is not provided, it will not be measured at all).",
+    )
+    crop_width: int = Field(
+        default=536,
+        description="Post-alignment crop width; should be roughly equal to FOV. Lower values reduce memory footprint.",
+    )
+    reproject: bool = Field(
+        default=False,
+        description="If true, reproject cam2 astrometry onto cam1 for better image differences.",
+    )
+    save_intermediate: bool = Field(
+        default=False,
+        description="If true, save the registered files to the `registered/` folder (WARNING: can lead to large data volume).",
+    )
 
 
 class CoaddConfig(BaseModel):
-    """Frame combination options
-
+    """Frame combination options.
 
     **File Outputs**
 
-        - Each input file is collapsed and saved into the ``collapsed/`` folder if coadd is true, otherwise will save in the ``registered/`` folder.
-
-    Parameters
-    ----------
-    coadd:
-        If true, will coadd each cube of data (where the cube is determined from the combination method). If false, the data will be saved as cubes.
-    method:
-    recenter:
-        If true, will measure the centroid of the PSF in the collapsed frame and realign the data
-    recenter_method:
-        Only used if recenter is true; method for PSF registration.
+    - Each input file is collapsed and saved into the ``collapsed/`` folder if coadd is true, otherwise will save in the ``registered/`` folder.
     """
 
-    coadd: bool = True
-    method: Literal["median", "mean", "varmean", "biweight"] = "median"
-    recenter: bool = True
-    recenter_method: Literal["dft", "com", "peak", "model"] = "dft"
+    coadd: bool = Field(
+        default=True,
+        description="If true, coadd each cube of data (cube boundaries determined from the combination method). If false, the data is saved as cubes.",
+    )
+    method: Literal["median", "mean", "varmean", "biweight"] = Field(
+        default="median", description="Coadd reduction method."
+    )
+    recenter: bool = Field(
+        default=True,
+        description="If true, measure the centroid of the PSF in the collapsed frame and realign the data.",
+    )
+    recenter_method: Literal["dft", "com", "peak", "model"] = Field(
+        default="dft", description="Only used if `recenter` is true; method for PSF registration."
+    )
 
 
 class DiffImageConfig(BaseModel):
-    """Difference image options
+    """Difference image options.
 
-    Synchronized/polarimetric data can be automatically difference imaged after registration/coadding. Single diff will take cam1-cam2 and cam1+cam2. Double diff will perform single diff first, and then subtract FLC state B from FLC state A.
+    Synchronized/polarimetric data can be automatically difference-imaged after registration/coadding. Single diff will take ``cam1-cam2`` and ``cam1+cam2``. Double diff will perform single diff first, then subtract FLC state B from FLC state A.
     """
 
-    make_diff: bool = False
-    save_double: bool = False
+    make_diff: bool = Field(default=False, description="If true, produce difference images.")
+    save_double: bool = Field(
+        default=False, description="If true, also save double-difference images (requires FLC)."
+    )
 
 
 class PolarimetryConfig(BaseModel):
-    """Polarimetric differential imaging (PDI) options
+    """Polarimetric differential imaging (PDI) options.
 
     .. admonition:: Warning: experimental
        :class: warning
@@ -358,133 +347,158 @@ class PolarimetryConfig(BaseModel):
         - Header table for Stokes frames, if using a difference method.
     - If using Mueller-matrices (``method="leastsq"`` or ``mm_correct=True``) FITS file with matrices for each input file in ``pdi/mm/``
     - If using a difference method, will form individual Stokes frames and save in ``pdi/stokes/``
-
-    Parameters
-    ----------
-    method:
-        Determines the polarization calibration method, either the double/triple-difference method (`difference`) or using the inverse least-squares solution from Mueller calculus (`leastsq`). In both cases, the Mueller matrix calibration is performed, but for the difference method data are organized into distinct HWP sets. This can result in data being discarded, however it is much easier to remove effects from e.g., satellite spots because you can median collapse the data from each HWP set, whereas for the inverse least-squares the data is effectively collapsed with a mean.
-    derotate:
-        Derotate images to north up east left when forming Stokes images. Required for Mueller-matrix correction
-    mm_correct:
-        Apply Mueller-matrix correction (only applicable to data reduced using the `"difference"` method). By default, True.
-    hwp_adi_sync:
-        If true, will assume the HWP is in pupil-progress.tracking mode. By default, True.
-    use_ideal_mm:
-        If true and doing Mueller-matrix correction (``mm_correct=True``) will use only idealized versions for the components in the
-        Mueller-matrix model.
-    ip_correct:
-        If provided, will do post-hoc IP correction from the photometric sum in the given region.
-    ip_method:
-        If ``ip_correct=True`` this determines the region type for IP measurement.
-    ip_radius:
-        The first radius for IP correction, if set. For "aperture" this is the radius, for "annulus" this is the inner radius.
-    ip_radius2:
-        The second radius for IP correction. This is only used if ``ip_method="annulus"``- this is the outer radius.
-    cyl_stokes:
-        If 'azimuthal' will calculate (Qphi, Uphi); if 'radial' will calculate (Qr, Ur) in final Stokes products.
     """
 
-    method: Literal["triplediff", "doublediff"] = "triplediff"
-    derotate: bool = True
-    mm_correct: bool = True
-    hwp_adi_sync: bool = True
-    use_ideal_mm: bool = False
-    ip_correct: bool = True
-    ip_method: Literal["aperture", "annulus"] = "aperture"
-    ip_radius: float = 15
-    ip_radius2: float | None = None
-    cyl_stokes: Literal["azimuthal", "radial"] = "azimuthal"
-    mask_satspots: bool = False
+    method: Literal["triplediff", "doublediff"] = Field(
+        default="triplediff",
+        description=(
+            "Polarization calibration method. Difference methods organize data into HWP sets (some data may be discarded "
+            "but median collapse can remove e.g. satellite spot effects). 'leastsq' (Mueller calculus) uses all data via mean."
+        ),
+    )
+    derotate: bool = Field(
+        default=True,
+        description="Derotate images to north up east left when forming Stokes images. Required for Mueller-matrix correction.",
+    )
+    mm_correct: bool = Field(
+        default=True,
+        description="Apply Mueller-matrix correction (only applicable to data reduced using a `difference` method).",
+    )
+    hwp_adi_sync: bool = Field(
+        default=True, description="If true, assume the HWP is in pupil-progress.tracking mode."
+    )
+    use_ideal_mm: bool = Field(
+        default=False,
+        description="If true and doing Mueller-matrix correction, use only idealized versions for the components in the Mueller-matrix model.",
+    )
+    ip_correct: bool = Field(
+        default=True,
+        description="If true, do post-hoc instrumental polarization (IP) correction from the photometric sum in the given region.",
+    )
+    ip_method: Literal["aperture", "annulus"] = Field(
+        default="aperture",
+        description="If `ip_correct=True`, this determines the region type for IP measurement.",
+    )
+    ip_radius: float = Field(
+        default=15,
+        description="First radius for IP correction. For 'aperture' this is the radius; for 'annulus' this is the inner radius.",
+    )
+    ip_radius2: float | None = Field(
+        default=None,
+        description="Second radius for IP correction (only used if `ip_method='annulus'`); the outer radius.",
+    )
+    cyl_stokes: Literal["azimuthal", "radial"] = Field(
+        default="azimuthal",
+        description="If 'azimuthal' will calculate (Qphi, Uphi); if 'radial' will calculate (Qr, Ur) in final Stokes products.",
+    )
+    mask_satspots: bool = Field(
+        default=False, description="If true, mask satellite spots when forming Stokes images."
+    )
 
-    def model_post_init(self, __context: Any) -> None:
+    @model_validator(mode="after")
+    def _check_polarimetry(self) -> "PolarimetryConfig":
         if self.mm_correct and not self.derotate:
             msg = "Cannot do MM correction without derotation!"
             raise ValueError(msg)
-        return super().model_post_init(__context)
+        return self
 
 
 class NRMConfig(BaseModel):
-    """NRM processing options
+    """NRM processing options.
 
-        **File Outputs**
+    **File Outputs**
 
-        - For each file an `H5 <https://support.hdfgroup.org/documentation/hdf5/latest/index.html>_` file is created in ``nrm/`` containing the extracted Fourier observables
-
-
-    Parameters
-    ----------
-    nbootstrap: int
-        Number of bootstrap samples for PDI calibration
+    - For each file an `H5 <https://support.hdfgroup.org/documentation/hdf5/latest/index.html>_` file is created in ``nrm/`` containing the extracted Fourier observables.
     """
 
-    nbootstrap: int = 1000
+    nbootstrap: int = Field(
+        default=1000, description="Number of bootstrap samples for PDI calibration."
+    )
 
 
 class PipelineConfig(BaseModel):
-    """Data Processing Pipeline options
+    """Data Processing Pipeline options.
 
     The processing configuration is all done through this class, which can easily be converted to and from TOML. The options will set the processing steps in the pipeline. An important paradigm in the processing pipeline is skipping unnecessary operations. That means if a file already exists, the pipeline will only reprocess it if the `force` flag is set, which will reprocess all files for that step (and subsequent steps), or if the input file or files are newer. You can try this out by deleting one calibrated file from a processed output and re-running the pipeline.
 
-        **File Outputs**
+    **File Outputs**
 
-        - Auxilliary files in ``aux/``
-            - Copy of config., centroid file, astrometry file, mean PSFs, filter curve(s), synth. PSF(s).
-        - Data products (ADI cubes, output file header table) in ``products/``
-        - Difference images in ``diff/``
-            - ``diff/single/`` and ``diff/double/``
-
-    Parameters
-    ----------
-    name:
-        filename-friendly name used for outputs from this pipeline. For example "20230101_ABAur"
-    dpp_version:
-        The version of vampires_dpp that this configuration file is valid with. Typically not set by user.
-    coronagraphic:
-        If true will use coronagraphic routines for processing.
-    planetary:
-        If true will use planetary routines for processing.
-    save_adi_cubes:
-        If true, will save ADI cubes and derotation angles in product directory.
-    target:
-        If set, provides options for target object, primarily coordinates. If not set, will use header values.
-    combine:
-        Options for frame combinations
-    calibrate:
-        Options for basic image calibration
-    analysis:
-        Options for PSF/flux analysis in collapsed data
-    frame_select:
-        Options for frame selection
-    align:
-        Options for frame alignment
-    coadd:
-        Options for coadding image cubes
-    specphot:
-        If set, provides options for spectrophotometric calibration. If not set, will leave data in units of ``adu``.
-    diff_images:
-        Diagnostic difference imaging options. Double-differencing requires an FLC.
-    polarimetry:
-        If set, enables and provides settings for polarimetric differential imaging (PDI).
+    - Auxilliary files in ``aux/``
+        - Copy of config., centroid file, astrometry file, mean PSFs, filter curve(s), synth. PSF(s).
+    - Data products (ADI cubes, output file header table) in ``products/``
+    - Difference images in ``diff/``
+        - ``diff/single/`` and ``diff/double/``
     """
 
-    name: str = ""
-    dpp_version: str = dpp.__version__
-    coronagraphic: bool = False
-    planetary: bool = False
-    save_adi_cubes: bool = False
-    target: TargetConfig | None = None
-    combine: CombineConfig = CombineConfig()
-    calibrate: CalibrateConfig = CalibrateConfig()
-    analysis: AnalysisConfig = AnalysisConfig()
-    frame_select: FrameSelectConfig = FrameSelectConfig()
-    align: AlignmentConfig = AlignmentConfig()
-    coadd: CoaddConfig = CoaddConfig()
-    specphot: SpecphotConfig = SpecphotConfig()
-    diff_images: DiffImageConfig = DiffImageConfig()
-    nrm: NRMConfig | None = None
-    polarimetry: PolarimetryConfig | None = None
+    name: str = Field(
+        default="",
+        description="Filename-friendly name used for outputs from this pipeline (e.g. '20230101_ABAur').",
+    )
+    dpp_version: str = Field(
+        description="Version of vampires_dpp this configuration file was authored against. Required; the loader will reject configs whose version is not SemVer-compatible with the installed package."
+    )
+    coronagraphic: bool = Field(
+        default=False, description="If true, use coronagraphic routines for processing."
+    )
+    planetary: bool = Field(
+        default=False, description="If true, use planetary routines for processing."
+    )
+    save_adi_cubes: bool = Field(
+        default=False,
+        description="If true, save ADI cubes and derotation angles in the product directory.",
+    )
+    target: TargetConfig | None = Field(
+        default=None,
+        description="If set, provides target object options (primarily coordinates). If not set, header values are used.",
+    )
+    combine: CombineConfig = Field(
+        default_factory=CombineConfig, description="Options for frame combinations."
+    )
+    calibrate: CalibrateConfig = Field(
+        default_factory=CalibrateConfig, description="Options for basic image calibration."
+    )
+    analysis: AnalysisConfig = Field(
+        default_factory=AnalysisConfig,
+        description="Options for PSF/flux analysis in collapsed data.",
+    )
+    frame_select: FrameSelectConfig = Field(
+        default_factory=FrameSelectConfig, description="Options for frame selection."
+    )
+    align: AlignmentConfig = Field(
+        default_factory=AlignmentConfig, description="Options for frame alignment."
+    )
+    coadd: CoaddConfig = Field(
+        default_factory=CoaddConfig, description="Options for coadding image cubes."
+    )
+    specphot: SpecphotConfig = Field(
+        default_factory=SpecphotConfig,
+        description="Options for spectrophotometric calibration. If unit is 'e-/s', calibration is skipped.",
+    )
+    diff_images: DiffImageConfig = Field(
+        default_factory=DiffImageConfig,
+        description="Diagnostic difference imaging options. Double-differencing requires an FLC.",
+    )
+    nrm: NRMConfig | None = Field(
+        default=None, description="If set, enables NRM (non-redundant masking) processing."
+    )
+    polarimetry: PolarimetryConfig | None = Field(
+        default=None,
+        description="If set, enables and provides settings for polarimetric differential imaging (PDI).",
+    )
 
-    def model_post_init(self, __context: Any) -> None:
+    @field_validator("dpp_version")
+    @classmethod
+    def _check_version(cls, v: str) -> str:
+        if not check_version(v, dpp.__version__):
+            msg = (
+                f"Input pipeline version ({v}) is not compatible with installed version of "
+                f"`vampires_dpp` ({dpp.__version__}). Try running `dpp upgrade <config>`."
+            )
+            raise ValueError(msg)
+        return v
+
+    @model_validator(mode="after")
+    def _check_consistency(self) -> "PipelineConfig":
         if (
             self.frame_select.frame_select
             and self.frame_select.metric == "strehl"
@@ -503,51 +517,24 @@ class PipelineConfig(BaseModel):
         ):
             msg = "Can't use photometry for specphot.flux_metric if analysis.photometry is False"
             raise ValueError(msg)
-        return super().model_post_init(__context)
+        return self
 
     @classmethod
-    def from_file(cls, filename: PathLike):
-        """Load configuration from TOML file
+    def from_file(cls, filename: PathLike) -> "PipelineConfig":
+        """Load configuration from TOML file.
 
-        Parameters
-        ----------
-        filename: PathLike
-            Path to TOML file with configuration settings.
-
-        Raises
-        ------
-        ValueError
-            If the configuration `version` is not compatible with the current `vampires_dpp` version.
-
-        Examples
-        --------
-        >>> Pipeline.from_file("config.toml")
+        The version compatibility check runs as part of model validation;
+        a stale or missing `dpp_version` field will raise during validation.
         """
         with Path(filename).open("rb") as fh:
             config = tomli.load(fh)
-        if not check_version(config["dpp_version"], dpp.__version__):
-            msg = f"Input pipeline version ({config['dpp_version']}) is not compatible \
-                    with installed version of `vampires_dpp` ({dpp.__version__}). Try running \
-                    `dpp upgrade {config}`."
-            raise ValueError(msg)
         return cls.model_validate(config)
 
     def to_toml(self) -> str:
-        """Create serializable TOML string"""
-        # get serializable output using pydantic
+        """Create a serializable TOML string."""
         model_dict = self.model_dump(exclude_none=True, mode="json", round_trip=True)
         return tomli_w.dumps(model_dict)
 
-    def save(self, filename: Path):
-        """Save configuration settings to TOML file
-
-        Parameters
-        ----------
-        filename: PathLike
-            Output filename
-        """
-        # get serializable output using pydantic
-        model_dict = self.model_dump(exclude_none=True, mode="json", round_trip=True)
-        # save output TOML
-        with Path(filename).open("wb") as fh:
-            tomli_w.dump(model_dict, fh)
+    def save(self, filename: PathLike) -> None:
+        """Save configuration settings to a TOML file."""
+        Path(filename).write_text(self.to_toml())

@@ -68,7 +68,7 @@ def make_worker_progress(**kwargs) -> Progress:
 def configure_logging(level: str = "INFO") -> logger:
     """Configure the main-process logger (stderr via rich console)."""
     logger.configure(
-        handlers=[{"sink": _rich_sink, "level": level, "format": "{message}", "colorize": False}]
+        handlers=[{"sink": _rich_sink, "level": level, "format": "{message}", "colorize": True}]
     )
     logger.enable("vampires_dpp")
     return logger
