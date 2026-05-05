@@ -9,8 +9,8 @@ import tomli_w
 from astropy.nddata import Cutout2D
 from numpy.typing import NDArray
 
-from vampires_dpp._logging import configure_logging
 from vampires_dpp.cli.centroids import create_raw_input_psfs
+from vampires_dpp.logging_utils import configurelogging_utils
 from vampires_dpp.nrm.alignment import check_mask_align
 from vampires_dpp.nrm.params import get_amical_parameters
 from vampires_dpp.nrm.windowing import window_cube
@@ -19,7 +19,7 @@ from vampires_dpp.paths import Paths
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 
-logger = configure_logging()
+logger = configurelogging_utils()
 
 
 @click.group(name="nrm", short_help="NRM specific tools", help="NRM mask alignment, analysis")

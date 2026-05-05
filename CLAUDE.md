@@ -47,7 +47,7 @@ All pipeline configuration is TOML-based and validated with Pydantic v2. The mai
 
 ### Key Patterns
 - **Error handling:** Uses the `result` library (`Ok`/`Err` types) in several modules.
-- **Logging:** `loguru` throughout; configured in `src/vampires_dpp/_logging.py`.
+- **Logging:** `loguru` throughout; configured in `src/vampires_dpp/logging_utils.py`.
 - **CLI:** `click` with subcommand groups; entry point is `dpp` → `vampires_dpp.cli.main:main`.
 - **FITS I/O:** `astropy.io.fits`; WCS via `astropy.wcs`; header utilities in `src/vampires_dpp/headers.py`.
 

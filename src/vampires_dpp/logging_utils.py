@@ -65,7 +65,7 @@ def make_worker_progress(**kwargs) -> Progress:
     )
 
 
-def configure_logging(level: str = "INFO") -> logger:
+def configurelogging_utils(level: str = "INFO") -> logger:
     """Configure the main-process logger (stderr via rich console)."""
     logger.configure(
         handlers=[{"sink": _rich_sink, "level": level, "format": "{message}", "colorize": True}]
@@ -74,7 +74,7 @@ def configure_logging(level: str = "INFO") -> logger:
     return logger
 
 
-def configure_subprocess_logging(workdir: Path) -> logger:
+def configure_subprocesslogging_utils(workdir: Path) -> logger:
     """Configure logging for multiprocessing workers (file only, no stderr)."""
     logfile = workdir / "debug.log"
     logger.configure(handlers=[])

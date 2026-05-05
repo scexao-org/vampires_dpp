@@ -4,7 +4,7 @@ from pathlib import Path
 import click
 
 import vampires_dpp as dpp
-from vampires_dpp._logging import add_logfile, configure_logging
+from vampires_dpp.logging_utils import add_logfile, configurelogging_utils
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.pipeline.pipeline import PIPELINE_STAGES, Pipeline
 
@@ -43,7 +43,7 @@ def log_intro(logger, num_proc, outdir):
     help="Force redo a pipeline stage; updated outputs cascade to downstream stages automatically.",
 )
 def run(config: Path, filenames, num_proc, outdir, verbose, redo):
-    logger = configure_logging(level="DEBUG" if verbose else "INFO")
+    logger = configurelogging_utils(level="DEBUG" if verbose else "INFO")
     logger = add_logfile(outdir, logger)
 
     log_intro(logger, num_proc, outdir)
@@ -84,7 +84,7 @@ def run(config: Path, filenames, num_proc, outdir, verbose, redo):
     help="Force redo a pipeline stage; updated outputs cascade to downstream stages automatically.",
 )
 def pdi(config, filenames, num_proc, verbose, outdir, redo):
-    logger = configure_logging(level="DEBUG" if verbose else "INFO")
+    logger = configurelogging_utils(level="DEBUG" if verbose else "INFO")
     logger = add_logfile(outdir, logger)
 
     log_intro(logger, num_proc, outdir)

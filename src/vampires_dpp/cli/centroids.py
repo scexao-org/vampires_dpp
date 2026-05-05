@@ -9,15 +9,15 @@ import tomli_w
 from astropy.io import fits
 from numpy.typing import NDArray
 
-from vampires_dpp._logging import configure_logging
 from vampires_dpp.coadd import collapse_cubes_filelist
+from vampires_dpp.logging_utils import configurelogging_utils
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.registration import autocentroid_hdul
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 
-logger = configure_logging()
+logger = configurelogging_utils()
 
 __all__ = "centroid"
 

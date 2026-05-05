@@ -15,12 +15,6 @@ from rich.live import Live
 from rich.markup import escape
 from skimage import transform
 
-from vampires_dpp._logging import (
-    configure_subprocess_logging,
-    console,
-    make_progress,
-    make_worker_progress,
-)
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
@@ -32,6 +26,12 @@ from vampires_dpp.combine_frames import (
 )
 from vampires_dpp.constants import NBS_INSTALL_MJD
 from vampires_dpp.frame_select import frame_select_hdul
+from vampires_dpp.logging_utils import (
+    configure_subprocesslogging_utils,
+    console,
+    make_progress,
+    make_worker_progress,
+)
 from vampires_dpp.nrm.extraction import extract_observables
 from vampires_dpp.nrm.pdi import process_nrm_polarimetry
 from vampires_dpp.nrm.plotting import make_nrm_plots
@@ -337,7 +337,7 @@ class Pipeline:
         status_queue=None,
     ):
         # Child process: file-only logging; main process owns stderr
-        logger = configure_subprocess_logging(self.workdir)
+        logger = configure_subprocesslogging_utils(self.workdir)
 
         def _status(stage: str):
             if status_queue is not None:
