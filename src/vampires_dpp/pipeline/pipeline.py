@@ -165,27 +165,28 @@ class Pipeline:
                         )
                     )
 
-            worker_progress = make_worker_progress()
-            main_progress = make_progress()
-            overall = main_progress.add_task("Processing files", total=len(jobs))
-            worker_tasks: dict[int, int] = {}
+            if jobs:
+                worker_progress = make_worker_progress()
+                main_progress = make_progress()
+                overall = main_progress.add_task("Processing files", total=len(jobs))
+                worker_tasks: dict[int, int] = {}
 
-            def _drain():
-                with contextlib.suppress(Exception):
-                    while True:
-                        pid, desc = status_queue.get_nowait()
-                        if pid not in worker_tasks:
-                            worker_tasks[pid] = worker_progress.add_task(desc)
-                        else:
-                            worker_progress.update(worker_tasks[pid], description=desc)
+                def _drain():
+                    with contextlib.suppress(Exception):
+                        while True:
+                            pid, desc = status_queue.get_nowait()
+                            if pid not in worker_tasks:
+                                worker_tasks[pid] = worker_progress.add_task(desc)
+                            else:
+                                worker_progress.update(worker_tasks[pid], description=desc)
 
-            with Live(
-                Group(worker_progress, main_progress), console=console, refresh_per_second=10
-            ):
-                for job in jobs:
-                    self.output_paths.append(job.get())
-                    _drain()
-                    main_progress.advance(overall)
+                with Live(
+                    Group(worker_progress, main_progress), console=console, refresh_per_second=10
+                ):
+                    for job in jobs:
+                        self.output_paths.append(job.get())
+                        _drain()
+                        main_progress.advance(overall)
 
         self.output_paths.sort()
 
