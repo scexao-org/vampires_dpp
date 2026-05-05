@@ -1,4 +1,5 @@
 import pytest
+
 from vampires_dpp.util import check_version
 
 

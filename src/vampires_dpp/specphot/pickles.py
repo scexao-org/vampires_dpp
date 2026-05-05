@@ -9,9 +9,9 @@ from synphot import Empirical1D, SourceSpectrum
 
 __all__ = ["load_pickles_model"]
 
-PICKLES_URL: Final[
-    str
-] = "https://archive.stsci.edu/hlsps/reference-atlases/cdbs/grid/pickles/dat_uvk/"
+PICKLES_URL: Final[str] = (
+    "https://archive.stsci.edu/hlsps/reference-atlases/cdbs/grid/pickles/dat_uvk/"
+)
 PICKLES_MAP_URL: Final[str] = PICKLES_URL + "pickles_uk.fits"
 
 

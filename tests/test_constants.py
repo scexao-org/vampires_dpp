@@ -1,4 +1,5 @@
 import pytest
+
 from vampires_dpp.constants import CMOSVAMPIRES, EMCCDVAMPIRES
 
 

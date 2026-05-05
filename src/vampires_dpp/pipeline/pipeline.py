@@ -1,7 +1,6 @@
 import contextlib
 import multiprocessing as mp
 import os
-import threading
 import warnings
 from functools import partial
 from pathlib import Path
@@ -11,10 +10,17 @@ import pandas as pd
 import tomli
 from astropy.io import fits
 from loguru import logger
+from rich.console import Group
+from rich.live import Live
 from rich.markup import escape
 from skimage import transform
 
-from vampires_dpp._logging import configure_subprocess_logging, make_progress
+from vampires_dpp._logging import (
+    configure_subprocess_logging,
+    console,
+    make_progress,
+    make_worker_progress,
+)
 from vampires_dpp.analysis import analyze_file
 from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
@@ -134,8 +140,8 @@ class Pipeline:
                 raise ValueError(msg)
 
         self.output_paths = []
-        status_queue: mp.Queue = mp.Queue()
-        with mp.Pool(num_proc) as pool:
+        with mp.Manager() as manager, mp.Pool(num_proc) as pool:
+            status_queue = manager.Queue()
             jobs = []
             for group_key, group in input_table.groupby("GROUP_KEY"):
                 output_path = get_reduced_path(self.paths, self.config, group_key)
@@ -159,31 +165,27 @@ class Pipeline:
                         )
                     )
 
-            with make_progress() as progress:
-                overall = progress.add_task("Processing files", total=len(jobs))
-                worker_tasks: dict[int, int] = {}
-                stop_event = threading.Event()
+            worker_progress = make_worker_progress()
+            main_progress = make_progress()
+            overall = main_progress.add_task("Processing files", total=len(jobs))
+            worker_tasks: dict[int, int] = {}
 
-                def _drain_status():
-                    while not stop_event.is_set() or not status_queue.empty():
-                        try:
-                            pid, description = status_queue.get(timeout=0.05)
-                            if pid not in worker_tasks:
-                                worker_tasks[pid] = progress.add_task(description, total=None)
-                            else:
-                                progress.update(worker_tasks[pid], description=description)
-                        except Exception:
-                            pass
+            def _drain():
+                with contextlib.suppress(Exception):
+                    while True:
+                        pid, desc = status_queue.get_nowait()
+                        if pid not in worker_tasks:
+                            worker_tasks[pid] = worker_progress.add_task(desc)
+                        else:
+                            worker_progress.update(worker_tasks[pid], description=desc)
 
-                drain_thread = threading.Thread(target=_drain_status, daemon=True)
-                drain_thread.start()
+            with Live(
+                Group(worker_progress, main_progress), console=console, refresh_per_second=10
+            ):
                 for job in jobs:
                     self.output_paths.append(job.get())
-                    progress.advance(overall)
-                stop_event.set()
-                drain_thread.join(timeout=0.5)
-                for task_id in worker_tasks.values():
-                    progress.remove_task(task_id)
+                    _drain()
+                    main_progress.advance(overall)
 
         self.output_paths.sort()
 

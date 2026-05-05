@@ -9,7 +9,7 @@ from astropy.io import fits
 from astropy.time import Time
 from numpy.typing import NDArray
 
-from vampires_dpp.constants import SUBARU_LOC, NBS_INSTALL_MJD
+from vampires_dpp.constants import NBS_INSTALL_MJD, SUBARU_LOC
 from vampires_dpp.headers import fix_header, parallactic_angle, sort_header
 from vampires_dpp.image_processing import adaptive_sigma_clip_mask
 from vampires_dpp.paths import get_paths

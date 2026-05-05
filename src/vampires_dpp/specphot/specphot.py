@@ -151,7 +151,7 @@ def specphot_cal_hdul(hdul: fits.HDUList, metrics, config: SpecphotConfig):
 
 
 def _format(number, sigfigs=4):
-    return float(f"%.{sigfigs-1}g" % number)
+    return float(f"%.{sigfigs - 1}g" % number)
 
 
 def measure_inst_flux(hdul, metrics, flux_metric: FluxMetric, satspots: bool = False):

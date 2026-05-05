@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from vampires_dpp.registration import intersect_point
 
 rng = np.random.default_rng()
@@ -41,5 +42,4 @@ class TestIntersectPoint:
         np.testing.assert_allclose(output, center)
 
 
-class TestCentroidFinding:
-    ...
+class TestCentroidFinding: ...

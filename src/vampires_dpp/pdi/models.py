@@ -158,7 +158,6 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
     flc_theta: dict[str, float] = {"A": 0, "B": 43}  # deg
 
     def __call__(self, use_flc: bool, flc_state: str, camera: int, *args, **kwargs) -> NDArray:
-
         ## build up mueller matrix component by component
         cp_mm = self.common_path_mm(*args, **kwargs)
 

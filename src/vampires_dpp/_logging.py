@@ -5,19 +5,18 @@ from rich.console import Console
 from rich.markup import escape
 from rich.progress import (
     BarColumn,
+    MofNCompleteColumn,
     Progress,
-    ProgressColumn,
     SpinnerColumn,
     TextColumn,
     TimeElapsedColumn,
     TimeRemainingColumn,
 )
-from rich.text import Text
 
 _FILE_FMT = "{time:HH:mm:ss.SSS} | {level:<8} | {name}:{line} - {message}"
 
-# Shared console — loguru and all Progress instances must share this object so
-# the Live display correctly absorbs log messages while a progress bar is active.
+# Shared console — all loguru output and Progress instances must use this object
+# so the Live display correctly absorbs log messages while progress is rendering.
 console = Console(stderr=True, highlight=False)
 
 _LEVEL_STYLES = {
@@ -42,22 +41,13 @@ def _rich_sink(message):
     )
 
 
-class _MofNColumn(ProgressColumn):
-    """Shows M/N counts for determinate tasks; blank for indeterminate worker spinners."""
-
-    def render(self, task) -> Text:
-        if task.total is None:
-            return Text("")
-        return Text(f"{int(task.completed)}/{int(task.total)}", style="progress.download")
-
-
 def make_progress(**kwargs) -> Progress:
-    """Return a pre-configured Progress bar that uses the shared console."""
+    """Full progress bar with spinner, bar, count, and ETA."""
     return Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
-        _MofNColumn(),
+        MofNCompleteColumn(),
         TimeElapsedColumn(),
         TimeRemainingColumn(),
         console=console,
@@ -65,8 +55,18 @@ def make_progress(**kwargs) -> Progress:
     )
 
 
+def make_worker_progress(**kwargs) -> Progress:
+    """Minimal spinner + description for per-worker stage lines."""
+    return Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        **kwargs,
+    )
+
+
 def configure_logging(level: str = "INFO") -> logger:
-    """Configure the main-process logger (stderr via rich + optional level)."""
+    """Configure the main-process logger (stderr via rich console)."""
     logger.configure(
         handlers=[{"sink": _rich_sink, "level": level, "format": "{message}", "colorize": False}]
     )
@@ -75,11 +75,7 @@ def configure_logging(level: str = "INFO") -> logger:
 
 
 def configure_subprocess_logging(workdir: Path) -> logger:
-    """Configure logging for multiprocessing workers.
-
-    Workers are silent on stderr — the main process owns stderr and the
-    progress bars. All worker output goes to the shared log file only.
-    """
+    """Configure logging for multiprocessing workers (file only, no stderr)."""
     logfile = workdir / "debug.log"
     logger.configure(handlers=[])
     logger.add(logfile, level="DEBUG", colorize=False, enqueue=True, format=_FILE_FMT)
@@ -88,11 +84,7 @@ def configure_subprocess_logging(workdir: Path) -> logger:
 
 
 def add_logfile(outdir: Path, logger) -> logger:
-    """Add a debug-level file sink to the main-process logger.
-
-    Call once from the main process before spawning workers. The file is
-    cleared on each new run so stale output from a previous run is not mixed in.
-    """
+    """Add a debug-level file sink to the main-process logger."""
     logfile = outdir / "debug.log"
     logfile.unlink(missing_ok=True)
     logger.add(logfile, level="DEBUG", colorize=False, enqueue=True, format=_FILE_FMT)

@@ -8,11 +8,12 @@ from astropy import modeling
 from astropy.io import fits
 from astropy.nddata import Cutout2D
 
+from .constants import NBS_INSTALL_MJD
+
 # import time
 from .indexing import frame_center, get_mbi_centers
 from .registration import offset_dft, offset_peak_and_com
 from .util import create_or_append, get_center
-from .constants import NBS_INSTALL_MJD
 
 
 def add_frame_statistics(frame, frame_err, header):

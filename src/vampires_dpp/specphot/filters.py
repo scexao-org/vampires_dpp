@@ -29,9 +29,9 @@ FILTERS: Final[dict[str, SpectralElement]] = {
 
 VAMP_FILT_KEY: Final[str] = "1FHGh3tLlDUwATP6smFGz0nk2e0NF14rywTUjFTUT1OY"
 VAMP_FILT_NAME: Final[str] = urllib.parse.quote("VAMPIRES Filter Curves")
-VAMPIRES_FILTER_URL: Final[
-    str
-] = f"https://docs.google.com/spreadsheets/d/{VAMP_FILT_KEY}/gviz/tq?tqx=out:csv&sheet={VAMP_FILT_NAME}"
+VAMPIRES_FILTER_URL: Final[str] = (
+    f"https://docs.google.com/spreadsheets/d/{VAMP_FILT_KEY}/gviz/tq?tqx=out:csv&sheet={VAMP_FILT_NAME}"
+)
 
 
 def determine_primary_filter(header):

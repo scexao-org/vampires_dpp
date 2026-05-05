@@ -187,6 +187,6 @@ actuators : bool, optional
 
 Notes
 -----
-The smallest element in the SCExAO pupil is the bad actuator spider, which is approximately {ACTUATOR_SPIDER_WIDTH*1e3:.1f} mm wide. This is about 0.7\% of the telescope diameter, which means you need to have a miinimum of ~142 pixels across the aperture to sample this element.
+The smallest element in the SCExAO pupil is the bad actuator spider, which is approximately {ACTUATOR_SPIDER_WIDTH * 1e3:.1f} mm wide. This is about 0.7\% of the telescope diameter, which means you need to have a miinimum of ~142 pixels across the aperture to sample this element.
 
 """

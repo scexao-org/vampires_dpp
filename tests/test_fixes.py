@@ -2,6 +2,7 @@ from pathlib import Path
 
 from astropy.io import fits
 from astropy.time import Time
+
 from vampires_dpp.headers import fix_header
 
 TEST_DIR = Path(__file__).parent
