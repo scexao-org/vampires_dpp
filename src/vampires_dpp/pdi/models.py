@@ -34,8 +34,6 @@ def load_calibration_file(header):
     if "MBI" in header["OBS-MOD"]:
         # table_key = MBI_MM_DICT[header["FIELD"]] if "FIELD" in header else "675"
         table_key = header["FIELD"]
-        if table_key == "F610":
-            table_key = "675"
     else:
         # closest match to Open is 675
         table_key = "675" if filt == "Open" else filt.replace("-50", "")
@@ -119,8 +117,6 @@ class VAMPIRESMuellerMatrix(BaseModel):
         return M.astype("f4")
 
     def from_header(self, header: fits.Header, **kwargs) -> NDArray:
-        m3_diat, m3_phi = get_m3_values(header)
-        self.m3_phi = m3_phi
         return self(
             pa=header["PA"],
             alt=header["ALTITUDE"],
@@ -140,6 +136,7 @@ class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
         flc_theta = {k: t + table["flc_theta"] for k, t in zip(("A", "B"), (0, 45), strict=True)}
         return cls(
             name=table.name,
+            m3_phi=table["m3_phi"],
             m3_diat=table["m3_diat"],
             m3_offset=table["m3_theta"],
             hwp_offset=table["hwp_delta"],
@@ -156,6 +153,9 @@ class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
 
 class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
     flc_theta: dict[str, float] = {"A": 0, "B": 43}  # deg
+    dichroic_theta: float = 0  # deg
+    dichroic_phi: float = 0  # wave
+    dichroic_diat: float = 0
 
     def __call__(self, use_flc: bool, flc_state: str, camera: int, *args, **kwargs) -> NDArray:
         ## build up mueller matrix component by component
@@ -168,11 +168,17 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         else:
             flc_mm = np.eye(4)
 
+        dichroic_mm = mm.generic(
+            theta=np.deg2rad(self.dichroic_theta),
+            epsilon=self.dichroic_diat,
+            delta=wave2rad(self.dichroic_phi),
+        )
+
         # beamsplitter - vertical/ordinary to camera 2
         is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
 
-        M = pbs_mm @ flc_mm @ cp_mm
+        M = pbs_mm @ dichroic_mm @ flc_mm @ cp_mm
         return M.astype("f4")
 
     def from_header(self, header: fits.Header, hwp_adi_sync: bool = True) -> NDArray:
@@ -181,10 +187,6 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         if hwp_adi_sync != actual_hwp_adi_sync:
             msg = f"You set HWP ADI sync to {hwp_adi_sync!r} but RET-MOD1 was {header['RET-MOD1'].strip()!r}"
             warnings.warn(msg, stacklevel=2)
-
-        m3_diat, m3_phi = get_m3_values(header)
-        self.m3_diat = m3_diat
-        self.m3_phi = m3_phi
 
         return self(
             pa=header["PA"],
@@ -203,6 +205,7 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         table = load_calibration_file(header)
         return cls(
             name=table.name,
+            m3_phi=table["m3_phi"],
             m3_diat=table["m3_diat"],
             m3_offset=table["m3_theta"],
             hwp_offset=table["hwp_delta"],
