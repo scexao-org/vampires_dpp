@@ -56,7 +56,7 @@ from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.registration import intersect_point, recenter_hdul, register_hdul
 from vampires_dpp.specphot.filters import determine_filterset_from_header
-from vampires_dpp.specphot.specphot import specphot_cal_hdul, specphot_cal_hdul_zeropoints
+from vampires_dpp.specphot.specphot import specphot_cal_hdul
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.util import get_center
 from vampires_dpp.wcs import apply_wcs
@@ -485,13 +485,7 @@ class Pipeline:
                 reproject_tforms=reproject_tforms,
             )
             logger.debug(f"Running specphot calibration for group {group_key}")
-            if (
-                self.config.specphot.unit not in ("e-/s", "contrast")
-                and self.config.specphot.source == "zeropoints"
-            ):
-                hdul = specphot_cal_hdul_zeropoints(hdul, config=self.config)
-            else:
-                hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config)
+            hdul = specphot_cal_hdul(hdul, config=self.config, metrics=metrics)
             if aligned_path is not None:
                 hdul.writeto(aligned_path, overwrite=True)
                 logger.debug(f"Saved aligned HDU list to {aligned_path.absolute()}")

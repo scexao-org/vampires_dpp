@@ -59,26 +59,50 @@ AIRMASS_K: Final = {  # mag / airmass
 }
 
 
-def specphot_cal_hdul_zeropoints(hdul: fits.HDUList, config: SpecphotConfig):
-    assert config.specphot.source == "zeropoints"
+def specphot_cal_hdul(hdul: fits.HDUList, config: SpecphotConfig, metrics=None):
+    unit = config.specphot.unit
+    use_zeropoints = config.specphot.source == "zeropoints" and unit in ("Jy", "Jy/arcsec^2")
 
-    match config.specphot.unit:
-        case "e-/s":
-            conv_factor = 1
-        case "Jy":
-            hdul, conv_factor = determine_jy_factor_from_zp(hdul)
-        case "Jy/arcsec^2":
-            hdul, conv_factor = determine_jy_factor_from_zp(hdul)
+    if not use_zeropoints and unit in ("Jy", "Jy/arcsec^2", "contrast"):
+        assert metrics, "Must provide metrics to calculate photometry"
+
+    if use_zeropoints:
+        hdul, conv_factor = determine_jy_factor_from_zp(hdul)
+        if unit == "Jy/arcsec^2":
             conv_factor /= hdul[0].header["PXAREA"]
-        case _:
-            msg = f"Invalid spectrophotometric unit: {config.specphot.unit}"
-            raise ValueError(msg)
+    else:
+        match unit:
+            case "e-/s":
+                conv_factor = 1
+                # don't forget to add filter info, though
+                for hdu in hdul[2:]:
+                    update_header_with_filt_info(hdu.header)
+            case "Jy":
+                hdul, inst_flux = measure_inst_flux(
+                    hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
+                )
+                conv_factor = determine_jy_factor(hdul, inst_flux, config.specphot)
+            case "Jy/arcsec^2":
+                hdul, inst_flux = measure_inst_flux(
+                    hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
+                )
+                conv_factor = (
+                    determine_jy_factor(hdul, inst_flux, config.specphot) / hdul[0].header["PXAREA"]
+                )
+            case "contrast":
+                hdul, inst_flux = measure_inst_flux(
+                    hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
+                )
+                conv_factor = determine_contrast_factor(hdul, inst_flux)
+            case _:
+                msg = f"Invalid spectrophotometric unit: {unit}"
+                raise ValueError(msg)
 
     hdul[0].data *= conv_factor
     hdul["ERR"].data *= conv_factor
 
     info = fits.Header()
-    info["BUNIT"] = config.specphot.unit
+    info["BUNIT"] = unit
 
     for hdu in hdul:
         hdu.header.update(info)
@@ -107,47 +131,6 @@ def determine_jy_factor_from_zp(hdul):
         hdu.header.update(info)
 
     return hdul, conv_factors
-
-
-def specphot_cal_hdul(hdul: fits.HDUList, metrics, config: SpecphotConfig):
-    # determine any conversion factors
-    if config.specphot.unit in ("Jy", "Jy/arcsec^2"):
-        assert metrics, "Must provide metrics to calculate photometry"
-
-    match config.specphot.unit:
-        case "e-/s":
-            conv_factor = 1
-            # don't forget to add filter info, though
-            for hdu in hdul[2:]:
-                update_header_with_filt_info(hdu.header)
-        case "Jy":
-            hdul, inst_flux = measure_inst_flux(
-                hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
-            )
-            conv_factor = determine_jy_factor(hdul, inst_flux, config.specphot)
-        case "Jy/arcsec^2":
-            hdul, inst_flux = measure_inst_flux(
-                hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
-            )
-            conv_factor = (
-                determine_jy_factor(hdul, inst_flux, config.specphot) / hdul[0].header["PXAREA"]
-            )
-        case "contrast":
-            hdul, inst_flux = measure_inst_flux(
-                hdul, metrics, config.specphot.flux_metric, satspots=config.coronagraphic
-            )
-            conv_factor = determine_contrast_factor(hdul, inst_flux)
-
-    hdul[0].data *= conv_factor
-    hdul["ERR"].data *= conv_factor
-
-    info = fits.Header()
-    info["BUNIT"] = config.specphot.unit
-
-    for hdu in hdul:
-        hdu.header.update(info)
-
-    return hdul
 
 
 def _format(number, sigfigs=4):
