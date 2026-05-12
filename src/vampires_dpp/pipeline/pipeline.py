@@ -485,7 +485,10 @@ class Pipeline:
                 reproject_tforms=reproject_tforms,
             )
             logger.debug(f"Running specphot calibration for group {group_key}")
-            if self.config.specphot.source == "zeropoints":
+            if (
+                self.config.specphot.unit not in ("e-/s", "contrast")
+                and self.config.specphot.source == "zeropoints"
+            ):
                 hdul = specphot_cal_hdul_zeropoints(hdul, config=self.config)
             else:
                 hdul = specphot_cal_hdul(hdul, metrics=metrics, config=self.config)
