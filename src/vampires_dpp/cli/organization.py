@@ -81,7 +81,7 @@ def sort_raw(filenames, outdir, num_proc=1, ext=0, copy=False, quiet=False, deco
     "-o",
     type=click.Path(dir_okay=False, writable=True, path_type=Path),
     default=Path.cwd() / "header_table.csv",
-    help="Output path without file extension.",
+    help="Output path, by default 'header_table.csv'.",
 )
 @click.option(
     "--num-proc",
@@ -94,15 +94,14 @@ def sort_raw(filenames, outdir, num_proc=1, ext=0, copy=False, quiet=False, deco
 def table(filenames, ext, output, num_proc, quiet):
     # handle name clashes
     outpath = Path(output).resolve()
-    outname = outpath.with_name(f"{outpath.name}.csv")
 
-    if outname.exists():
+    if outpath.exists():
         click.confirm(
-            f"{outname.name} already exists in the output directory. Overwrite?", abort=True
+            f"{outpath.name} already exists in the output directory. Overwrite?", abort=True
         )
     df = header_table(filenames, num_proc=num_proc, quiet=quiet, ext=ext, fix=False)
-    df.to_csv(outname)
-    return outname
+    df.to_csv(outpath)
+    return outpath
 
 
 ########## upgrade ##########
