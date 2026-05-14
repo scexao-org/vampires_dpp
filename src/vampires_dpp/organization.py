@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from astropy.io import fits
-from rich import progress
+from tqdm.auto import tqdm
 
 from .headers import fix_header
 from .util import load_fits_header
@@ -79,11 +79,7 @@ def header_table(
         num_proc = min(8, mp.cpu_count())
     with mp.Pool(num_proc) as pool:
         jobs = [pool.apply_async(dict_from_header_file, args=(f,), kwds=kwargs) for f in filenames]
-        iter = (
-            jobs
-            if quiet
-            else progress.track(jobs, description="Parsing FITS headers", transient=True)
-        )
+        iter = jobs if quiet else tqdm(jobs, desc="Parsing FITS headers", leave=False)
         rows = [job.get() for job in iter]
 
     return pd.DataFrame(rows)
@@ -106,7 +102,7 @@ def sort_files(
             kwds = dict(outdir=outdir, copy=copy, decompress=decompress, **kwargs)
             jobs.append(pool.apply_async(sort_file, args=(filename,), kwds=kwds))
 
-        iter = jobs if quiet else progress.track(jobs, description="Sorting files", transient=True)
+        iter = jobs if quiet else tqdm(jobs, desc="Sorting files", leave=False)
         results = [job.get() for job in iter]
 
     return results
@@ -136,10 +132,11 @@ def sort_file(
             newname.unlink()
         # run funpack to decompress, setting output to newname and deleting input on success
         newname.parent.mkdir(parents=True, exist_ok=True)
-        if copy:
-            subprocess.Popen(["funpack", "-O", newname.absolute(), path.absolute()])
-        else:
-            subprocess.Popen(["funpack", "-O", newname.absolute(), "-D", path.absolute()])
+        cmd = ["funpack", "-O", str(newname.absolute())]
+        if not copy:
+            cmd.append("-D")
+        cmd.append(str(path.absolute()))
+        subprocess.run(cmd, check=True)
     elif copy:
         shutil.copy(path, newname)
     else:
@@ -266,7 +263,7 @@ def check_files(
         for filename in filenames:
             jobs.append(pool.apply_async(check_file, args=(filename,)))
 
-        iter = jobs if quiet else progress.track(jobs, description="Checking files", transient=True)
+        iter = jobs if quiet else tqdm(jobs, desc="Checking files", leave=False)
         results = [job.get() for job in iter]
 
     return results

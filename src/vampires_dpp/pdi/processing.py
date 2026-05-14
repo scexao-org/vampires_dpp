@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from astropy.io import fits
 from numpy.typing import NDArray
-from rich import progress
+from tqdm.auto import tqdm
 
 from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
@@ -395,10 +395,11 @@ def polarization_calibration_leastsq(filenames, mm_filenames, outname, force=Fal
     cubes = []
     headers = []
     mueller_mats = []
-    for file, mm_file in progress.progress.track(
+    for file, mm_file in tqdm(
         zip(filenames, mm_filenames, strict=True),
         total=len(filenames),
-        description="Least-squares calibration",
+        desc="Least-squares calibration",
+        leave=False,
     ):
         cube, hdr = load_fits(file, header=True, memmap=False)
         # rotate to N up E left

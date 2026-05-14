@@ -4980,6 +4980,7 @@ dependencies = [
     { name = "synphot" },
     { name = "tomli" },
     { name = "tomli-w" },
+    { name = "tqdm" },
 ]
 
 [package.optional-dependencies]
@@ -5046,6 +5047,7 @@ requires-dist = [
     { name = "synphot" },
     { name = "tomli" },
     { name = "tomli-w" },
+    { name = "tqdm" },
     { name = "ty", marker = "extra == 'dev'" },
     { name = "zenodo-get", marker = "extra == 'docs'" },
 ]

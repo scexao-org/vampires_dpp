@@ -65,7 +65,10 @@ def add_star_pol_hdul(hdul, aper_rad, ann_rad=None):
             ann_rad=ann_rad,
         )
 
+    header.pop("FIELD", None)
+
     for hdu in hdul:
-        hdu.header.update(sort_header(header))
+        hdu.header.update(header)
+        hdu.header = sort_header(hdu.header)
 
     return hdul

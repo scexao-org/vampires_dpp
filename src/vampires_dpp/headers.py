@@ -229,14 +229,44 @@ def get_instrument_from(header: fits.Header) -> InstrumentInfo:
     return inst
 
 
+_STRUCTURAL_KEYS = frozenset(("SIMPLE", "BITPIX", "EXTEND", "XTENSION", "PCOUNT", "GCOUNT"))
+
+
+def _is_structural(keyword: str) -> bool:
+    return keyword in _STRUCTURAL_KEYS or keyword.startswith("NAXIS")
+
+
 def sort_header(header: fits.Header) -> fits.Header:
-    """Sort all non-structural FITS header keys"""
+    """Sort non-structural FITS header keys.
+
+    Structural cards (SIMPLE/XTENSION, BITPIX, NAXIS*, PCOUNT, GCOUNT, EXTEND) are
+    preserved in their original order at the top of the output; COMMENT/HISTORY/blank
+    cards are preserved in their original order at the bottom; everything else is
+    alphabetized by keyword.
+    """
+    structural_cards = []
+    regular_cards = []
+    trailing_cards = []
+    for card in header.cards:
+        kw = card.keyword
+        if _is_structural(kw):
+            structural_cards.append(card)
+        elif kw in ("COMMENT", "HISTORY", ""):
+            trailing_cards.append(card)
+        else:
+            regular_cards.append(card)
+    regular_cards.sort(key=lambda c: c.keyword)
+
     output_header = fits.Header()
-    for key in sorted(header):
-        # skip structural keys
-        if key in ("SIMPLE", "BITPIX", "EXTEND", "COMMENT", "HISTORY") or key.startswith("NAXIS"):
-            continue
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", AstropyWarning)
-            output_header[key] = header[key], header.comments[key]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", AstropyWarning)
+        for card in (*structural_cards, *regular_cards, *trailing_cards):
+            output_header.append(card, end=True)
     return output_header
+
+
+def sort_headers_hdul(hdul: fits.HDUList) -> fits.HDUList:
+    for hdu in hdul:
+        hdu.header = sort_header(hdu.header)
+
+    return hdul

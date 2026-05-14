@@ -3,20 +3,13 @@ from pathlib import Path
 from loguru import logger
 from rich.console import Console
 from rich.markup import escape
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn,
-)
+from tqdm.auto import tqdm
 
 _FILE_FMT = "{time:HH:mm:ss.SSS} | {level:<8} | {name}:{line} - {message}"
 
-# Shared console — all loguru output and Progress instances must use this object
-# so the Live display correctly absorbs log messages while progress is rendering.
+# Rich console used purely to format log lines. We never let it print directly
+# to stderr while a tqdm bar may be active — every rendered line is routed
+# through tqdm.write so the bar redraws cleanly underneath.
 console = Console(stderr=True, highlight=False)
 
 _LEVEL_STYLES = {
@@ -35,38 +28,16 @@ def _rich_sink(message):
     level = record["level"].name
     style = _LEVEL_STYLES.get(level, "white")
     time_str = record["time"].strftime("%H:%M:%S")
-    console.print(
-        f"[dim]\\[{time_str}][/dim] [{style}]{level:<8}[/{style}] {escape(record['message'])}",
-        highlight=False,
-    )
-
-
-def make_progress(**kwargs) -> Progress:
-    """Full progress bar with spinner, bar, count, and ETA."""
-    return Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        MofNCompleteColumn(),
-        TimeElapsedColumn(),
-        TimeRemainingColumn(),
-        console=console,
-        **kwargs,
-    )
-
-
-def make_worker_progress(**kwargs) -> Progress:
-    """Minimal spinner + description for per-worker stage lines."""
-    return Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-        **kwargs,
-    )
+    with console.capture() as cap:
+        console.print(
+            f"[dim]\\[{time_str}][/dim] [{style}]{level:<8}[/{style}] {escape(record['message'])}",
+            highlight=False,
+        )
+    tqdm.write(cap.get(), end="")
 
 
 def configurelogging_utils(level: str = "INFO") -> logger:
-    """Configure the main-process logger (stderr via rich console)."""
+    """Configure the main-process logger (stderr, tqdm-safe)."""
     logger.configure(
         handlers=[{"sink": _rich_sink, "level": level, "format": "{message}", "colorize": True}]
     )

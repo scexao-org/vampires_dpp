@@ -96,7 +96,7 @@ def combine_hduls(hduls: list[fits.HDUList], **kwargs):
         if hdu_idx == 0:
             hdu = fits.PrimaryHDU(data, header=header)
         else:
-            hdu = fits.ImageHDU(data, header=header)
+            hdu = fits.ImageHDU(data, header=header, name=hduls[0][hdu_idx].name)
         hdulist.append(hdu)
     return fits.HDUList(hdulist)
 
@@ -160,6 +160,8 @@ def combine_frames_headers(headers: Sequence[fits.Header], wcs=False):
     unique_row = table.loc[0, unique_mask]
 
     for key, val in unique_row.items():
+        if key == "EXTNAME":
+            continue
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", AstropyWarning)
             output_header[key] = val, test_header.comments[key]

@@ -272,7 +272,7 @@ class AlignmentConfig(BaseModel):
         default=True, description="If true, data will be aligned by the given method."
     )
     pad: bool = Field(
-        default=True,
+        default=False,
         description="If true, data will be padded so the full FOV is retained after rotation.",
     )
     method: Literal["dft", "com", "peak", "model"] = Field(

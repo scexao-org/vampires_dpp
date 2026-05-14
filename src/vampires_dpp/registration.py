@@ -1,4 +1,8 @@
+import contextlib
 import itertools
+import os
+import tempfile
+import weakref
 from pathlib import Path
 from typing import Literal, TypeAlias
 
@@ -23,6 +27,26 @@ from vampires_dpp.indexing import frame_center, frame_radii, get_mbi_centers
 from vampires_dpp.specphot.filters import determine_filterset_from_header
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.util import get_center
+
+
+def _unlink_quiet(path: Path) -> None:
+    with contextlib.suppress(OSError):
+        path.unlink()
+
+
+def _make_memmap_array(shape, dtype="f4", tmpdir: str | None = None) -> np.memmap:
+    """Allocate a tempfile-backed memmap that auto-deletes when garbage-collected.
+
+    Used for the aligned-cube intermediates so the OS can page out unused regions
+    instead of holding the full cube resident in RAM.
+    """
+    fd, path = tempfile.mkstemp(suffix=".dpp_memmap", dir=tmpdir)
+    path = Path(path)
+    os.close(fd)
+    arr = np.memmap(path, dtype=dtype, mode="w+", shape=shape)
+    weakref.finalize(arr, _unlink_quiet, path)
+    return arr
+
 
 __all__ = ("register_hdul",)
 
@@ -156,8 +180,12 @@ def register_hdul(
     # round to nearest even number
     npad = int((rad_factor // 2) * 2) if pad else 0
     npix = crop_width + 2 * npad
-    aligned_cube = np.empty((*centroids.shape[:2], npix, npix), dtype="f4")
-    aligned_err_cube = np.empty((*centroids.shape[:2], npix, npix), dtype="f4")
+    # Tempfile-backed memmaps so the aligned cubes don't sit fully resident in RAM.
+    # Pages get paged in/out by the OS as later stages walk the data; the underlying
+    # files are unlinked automatically when these arrays are garbage-collected.
+    out_shape = (*centroids.shape[:2], npix, npix)
+    aligned_cube = _make_memmap_array(out_shape, dtype="f4")
+    aligned_err_cube = _make_memmap_array(out_shape, dtype="f4")
     for tidx in range(centroids.shape[0]):
         frame = hdul[0].data[tidx]
         frame_err = hdul["ERR"].data[tidx]

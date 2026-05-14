@@ -1,12 +1,13 @@
 import itertools
+from dataclasses import dataclass, replace
 from typing import Final, Literal
 
 import numpy as np
-import scipy.stats as st
 import sep
 from astropy import modeling
 from astropy.io import fits
 from astropy.nddata import Cutout2D
+from loguru import logger
 
 from .constants import NBS_INSTALL_MJD
 
@@ -298,71 +299,271 @@ def analyze_file(
     return outpath
 
 
-def update_hdul_with_metrics(hdul, metrics):
-    # TODO
+@dataclass(frozen=True)
+class MetricInfo:
+    """Registry entry describing how a metric should be written into FITS headers."""
 
+    category: str  # subnamespace under `hierarch DPP` (e.g. PHOT, CENTROID, PSF)
+    comment: str  # human-readable description for the FITS comment column
+    unit: str = ""  # unit string for the comment (e.g. "e-/s", "pix", "")
+    scalar: bool = False  # if True, write a single value (no per-PSF expansion)
+
+
+METRIC_INFO: Final[dict[str, MetricInfo]] = {
+    # raw photometry / signal stats — values are in e-/s prior to specphot calibration
+    "max": MetricInfo("PHOT", "Peak signal", unit="e-/s"),
+    "sum": MetricInfo("PHOT", "Total signal", unit="e-/s"),
+    "mean": MetricInfo("PHOT", "Mean signal", unit="e-/s"),
+    "med": MetricInfo("PHOT", "Median signal", unit="e-/s"),
+    "var": MetricInfo("PHOT", "Signal variance", unit="(e-/s)^2"),
+    "nvar": MetricInfo("PHOT", "Normed variance", unit="e-/s"),
+    "photr": MetricInfo("PHOT", "Photometric aperture radius", unit="pix", scalar=True),
+    "photf": MetricInfo("PHOT", "Photometric flux", unit="e-/s"),
+    "phote": MetricInfo("PHOT", "Photometric flux error", unit="e-/s"),
+    "strehl": MetricInfo("PSF", "Strehl ratio"),
+    # centroids — pixel coordinates from a few different estimators
+    "comx": MetricInfo("CENTROID", "COM x", unit="pix"),
+    "comy": MetricInfo("CENTROID", "COM y", unit="pix"),
+    "peakx": MetricInfo("CENTROID", "Peak index x", unit="pix"),
+    "peaky": MetricInfo("CENTROID", "Peak index y", unit="pix"),
+    "dftx": MetricInfo("CENTROID", "Cross-corr x", unit="pix"),
+    "dfty": MetricInfo("CENTROID", "Cross-corr y", unit="pix"),
+    # PSF model fit
+    "psff": MetricInfo("PSF", "PSF model flux", unit="e-/s"),
+    "fwhm": MetricInfo("PSF", "Model fit FWHM", unit="pix"),
+    "modx": MetricInfo("CENTROID", "Model fit x", unit="pix"),
+    "mody": MetricInfo("CENTROID", "Model fit y", unit="pix"),
+}
+
+
+def _metric_comment(info: MetricInfo, suffix: str = "") -> str:
+    unit_part = f"[{info.unit}] " if info.unit else ""
+    return f"{unit_part}{info.comment}{suffix}"
+
+
+def add_metrics_to_header(hdul: fits.HDUList, metrics) -> fits.HDUList:
+    """Write per-field metric values into the primary HDU header.
+
+    Keys follow `hierarch DPP <CATEGORY> <KEY> <FIELD> [<PSF#>]`. Per-PSF values
+    are written when a metric is multi-PSF; a field-aggregate (mean over PSFs of
+    the time-mean) is also written without the PSF suffix. Unknown metric keys
+    are skipped with a debug log so the registry stays explicit.
+    """
+    field_names = [hdu.header["FIELD"].upper() for hdu in hdul[2:]]
+    new_hdr = fits.Header()
+    for key, arrays in metrics.items():
+        info = METRIC_INFO.get(key)
+        if info is None:
+            logger.debug(f"add_metrics_to_header: skipping unregistered metric {key!r}")
+            continue
+        key_up = key.upper()
+        arrays = np.atleast_1d(arrays)
+        if arrays.shape[0] != len(field_names):
+            logger.warning(
+                f"add_metrics_to_header: {key!r} has shape {arrays.shape}, "
+                f"expected leading dim {len(field_names)} — skipping"
+            )
+            continue
+
+        for field_idx, field in enumerate(field_names):
+            field_arr = arrays[field_idx]  # shape (npsfs, ntime) or (npsfs,) etc.
+            if info.scalar:
+                val = float(np.asarray(field_arr).flat[0])
+                new_hdr[f"hierarch DPP {info.category} {key_up} {field}"] = (
+                    np.nan_to_num(val),
+                    _metric_comment(info),
+                )
+                continue
+
+            psf_means = np.nanmean(field_arr, axis=-1) if field_arr.ndim > 1 else field_arr
+            psf_means = np.atleast_1d(psf_means)
+            for psf_idx, psf_val in enumerate(psf_means):
+                new_hdr[f"hierarch DPP {info.category} {key_up} {field} {psf_idx + 1}"] = (
+                    np.nan_to_num(float(psf_val)),
+                    _metric_comment(info, f" in window {psf_idx + 1}"),
+                )
+            new_hdr[f"hierarch DPP {info.category} {key_up} {field}"] = (
+                np.nan_to_num(float(np.nanmean(psf_means))),
+                _metric_comment(info, " (mean over windows)"),
+            )
+
+    for hdu in hdul:
+        hdu.header.update(new_hdr)
     return hdul
 
 
-COMMENT_FSTRS: Final = {
-    "max": "[{}] Peak signal{}in window {}",
-    "sum": "[{}] Total signal{}in window {}",
-    "mean": "[{}] Mean signal{}in window {}",
-    "med": "[{}] Median signal{}in window {}",
-    "var": "[({})^2] Signal variance{}in window {}",
-    "nvar": "[{}] Normed variance{}in window {}",
-    "photr": "[pix] Photometric aperture radius",
-    "photf": "[{}] Photometric flux{}in window {}",
-    "phote": "[{}] Photometric fluxerr{}in window {}",
-    "psff": "[{}] PSF flux{}in window {}",
-}
-CENTROID_COMM_FSTRS: Final = {
-    "comx": "[pix] COM x{}in window {}",
-    "comy": "[pix] COM y{}in window {}",
-    "peakx": "[pix] Peak index x{}in window {}",
-    "peaky": "[pix] Peak index y{}in window {}",
-    "modx": "[pix] Model fit x{}in window {}",
-    "mody": "[pix] Model fit y{}in window {}",
-    "dftx": "[pix] Cross-corr. x{}in window {}",
-    "dfty": "[pix] Cross-corr. y{}in window {}",
-    "fwhm": "[pix] Model fit fwhm{}in window {}",
-}
+def analyze_window(
+    frame,
+    frame_err,
+    center,
+    *,
+    aper_rad: float = 8,
+    ann_rad=None,
+    window_size: int = 21,
+    do_phot: bool = True,
+    do_strehl: bool = False,
+    psf=None,
+    do_psf_model: bool = False,
+    psf_model: Literal["moffat"] = "moffat",
+) -> dict[str, float]:
+    """Run non-centroid statistics on a single 2D frame at a known center.
+
+    Returns scalar values per metric. Used for measuring coadded frames where
+    there is no time axis and the PSF position is already known.
+    """
+    cutout = Cutout2D(frame, center[::-1], window_size, mode="partial").data
+    output: dict[str, float] = {
+        "max": float(np.nanmax(cutout)),
+        "sum": float(np.nansum(cutout)),
+        "mean": float(np.nanmean(cutout)),
+        "med": float(np.nanmedian(cutout)),
+        "var": float(np.nanvar(cutout)),
+    }
+    output["nvar"] = output["var"] / output["mean"] if output["mean"] else float("nan")
+
+    if do_phot:
+        flux, fluxerr = safe_aperture_sum(
+            frame, r=aper_rad, err=frame_err, center=center, ann_rad=ann_rad
+        )
+        output["photr"] = float(aper_rad)
+        output["photf"] = float(flux)
+        output["phote"] = float(fluxerr)
+
+    if do_strehl and psf is not None:
+        output["strehl"] = float(measure_strehl(frame, psf, pos=center, phot_rad=aper_rad))
+
+    if do_psf_model:
+        info = fit_psf_model(frame, frame_err, model=psf_model)
+        amp = float(info["model_amp"])
+        alpha = float(info["model_alpha"])
+        fwhmx = float(info["model_fwhmx"])
+        fwhmy = float(info["model_fwhmy"])
+        gx = moffat_gamma(fwhmx, alpha)
+        gy = moffat_gamma(fwhmy, alpha)
+        output["psff"] = amp * np.pi * gx * gy / (alpha - 1) if alpha > 1 else float("nan")
+        output["fwhm"] = float(np.sqrt(fwhmx * fwhmy))
+
+    return output
 
 
-def add_metrics_to_header(hdr: fits.Header, metrics: dict, index=0) -> fits.Header:
-    for key, field_arrs in metrics.items():
-        arr = field_arrs[index]
-        if key not in COMMENT_FSTRS:
+def analyze_coadded_hdul(
+    hdul: fits.HDUList,
+    window_centers,
+    psfs=None,
+    *,
+    aper_rad: float = 8,
+    ann_rad=None,
+    window_size: int = 21,
+    do_phot: bool = True,
+    do_strehl: bool = False,
+    do_psf_model: bool = False,
+    psf_model: Literal["moffat"] = "moffat",
+) -> dict[str, np.ndarray]:
+    """Measure scalar non-centroid stats on each (field, PSF window) of a coadded HDUList.
+
+    PSF positions follow the recenter convention: each PSF sits at
+    ``frame_center(field_frame) + window_offsets[field_idx, psf_idx]`` where
+    ``window_offsets`` are the per-PSF offsets from the field's mean window center.
+    Returns a dict where each value has shape ``(nfields, npsfs)``.
+    """
+    data_cube = hdul[0].data
+    err_cube = hdul["ERR"].data
+
+    window_array = np.array(list(window_centers.values()))  # (nfields, npsfs, 2)
+    window_offsets = window_array - np.mean(window_array, axis=1, keepdims=True)
+
+    nfields, npsfs = window_array.shape[:2]
+    psf_list = list(psfs) if psfs is not None else [None] * nfields
+
+    metrics: dict[str, list[list[float]]] = {}
+    for field_idx in range(nfields):
+        frame = data_cube[field_idx]
+        frame_err = err_cube[field_idx]
+        field_center = frame_center(frame)
+        per_field: dict[str, list[float]] = {}
+        for psf_idx in range(npsfs):
+            center = field_center + window_offsets[field_idx, psf_idx]
+            stats = analyze_window(
+                frame,
+                frame_err,
+                center,
+                aper_rad=aper_rad,
+                ann_rad=ann_rad,
+                window_size=window_size,
+                do_phot=do_phot,
+                do_strehl=do_strehl,
+                psf=psf_list[field_idx],
+                do_psf_model=do_psf_model,
+                psf_model=psf_model,
+            )
+            for k, v in stats.items():
+                per_field.setdefault(k, []).append(v)
+        for k, v in per_field.items():
+            metrics.setdefault(k, []).append(v)
+
+    return {k: np.asarray(v) for k, v in metrics.items()}
+
+
+def _retune_unit(info: MetricInfo, bunit: str) -> MetricInfo:
+    """Return a MetricInfo with its flux unit swapped for the current BUNIT.
+
+    Metrics whose values are in the data-cube unit (max/sum/mean/photf/...) are
+    registered as ``e-/s`` in `METRIC_INFO`. After specphot calibration the cube
+    is in whatever `BUNIT` was configured, so the comment string needs to follow.
+    """
+    if info.unit == "e-/s":
+        return replace(info, unit=bunit)
+    if info.unit == "(e-/s)^2":
+        return replace(info, unit=f"({bunit})^2")
+    return info
+
+
+def add_coadd_metrics_to_header(hdul: fits.HDUList, metrics) -> fits.HDUList:
+    """Write scalar coadd-time metrics into the FITS headers.
+
+    Overrides any time-averaged values written earlier by `add_metrics_to_header`.
+    Expects each metric to have shape ``(nfields, npsfs)``. Unit strings in the
+    comments are retuned to the current ``BUNIT`` so labels match the cube state
+    after specphot calibration.
+    """
+    field_names = [hdu.header["FIELD"].upper() for hdu in hdul[2:]]
+    bunit = hdul[0].header.get("BUNIT", "e-/s")
+    new_hdr = fits.Header()
+    for key, arrays in metrics.items():
+        info = METRIC_INFO.get(key)
+        if info is None:
+            logger.debug(f"add_coadd_metrics_to_header: skipping unregistered metric {key!r}")
             continue
+        arrays = np.asarray(arrays)
+        if arrays.shape[0] != len(field_names):
+            logger.warning(
+                f"add_coadd_metrics_to_header: {key!r} has shape {arrays.shape}, "
+                f"expected leading dim {len(field_names)} — skipping"
+            )
+            continue
+        info = _retune_unit(info, bunit)
         key_up = key.upper()
-        if key_up == "PHOTR":
-            hdr[key_up] = arr[0][0], COMMENT_FSTRS[key]
-            continue
-        mean_val = 0
-        unit = hdr["BUNIT"]
-        N = len(arr)
-        for i, psf in enumerate(arr):
-            # mean val
-            if key in COMMENT_FSTRS:
-                comment = COMMENT_FSTRS[key].format(unit, " ", i)
-                err_comment = COMMENT_FSTRS[key].format(unit, " err ", i)
-            elif key in CENTROID_COMM_FSTRS:
-                comment = CENTROID_COMM_FSTRS[key].format(" ", i)
-                err_comment = CENTROID_COMM_FSTRS[key].format(" err ", i)
+        for field_idx, field in enumerate(field_names):
+            psf_vals = np.atleast_1d(arrays[field_idx])
+            if info.scalar:
+                new_hdr[f"hierarch DPP {info.category} {key_up} {field}"] = (
+                    np.nan_to_num(float(psf_vals.flat[0])),
+                    _metric_comment(info),
+                )
+                continue
+            for psf_idx, val in enumerate(psf_vals):
+                new_hdr[f"hierarch DPP {info.category} {key_up} {field} {psf_idx + 1}"] = (
+                    np.nan_to_num(float(val)),
+                    _metric_comment(info, f" in window {psf_idx + 1}"),
+                )
+            new_hdr[f"hierarch DPP {info.category} {key_up} {field}"] = (
+                np.nan_to_num(float(np.nanmean(psf_vals))),
+                _metric_comment(info, " (mean over windows)"),
+            )
 
-            psf_val = np.mean(psf)
-            mean_val += (psf_val - mean_val) / (i + 1)
-            hdr[f"{key_up}{i}"] = np.nan_to_num(psf_val), comment
-            # sem
-            if len(psf) == 1:
-                sem = 0
-            elif "PHOTE" in key_up:
-                sem = np.sqrt(np.mean(psf**2) / N)
-            else:
-                sem = st.sem(psf, nan_policy="omit")
-            hdr[f"{key_up[:5]}ER{i}"] = np.nan_to_num(sem), err_comment
-        hdr[f"{key_up[:5]}"] = np.nan_to_num(mean_val), comment.split(" in window")[0]
-    return hdr
+    for hdu in hdul:
+        hdu.header.update(new_hdr)
+    return hdul
 
 
 def moffat_fwhm(gamma, alpha):

@@ -36,6 +36,7 @@ dependencies = [
     "synphot",
     "tomli_w",
     "tomli",
+    "tqdm",
 ]
 
 [project.urls]

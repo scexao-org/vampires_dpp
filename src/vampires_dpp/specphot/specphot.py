@@ -59,12 +59,65 @@ AIRMASS_K: Final = {  # mag / airmass
 }
 
 
+def shape_factor_for_data(conv_factor, data):
+    """Reshape conv_factor for clean broadcasting against the data cube.
+
+    Internal specphot factors are returned as `(1, nfields, 1, 1)` (for the
+    time-series cubes seen at stage 5). When re-running on coadded data
+    `(nfields, ny, nx)` we need `(nfields, 1, 1)` instead. Scalars are kept as-is.
+    """
+    factor = np.asarray(conv_factor)
+    if factor.ndim == 0:
+        return factor
+    flat = factor.reshape(-1)
+    if data.ndim == 3:
+        return flat.reshape(-1, 1, 1)
+    if data.ndim == 4:
+        return flat.reshape(1, -1, 1, 1)
+    return factor
+
+
+def read_prior_specphot_factors(hdul: fits.HDUList) -> np.ndarray | None:
+    """Return per-field conv_factor from a previous specphot run, or None."""
+    prim_hdr = hdul[0].header
+    factors = []
+    for hdu in hdul[2:]:
+        key = f"hierarch DPP SPECPHOT FACTOR {hdu.header['FIELD']}"
+        if key not in prim_hdr:
+            return None
+        factors.append(prim_hdr[key])
+    return np.array(factors, dtype="f8")
+
+
+def _store_specphot_factors(hdul: fits.HDUList, conv_factor) -> None:
+    """Persist per-field conv_factor so a subsequent call can undo and reapply."""
+    factor_per_field = np.broadcast_to(np.asarray(conv_factor).reshape(-1), (len(hdul) - 2,))
+    info = fits.Header()
+    for hdu, val in zip(hdul[2:], factor_per_field, strict=True):
+        info[f"hierarch DPP SPECPHOT FACTOR {hdu.header['FIELD']}"] = (
+            float(val),
+            "Applied specphot conversion factor (data / raw)",
+        )
+    for hdu in hdul:
+        hdu.header.update(info)
+
+
 def specphot_cal_hdul(hdul: fits.HDUList, config: SpecphotConfig, metrics=None):
     unit = config.specphot.unit
     use_zeropoints = config.specphot.source == "zeropoints" and unit in ("Jy", "Jy/arcsec^2")
 
     if not use_zeropoints and unit in ("Jy", "Jy/arcsec^2", "contrast"):
         assert metrics, "Must provide metrics to calculate photometry"
+
+    # Idempotent re-entry: undo a previously-applied conv_factor (if any) so
+    # the data is back in raw units before we recompute.
+    prior = read_prior_specphot_factors(hdul)
+    if prior is not None:
+        undo = shape_factor_for_data(prior, hdul[0].data)
+        hdul[0].data /= undo
+        hdul["ERR"].data /= undo
+        for hdu in hdul[2:]:
+            hdul[0].header.pop(f"hierarch DPP SPECPHOT FACTOR {hdu.header['FIELD']}", None)
 
     if use_zeropoints:
         hdul, conv_factor = determine_jy_factor_from_zp(hdul)
@@ -98,8 +151,10 @@ def specphot_cal_hdul(hdul: fits.HDUList, config: SpecphotConfig, metrics=None):
                 msg = f"Invalid spectrophotometric unit: {unit}"
                 raise ValueError(msg)
 
-    hdul[0].data *= conv_factor
-    hdul["ERR"].data *= conv_factor
+    apply = shape_factor_for_data(conv_factor, hdul[0].data)
+    hdul[0].data *= apply
+    hdul["ERR"].data *= apply
+    _store_specphot_factors(hdul, conv_factor)
 
     info = fits.Header()
     info["BUNIT"] = unit
@@ -145,9 +200,11 @@ def measure_inst_flux(hdul, metrics, flux_metric: FluxMetric, satspots: bool = F
             flux = metrics["photf"]
         case "sum":
             flux = metrics["sum"]
-    # flux has units (nlambda, npsfs, ntime)
-    # collapse all but wavelength axis
-    inst_flux = np.nanmedian(np.where(flux <= 0, np.nan, flux), axis=(1, 2))
+    # flux can be (nlambda, npsfs, ntime) for time-series metrics or
+    # (nlambda, npsfs) for coadded metrics — collapse everything but wavelength.
+    flux = np.asarray(flux)
+    collapse_axes = tuple(range(1, flux.ndim))
+    inst_flux = np.nanmedian(np.where(flux <= 0, np.nan, flux), axis=collapse_axes)
     for flux, hdu in zip(inst_flux, hdul[2:], strict=True):
         _, obs_filt = update_header_with_filt_info(hdu.header)
         field = hdu.header["FIELD"]

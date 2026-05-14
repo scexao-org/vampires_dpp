@@ -1,6 +1,4 @@
-import contextlib
 import multiprocessing as mp
-import os
 import warnings
 from functools import partial
 from pathlib import Path
@@ -10,12 +8,15 @@ import pandas as pd
 import tomli
 from astropy.io import fits
 from loguru import logger
-from rich.console import Group
-from rich.live import Live
-from rich.markup import escape
 from skimage import transform
+from tqdm.auto import tqdm
 
-from vampires_dpp.analysis import analyze_file
+from vampires_dpp.analysis import (
+    add_coadd_metrics_to_header,
+    add_metrics_to_header,
+    analyze_coadded_hdul,
+    analyze_file,
+)
 from vampires_dpp.calib.calib_files import match_calib_file
 from vampires_dpp.calib.calibration import calibrate_file
 from vampires_dpp.coadd import coadd_hdul, collapse_frames
@@ -26,12 +27,8 @@ from vampires_dpp.combine_frames import (
 )
 from vampires_dpp.constants import NBS_INSTALL_MJD
 from vampires_dpp.frame_select import frame_select_hdul
-from vampires_dpp.logging_utils import (
-    configure_subprocesslogging_utils,
-    console,
-    make_progress,
-    make_worker_progress,
-)
+from vampires_dpp.headers import sort_headers_hdul
+from vampires_dpp.logging_utils import configure_subprocesslogging_utils
 from vampires_dpp.nrm.extraction import extract_observables
 from vampires_dpp.nrm.pdi import process_nrm_polarimetry
 from vampires_dpp.nrm.plotting import make_nrm_plots
@@ -56,7 +53,11 @@ from vampires_dpp.pdi.utils import write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.registration import intersect_point, recenter_hdul, register_hdul
 from vampires_dpp.specphot.filters import determine_filterset_from_header
-from vampires_dpp.specphot.specphot import specphot_cal_hdul
+from vampires_dpp.specphot.specphot import (
+    read_prior_specphot_factors,
+    shape_factor_for_data,
+    specphot_cal_hdul,
+)
 from vampires_dpp.synthpsf import create_synth_psf
 from vampires_dpp.util import get_center
 from vampires_dpp.wcs import apply_wcs
@@ -67,11 +68,25 @@ PIPELINE_STAGES = (
     "metrics",
     "select",
     "align",
+    "specphot",
     "coadd",
     "adi",
     "diff",
     "pdi",
+    "all",
 )
+
+# Cap concurrent workers when num_proc is unspecified. The per-group working set
+# (calibrated cubes, aligned cubes, registration scratch) can easily reach tens
+# of GB; fanning out to cpu_count() workers on a large server explodes RAM.
+DEFAULT_NUM_PROC = 8
+
+
+def _resolve_num_proc(num_proc: int | None) -> int:
+    if num_proc is not None:
+        return num_proc
+    cpus = mp.cpu_count()
+    return min(DEFAULT_NUM_PROC, cpus)
 
 
 class Pipeline:
@@ -96,21 +111,26 @@ class Pipeline:
         filenames : Iterable[PathLike]
             Input filenames to process
         num_proc : Optional[int]
-            Number of processes to use for multi-processing, by default None.
+            Number of processes to use for multi-processing. When ``None``, the
+            pipeline caps the worker count at ``DEFAULT_NUM_PROC`` to keep peak
+            RAM bounded on large machines.
         redo : str, optional
             Force a specific stage to rerun. Downstream stages cascade via the dirty flag.
-            One of: "calibrate", "combine", "metrics", "select", "align", "coadd", "adi", "diff", "pdi".
+            One of: "calibrate", "combine", "metrics", "select", "align", "specphot", "coadd",
+            "adi", "diff", "pdi", "all". "specphot" is an alias for "align" (they share the
+            aligned intermediate). "all" reruns every stage from the start.
         """
-        # calibrate/combine/metrics/align are always active; select and coadd are optional.
+        num_proc = _resolve_num_proc(num_proc)
+        # calibrate/combine/metrics/align/specphot are always active; select and coadd are optional.
         # Only force process stages that are actually enabled in the config.
-        _enabled_process_stages = {"calibrate", "combine", "metrics", "align"}
+        _enabled_process_stages = {"calibrate", "combine", "metrics", "align", "specphot"}
         if self.config.frame_select.frame_select:
             _enabled_process_stages.add("select")
         if self.config.coadd.coadd:
             _enabled_process_stages.add("coadd")
-        force_process = redo in _enabled_process_stages
-        force_adi = redo == "adi"
-        force_diff = redo == "diff"
+        force_process = redo == "all" or redo in _enabled_process_stages
+        force_adi = redo in ("adi", "all")
+        force_diff = redo in ("diff", "all")
 
         make_dirs(self.paths, self.config)
         conf_copy_path = self.paths.aux / f"{self.config.name}.bak.toml"
@@ -140,8 +160,7 @@ class Pipeline:
                 raise ValueError(msg)
 
         self.output_paths = []
-        with mp.Manager() as manager, mp.Pool(num_proc) as pool:
-            status_queue = manager.Queue()
+        with mp.Pool(num_proc) as pool:
             jobs = []
             for group_key, group in input_table.groupby("GROUP_KEY"):
                 output_path = get_reduced_path(self.paths, self.config, group_key)
@@ -158,35 +177,12 @@ class Pipeline:
                         pool.apply_async(
                             self.process_group,
                             args=(group, group_key, output_path),
-                            kwds={
-                                "redo_stage": redo if force_process else None,
-                                "status_queue": status_queue,
-                            },
+                            kwds={"redo_stage": redo if force_process else None},
                         )
                     )
 
-            if jobs:
-                worker_progress = make_worker_progress()
-                main_progress = make_progress()
-                overall = main_progress.add_task("Processing files", total=len(jobs))
-                worker_tasks: dict[int, int] = {}
-
-                def _drain():
-                    with contextlib.suppress(Exception):
-                        while True:
-                            pid, desc = status_queue.get_nowait()
-                            if pid not in worker_tasks:
-                                worker_tasks[pid] = worker_progress.add_task(desc)
-                            else:
-                                worker_progress.update(worker_tasks[pid], description=desc)
-
-                with Live(
-                    Group(worker_progress, main_progress), console=console, refresh_per_second=10
-                ):
-                    for job in jobs:
-                        self.output_paths.append(job.get())
-                        _drain()
-                        main_progress.advance(overall)
+            for job in tqdm(jobs, desc="Processing files", leave=False):
+                self.output_paths.append(job.get())
 
         self.output_paths.sort()
 
@@ -206,7 +202,8 @@ class Pipeline:
     def run_polarimetry(self, num_proc, redo: str | None = None):
         # pdi covers both MM computation and Stokes reduction;
         # MM→Stokes cascade is handled via file mtimes in make_stokes_image
-        force_pdi = redo == "pdi"
+        num_proc = _resolve_num_proc(num_proc)
+        force_pdi = redo in ("pdi", "all")
 
         make_dirs(self.paths, self.config)
         conf_copy_path = self.paths.aux / f"{self.config.name}.bak.toml"
@@ -243,9 +240,7 @@ class Pipeline:
 
     def create_input_table(self, filenames, num_proc) -> pd.DataFrame:
         logger.debug("Creating input header table")
-        input_table = header_table(
-            filenames, quiet=not self.verbose, num_proc=num_proc
-        ).sort_values("MJD")
+        input_table = header_table(filenames, quiet=False, num_proc=num_proc).sort_values("MJD")
         table_path = self.paths.aux / f"{self.config.name}_input_headers.csv"
         input_table.to_csv(table_path)
         logger.info(f"Saved input header table to: {table_path}")
@@ -330,28 +325,18 @@ class Pipeline:
             self.synth_psfs[filt] = psf
 
     def process_group(
-        self,
-        group,
-        group_key: str,
-        output_path: Path,
-        redo_stage: str | None = None,
-        status_queue=None,
+        self, group, group_key: str, output_path: Path, redo_stage: str | None = None
     ):
         # Child process: file-only logging; main process owns stderr
         logger = configure_subprocesslogging_utils(self.workdir)
 
-        def _status(stage: str):
-            if status_queue is not None:
-                with contextlib.suppress(Exception):
-                    status_queue.put_nowait(
-                        (os.getpid(), f"[bold]{stage}[/bold] [dim]{escape(str(group_key))}[/dim]")
-                    )
-
-        force_calibrate = redo_stage == "calibrate"
-        force_combine = redo_stage == "combine"
-        force_metrics = redo_stage == "metrics"
-        force_select = redo_stage == "select"
-        force_align = redo_stage == "align"
+        force_all = redo_stage == "all"
+        force_calibrate = force_all or redo_stage == "calibrate"
+        force_combine = force_all or redo_stage == "combine"
+        force_metrics = force_all or redo_stage == "metrics"
+        force_select = force_all or redo_stage == "select"
+        # specphot is bundled with align (they share aligned_path); rerunning either invalidates both.
+        force_align = force_all or redo_stage in ("align", "specphot")
         # force_coadd: coadd always runs when process_group is called; the top-level skip
         # in run() is the only coadd checkpoint, so no per-stage force needed here.
         # dirty: once any stage reruns, all downstream stages must also rerun regardless
@@ -380,7 +365,6 @@ class Pipeline:
             aligned_path = _ap.with_name(_ap.name.replace("_coll", "_reg"))
 
         # ── Stages 1+2: Calibrate + Combine ──
-        _status("calibrating")
         if (
             not force_calibrate
             and not force_combine
@@ -404,7 +388,6 @@ class Pipeline:
             dirty = True
 
         # ── Stage 3: Metrics ──
-        _status("analyzing")
         metrics_ref = (
             combined_path
             if (combined_path is not None and combined_path.exists())
@@ -426,7 +409,6 @@ class Pipeline:
 
         # ── Stage 4: Frame Select ──
         if self.config.frame_select.frame_select:
-            _status("selecting")
             if (
                 not force_select
                 and not dirty
@@ -454,7 +436,6 @@ class Pipeline:
                 dirty = True
 
         # ── Stage 5: Align + Specphot ──
-        _status("aligning")
         # Aligned intermediate (when it exists) includes specphot, so both are skipped together.
         align_input_refs = [
             p
@@ -484,26 +465,26 @@ class Pipeline:
                 crop_width=self.config.align.crop_width,
                 reproject_tforms=reproject_tforms,
             )
+            hdul = add_metrics_to_header(hdul, metrics)
             logger.debug(f"Running specphot calibration for group {group_key}")
             hdul = specphot_cal_hdul(hdul, config=self.config, metrics=metrics)
             if aligned_path is not None:
+                hdul = sort_headers_hdul(hdul)
                 hdul.writeto(aligned_path, overwrite=True)
                 logger.debug(f"Saved aligned HDU list to {aligned_path.absolute()}")
             dirty = True  # noqa: F841
 
         # ── Stage 6: Coadd ──
         if self.config.coadd.coadd:
-            _status("coadding")
             logger.debug(f"Coadding group {group_key}")
             _hdul = coadd_hdul(hdul, method=self.config.coadd.method)
+            cam_num = int(hdul[0].header["U_CAMERA"])
+            cam_key = f"cam{cam_num}"
+            psfs = [
+                self.synth_psfs[filt] for filt in determine_filterset_from_header(hdul[0].header)
+            ]
             if self.config.coadd.recenter:
                 logger.debug(f"Recentering group {group_key}")
-                psfs = [
-                    self.synth_psfs[filt]
-                    for filt in determine_filterset_from_header(hdul[0].header)
-                ]
-                cam_num = int(hdul[0].header["U_CAMERA"])
-                cam_key = f"cam{cam_num}"
                 window_centers = self.centroids[cam_key]
                 nbs_flag = hdul[0].header["MJD"] > NBS_INSTALL_MJD
                 for key in window_centers:
@@ -514,6 +495,38 @@ class Pipeline:
                 _hdul = recenter_hdul(
                     _hdul, window_centers, method=self.config.coadd.recenter_method, psfs=psfs
                 )
+
+            # Undo the stage-5 specphot scaling so we can measure raw-unit metrics
+            # for the next conv_factor pass. specphot_cal_hdul will re-derive and
+            # re-apply, so the saved data ends up in BUNIT again.
+            prior = read_prior_specphot_factors(_hdul)
+            if prior is not None:
+                undo = shape_factor_for_data(prior, _hdul[0].data)
+                _hdul[0].data /= undo
+                _hdul["ERR"].data /= undo
+                for hdu in _hdul[2:]:
+                    _hdul[0].header.pop(f"hierarch DPP SPECPHOT FACTOR {hdu.header['FIELD']}", None)
+
+            cfg_a = self.config.analysis
+            analyze_kwargs = dict(
+                psfs=psfs,
+                aper_rad=cfg_a.phot_aper_rad,
+                ann_rad=cfg_a.phot_ann_rad or None,
+                window_size=cfg_a.window_size,
+                do_phot=cfg_a.photometry,
+                do_strehl=cfg_a.strehl,
+                do_psf_model=cfg_a.fit_psf_model,
+                psf_model=cfg_a.psf_model,
+            )
+            logger.debug(f"Remeasuring coadd metrics for group {group_key}")
+            coadd_metrics = analyze_coadded_hdul(_hdul, self.centroids[cam_key], **analyze_kwargs)
+            logger.debug(f"Re-running specphot with coadd metrics for group {group_key}")
+            _hdul = specphot_cal_hdul(_hdul, config=self.config, metrics=coadd_metrics)
+            # Re-measure on the post-specphot cube so DPP headers carry BUNIT-scaled values.
+            coadd_metrics = analyze_coadded_hdul(_hdul, self.centroids[cam_key], **analyze_kwargs)
+            _hdul = add_coadd_metrics_to_header(_hdul, coadd_metrics)
+
+            _hdul = sort_headers_hdul(_hdul)
             logger.debug(f"Saving coadded output to {output_path.absolute()}")
             _hdul.writeto(output_path, overwrite=True)
 
@@ -637,15 +650,12 @@ class Pipeline:
         headers = []
         logger.info("Stacking output files into ADI cubes")
         time_groups = list(time_groups)
-        with make_progress() as progress:
-            task = progress.add_task("Stacking ADI frames", total=len(time_groups))
-            for _key, group in time_groups:
-                hduls = [fits.open(path) for path in group["path"]]
-                cube = np.mean([hdul[0].data for hdul in hduls], axis=0)
-                cubes.append(cube)
-                header = combine_frames_headers([hdul[0].header for hdul in hduls])
-                headers.append(header)
-                progress.advance(task)
+        for _key, group in tqdm(time_groups, desc="Stacking ADI frames", leave=False):
+            hduls = [fits.open(path) for path in group["path"]]
+            cube = np.mean([hdul[0].data for hdul in hduls], axis=0)
+            cubes.append(cube)
+            header = combine_frames_headers([hdul[0].header for hdul in hduls])
+            headers.append(header)
         angs = np.array([hdr["DEROTANG"] for hdr in headers])
         # stacked_hdul = combine_hduls(hduls)
         prim_hdr = combine_frames_headers(headers)
@@ -665,6 +675,7 @@ class Pipeline:
         #     logger.info(f"Saved cam {cam_num:.0f} ADI angles to {angles_path}")
 
     def make_diff_images(self, table, num_proc=None, force=False):
+        num_proc = _resolve_num_proc(num_proc)
         logger.info("Making difference frames")
         self.diff_files = []
         # do singlediff first, then deliberate to doublediff
@@ -677,11 +688,8 @@ class Pipeline:
             for i, paths in enumerate(path_sets):
                 outpath = outdir / f"{self.config.name}_single_diff_{i:04d}.fits"
                 jobs.append(pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath)))
-            with make_progress() as progress:
-                task = progress.add_task("Making single-diff images", total=len(jobs))
-                for job in jobs:
-                    self.diff_files.append(job.get())
-                    progress.advance(task)
+            for job in tqdm(jobs, desc="Making single-diff images", leave=False):
+                self.diff_files.append(job.get())
         if self.config.diff_images.save_double:
             # now set for double-diff
             path_sets = get_doublediff_sets(table)
@@ -696,15 +704,13 @@ class Pipeline:
                     jobs.append(
                         pool.apply_async(diff_func, args=(paths,), kwds=dict(outpath=outpath))
                     )
-                with make_progress() as progress:
-                    task = progress.add_task("Making double-diff images", total=len(jobs))
-                    for job in jobs:
-                        self.diff_files.append(job.get())
-                        progress.advance(task)
+                for job in tqdm(jobs, desc="Making double-diff images", leave=False):
+                    self.diff_files.append(job.get())
         logger.info("Done making difference frames")
         return self.diff_files
 
     def make_mueller_mats(self, table, num_proc=None, force=False):
+        num_proc = _resolve_num_proc(num_proc)
         logger.info("Creating Mueller matrices")
         mm_paths = []
         kwds = dict(
@@ -720,15 +726,13 @@ class Pipeline:
                     pool.apply_async(mueller_matrix_from_file, args=(row.path, outpath), kwds=kwds)
                 )
 
-            with make_progress() as progress:
-                task = progress.add_task("Making Mueller matrices", total=len(jobs))
-                for job in jobs:
-                    mm_paths.append(job.get())
-                    progress.advance(task)
+            for job in tqdm(jobs, desc="Making Mueller matrices", leave=False):
+                mm_paths.append(job.get())
 
         return mm_paths
 
     def polarimetry_difference(self, table, method, num_proc=None, force=False):
+        num_proc = _resolve_num_proc(num_proc)
         config = self.config.polarimetry
         stokes_sets_path = self.paths.pdi / f"{self.config.name}_stokes_sets.csv"
         if stokes_sets_path.exists():
@@ -783,19 +787,16 @@ class Pipeline:
                     continue
                 jobs.append(pool.apply_async(stokes_func, args=(paths, outpath, mm_paths)))
 
-            with make_progress() as progress:
-                task = progress.add_task("Creating Stokes images", total=len(jobs))
-                for job in jobs:
-                    outpath = job.get()
-                    # use memmap=False to avoid "too many files open" effects
-                    # another way would be to set ulimit -n <MAX_FILES>
-                    with fits.open(outpath, memmap=False) as hdul:
-                        stokes_data.append(hdul[0].data)
-                        stokes_err.append(hdul["ERR"].data)
-                        prim_hdrs.append(hdul[0].header)
-                        hdrs = [hdul[i].header for i in range(2, len(hdul))]
-                        stokes_hdrs.append(hdrs)
-                    progress.advance(task)
+            for job in tqdm(jobs, desc="Creating Stokes images", leave=False):
+                outpath = job.get()
+                # use memmap=False to avoid "too many files open" effects
+                # another way would be to set ulimit -n <MAX_FILES>
+                with fits.open(outpath, memmap=False) as hdul:
+                    stokes_data.append(hdul[0].data)
+                    stokes_err.append(hdul["ERR"].data)
+                    prim_hdrs.append(hdul[0].header)
+                    hdrs = [hdul[i].header for i in range(2, len(hdul))]
+                    stokes_hdrs.append(hdrs)
 
         ## Save CSV of Stokes values
         stokes_tbl = pd.DataFrame(
@@ -884,6 +885,7 @@ class Pipeline:
         #     )
 
     def polarimetry_nrm(self, table, force: bool = False, num_proc=None):
+        num_proc = _resolve_num_proc(num_proc)
         subfolder = self.paths.nrm / "observables"
         subfolder.mkdir(parents=True, exist_ok=True)
         path_list = []

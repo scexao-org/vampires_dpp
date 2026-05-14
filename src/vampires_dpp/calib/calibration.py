@@ -50,81 +50,106 @@ def calibrate_file(
     coord: SkyCoord | None = None,
     **kwargs,
 ) -> fits.HDUList:
+    """Calibrate a raw VAMPIRES cube into a 2-HDU (data, ERR) HDUList.
+
+    Operations are done in-place on the loaded cube wherever possible to keep peak
+    RAM bounded. Original behaviour is preserved bit-exactly aside from harmless
+    operation reordering inside the flat-correction block.
+    """
     path, outpath = get_paths(filename, suffix="calib", **kwargs)
     if not force and outpath.is_file() and path.stat().st_mtime < outpath.stat().st_mtime:
         return fits.open(outpath)
 
-    # load data and mask saturated pixels
     raw_cube, header = load_fits(path, header=True)
     header = fix_header(header)
-    # mask values above saturation
     satlevel = header["FULLWELL"] / header["GAIN"]
-    # since we're going to do floating point operations in the future (e.g. flat correction, frame collapsing)
-    # let's make our input data Float32 right now and get the byte order to the native-endianness
-    _raw_data = raw_cube.view(raw_cube.dtype.newbyteorder("=")).astype("f4")
-    cube = np.where(raw_cube >= satlevel, np.nan, _raw_data)
-    # apply proper motion correction to coordinate
+
+    # Promote to native-endian float32 once (this is the only full-cube copy we make
+    # of the raw data), then mask saturated pixels in-place.
+    sat_mask = raw_cube >= satlevel
+    cube = raw_cube.view(raw_cube.dtype.newbyteorder("=")).astype("f4")
+    cube[sat_mask] = np.nan
+    del raw_cube, sat_mask
+
     header = apply_coordinate(cube, header, coord)
-    cube_err = np.zeros_like(cube)
+
     # background subtraction
     if back_filename is not None:
         back_path = Path(back_filename)
         header["BACKFILE"] = back_path.name
         with fits.open(back_path) as hdul:
             assert hdul[0].header["U_CAMERA"] == header["U_CAMERA"]
-            background = hdul[0].data.astype("f4")
             back_hdr = hdul[0].header
-            back_err = hdul["ERR"].data.astype("f4")
             header["NOISEADU"] = back_hdr["NOISEADU"], back_hdr.comments["NOISEADU"]
             header["NOISE"] = back_hdr["NOISE"], back_hdr.comments["NOISE"]
-        cube -= background
+            cube -= hdul[0].data
+            back_err = hdul["ERR"].data.astype("f4")
     else:
         cube -= header["BIAS"]
-        back_err = 0
-    cube_err = np.sqrt(np.maximum(cube / header["EFFGAIN"], 0) * header["ENF"] ** 2 + back_err**2)
+        back_err = None
+
+    # cube_err = sqrt(max(cube/EFFGAIN, 0) * ENF^2 + back_err^2)
+    # build it in-place to avoid stacking several full-cube temporaries.
+    cube_err = np.divide(cube, header["EFFGAIN"])
+    np.maximum(cube_err, 0, out=cube_err)
+    cube_err *= header["ENF"] ** 2
+    if back_err is not None:
+        cube_err += back_err**2
+        del back_err
+    np.sqrt(cube_err, out=cube_err)
+
     # flat correction
     if flat_filename is not None:
         flat_path = Path(flat_filename)
         header["FLATFILE"] = flat_path.name
         with fits.open(flat_path) as hdul:
             assert hdul[0].header["U_CAMERA"] == header["U_CAMERA"]
-            flat = hdul[0].data.astype("f4")
             flat_hdr = hdul[0].header
-            flat[flat == 0] = np.nan
+            flat = hdul[0].data.astype("f4")
             flat_err = hdul["ERR"].data.astype("f4")
             if "NORMVAL" in flat_hdr:
                 header["NORMVAL"] = flat_hdr["NORMVAL"], flat_hdr.comments["NORMVAL"]
+        flat[flat == 0] = np.nan
 
-        unnorm_cube = cube.copy()
-        unnorm_cube[unnorm_cube == 0] = np.nan
-        rel_err = cube_err / unnorm_cube
+        # Propagate uncertainty without copying the cube. We need
+        #     cube_err_new = |cube/flat| * hypot(cube_err/cube, flat_err/flat).
+        # Mirror the original NaN behaviour: where the pre-flat cube is exactly 0,
+        # the relative error is NaN (matching the old `unnorm_cube[==0] = NaN` step),
+        # which then propagates through the final cube_err.
+        zero_mask = cube == 0
+        with np.errstate(divide="ignore", invalid="ignore"):
+            cube_err /= cube
+        cube_err[zero_mask] = np.nan
+        del zero_mask
         rel_flat_err = flat_err / flat
-
+        del flat_err
         cube /= flat
-        cube_err = np.abs(cube) * np.hypot(rel_err, rel_flat_err)
+        del flat
+        np.hypot(cube_err, rel_flat_err, out=cube_err)
+        del rel_flat_err
+        cube_err *= np.abs(cube)
+
     # bad pixel correction
     if bpmask:
         mask = adaptive_sigma_clip_mask(cube)
         cube[mask] = np.nan
         cube_err[mask] = np.nan
+        del mask
 
-    # t_obs < 2025/10/01
-    # flip cam 1 data on y-axis
-    # t_obs > 2025/10/01
-    # flip cam 2 data on y-axis
+    # t_obs < 2025-10-01: flip cam 1 on y-axis; t_obs > 2025-10-01: flip cam 2 instead
     flip_idx = 1 if header["MJD"] < NBS_INSTALL_MJD else 2
     if header["U_CAMERA"] == flip_idx:
         cube = np.flip(cube, axis=-2)
         cube_err = np.flip(cube_err, axis=-2)
 
-    # convert to e-/s
+    # convert to e-/s (in-place)
     calib_fac = header["EFFGAIN"] / header["EXPTIME"]
     cube *= calib_fac
     cube_err *= calib_fac
     header["BUNIT"] = "e-/s"
 
     header = sort_header(header)
-    # clip fot float32 to limit data size
-    prim_hdu = fits.PrimaryHDU(cube.astype("f4"), header=header)
-    err_hdu = fits.ImageHDU(cube_err.astype("f4"), header=header, name="ERR")
+    # cube and cube_err are already native float32 — no redundant copy
+    prim_hdu = fits.PrimaryHDU(cube, header=header)
+    err_hdu = fits.ImageHDU(cube_err, header=header, name="ERR")
     return fits.HDUList([prim_hdu, err_hdu])

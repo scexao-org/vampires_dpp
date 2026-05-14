@@ -11,9 +11,9 @@ import numpy as np
 from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.time import Time
-from rich import progress
 from scipy import optimize
 from skimage import filters, morphology
+from tqdm.auto import tqdm
 
 from vampires_dpp.coadd import collapse_cube
 from vampires_dpp.headers import fix_header, sort_header
@@ -218,11 +218,7 @@ def process_background_files(
                 make_background_file, path, output_directory=outdir, method=collapse, force=force
             )
             jobs.append(pool.apply_async(func))
-        job_iter = (
-            jobs
-            if quiet
-            else progress.track(jobs, description="Collapsing background frames", transient=True)
-        )
+        job_iter = jobs if quiet else tqdm(jobs, desc="Collapsing background frames", leave=False)
         frames = [job.get() for job in job_iter]
 
     return frames
@@ -260,11 +256,7 @@ def process_flat_files(
                 force=force,
             )
             jobs.append(pool.apply_async(func))
-        job_iter = (
-            jobs
-            if quiet
-            else progress.track(jobs, description="Collapsing flat frames", transient=True)
-        )
+        job_iter = jobs if quiet else tqdm(jobs, desc="Collapsing flat frames", leave=False)
         frames = [job.get() for job in job_iter]
 
     return frames
