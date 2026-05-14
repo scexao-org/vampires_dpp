@@ -52,6 +52,7 @@ test = [
     "pytest",
 ]
 docs = [
+    "autodoc_pydantic",
     "myst_nb",
     "proplot",
     "sphinx_autodoc_typehints",

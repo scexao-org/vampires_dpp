@@ -1,7 +1,7 @@
 # Image Registration
 
 ```{eval-rst}
-.. automodule:: vampires_dpp.image_registration
+.. automodule:: vampires_dpp.registration
     :members:
 ```
 

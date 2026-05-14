@@ -25,6 +25,11 @@ It's hard to process data in the volumes that VAMPIRES produces, but there are s
 
 Faster storage media reduces slowdowns from opening and closing files, which happens *a lot* throughout the pipeline
 
+```{important}
+
+If using a portable SSD or HDD, make sure to use a high-speed cable plugged into a high-speed port on your computer. Tools like ``dd``, ``lsusb``, ``cyme`` or CrystalDiskMark can be used to verify your connection and read/write speeds to the drive.
+```
+
 2. Don't save intermediate files
 
 The time it takes to open a file, write to disk, and close it will add a lot to your overheads, in addition to the huge increase in data volume

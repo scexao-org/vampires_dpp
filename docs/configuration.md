@@ -19,14 +19,14 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 ‎
 ```
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.PipelineConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.PipelineConfig
     :members: from_file, to_toml, save
 ```
 
 ### Target Information
 
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.TargetConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.TargetConfig
 ```
 
 ### File combination
@@ -34,7 +34,7 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 ‎
 ```
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.CombineConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.CombineConfig
 ```
 
 ### Calibration
@@ -42,7 +42,7 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 ‎
 ```
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.CalibrateConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.CalibrateConfig
 ```
 
 ### Analysis
@@ -50,7 +50,7 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 ‎
 ```
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.AnalysisConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.AnalysisConfig
 ```
 
 ### Frame selection
@@ -58,7 +58,7 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 ‎
 ```
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.FrameSelectConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.FrameSelectConfig
 ```
 
 ### Frame alignment
@@ -66,7 +66,7 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 ‎
 ```
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.AlignmentConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.AlignmentConfig
 ```
 
 
@@ -75,13 +75,13 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 ‎
 ```
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.CoaddConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.CoaddConfig
 ```
 
 ### Spectrophotometric Calibration
 
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.SpecphotConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.SpecphotConfig
 ```
 
 ### Polarimetry
@@ -89,6 +89,6 @@ We notate where the pipeline ends up saving data files with the "💾" emoji.
 ‎
 ```
 ```{eval-rst}
-.. autoclass:: vampires_dpp.pipeline.config.PolarimetryConfig
+.. autopydantic_model:: vampires_dpp.pipeline.config.PolarimetryConfig
 ```
 

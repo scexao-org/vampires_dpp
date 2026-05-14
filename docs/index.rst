@@ -35,6 +35,7 @@ Contents
    quickstart
    configuration
    cli
+   examples
    faq
    api/index
 

@@ -29,6 +29,7 @@ extensions = [
     "myst_nb",
     "sphinx_autodoc_typehints",
     "sphinx_click",
+    "sphinxcontrib.autodoc_pydantic",
     "sphinxcontrib.eval",
 ]
 myst_enable_extensions = ["dollarmath", "substitution"]
@@ -43,6 +44,20 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 autodoc_typehints = "description"
 autodoc_typehints_format = "short"
+
+# -- autodoc_pydantic --------------------------------------------------------
+# Render Pydantic ``Field(description=...)`` values as field docstrings
+# without cluttering the page with JSON schema or validator summaries.
+autodoc_pydantic_model_show_json = False
+autodoc_pydantic_model_show_config_summary = False
+autodoc_pydantic_model_show_config_member = False
+autodoc_pydantic_model_show_validator_summary = False
+autodoc_pydantic_model_show_validator_members = False
+autodoc_pydantic_model_show_field_summary = False
+autodoc_pydantic_model_member_order = "bysource"
+autodoc_pydantic_field_list_validators = False
+autodoc_pydantic_field_show_constraints = False
+autodoc_pydantic_field_doc_policy = "description"
 
 # -- Options for HTML output -------------------------------------------------
 

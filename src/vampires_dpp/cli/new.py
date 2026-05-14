@@ -268,8 +268,8 @@ def get_alignment_settings(template: PipelineConfig) -> PipelineConfig:
         "Enter post-align crop size", default=template.align.crop_width, type=int
     )
     template.align.reproject = click.confirm(
-        "Would you like to reproject VCAM2 data to fix scale and rotation differences?",
-        default=template.align.reproject,
+        "Would you like to reproject VCAM2 data to fix scale and rotation differences (only applicable to data with satellite spots)?",
+        default=template.coronagraphic,
     )
     template.align.save_intermediate = click.confirm(
         "Would you like to save the intermediate registered data?",
