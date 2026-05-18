@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 import astropy.units as u
 import tomli
 import tomli_w
-from annotated_types import Interval
+from annotated_types import Gt, Interval, IsFinite
 from astropy.coordinates import Angle, SkyCoord
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -37,9 +37,9 @@ class TargetConfig(BaseModel):
     name: str = Field(description="SIMBAD-friendly target name")
     ra: str = Field(description="Right ascension in sexagesimal hour angles")
     dec: str = Field(description="Declination in sexagesimal degrees")
-    parallax: float = Field(description="Parallax of system in mas")
-    pm_ra: float = Field(default=0, description="Proper motion of RA axis in mas/yr")
-    pm_dec: float = Field(default=0, description="Proper motion of DEC axis in mas/yr")
+    parallax: IsFinite[float] = Field(description="Parallax of system in mas")
+    pm_ra: IsFinite[float] = Field(default=0, description="Proper motion of RA axis in mas/yr")
+    pm_dec: IsFinite[float] = Field(default=0, description="Proper motion of DEC axis in mas/yr")
     frame: str = Field(default="icrs", description="Coordinate reference frame")
     obstime: str = Field(
         default="J2016",
@@ -110,7 +110,7 @@ class SpecphotConfig(BaseModel):
         default=None,
         description="Only used if `source` is 'pickles'. Stellar spectral type (must be one of the spectral types in the pickles model atlas).",
     )
-    mag: float | None = Field(
+    mag: IsFinite[float] | None = Field(
         default=None, description="Only used if `source` is 'pickles'. Stellar reference magnitude."
     )
     mag_band: Literal["U", "B", "V", "r", "i", "J", "H", "K"] | None = Field(
@@ -206,11 +206,11 @@ class AnalysisConfig(BaseModel):
         default=True,
         description="If true, measure photometric sums in apertures at the centroid (or DFT centroid if available).",
     )
-    phot_aper_rad: float = Field(
+    phot_aper_rad: IsFinite[float] = Field(
         default=8,
         description="Aperture radius in pixels for circular aperture photometry. If 'auto', uses the FWHM from the file header.",
     )
-    phot_ann_rad: Sequence[float] | Literal[False] = Field(
+    phot_ann_rad: Sequence[IsFinite[float]] | Literal[False] = Field(
         default=False,
         description="If provided, do local background-subtracted photometry with an annulus given as (inner, outer) radius in pixels.",
     )
@@ -218,7 +218,7 @@ class AnalysisConfig(BaseModel):
         default=True,
         description="If true, measure the Strehl ratio by comparing the PSF peak to the synthetic PSF peak (normalized by the flux in a 16-pixel aperture).",
     )
-    window_size: int = Field(
+    window_size: Annotated[int, Gt(0)] = Field(
         default=21,
         description="Cutout side length when getting cutouts for each PSF; centered on the file centroid estimate. ~21 avoids including too much halo around any coronagraph masks.",
     )
@@ -255,7 +255,7 @@ class FrameSelectConfig(BaseModel):
     metric: Literal["max", "l2norm", "normvar", "strehl"] = Field(
         default="strehl", description="Frame selection metric."
     )
-    cutoff: Annotated[float, Interval(ge=0, le=1)] = Field(
+    cutoff: Annotated[IsFinite[float], Interval(ge=0, le=1)] = Field(
         default=0,
         description="If `frame_select` is true, this is the cutoff quantile (0 to 1); 0.2 means 20% of frames in each cube are discarded.",
     )
@@ -279,7 +279,7 @@ class AlignmentConfig(BaseModel):
         default="dft",
         description="Alignment method (if 'dft' is not provided, it will not be measured at all).",
     )
-    crop_width: int = Field(
+    crop_width: Annotated[int, Gt(0)] = Field(
         default=536,
         description="Post-alignment crop width; should be roughly equal to FOV. Lower values reduce memory footprint.",
     )
@@ -379,11 +379,11 @@ class PolarimetryConfig(BaseModel):
         default="aperture",
         description="If `ip_correct=True`, this determines the region type for IP measurement.",
     )
-    ip_radius: float = Field(
+    ip_radius: IsFinite[float] = Field(
         default=15,
         description="First radius for IP correction. For 'aperture' this is the radius; for 'annulus' this is the inner radius.",
     )
-    ip_radius2: float | None = Field(
+    ip_radius2: IsFinite[float] | None = Field(
         default=None,
         description="Second radius for IP correction (only used if `ip_method='annulus'`); the outer radius.",
     )
@@ -411,7 +411,7 @@ class NRMConfig(BaseModel):
     - For each file an `H5 <https://support.hdfgroup.org/documentation/hdf5/latest/index.html>_` file is created in ``nrm/`` containing the extracted Fourier observables.
     """
 
-    nbootstrap: int = Field(
+    nbootstrap: Annotated[int, Gt(0)] = Field(
         default=1000, description="Number of bootstrap samples for PDI calibration."
     )
 
