@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from astropy.io import fits
-from astropy.utils.data import download_file
+from astropy.utils.data import clear_download_cache, download_file
 from numpy.typing import NDArray
 from pydantic import BaseModel
 
@@ -17,10 +17,7 @@ MM_URL = f"https://docs.google.com/spreadsheets/d/{MM_KEY}/gviz/tq?tqx=out:csv&s
 
 
 def _clear_file():
-    filename = download_file(MM_URL, cache=True)
-    path = Path(filename)
-    if path.exists():
-        path.unlink()
+    clear_download_cache(MM_URL)
 
 
 # MBI_MM_DICT: Final[dict[str, str]] = {"F610": "625", "F670": "675", "F720": "725", "F760": "750"}
