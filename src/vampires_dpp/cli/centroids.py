@@ -10,12 +10,15 @@ from astropy.io import fits
 from numpy.typing import NDArray
 
 from vampires_dpp.coadd import collapse_cubes_filelist
+from vampires_dpp.constants import NBS_INSTALL_MJD
+from vampires_dpp.headers import fix_header
 from vampires_dpp.logging_utils import configurelogging_utils
 from vampires_dpp.organization import header_table
 from vampires_dpp.paths import Paths
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.registration import autocentroid_hdul
 from vampires_dpp.specphot.filters import determine_filterset_from_header
+from vampires_dpp.synthpsf import create_synth_psf
 
 logger = configurelogging_utils()
 
@@ -114,8 +117,21 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
         # choose 4 to 20 files, depending on file size (avoid loading more than 500 frames, ~2GB of MBI)
         number_files = int(max(4, min(10, 500 // table["NAXIS3"].median())))
         input_hduls_dict = create_raw_input_psfs(table, basename=name, max_files=number_files)
+        # Generate synth PSFs once and reuse across cameras. The calib step flips
+        # one camera's data along y depending on observation date (see
+        # `calib/calibration.py`); mirror that here so the PSF orientation matches
+        # the raw frame for cross-correlation.
+        ref_hdul = next(iter(input_hduls_dict.values()))
+        ref_header = fix_header(ref_hdul[0].header)
+        ref_psfs = [
+            create_synth_psf(ref_header, filt, npix=pipeline_config.analysis.window_size)
+            for filt in fields
+        ]
+        flip_cam = 1 if ref_header["MJD"] < NBS_INSTALL_MJD else 2
         centroids = {}
         for key, input_hdul in input_hduls_dict.items():
+            cam_num = int(input_hdul[0].header["U_CAMERA"])
+            psfs = [np.flip(p, axis=-2) for p in ref_psfs] if cam_num == flip_cam else ref_psfs
             centroids[key] = (
                 autocentroid_hdul(
                     input_hdul,
@@ -123,6 +139,7 @@ def centroid(config: Path, filenames, num_proc, outdir, manual, plot):
                     nrm=pipeline_config.nrm is not None,
                     planetary=pipeline_config.planetary,
                     window_size=pipeline_config.analysis.window_size,
+                    psfs=psfs,
                     plot=plot,
                     save_path=paths.aux,
                 )
