@@ -56,18 +56,26 @@ def get_gaia_astrometry(target: str, catalog="dr3", radius=1):
     Radius is in arcminute.
     """
     # get precise RA and DEC
-    gaia_catalog_list = Vizier.query_object(
+    vizier = Vizier(columns=["*", "+_r"])
+    gaia_catalog_list = vizier.query_object(
         target, radius=radius * u.arcminute, catalog=GAIA_CATALOGS[catalog.lower()]
     )
     if len(gaia_catalog_list) == 0:
         return None
     gaia_info = gaia_catalog_list[0][0]  # first row of first table
     plx = np.abs(gaia_info["Plx"]) * u.mas
+    # safeguard when there's no returned proper motions
+    if np.isnan(gaia_info["pmRA"]):
+        pm_ra = 0
+        pm_dec = 0
+    else:
+        pm_ra = gaia_info["pmRA"]
+        pm_dec = gaia_info["pmDE"]
     coord = SkyCoord(
         ra=gaia_info["RA_ICRS"] * u.deg,
         dec=gaia_info["DE_ICRS"] * u.deg,
-        pm_ra_cosdec=gaia_info["pmRA"] * u.mas / u.year,
-        pm_dec=gaia_info["pmDE"] * u.mas / u.year,
+        pm_ra_cosdec=pm_ra * u.mas / u.year,
+        pm_dec=pm_dec * u.mas / u.year,
         distance=plx.to(u.parsec, equivalencies=u.parallax()),
         frame="icrs",
         obstime="J2016",
