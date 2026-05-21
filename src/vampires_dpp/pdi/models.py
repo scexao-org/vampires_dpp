@@ -17,16 +17,15 @@ MM_URL = f"https://docs.google.com/spreadsheets/d/{MM_KEY}/gviz/tq?tqx=out:csv&s
 
 
 def _clear_file():
-    clear_download_cache(MM_URL)
+    clear_download_cache(MM_URL, pkgname="vampires_dpp")
 
 
 # MBI_MM_DICT: Final[dict[str, str]] = {"F610": "625", "F670": "675", "F720": "725", "F760": "750"}
 
 
 def load_calibration_file(header):
-    table = pd.read_csv(
-        download_file(MM_URL, cache=True), header=0, index_col=0, dtype={"filter": str}
-    )
+    filename = download_file(MM_URL, cache=True, pkgname="vampires_dpp")
+    table = pd.read_csv(filename, header=0, index_col=0, dtype={"filter": str})
     filt = header["FILTER01"]
     if "MBI" in header["OBS-MOD"]:
         # table_key = MBI_MM_DICT[header["FIELD"]] if "FIELD" in header else "675"
