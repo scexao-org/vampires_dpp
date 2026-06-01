@@ -469,6 +469,33 @@ def get_pdi_settings(template: PipelineConfig) -> PipelineConfig:
             type=click.Choice(["azimuthal", "radial"], case_sensitive=False),
             default=template.polarimetry.cyl_stokes,
         )
+        template.polarimetry.optimize_uphi = click.confirm(
+            " - Would you like to optimize the Qphi/Uphi offset angle (minimize Uphi)?",
+            default=template.polarimetry.optimize_uphi,
+        )
+        if template.polarimetry.optimize_uphi:
+            default = "annulus" if template.coronagraphic else "aperture"
+            template.polarimetry.uphi_method = click.prompt(
+                " - Select Uphi optimization region",
+                type=click.Choice(["aperture", "annulus"], case_sensitive=False),
+                default=default,
+            )
+            if template.polarimetry.uphi_method == "aperture":
+                template.polarimetry.uphi_radius = click.prompt(
+                    " - Enter Uphi aperture radius (px)", type=float, default=10
+                )
+            elif template.polarimetry.uphi_method == "annulus":
+                resp = click.prompt(
+                    " - Enter comma-separated inner and outer radius (px)", default="10, 16"
+                )
+                ann_rad = list(map(float, resp.replace(" ", "").split(",")))
+                template.polarimetry.uphi_radius = ann_rad[0]
+                template.polarimetry.uphi_radius2 = ann_rad[1]
+            template.polarimetry.uphi_max_angle = click.prompt(
+                " - Enter maximum search angle (deg)",
+                type=float,
+                default=template.polarimetry.uphi_max_angle,
+            )
     else:
         template.polarimetry = None
 

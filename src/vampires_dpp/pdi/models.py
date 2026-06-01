@@ -199,6 +199,7 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
     @classmethod
     def load_calib_file(cls, header):
         table = load_calibration_file(header)
+        flc_theta = {k: t + table["flc_theta"] for k, t in zip(("A", "B"), (0, 45), strict=True)}
         return cls(
             name=table.name,
             m3_phi=table["m3_phi"],
@@ -211,6 +212,7 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
             optics_diat=table["optics_diat"],
             optics_theta=table["optics_theta"],
             optics_phi=table["optics_phi"],
+            flc_theta=flc_theta,
             dichroic_diat=table["dichroic_diat"],
             dichroic_theta=table["dichroic_theta"],
             dichroic_phi=table["dichroic_phi"],

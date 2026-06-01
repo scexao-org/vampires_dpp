@@ -48,8 +48,13 @@ from vampires_dpp.pdi.diff_images import (
     singlediff_images,
 )
 from vampires_dpp.pdi.models import mueller_matrix_from_file
-from vampires_dpp.pdi.processing import get_doublediff_set, get_triplediff_set, make_stokes_image
-from vampires_dpp.pdi.utils import write_stokes_products
+from vampires_dpp.pdi.processing import (
+    get_doublediff_set,
+    get_triplediff_set,
+    make_stokes_image,
+    optimize_uphi_offsets,
+)
+from vampires_dpp.pdi.utils import rotate_stokes, write_stokes_products
 from vampires_dpp.pipeline.config import PipelineConfig
 from vampires_dpp.registration import intersect_point, recenter_hdul, register_hdul
 from vampires_dpp.specphot.filters import determine_filterset_from_header
@@ -818,7 +823,7 @@ class Pipeline:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             coll_err = np.sqrt(np.nansum(stokes_err**2, axis=0)) / stokes_err.shape[0]
-        nfields = len(stokes_hdrs[0])
+        nfields = coll_frame.shape[0]
         coll_hdrs = []
         for i in range(nfields):
             hdrs = [hdr[i] for hdr in stokes_hdrs]
@@ -831,6 +836,27 @@ class Pipeline:
         for hdr in coll_hdrs:
             hdr["NCOADD"] = len(tints)
             hdr["TINT"] = tint
+        # optionally optimize the Qphi/Uphi offset angle per wavelength by rotating Q/U directly
+        # so that all downstream products (Qphi, Uphi, LP_I, AoLP) stay self-consistent
+        if config.optimize_uphi:
+            offsets = optimize_uphi_offsets(
+                coll_frame,
+                method=config.uphi_method,
+                radius=config.uphi_radius,
+                radius2=config.uphi_radius2,
+                max_angle=config.uphi_max_angle,
+            )
+            for hdr, offset, frame, frame_err in zip(
+                coll_hdrs, offsets, coll_frame, coll_err, strict=True
+            ):
+                frame[:] = rotate_stokes(frame, -offset)
+                frame_err[:] = rotate_stokes(frame_err, -offset)
+                field = hdr["FIELD"]
+                hdr[f"hierarch DPP PDI UPHI_OFF {field}"] = (
+                    offset,
+                    "[deg] Uphi-optimized AoLP offset angle",
+                )
+                logger.info(f"Optimized AoLP offset angle for {field}: {offset:.02f}°")
         prim_hdr = apply_wcs(coll_frame, combine_frames_headers(coll_hdrs), angle=0)
         prim_hdr["NCOADD"] /= len(coll_hdrs)
         prim_hdr["TINT"] /= len(coll_hdrs)

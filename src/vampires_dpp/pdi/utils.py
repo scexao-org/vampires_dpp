@@ -96,7 +96,7 @@ def rotate_stokes(stokes_cube, theta):
     return out
 
 
-def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=False):
+def write_stokes_products(hdul, outname=None, force=False, planetary=False):
     path = Path("stokes_cube.fits") if outname is None else Path(outname)
 
     if not force and path.is_file():
@@ -108,7 +108,7 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
     stokes_data = hdul[0].data
     stokes_err = hdul["ERR"].data
     for i in range(stokes_data.shape[0]):
-        data, err = stokes_products(stokes_data[i], stokes_err[i], phi=phi, planetary=planetary)
+        data, err = stokes_products(stokes_data[i], stokes_err[i], planetary=planetary)
 
         hdr = hdul[2 + i].header
         hdr["CTYPE3"] = "STOKES"
@@ -118,8 +118,6 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
             stokes_keys = "I_Q", "I_U", "Q", "U", "Q_PHI", "U_PHI", "LP_I", "AOLP"
 
         hdr["STOKES"] = ",".join(stokes_keys), "Stokes axis data type"
-        if phi != 0:
-            hdr["AOLPPHI"] = phi, "[deg] offset angle for Qphi and Uphi"
 
         output_data.append(data)
         output_err.append(err)
@@ -139,13 +137,13 @@ def write_stokes_products(hdul, outname=None, force=False, phi=0, planetary=Fals
     return path
 
 
-def stokes_products(stokes_frame, stokes_err, phi=0, planetary: bool = False):
+def stokes_products(stokes_frame, stokes_err, planetary: bool = False):
     pi = np.hypot(stokes_frame[3], stokes_frame[2])
     aolp = 0.5 * np.arctan2(stokes_frame[3], stokes_frame[2])
     if planetary:
-        Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(-stokes_frame, stokes_err, phi=phi)
+        Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(-stokes_frame, stokes_err)
     else:
-        Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(stokes_frame, stokes_err, phi=phi)
+        Qphi, Uphi, Qphi_err, Uphi_err = radial_stokes(stokes_frame, stokes_err)
     # error propagation
     # suppress all-divide error warnings
     with warnings.catch_warnings():

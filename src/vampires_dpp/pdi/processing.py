@@ -8,11 +8,14 @@ import numpy as np
 import pandas as pd
 from astropy.io import fits
 from numpy.typing import NDArray
+from photutils.aperture import CircularAnnulus, CircularAperture
+from scipy.optimize import minimize_scalar
 from tqdm.auto import tqdm
 
 from vampires_dpp.combine_frames import combine_frames_headers
 from vampires_dpp.headers import sort_header
 from vampires_dpp.image_processing import create_satspot_footprint, derotate_cube, derotate_frame
+from vampires_dpp.indexing import frame_center
 from vampires_dpp.paths import any_file_newer
 from vampires_dpp.util import create_or_append, load_fits
 from vampires_dpp.wcs import apply_wcs
@@ -22,6 +25,7 @@ from .utils import (
     calculate_pol_efficiency,
     measure_instpol,
     measure_instpol_ann,
+    radial_stokes,
     rotate_stokes,
     write_stokes_products,
 )
@@ -771,3 +775,58 @@ def polarization_ip_correct(stokes_data, phot_rad, method, header=None):
         )
         header[f"hierarch DPP PDI IP_METH {field}"] = method, "IP measurement method"
     return stokes_data, header
+
+
+def optimize_uphi_offsets(
+    stokes_data,
+    method: str = "annulus",
+    radius: float = 10,
+    radius2: float | None = None,
+    max_angle: float = 10,
+) -> NDArray:
+    """Find the offset angle that minimizes the mean of Uphi^2 over a region.
+
+    The radial Stokes parameter Uphi should be ~zero for a centro-symmetric polarization
+    signal (e.g. a circumstellar disk), so minimizing its squared mean over an aperture or
+    annulus provides an empirical correction for residual cross-talk and angle offsets. The
+    returned angle is intended to be applied by rotating the (Q, U) Stokes parameters (see
+    :func:`vampires_dpp.pdi.utils.stokes_products`).
+
+    Parameters
+    ----------
+    stokes_data : NDArray
+        Stokes data with dimensions (nfields, nstokes, y, x).
+    method : str
+        Region type, either "aperture" or "annulus", by default "annulus".
+    radius : float
+        Aperture radius (or annulus inner radius) in pixels, by default 10.
+    radius2 : float, optional
+        Annulus outer radius in pixels (only used if ``method='annulus'``), by default None.
+    max_angle : float
+        The offset angle is searched within +/- ``max_angle`` degrees, by default 5.
+
+    Returns
+    -------
+    NDArray
+        Offset angle for each field in degrees that minimizes the mean of Uphi^2 in the region.
+    """
+    cy, cx = frame_center(stokes_data)
+    if method == "aperture":
+        aper = CircularAperture((cx, cy), radius)
+    elif method == "annulus":
+        aper = CircularAnnulus((cx, cy), radius, radius2)
+    else:
+        msg = f"Unrecognized Uphi optimization method {method!r}"
+        raise ValueError(msg)
+    mask = aper.to_mask().to_image(stokes_data.shape[-2:]).astype(bool)
+
+    def _loss(phi: float, frame) -> float:
+        _, Uphi, _, _ = radial_stokes(rotate_stokes(frame, -phi))
+        return np.nanmean(Uphi[mask] ** 2)
+
+    opt_angles = []
+    opt_kwargs = dict(bounds=(-max_angle, max_angle), method="bounded")
+    for stokes_frame in stokes_data:
+        res = minimize_scalar(_loss, args=(stokes_frame,), **opt_kwargs)
+        opt_angles.append(res.x)
+    return np.array(opt_angles)

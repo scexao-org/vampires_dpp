@@ -391,6 +391,29 @@ class PolarimetryConfig(BaseModel):
         default="azimuthal",
         description="If 'azimuthal' will calculate (Qphi, Uphi); if 'radial' will calculate (Qr, Ur) in final Stokes products.",
     )
+    optimize_uphi: bool = Field(
+        default=False,
+        description=(
+            "If true, choose the Qphi/Uphi offset angle for each wavelength by minimizing the "
+            "mean of Uphi^2 over the given region. This empirically corrects residual cross-talk."
+        ),
+    )
+    uphi_method: Literal["aperture", "annulus"] = Field(
+        default="annulus",
+        description="If `optimize_uphi=True`, this determines the region type used to minimize Uphi.",
+    )
+    uphi_radius: IsFinite[float] = Field(
+        default=10,
+        description="First radius for Uphi optimization. For 'aperture' this is the radius; for 'annulus' this is the inner radius.",
+    )
+    uphi_radius2: IsFinite[float] | None = Field(
+        default=None,
+        description="Second radius for Uphi optimization (only used if `uphi_method='annulus'`); the outer radius.",
+    )
+    uphi_max_angle: Annotated[IsFinite[float], Gt(0)] = Field(
+        default=10,
+        description="If `optimize_uphi=True`, the offset angle is searched within +/- this many degrees.",
+    )
     mask_satspots: bool = Field(
         default=False, description="If true, mask satellite spots when forming Stokes images."
     )
@@ -399,6 +422,12 @@ class PolarimetryConfig(BaseModel):
     def _check_polarimetry(self) -> "PolarimetryConfig":
         if self.mm_correct and not self.derotate:
             msg = "Cannot do MM correction without derotation!"
+            raise ValueError(msg)
+        if self.ip_correct and self.ip_method == "annulus" and self.ip_radius2 is None:
+            msg = "Must provide `ip_radius2` (outer radius) when using `ip_method='annulus'`"
+            raise ValueError(msg)
+        if self.optimize_uphi and self.uphi_method == "annulus" and self.uphi_radius2 is None:
+            msg = "Must provide `uphi_radius2` (outer radius) when using `uphi_method='annulus'`"
             raise ValueError(msg)
         return self
 
