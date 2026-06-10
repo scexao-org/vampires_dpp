@@ -189,10 +189,12 @@ def register_hdul(
     for tidx in range(centroids.shape[0]):
         frame = hdul[0].data[tidx]
         frame_err = hdul["ERR"].data[tidx]
-
+        if not np.isfinite(centroids[tidx]).all():
+            continue
         for wlidx in range(centroids.shape[1]):
             # determine offset for each field
             field_ctr = centroids[tidx, wlidx]
+
             # generate cutouts with crop width
             # print(f"{frame.shape=} {field_ctr=}")
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
