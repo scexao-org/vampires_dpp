@@ -148,7 +148,7 @@ class EMCCDMuellerMatrix(VAMPIRESMuellerMatrix):
 
 
 class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
-    flc_theta: dict[str, float] = {"A": 0, "B": 43}  # deg
+    flc_theta: dict[str, float] = {"A": 0, "B": 45}  # deg
     dichroic_theta: float = 0  # deg
     dichroic_phi: float = 0  # wave
     dichroic_diat: float = 0
