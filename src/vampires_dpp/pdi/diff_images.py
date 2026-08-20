@@ -4,8 +4,9 @@ import numpy as np
 from astropy.io import fits
 
 from vampires_dpp.combine_frames import combine_frames_headers
-from vampires_dpp.headers import sort_header
+from vampires_dpp.headers import sort_header, sort_headers_hdul
 from vampires_dpp.paths import any_file_newer
+from vampires_dpp.util import add_timestamp_hdul
 from vampires_dpp.wcs import apply_wcs
 
 
@@ -73,7 +74,8 @@ def singlediff_images(paths, outpath: Path, force: bool = False) -> Path:
         ]
     )
     hdul.extend([fits.ImageHDU(header=sort_header(hdr)) for hdr in comb_hdrs])
-
+    hdul = add_timestamp_hdul(hdul)
+    hdul = sort_headers_hdul(hdul)
     hdul.writeto(outpath, overwrite=True)
     return outpath
 
@@ -121,5 +123,7 @@ def doublediff_images(paths, outpath: Path, force: bool = False) -> Path:
         hdr = sort_header(combine_frames_headers(headers))
         hdul.append(fits.ImageHDU(header=hdr))
 
+    hdul = add_timestamp_hdul(hdul)
+    hdul = sort_headers_hdul(hdul)
     hdul.writeto(outpath, overwrite=True)
     return outpath

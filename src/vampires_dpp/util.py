@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -100,6 +101,15 @@ def load_fits_key(filename, key, ext=0, **kwargs):
     if ".fits.fz" in path.name:
         ext = 1
     return fits.getval(path, key, ext=ext, **kwargs)
+
+
+def add_timestamp_hdul(hdul):
+    timestamp = datetime.now(timezone.utc).isoformat()
+    key = "hierarch DPP TIMESTAMP"
+    comment = "Time when file saved by DPP"
+    for hdu in hdul:
+        hdu.header[key] = timestamp, comment
+    return hdul
 
 
 def create_or_append(dict, key, value):

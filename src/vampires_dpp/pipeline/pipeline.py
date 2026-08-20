@@ -64,7 +64,7 @@ from vampires_dpp.specphot.specphot import (
     specphot_cal_hdul,
 )
 from vampires_dpp.synthpsf import create_synth_psf
-from vampires_dpp.util import get_center
+from vampires_dpp.util import add_timestamp_hdul, get_center
 from vampires_dpp.wcs import apply_wcs
 
 PIPELINE_STAGES = (
@@ -388,6 +388,8 @@ class Pipeline:
             logger.debug(f"Combining {len(group)} calibrated files")
             hdul = combine_hduls(hdul_list)
             if combined_path is not None:
+                hdul = add_timestamp_hdul(hdul)
+                hdul = sort_headers_hdul(hdul)
                 hdul.writeto(combined_path, overwrite=True)
                 logger.debug(f"Saved combined HDU list to {combined_path.absolute()}")
             dirty = True
@@ -434,6 +436,8 @@ class Pipeline:
                     quantile=self.config.frame_select.cutoff,
                 )
                 if selected_path is not None:
+                    hdul = add_timestamp_hdul(hdul)
+                    hdul = sort_headers_hdul(hdul)
                     hdul.writeto(selected_path, overwrite=True)
                     logger.debug(f"Saved selected HDU list to {selected_path.absolute()}")
                     np.savez_compressed(selected_metrics_path, metrics)
@@ -474,6 +478,7 @@ class Pipeline:
             logger.debug(f"Running specphot calibration for group {group_key}")
             hdul = specphot_cal_hdul(hdul, config=self.config, metrics=metrics)
             if aligned_path is not None:
+                hdul = add_timestamp_hdul(hdul)
                 hdul = sort_headers_hdul(hdul)
                 hdul.writeto(aligned_path, overwrite=True)
                 logger.debug(f"Saved aligned HDU list to {aligned_path.absolute()}")
@@ -532,6 +537,7 @@ class Pipeline:
             _hdul = add_coadd_metrics_to_header(_hdul, coadd_metrics)
 
             _hdul = sort_headers_hdul(_hdul)
+            _hdul = add_timestamp_hdul(_hdul)
             logger.debug(f"Saving coadded output to {output_path.absolute()}")
             _hdul.writeto(output_path, overwrite=True)
 
@@ -665,6 +671,8 @@ class Pipeline:
         # stacked_hdul = combine_hduls(hduls)
         prim_hdr = combine_frames_headers(headers)
         stacked_hdul = fits.PrimaryHDU(np.array(cubes), header=prim_hdr)
+        stacked_hdul = add_timestamp_hdul(stacked_hdul)
+        stacked_hdul = sort_headers_hdul(stacked_hdul)
         stacked_hdul.writeto(output_path, overwrite=True)
         logger.info(f"Saved ADI cube to {output_path}")
         fits.writeto(angles_path, np.array(angs, dtype="f4"), overwrite=True)
@@ -865,6 +873,8 @@ class Pipeline:
         hdul = fits.HDUList([prim_hdu, err_hdu])
         hdul.extend([fits.ImageHDU(header=hdr, name=hdr["FIELD"]) for hdr in coll_hdrs])
         # In the case we have multi-wavelength data, save 4D Stokes cube
+        hdul = add_timestamp_hdul(hdul)
+        hdul = sort_headers_hdul(hdul)
         if nfields > 1:
             stokes_cube_path = self.paths.pdi / f"{self.config.name}_stokes_cube.fits"
             write_stokes_products(
@@ -886,6 +896,8 @@ class Pipeline:
             err_hdu = fits.ImageHDU(wave_err_frame[:4], header=wave_coll_hdr, name="ERR")
             dummy_hdu = fits.ImageHDU(header=wave_coll_hdr, name="COMB")
             hdul = fits.HDUList([prim_hdu, err_hdu, dummy_hdu])
+            hdul = add_timestamp_hdul(hdul)
+            hdul = sort_headers_hdul(hdul)
         # save single-wavelength (or wavelength-collapsed) Stokes cube
         stokes_coll_path = self.paths.pdi / f"{self.config.name}_stokes_coll.fits"
         write_stokes_products(
