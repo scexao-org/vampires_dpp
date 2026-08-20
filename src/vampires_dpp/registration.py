@@ -196,7 +196,6 @@ def register_hdul(
             field_ctr = centroids[tidx, wlidx]
 
             # generate cutouts with crop width
-            # print(f"{frame.shape=} {field_ctr=}")
             cutout = Cutout2D(frame, field_ctr[::-1], size=crop_width, mode="partial")
             cutout_err = Cutout2D(frame_err, field_ctr[::-1], size=crop_width, mode="partial")
 

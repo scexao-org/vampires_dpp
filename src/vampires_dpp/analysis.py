@@ -94,7 +94,8 @@ def analyze_fields(
     output["mean"] = np.nanmean(cutout, axis=(-2, -1))
     output["med"] = np.nanmedian(cutout, axis=(-2, -1))
     output["var"] = np.nanvar(cutout, axis=(-2, -1))
-    output["nvar"] = output["var"] / output["mean"]
+    nvar = output["var"] / output["mean"]
+    output["nvar"] = 0 if np.isnan(nvar).any() else nvar
     # t1 = time.perf_counter()
     # print(f"Time for full-frame statistics: {t1 - t0} [s]")
     ## Centroids
@@ -132,6 +133,8 @@ def analyze_fields(
             )
             create_or_append(output, "photf", phot)
             create_or_append(output, "phote", photerr)
+            if np.any(phot <= 0):
+                logger.warning("Negative flux measured for some frames")
 
         # t4 = time.perf_counter()
         # print(f"Time to radial profile for one frame: {t4 - t3} [s]")
@@ -155,9 +158,9 @@ def measure_strehl(image, psf_model, pos=None, phot_rad=8):
     model_norm_peak = find_norm_peak(psf_model, frame_center(psf_model), phot_rad=phot_rad)
     ## Step 4: Calculate Strehl via normalized ratio
     strehl = image_norm_peak / model_norm_peak
-    # bad strehls become -1
+    # bad strehls become 0
     if strehl < 0 or strehl > 1:
-        return np.nan
+        return 0
 
     return strehl
 

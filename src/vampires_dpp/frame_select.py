@@ -32,6 +32,7 @@ def frame_select_hdul(
     # only remove if ALL wavelengths and all PSFs fail
     # reminder, values have shape (nlambda, npsfs, nframes)
     cutoff = np.nanquantile(values, quantile, axis=2, keepdims=True)
+
     metrics_mask = np.any(values >= cutoff, axis=(0, 1))
     # filter our metrics (so that in the future we can get the filtered centroids)
     output_metrics = {}

@@ -65,9 +65,12 @@ def calibrate_file(
     satlevel = header["FULLWELL"] / header["GAIN"]
 
     # Promote to native-endian float32 once (this is the only full-cube copy we make
-    # of the raw data), then mask saturated pixels in-place.
+    # of the raw data), then mask saturated pixels in-place. astype reads the
+    # big-endian FITS data correctly and yields a native float32 copy; do NOT use
+    # .view(newbyteorder("=")), which relabels the bytes without swapping them and
+    # corrupts the values (e.g. flips large positives into large negatives).
     sat_mask = raw_cube >= satlevel
-    cube = raw_cube.view(raw_cube.dtype.newbyteorder("=")).astype("f4")
+    cube = raw_cube.astype("f4")
     cube[sat_mask] = np.nan
     del raw_cube, sat_mask
 
