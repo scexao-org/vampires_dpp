@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from astropy.io import fits
+from astropy.time import Time
 from astropy.utils.data import clear_download_cache, download_file
 from numpy.typing import NDArray
 from pydantic import BaseModel
@@ -105,7 +106,8 @@ class VAMPIRESMuellerMatrix(BaseModel):
         flc_theta = np.deg2rad(self.flc_theta[flc_state])
         flc_mm = mm.waveplate(flc_theta, delta=wave2rad(self.flc_phi))
 
-        # beamsplitter - vertical/ordinary to camera 2
+        # beamsplitter - vertical/ordinary to cam2
+        # but QWPs are converting H to V, so set cam1 as ordinary
         is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
 
@@ -153,7 +155,9 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
     dichroic_phi: float = 0  # wave
     dichroic_diat: float = 0
 
-    def __call__(self, use_flc: bool, flc_state: str, camera: int, *args, **kwargs) -> NDArray:
+    def __call__(
+        self, use_flc: bool, flc_state: str, camera: int, *args, mjd=None, **kwargs
+    ) -> NDArray:
         ## build up mueller matrix component by component
         cp_mm = self.common_path_mm(*args, **kwargs)
 
@@ -170,8 +174,11 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
             delta=wave2rad(self.dichroic_phi),
         )
 
-        # beamsplitter - vertical/ordinary to camera 2
-        is_ordinary = camera == 1
+        # beamsplitter - vertical/ordinary to cam2
+        is_ordinary = camera == 2
+        # but QWPs prior to 2025/11/20 are converting H to V, so set cam1 as ordinary
+        if mjd is not None and Time("2025-11-20T00:00:00", format="fits") < Time(mjd, format="mjd"):
+            is_ordinary = not is_ordinary
         pbs_mm = mm.wollaston(is_ordinary)
 
         M = pbs_mm @ dichroic_mm @ flc_mm @ cp_mm
@@ -194,6 +201,7 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
             flc_state=header["U_FLC"],
             camera=header["U_CAMERA"],
             hwp_adi_sync=hwp_adi_sync,
+            mjd=header["MJD"],
         )
 
     @classmethod
