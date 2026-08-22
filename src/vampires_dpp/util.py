@@ -107,8 +107,12 @@ def add_timestamp_hdul(hdul):
     timestamp = datetime.now(timezone.utc).isoformat()
     key = "hierarch DPP TIMESTAMP"
     comment = "Time when file saved by DPP"
-    for hdu in hdul:
-        hdu.header[key] = timestamp, comment
+    if len(hdul) > 1:
+        for hdu in hdul:
+            hdu.header[key] = timestamp, comment
+    else:
+        hdul.header[key] = timestamp, comment
+
     return hdul
 
 
