@@ -177,8 +177,8 @@ class CMOSMuellerMatrix(VAMPIRESMuellerMatrix):
         # beamsplitter - vertical/ordinary to cam2
         is_ordinary = camera == 2
         # but QWPs prior to 2025/11/20 are converting H to V, so set cam1 as ordinary
-        if mjd is not None and Time("2025-11-20T00:00:00", format="fits") < Time(mjd, format="mjd"):
-            is_ordinary = not is_ordinary
+        if mjd is not None and Time(mjd, format="mjd") < Time("2025-11-20T00:00:00", format="fits"):
+            is_ordinary = camera == 1
         pbs_mm = mm.wollaston(is_ordinary)
 
         M = pbs_mm @ dichroic_mm @ flc_mm @ cp_mm
