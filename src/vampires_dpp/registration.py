@@ -650,9 +650,11 @@ def autocentroid_hdul(
         # high-pass filter the data with a large median-- note, this requires the data to have
         # a certain level of S/N or it will wipe out the satellite spots. Therefore it's only suggested
         # to run the autocentroid on a big stack of mean-combined data instead of individual frames
-        filtered_cutout = rough_cutout.data - filters.median(rough_cutout.data, np.ones((9, 9)))
+        smoothed_cutout = filters.median(rough_cutout.data, np.ones((3, 3)))
+        lowpass_cutout = filters.median(smoothed_cutout, np.ones((9, 9)))
+        highpass_cutout = smoothed_cutout - lowpass_cutout
         # convolve high-pass filtered data with the PSF for better S/N (unsharp-mask-ish)
-        filtered_cutout = convolve_fft(filtered_cutout, psfs[idx])
+        filtered_cutout = convolve_fft(highpass_cutout, psfs[idx])
 
         # when nrm, find six peaks wich form a hexagon
         if nrm:
