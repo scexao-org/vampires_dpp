@@ -363,11 +363,14 @@ class Pipeline:
         selected_metrics_path = (
             selected_path.with_suffix(".npz") if selected_path is not None else None
         )
-        # aligned intermediate is only distinct from output_path when coadd is enabled
+        # when coadd is disabled the aligned file *is* the final output (see get_reduced_path)
         aligned_path = None
-        if self.config.align.save_intermediate and self.config.coadd.coadd:
-            _, _ap = get_paths(output_path, output_directory=self.paths.aligned)
-            aligned_path = _ap.with_name(_ap.name.replace("_coll", "_reg"))
+        if self.config.align.save_intermediate:
+            if self.config.coadd.coadd:
+                _, _ap = get_paths(output_path, output_directory=self.paths.aligned)
+                aligned_path = _ap.with_name(_ap.name.replace("_coll", "_reg"))
+            else:
+                aligned_path = output_path
 
         # ── Stages 1+2: Calibrate + Combine ──
         if (
