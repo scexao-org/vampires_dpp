@@ -1,6 +1,5 @@
 from typing import Any, Literal
 
-import amical
 import numpy as np
 import tomli
 
@@ -21,6 +20,8 @@ def check_mask_align(
     theta - adjustable parameter
     uv - adjustable parameter
     """
+    import amical
+
     infos = amical.mf_pipeline.bispect._check_input_infos(
         {}, targetname=None, filtname=params["filtname"], instrum=params["instrum"], verbose=False
     )

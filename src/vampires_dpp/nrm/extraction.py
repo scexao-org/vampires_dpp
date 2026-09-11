@@ -1,7 +1,6 @@
 import tempfile
 from pathlib import Path
 
-import amical
 import numpy as np
 
 from vampires_dpp.nrm.params import get_amical_parameters
@@ -12,6 +11,8 @@ from vampires_dpp.specphot.filters import determine_filterset_from_header
 def extract_observables(
     config, input_hdul, output_path: Path, uv_thetas: dict, force: bool = False
 ):
+    import amical
+
     """Runs AMICAL and extracts observables to HDF5 file. Will skip if file already exists and force is False"""
     if not force and output_path.exists():
         return output_path
