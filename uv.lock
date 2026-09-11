@@ -4986,7 +4986,6 @@ wheels = [
 name = "vampires-dpp"
 source = { editable = "." }
 dependencies = [
-    { name = "amical" },
     { name = "annotated-types" },
     { name = "astropy", version = "6.1.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "astropy", version = "7.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -5042,6 +5041,9 @@ docs = [
     { name = "sphinxcontrib-eval" },
     { name = "zenodo-get" },
 ]
+nrm = [
+    { name = "amical" },
+]
 test = [
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -5050,7 +5052,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "amical", git = "https://github.com/SAIL-Labs/AMICAL?rev=vampires_dev" },
+    { name = "amical", marker = "extra == 'nrm'", git = "https://github.com/SAIL-Labs/AMICAL?rev=vampires_dev" },
     { name = "annotated-types" },
     { name = "astropy" },
     { name = "astroquery", specifier = ">=0.4.8" },
@@ -5091,7 +5093,7 @@ requires-dist = [
     { name = "ty", marker = "extra == 'dev'" },
     { name = "zenodo-get", marker = "extra == 'docs'" },
 ]
-provides-extras = ["dev", "docs", "test"]
+provides-extras = ["dev", "docs", "nrm", "test"]
 
 [[package]]
 name = "wcwidth"

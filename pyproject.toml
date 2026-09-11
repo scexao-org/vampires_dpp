@@ -11,7 +11,6 @@ authors = [{name = "Miles Lucas", email = "mileslucas@arizona.edu"}]
 requires-python = ">=3.10"
 dynamic = ["version"]
 dependencies = [
-    "amical@git+https://github.com/SAIL-Labs/AMICAL@vampires_dev",
     "annotated-types",
     "astropy",
     "astroquery>=0.4.8",
@@ -45,6 +44,9 @@ repository = "https://github.com/scexao-org/vampires_dpp"
 documentation = "https://scexao-org.github.io/vampires_dpp/"
 
 [project.optional-dependencies]
+nrm = [
+    "amical@git+https://github.com/SAIL-Labs/AMICAL@vampires_dev",
+]
 dev = ["ty", "ruff"]
 test = [
     "pytest_cov",
