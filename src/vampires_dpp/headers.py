@@ -265,8 +265,8 @@ def sort_header(header: fits.Header) -> fits.Header:
     return output_header
 
 
-def sort_headers_hdul(hdul: fits.HDUList) -> fits.HDUList:
-    if len(hdul) > 1:
+def sort_headers_hdul(hdul: fits.HDUList | fits.PrimaryHDU) -> fits.HDUList | fits.PrimaryHDU:
+    if isinstance(hdul, fits.HDUList):
         for hdu in hdul:
             hdu.header = sort_header(hdu.header)
     else:

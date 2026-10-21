@@ -886,14 +886,25 @@ class Pipeline:
             logger.info(f"Saved Stokes cube to {stokes_cube_path}")
 
             # now collapse wavelength axis and clobber
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                wave_coll_frame = np.nansum(coll_frame, axis=0, keepdims=True)
-                wave_err_frame = np.sqrt(np.nansum(coll_err**2, axis=0, keepdims=True))
+            weights = 1.0
+            if self.config.specphot.unit == "contrast":
+                # Each contrast factor is 1 / stellar flux; normalize the stellar-flux weights.
+                stellar_fluxes = np.array(
+                    [1 / hdr[f"DPP SPECPHOT FACTOR {hdr['FIELD']}"] for hdr in coll_hdrs]
+                )
+                weights = (stellar_fluxes / stellar_fluxes.sum())[:, None, None, None]
+            wave_coll_frame = np.nansum(coll_frame * weights, axis=0, keepdims=True)
+            wave_err_frame = np.sqrt(
+                np.nansum((coll_err * weights) ** 2, axis=0, keepdims=True)
+            )
             wave_coll_hdr = apply_wcs(wave_coll_frame, combine_frames_headers(coll_hdrs), angle=0)
             wave_coll_hdr["NCOADD"] /= len(coll_hdrs)
             wave_coll_hdr["TINT"] /= len(coll_hdrs)
             wave_coll_hdr["FIELD"] = "COMB"
+            wave_coll_hdr["hierarch DPP PDI WAVE COLL METH"] = (
+                "stellar_flux_weighted" if self.config.specphot.unit == "contrast" else "sum",
+                "Wavelength combination method",
+            )
             # TODO some fits keywords here are screwed up
             prim_hdu = fits.PrimaryHDU(wave_coll_frame[:4], header=wave_coll_hdr)
             err_hdu = fits.ImageHDU(wave_err_frame[:4], header=wave_coll_hdr, name="ERR")
