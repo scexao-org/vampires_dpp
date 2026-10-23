@@ -901,10 +901,6 @@ class Pipeline:
             wave_coll_hdr["NCOADD"] /= len(coll_hdrs)
             wave_coll_hdr["TINT"] /= len(coll_hdrs)
             wave_coll_hdr["FIELD"] = "COMB"
-            wave_coll_hdr["hierarch DPP PDI WAVE COLL METH"] = (
-                "stellar_flux_weighted" if self.config.specphot.unit == "contrast" else "sum",
-                "Wavelength combination method",
-            )
             # TODO some fits keywords here are screwed up
             prim_hdu = fits.PrimaryHDU(wave_coll_frame[:4], header=wave_coll_hdr)
             err_hdu = fits.ImageHDU(wave_err_frame[:4], header=wave_coll_hdr, name="ERR")
